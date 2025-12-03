@@ -10,24 +10,14 @@ export default function StoryChapter({
 }) {
     return (
         <div 
-            className={cn(
-                "min-h-screen flex items-center py-24 px-4 md:px-8",
-                alignment === 'left' && "justify-start",
-                alignment === 'center' && "justify-center",
-                alignment === 'right' && "justify-end",
-                alignment === 'full' && "justify-center"
-            )}
+            className="min-h-screen flex items-center py-24 px-4 md:px-8 justify-end"
         >
             <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 viewport={{ once: false, amount: 0.5 }}
-                className={cn(
-                    "relative max-w-md",
-                    alignment === 'full' && "max-w-2xl text-center",
-                    alignment === 'center' && "text-center"
-                )}
+                className="relative max-w-md"
             >
                 {/* Card */}
                 <div className={cn(

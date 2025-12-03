@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 export default function ChapterNavigation({ chapters, activeIndex, onNavigate }) {
     return (
-        <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col items-center gap-3">
+        <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col items-center gap-3">
             {chapters.map((chapter, index) => (
                 <button
                     key={index}
@@ -24,10 +24,10 @@ export default function ChapterNavigation({ chapters, activeIndex, onNavigate })
                     
                     {/* Tooltip */}
                     <div className={cn(
-                        "absolute right-6 px-3 py-1.5 rounded-lg",
+                        "absolute left-6 px-3 py-1.5 rounded-lg",
                         "bg-slate-900/90 backdrop-blur-sm",
                         "opacity-0 group-hover:opacity-100 pointer-events-none",
-                        "transition-all duration-200 transform translate-x-2 group-hover:translate-x-0",
+                        "transition-all duration-200 transform -translate-x-2 group-hover:translate-x-0",
                         "whitespace-nowrap"
                     )}>
                         <span className="text-xs text-white font-medium">
@@ -38,7 +38,7 @@ export default function ChapterNavigation({ chapters, activeIndex, onNavigate })
             ))}
             
             {/* Progress line */}
-            <div className="absolute top-0 right-[4px] w-0.5 h-full bg-slate-300/30 -z-10 rounded-full">
+            <div className="absolute top-0 left-[4px] w-0.5 h-full bg-slate-300/30 -z-10 rounded-full">
                 <motion.div 
                     className="w-full bg-amber-600/60 rounded-full origin-top"
                     style={{ 
