@@ -8,7 +8,7 @@ function MapController({ center, zoom, bearing }) {
     useEffect(() => {
         if (center && zoom) {
             map.flyTo(center, zoom, {
-                                duration: 10,
+                                duration: 5,
                                 easeLinearity: 0.25
                             });
         }
