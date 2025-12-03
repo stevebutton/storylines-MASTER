@@ -58,6 +58,13 @@ export default function StoryMap() {
 
     return (
         <div ref={containerRef} className="relative">
+            {/* Fixed Title */}
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+                <div className="bg-white/95 backdrop-blur-xl rounded-xl shadow-lg border border-slate-200/50 px-6 py-3">
+                    <h1 className="text-lg font-semibold text-slate-800 tracking-wide">A Storymap</h1>
+                </div>
+            </div>
+
             {/* Map Background */}
             <MapBackground 
                 center={mapConfig.center}
