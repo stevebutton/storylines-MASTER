@@ -30,34 +30,34 @@ export default function StoryMapBanner({
                     </div>
 
                     {/* Right - Navigation Icons */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center" style={{ gap: '30px' }}>
                         {/* Chapters Toggle */}
                         {hasChapters && (
                             <button
                                 onClick={onToggleChapterMenu}
                                 className={cn(
-                                    "p-2 rounded-lg transition-colors",
+                                    "flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium",
                                     isChapterMenuOpen 
                                         ? "bg-amber-100 text-amber-700" 
                                         : "hover:bg-slate-100 text-slate-600"
                                 )}
-                                title="Chapters"
                             >
                                 {isChapterMenuOpen ? (
                                     <X className="w-5 h-5" />
                                 ) : (
                                     <Menu className="w-5 h-5" />
                                 )}
+                                <span>Chapters</span>
                             </button>
                         )}
 
                         {/* My Stories */}
                         <Link
                             to={createPageUrl('Stories')}
-                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
-                            title="My Stories"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
                         >
                             <List className="w-5 h-5" />
+                            <span>My Stories</span>
                         </Link>
 
                         {/* Create Story */}

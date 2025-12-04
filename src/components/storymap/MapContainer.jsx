@@ -121,9 +121,10 @@ export default function MapBackground({
             <div ref={mapContainer} className="h-full w-full" />
             <style>{`
                 .mapboxgl-ctrl-top-left {
-                    z-index: 60 !important;
+                    z-index: 1000 !important;
                     top: 80px !important;
                     left: 16px !important;
+                    pointer-events: auto !important;
                 }
                 .mapboxgl-ctrl-group {
                     background: rgba(255, 255, 255, 0.95) !important;
