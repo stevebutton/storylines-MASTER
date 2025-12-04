@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import MapBackground from '@/components/storymap/MapContainer';
 import StoryChapter from '@/components/storymap/StoryChapter';
 import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
+import MapSearchBar from '@/components/storymap/MapSearchBar';
 import { Loader2 } from 'lucide-react';
 
 export default function StoryMapView() {
@@ -113,7 +114,27 @@ export default function StoryMapView() {
             behavior: 'smooth',
             block: 'center'
         });
+        setActiveChapter(index);
+        const chapter = chapters[index];
+        if (chapter) {
+            setMapConfig({
+                center: chapter.coordinates || [0, 0],
+                zoom: chapter.zoom || 12,
+                mapStyle: chapter.map_style || 'light'
+            });
+        }
     };
+
+    // Build markers from chapters
+    const markers = useMemo(() => {
+        return chapters.map(chapter => ({
+            coordinates: chapter.coordinates || [0, 0],
+            title: chapter.slides?.[0]?.title || 'Chapter',
+            location: chapter.slides?.[0]?.location || '',
+            description: chapter.slides?.[0]?.description || '',
+            image: chapter.slides?.[0]?.image || ''
+        }));
+    }, [chapters]);
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -144,11 +165,20 @@ export default function StoryMapView() {
                 </div>
             </div>
 
+            {/* Search Bar */}
+            <MapSearchBar 
+                chapters={chapters} 
+                onLocationSelect={navigateToChapter} 
+            />
+
             {/* Map Background */}
             <MapBackground 
                 center={mapConfig.center}
                 zoom={mapConfig.zoom}
                 mapStyle={mapConfig.mapStyle}
+                markers={markers}
+                activeMarkerIndex={activeChapter}
+                onMarkerClick={navigateToChapter}
             />
             
             {/* Story Content */}
