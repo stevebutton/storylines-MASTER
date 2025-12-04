@@ -22,6 +22,7 @@ export default function StoryMapView() {
         zoom: 12,
         mapStyle: 'light'
     });
+    const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     
     const chapterRefs = useRef([]);
 
@@ -210,14 +211,27 @@ export default function StoryMapView() {
                 <StoryFooter onRestart={scrollToTop} />
             </div>
             
-            {/* Navigation */}
-            {chapters.length > 0 && (
-                <ChapterNavigation 
-                    chapters={chapters}
-                    activeIndex={activeChapter}
-                    onNavigate={navigateToChapter}
-                />
-            )}
+            {/* Chapters Button */}
+                            {chapters.length > 0 && (
+                                <button
+                                    onClick={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
+                                    className="fixed left-6 top-1/2 -translate-y-1/2 z-40 bg-white/95 backdrop-blur-xl rounded-xl shadow-lg border border-slate-200/50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors hidden md:block"
+                                >
+                                    Chapters
+                                </button>
+                            )}
+
+                            {/* Navigation */}
+                            {chapters.length > 0 && isChapterMenuOpen && (
+                                <ChapterNavigation 
+                                    chapters={chapters}
+                                    activeIndex={activeChapter}
+                                    onNavigate={(index) => {
+                                        navigateToChapter(index);
+                                        setIsChapterMenuOpen(false);
+                                    }}
+                                />
+                            )}
             
             {/* Bottom Menu Bar */}
             <BottomMenuBar />
