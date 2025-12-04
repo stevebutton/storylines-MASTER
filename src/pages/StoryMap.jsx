@@ -114,10 +114,34 @@ export default function StoryMap() {
   }, [activeChapter, chapters]);
 
   const navigateToChapter = (index) => {
-    chapterRefs.current[index]?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center'
-    });
+    const element = chapterRefs.current[index];
+    if (!element) return;
+    
+    const elementRect = element.getBoundingClientRect();
+    const absoluteElementTop = elementRect.top + window.scrollY;
+    const targetPosition = absoluteElementTop - (window.innerHeight / 2) + (elementRect.height / 2);
+    
+    const startPosition = window.scrollY;
+    const distance = targetPosition - startPosition;
+    const duration = 2000;
+    let startTime = null;
+    
+    const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    
+    const animateScroll = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeInOutCubic(progress);
+      
+      window.scrollTo(0, startPosition + (distance * easedProgress));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll);
+      }
+    };
+    
+    requestAnimationFrame(animateScroll);
   };
 
   const scrollToTop = () => {
