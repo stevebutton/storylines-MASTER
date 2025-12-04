@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -83,6 +83,21 @@ export default function Stories() {
             loadStories();
         } catch (error) {
             console.error('Failed to update story:', error);
+        }
+    };
+
+    const setAsMainStory = async (story) => {
+        try {
+            // Unset any current main story
+            const currentMainStories = stories.filter(s => s.is_main_story);
+            for (const mainStory of currentMainStories) {
+                await base44.entities.Story.update(mainStory.id, { is_main_story: false });
+            }
+            // Set new main story
+            await base44.entities.Story.update(story.id, { is_main_story: true });
+            loadStories();
+        } catch (error) {
+            console.error('Failed to set main story:', error);
         }
     };
 
@@ -247,33 +262,53 @@ export default function Stories() {
                             <Card key={story.id} className="group hover:shadow-lg transition-shadow overflow-hidden">
                                 <CardContent className="p-0">
                                     {/* Status bar */}
-                                    <div className={`px-4 py-2 flex items-center justify-between ${story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                        <div className="flex items-center gap-2">
-                                            {story.is_published ? (
-                                                <>
-                                                    <Globe className="w-3.5 h-3.5 text-green-600" />
-                                                    <span className="text-xs font-medium text-green-700">Published</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <FileEdit className="w-3.5 h-3.5 text-amber-600" />
-                                                    <span className="text-xs font-medium text-amber-700">Draft</span>
-                                                </>
-                                            )}
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => togglePublishStatus(story)}
-                                            className="h-6 text-xs"
-                                        >
-                                            {story.is_published ? (
-                                                <><Lock className="w-3 h-3 mr-1" /> Unpublish</>
-                                            ) : (
-                                                <><Globe className="w-3 h-3 mr-1" /> Publish</>
-                                            )}
-                                        </Button>
-                                    </div>
+                                                                                        <div className={`px-4 py-2 flex items-center justify-between ${story.is_main_story ? 'bg-purple-50' : story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                {story.is_main_story && (
+                                                                                                    <>
+                                                                                                        <Star className="w-3.5 h-3.5 text-purple-600 fill-purple-600" />
+                                                                                                        <span className="text-xs font-medium text-purple-700">Main Story</span>
+                                                                                                    </>
+                                                                                                )}
+                                                                                                {!story.is_main_story && story.is_published && (
+                                                                                                    <>
+                                                                                                        <Globe className="w-3.5 h-3.5 text-green-600" />
+                                                                                                        <span className="text-xs font-medium text-green-700">Published</span>
+                                                                                                    </>
+                                                                                                )}
+                                                                                                {!story.is_main_story && !story.is_published && (
+                                                                                                    <>
+                                                                                                        <FileEdit className="w-3.5 h-3.5 text-amber-600" />
+                                                                                                        <span className="text-xs font-medium text-amber-700">Draft</span>
+                                                                                                    </>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            <div className="flex items-center gap-1">
+                                                                                                {!story.is_main_story && (
+                                                                                                    <Button
+                                                                                                        variant="ghost"
+                                                                                                        size="sm"
+                                                                                                        onClick={() => setAsMainStory(story)}
+                                                                                                        className="h-6 text-xs"
+                                                                                                        title="Set as Main Story"
+                                                                                                    >
+                                                                                                        <Star className="w-3 h-3 mr-1" /> Set Main
+                                                                                                    </Button>
+                                                                                                )}
+                                                                                                <Button
+                                                                                                    variant="ghost"
+                                                                                                    size="sm"
+                                                                                                    onClick={() => togglePublishStatus(story)}
+                                                                                                    className="h-6 text-xs"
+                                                                                                >
+                                                                                                    {story.is_published ? (
+                                                                                                        <><Lock className="w-3 h-3 mr-1" /> Unpublish</>
+                                                                                                    ) : (
+                                                                                                        <><Globe className="w-3 h-3 mr-1" /> Publish</>
+                                                                                                    )}
+                                                                                                </Button>
+                                                                                            </div>
+                                                                                        </div>
 
                                     <div className="p-5">
                                         <div className="flex items-start justify-between mb-2">
