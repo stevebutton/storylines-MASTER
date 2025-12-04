@@ -22,7 +22,7 @@ export default function StoryChapter({
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 viewport={{ once: false, amount: 0.5 }}
-                className="relative w-1/2 min-w-[300px]"
+                className="relative w-1/2 min-w-[300px] pointer-events-auto"
             >
                 {/* Card */}
                 <div className={cn(
