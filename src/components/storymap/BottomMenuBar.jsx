@@ -26,7 +26,7 @@ export default function BottomMenuBar() {
                     className="flex items-center gap-2 px-4 py-2 rounded-full text-slate-600 hover:bg-slate-100 transition-colors"
                 >
                     <Map className="w-4 h-4" />
-                    <span className="text-sm font-medium">Demo</span>
+                    <span className="text-sm font-medium">Main Story</span>
                 </Link>
             </div>
         </div>

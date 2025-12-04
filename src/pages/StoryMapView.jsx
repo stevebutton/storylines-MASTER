@@ -6,6 +6,7 @@ import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import MapSearchBar from '@/components/storymap/MapSearchBar';
+import BottomMenuBar from '@/components/storymap/BottomMenuBar';
 import { Loader2 } from 'lucide-react';
 
 export default function StoryMapView() {
@@ -218,15 +219,8 @@ export default function StoryMapView() {
                 />
             )}
             
-            {/* Mobile progress bar */}
-            <div className="fixed bottom-0 left-0 right-0 h-1 bg-black/20 z-50 md:hidden">
-                <div 
-                    className="h-full bg-amber-600 transition-all duration-300"
-                    style={{ 
-                        width: chapters.length > 0 ? `${((activeChapter + 1) / chapters.length) * 100}%` : '0%'
-                    }}
-                />
+            {/* Bottom Menu Bar */}
+            <BottomMenuBar />
             </div>
-        </div>
-    );
+            );
 }
