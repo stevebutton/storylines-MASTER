@@ -227,16 +227,15 @@ export default function StoryMap() {
             </div>
             
             {/* Chapter Navigation */}
-            {isChapterMenuOpen && (
-                <ChapterNavigation
-                    chapters={chapters}
-                    activeIndex={activeChapter}
-                    onNavigate={(index) => {
-                        navigateToChapter(index);
-                        setIsChapterMenuOpen(false);
-                    }}
-                />
-            )}
+            <ChapterNavigation
+                chapters={chapters}
+                activeIndex={activeChapter}
+                isOpen={isChapterMenuOpen}
+                onNavigate={(index) => {
+                    navigateToChapter(index);
+                    setIsChapterMenuOpen(false);
+                }}
+            />
 
             {/* Chapter Progress Indicator */}
             {isBannerVisible && chapters.length > 0 && (

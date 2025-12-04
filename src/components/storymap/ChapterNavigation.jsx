@@ -3,9 +3,18 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { MapPin } from 'lucide-react';
 
-export default function ChapterNavigation({ chapters, activeIndex, onNavigate }) {
+export default function ChapterNavigation({ chapters, activeIndex, onNavigate, isOpen }) {
     return (
-        <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 hidden md:block">
+        <motion.div 
+            className="fixed left-6 top-1/2 -translate-y-1/2 z-50 hidden md:block"
+            initial={{ x: -300, opacity: 0 }}
+            animate={{ x: isOpen ? 0 : -300, opacity: isOpen ? 1 : 0 }}
+            exit={{ x: -300, opacity: 0 }}
+            transition={{ 
+                duration: isOpen ? 1.5 : 1,
+                ease: "easeInOut"
+            }}
+        >
             <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/50 p-4 min-w-[220px]">
                 {/* Header */}
                 <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
@@ -80,6 +89,6 @@ export default function ChapterNavigation({ chapters, activeIndex, onNavigate })
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
