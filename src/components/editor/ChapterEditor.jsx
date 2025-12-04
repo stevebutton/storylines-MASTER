@@ -8,6 +8,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
+import LocationPicker from './LocationPicker';
 
 export default function ChapterEditor({ 
     chapter, 
@@ -27,6 +28,14 @@ export default function ChapterEditor({
         const newCoords = [...(chapter.coordinates || [0, 0])];
         newCoords[idx] = parseFloat(value) || 0;
         onUpdateChapter({ ...chapter, coordinates: newCoords });
+    };
+
+    const handleLocationSelect = (coords, locationName) => {
+        onUpdateChapter({ ...chapter, coordinates: coords });
+        // If first slide exists and has no location, update it
+        if (slides[0] && !slides[0].location && locationName) {
+            onUpdateSlide({ ...slides[0], location: locationName.split(',')[0] });
+        }
     };
 
     const handleDragEnd = (result) => {
@@ -76,31 +85,39 @@ export default function ChapterEditor({
                 <CollapsibleContent>
                     <CardContent className="p-4 space-y-4">
                         {/* Map Settings */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-slate-50 rounded-lg">
-                            <div>
-                                <Label className="text-xs flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" /> Latitude
+                        <div className="p-4 bg-slate-50 rounded-lg space-y-3">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-sm font-medium flex items-center gap-2">
+                                    <MapPin className="w-4 h-4 text-amber-600" /> Location
                                 </Label>
-                                <Input 
-                                    type="number"
-                                    step="0.0001"
-                                    value={chapter.coordinates?.[0] || ''} 
-                                    onChange={(e) => handleCoordinateChange(0, e.target.value)}
-                                    placeholder="41.8902"
-                                    className="h-9"
+                                <LocationPicker 
+                                    coordinates={chapter.coordinates}
+                                    onSelect={handleLocationSelect}
                                 />
                             </div>
-                            <div>
-                                <Label className="text-xs">Longitude</Label>
-                                <Input 
-                                    type="number"
-                                    step="0.0001"
-                                    value={chapter.coordinates?.[1] || ''} 
-                                    onChange={(e) => handleCoordinateChange(1, e.target.value)}
-                                    placeholder="12.4922"
-                                    className="h-9"
-                                />
-                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div>
+                                    <Label className="text-xs">Latitude</Label>
+                                    <Input 
+                                        type="number"
+                                        step="0.0001"
+                                        value={chapter.coordinates?.[0] || ''} 
+                                        onChange={(e) => handleCoordinateChange(0, e.target.value)}
+                                        placeholder="41.8902"
+                                        className="h-9"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Longitude</Label>
+                                    <Input 
+                                        type="number"
+                                        step="0.0001"
+                                        value={chapter.coordinates?.[1] || ''} 
+                                        onChange={(e) => handleCoordinateChange(1, e.target.value)}
+                                        placeholder="12.4922"
+                                        className="h-9"
+                                    />
+                                </div>
                             <div>
                                 <Label className="text-xs">Zoom</Label>
                                 <Input 
@@ -112,23 +129,24 @@ export default function ChapterEditor({
                                     className="h-9"
                                 />
                             </div>
-                            <div>
-                                <Label className="text-xs">Map Style</Label>
-                                <Select 
-                                    value={chapter.map_style || 'light'} 
-                                    onValueChange={(value) => onUpdateChapter({ ...chapter, map_style: value })}
-                                >
-                                    <SelectTrigger className="h-9">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="light">Light</SelectItem>
-                                        <SelectItem value="dark">Dark</SelectItem>
-                                        <SelectItem value="satellite">Satellite</SelectItem>
-                                        <SelectItem value="watercolor">Watercolor</SelectItem>
-                                        <SelectItem value="terrain">Terrain</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <div>
+                                    <Label className="text-xs">Map Style</Label>
+                                    <Select 
+                                        value={chapter.map_style || 'light'} 
+                                        onValueChange={(value) => onUpdateChapter({ ...chapter, map_style: value })}
+                                    >
+                                        <SelectTrigger className="h-9">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="light">Light</SelectItem>
+                                            <SelectItem value="dark">Dark</SelectItem>
+                                            <SelectItem value="satellite">Satellite</SelectItem>
+                                            <SelectItem value="watercolor">Watercolor</SelectItem>
+                                            <SelectItem value="terrain">Terrain</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
 
