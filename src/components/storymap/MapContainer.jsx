@@ -117,8 +117,26 @@ export default function MapBackground({
     }, [markers, activeMarkerIndex, onMarkerClick]);
 
     return (
-        <div className="fixed inset-0" style={{ zIndex: 0 }}>
-            <div ref={mapContainer} style={{ height: '100%', width: '100%', zIndex: 0 }} />
+        <div className="fixed inset-0 z-0">
+            <div ref={mapContainer} className="h-full w-full" />
+            <style>{`
+                .mapboxgl-ctrl-top-left {
+                    z-index: 60 !important;
+                    top: 80px !important;
+                    left: 16px !important;
+                }
+                .mapboxgl-ctrl-group {
+                    background: rgba(255, 255, 255, 0.95) !important;
+                    backdrop-filter: blur(12px) !important;
+                    border-radius: 12px !important;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+                    border: 1px solid rgba(226, 232, 240, 0.5) !important;
+                }
+                .mapboxgl-ctrl-group button {
+                    width: 36px !important;
+                    height: 36px !important;
+                }
+            `}</style>
         </div>
     );
 }
