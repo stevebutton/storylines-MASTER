@@ -89,7 +89,7 @@ export default function MapBackground({
 
     // Update markers
     useEffect(() => {
-        if (!map.current) return;
+        if (!map.current || !mapboxgl) return;
 
         // Remove existing markers
         markersRef.current.forEach(marker => marker.remove());
@@ -141,7 +141,7 @@ export default function MapBackground({
 
             markersRef.current.push(marker);
         });
-    }, [markers, activeMarkerIndex, onMarkerClick]);
+    }, [markers, activeMarkerIndex, onMarkerClick, mapboxgl]);
 
     return (
         <div className="fixed inset-0 z-0">
