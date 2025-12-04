@@ -8,7 +8,7 @@ export default function StoryHeader({ title, subtitle, author }) {
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20 z-10" />
             
             <motion.div 
-                className="relative z-20 text-center px-6 max-w-3xl"
+                className="relative z-20 text-center px-6 max-w-3xl pointer-events-auto"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 0.3 }}

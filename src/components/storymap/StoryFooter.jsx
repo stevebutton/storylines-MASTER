@@ -9,7 +9,7 @@ export default function StoryFooter({ onRestart }) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
             
             <motion.div 
-                className="relative z-20 text-center px-6 max-w-2xl"
+                className="relative z-20 text-center px-6 max-w-2xl pointer-events-auto"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 transition={{ duration: 1 }}
