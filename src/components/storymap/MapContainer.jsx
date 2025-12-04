@@ -46,10 +46,16 @@ export default function MapBackground({
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markersRef = useRef([]);
+    const [mapboxgl, setMapboxgl] = useState(null);
+
+    // Load Mapbox
+    useEffect(() => {
+        loadMapbox().then(setMapboxgl);
+    }, []);
 
     // Initialize map
     useEffect(() => {
-        if (map.current) return;
+        if (!mapboxgl || map.current || !mapContainer.current) return;
         
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
@@ -66,7 +72,7 @@ export default function MapBackground({
                 map.current = null;
             }
         };
-    }, []);
+    }, [mapboxgl]);
 
     // Update map position
     useEffect(() => {
