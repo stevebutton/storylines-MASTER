@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Plus, Save, Eye, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -258,16 +260,45 @@ export default function StoryEditor() {
                                 className="max-w-lg h-20"
                             />
                         </div>
-                        <div>
-                            <Label>Author</Label>
-                            <Input 
-                                value={story.author || ''} 
-                                onChange={(e) => setStory({ ...story, author: e.target.value })}
-                                placeholder="Your name"
-                                className="max-w-xs"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <Label>Author</Label>
+                                <Input 
+                                    value={story.author || ''} 
+                                    onChange={(e) => setStory({ ...story, author: e.target.value })}
+                                    placeholder="Your name"
+                                />
+                            </div>
+                            <div>
+                                <Label>Category</Label>
+                                <Select 
+                                    value={story.category || 'other'} 
+                                    onValueChange={(value) => setStory({ ...story, category: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="travel">Travel</SelectItem>
+                                        <SelectItem value="history">History</SelectItem>
+                                        <SelectItem value="nature">Nature</SelectItem>
+                                        <SelectItem value="culture">Culture</SelectItem>
+                                        <SelectItem value="adventure">Adventure</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                    </CardContent>
+                        <div className="flex items-center gap-3">
+                            <Switch
+                                checked={story.is_published || false}
+                                onCheckedChange={(checked) => setStory({ ...story, is_published: checked })}
+                            />
+                            <Label className="cursor-pointer">
+                                {story.is_published ? 'Published' : 'Draft'}
+                            </Label>
+                        </div>
+                        </CardContent>
                 </Card>
 
                 {/* Chapters */}
