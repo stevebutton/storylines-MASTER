@@ -1,113 +1,124 @@
-import React, { useEffect } from 'react';
-import { MapContainer as LeafletMapContainer, TileLayer, useMap, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import React, { useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
 
-// Fix default marker icon issue with Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-const activeIcon = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-
-const defaultIcon = new L.Icon({
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-});
-
-function MapController({ center, zoom, bearing }) {
-    const map = useMap();
-    
-    useEffect(() => {
-        if (center && zoom) {
-            map.flyTo(center, zoom, {
-                duration: 5,
-                easeLinearity: 0.25
-            });
-        }
-    }, [center, zoom, map]);
-    
-    return null;
+// Inject Mapbox CSS
+if (typeof document !== 'undefined' && !document.getElementById('mapbox-css')) {
+    const link = document.createElement('link');
+    link.id = 'mapbox-css';
+    link.rel = 'stylesheet';
+    link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+    document.head.appendChild(link);
 }
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiY2x1anluMG45MDJhNjJqcGhkcHM3OTk1bCJ9.wJOlYFOnubfpWaHJBxNq-g';
+
+const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
 
 export default function MapBackground({ 
     center, 
     zoom, 
-    bearing, 
-    mapStyle, 
+    bearing = 0, 
     markers = [], 
     activeMarkerIndex = -1,
     onMarkerClick 
 }) {
-    const tileStyles = {
-        light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-        dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-        satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        watercolor: 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg',
-        terrain: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
-    };
+    const mapContainer = useRef(null);
+    const map = useRef(null);
+    const markersRef = useRef([]);
+
+    // Initialize map
+    useEffect(() => {
+        if (map.current) return;
+        
+        map.current = new mapboxgl.Map({
+            container: mapContainer.current,
+            style: MAPBOX_STYLE,
+            center: center ? [center[1], center[0]] : [-74.006, 40.7128],
+            zoom: zoom || 12,
+            bearing: bearing,
+            interactive: false
+        });
+
+        return () => {
+            if (map.current) {
+                map.current.remove();
+                map.current = null;
+            }
+        };
+    }, []);
+
+    // Update map position
+    useEffect(() => {
+        if (!map.current || !center) return;
+        
+        map.current.flyTo({
+            center: [center[1], center[0]],
+            zoom: zoom || 12,
+            bearing: bearing,
+            duration: 2000,
+            essential: true
+        });
+    }, [center, zoom, bearing]);
+
+    // Update markers
+    useEffect(() => {
+        if (!map.current) return;
+
+        // Remove existing markers
+        markersRef.current.forEach(marker => marker.remove());
+        markersRef.current = [];
+
+        // Add new markers
+        markers.forEach((markerData, index) => {
+            const el = document.createElement('div');
+            el.className = 'mapbox-marker';
+            el.style.cssText = `
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: ${index === activeMarkerIndex ? '#d97706' : '#475569'};
+                border: 3px solid white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                cursor: pointer;
+                transition: all 0.3s ease;
+            `;
+
+            if (index === activeMarkerIndex) {
+                el.style.width = '32px';
+                el.style.height = '32px';
+                el.style.zIndex = '10';
+            }
+
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
+                .addTo(map.current);
+
+            // Add popup
+            const popupContent = `
+                <div style="min-width: 200px; font-family: system-ui, sans-serif;">
+                    ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;" />` : ''}
+                    <h3 style="font-weight: 600; color: #1e293b; margin: 0 0 4px 0;">${markerData.title}</h3>
+                    ${markerData.location ? `<p style="font-size: 12px; color: #64748b; margin: 0;">${markerData.location}</p>` : ''}
+                    ${markerData.description ? `<p style="font-size: 14px; color: #475569; margin: 8px 0 0 0; line-height: 1.4;">${markerData.description.substring(0, 100)}${markerData.description.length > 100 ? '...' : ''}</p>` : ''}
+                </div>
+            `;
+
+            const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
+                .setHTML(popupContent);
+
+            marker.setPopup(popup);
+
+            el.addEventListener('click', () => {
+                if (onMarkerClick) onMarkerClick(index);
+            });
+
+            markersRef.current.push(marker);
+        });
+    }, [markers, activeMarkerIndex, onMarkerClick]);
 
     return (
         <div className="fixed inset-0 z-0">
-            <LeafletMapContainer
-                center={center || [40.7128, -74.006]}
-                zoom={zoom || 12}
-                zoomControl={false}
-                scrollWheelZoom={false}
-                dragging={false}
-                doubleClickZoom={false}
-                style={{ height: '100%', width: '100%' }}
-            >
-                <TileLayer
-                    attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                    url={tileStyles[mapStyle] || tileStyles.light}
-                />
-                <MapController center={center} zoom={zoom} bearing={bearing} />
-                
-                {markers.map((marker, index) => (
-                    <Marker 
-                        key={index}
-                        position={marker.coordinates}
-                        icon={index === activeMarkerIndex ? activeIcon : defaultIcon}
-                        eventHandlers={{
-                            click: () => onMarkerClick && onMarkerClick(index)
-                        }}
-                    >
-                        <Popup>
-                            <div className="min-w-[200px]">
-                                {marker.image && (
-                                    <img 
-                                        src={marker.image} 
-                                        alt={marker.title} 
-                                        className="w-full h-24 object-cover rounded mb-2"
-                                    />
-                                )}
-                                <h3 className="font-semibold text-slate-800">{marker.title}</h3>
-                                {marker.location && (
-                                    <p className="text-xs text-slate-500 mt-1">{marker.location}</p>
-                                )}
-                                {marker.description && (
-                                    <p className="text-sm text-slate-600 mt-2 line-clamp-2">{marker.description}</p>
-                                )}
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
-            </LeafletMapContainer>
+            <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
         </div>
     );
 }
