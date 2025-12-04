@@ -40,7 +40,7 @@ export default function LocationPicker({ coordinates, onSelect }) {
 
             mapRef.current = new mapboxgl.Map({
                 container: mapContainerRef.current,
-                style: 'mapbox://styles/mapbox/streets-v12',
+                style: 'mapbox://styles/stevebutton/clujyp6ge012001pi3lhm1675',
                 center: initialCenter,
                 zoom: 10
             });
