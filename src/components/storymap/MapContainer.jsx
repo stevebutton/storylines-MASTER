@@ -1,18 +1,39 @@
-import React, { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-
-// Inject Mapbox CSS
-if (typeof document !== 'undefined' && !document.getElementById('mapbox-css')) {
-    const link = document.createElement('link');
-    link.id = 'mapbox-css';
-    link.rel = 'stylesheet';
-    link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
-    document.head.appendChild(link);
-}
-
-mapboxgl.accessToken = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiY2x1anluMG45MDJhNjJqcGhkcHM3OTk1bCJ9.wJOlYFOnubfpWaHJBxNq-g';
+import React, { useEffect, useRef, useState } from 'react';
 
 const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
+const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiY2x1anluMG45MDJhNjJqcGhkcHM3OTk1bCJ9.wJOlYFOnubfpWaHJBxNq-g';
+
+// Inject Mapbox CSS and JS
+const loadMapbox = () => {
+    return new Promise((resolve) => {
+        if (window.mapboxgl) {
+            window.mapboxgl.accessToken = MAPBOX_TOKEN;
+            resolve(window.mapboxgl);
+            return;
+        }
+
+        // Add CSS
+        if (!document.getElementById('mapbox-css')) {
+            const link = document.createElement('link');
+            link.id = 'mapbox-css';
+            link.rel = 'stylesheet';
+            link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+            document.head.appendChild(link);
+        }
+
+        // Add JS
+        if (!document.getElementById('mapbox-js')) {
+            const script = document.createElement('script');
+            script.id = 'mapbox-js';
+            script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+            script.onload = () => {
+                window.mapboxgl.accessToken = MAPBOX_TOKEN;
+                resolve(window.mapboxgl);
+            };
+            document.head.appendChild(script);
+        }
+    });
+};
 
 export default function MapBackground({ 
     center, 
