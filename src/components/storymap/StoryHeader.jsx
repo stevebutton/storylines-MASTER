@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export default function StoryHeader({ title, subtitle, author }) {
+export default function StoryHeader({ title, subtitle, author, onExplore }) {
     return (
         <div className="min-h-screen flex items-center justify-center relative">
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40 z-10" />
@@ -37,17 +37,22 @@ export default function StoryHeader({ title, subtitle, author }) {
                     </p>
                 )}
                 
-                {/* Scroll indicator */}
-                <motion.div 
-                    className="absolute bottom-12 left-1/2 -translate-x-1/2"
+                {/* Explore button */}
+                <motion.button 
+                    onClick={onExplore}
+                    className="absolute bottom-12 left-1/2 -translate-x-1/2 cursor-pointer group"
                     animate={{ y: [0, 8, 0] }}
                     transition={{ duration: 2, repeat: Infinity }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                 >
-                    <div className="flex flex-col items-center gap-2 text-white/60">
-                        <span className="text-xs tracking-widest uppercase">Scroll to explore</span>
-                        <ChevronDown className="w-5 h-5" />
+                    <div className="flex flex-col items-center gap-3 text-white/80 group-hover:text-white transition-colors">
+                        <span className="text-sm tracking-widest uppercase font-medium">Explore the story</span>
+                        <div className="w-10 h-10 rounded-full border-2 border-white/60 group-hover:border-white flex items-center justify-center transition-colors">
+                            <ChevronDown className="w-5 h-5" />
+                        </div>
                     </div>
-                </motion.div>
+                </motion.button>
             </motion.div>
         </div>
     );

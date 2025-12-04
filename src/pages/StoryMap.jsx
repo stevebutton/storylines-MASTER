@@ -21,6 +21,7 @@ export default function StoryMap() {
     mapStyle: 'light'
   });
   const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
+  const [isBannerVisible, setIsBannerVisible] = useState(false);
   const chapterRefs = useRef([]);
   const containerRef = useRef(null);
 
@@ -82,6 +83,10 @@ export default function StoryMap() {
 
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight / 2;
+      
+      // Show banner once we've scrolled past the header (first screen)
+      const headerHeight = window.innerHeight;
+      setIsBannerVisible(window.scrollY > headerHeight * 0.5);
 
       chapterRefs.current.forEach((ref, index) => {
         if (ref) {
@@ -148,6 +153,7 @@ export default function StoryMap() {
                 isChapterMenuOpen={isChapterMenuOpen}
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
+                isVisible={isBannerVisible}
             />
 
             {/* Map Background */}
@@ -163,7 +169,8 @@ export default function StoryMap() {
                 <StoryHeader
           title={story.title}
           subtitle={story.subtitle}
-          author={story.author} />
+          author={story.author}
+          onExplore={() => navigateToChapter(0)} />
 
                 
                 {/* Chapters */}
