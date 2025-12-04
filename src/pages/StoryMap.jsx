@@ -5,7 +5,7 @@ import StoryChapter from '@/components/storymap/StoryChapter';
 import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
-import BottomMenuBar from '@/components/storymap/BottomMenuBar';
+import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -143,12 +143,12 @@ export default function StoryMap() {
 
   return (
     <div ref={containerRef} className="relative">
-            {/* Fixed Title */}
-            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
-                <div className="bg-white/95 px-6 py-3 opacity-55 rounded-xl backdrop-blur-xl shadow-lg border border-slate-200/50">
-                    <h1 className="text-slate-800 text-4xl font-thin tracking-wide opacity-100">mapflow</h1>
-                </div>
-            </div>
+            {/* Top Banner */}
+            <StoryMapBanner
+                isChapterMenuOpen={isChapterMenuOpen}
+                onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
+                hasChapters={chapters.length > 0}
+            />
 
             {/* Map Background */}
             <MapBackground
@@ -185,17 +185,7 @@ export default function StoryMap() {
                 <StoryFooter onRestart={scrollToTop} />
             </div>
             
-            {/* Chapters Button */}
-            {chapters.length > 0 && (
-                <button
-                    onClick={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
-                    className="fixed left-6 top-1/2 -translate-y-1/2 z-40 bg-white/95 backdrop-blur-xl rounded-xl shadow-lg border border-slate-200/50 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors hidden md:block"
-                >
-                    Chapters
-                </button>
-            )}
-
-            {/* Navigation */}
+            {/* Chapter Navigation */}
             {isChapterMenuOpen && (
                 <ChapterNavigation
                     chapters={chapters}
@@ -206,10 +196,6 @@ export default function StoryMap() {
                     }}
                 />
             )}
-
-            
-            {/* Bottom Menu Bar */}
-            <BottomMenuBar />
         </div>);
 
 }
