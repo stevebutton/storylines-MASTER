@@ -7,10 +7,19 @@ export default function StoryChapter({
     chapter, 
     isActive, 
     alignment = 'left',
-    index 
+    index,
+    onSlideChange
 }) {
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
+
+    const handleSlideChange = (slideIndex) => {
+        setActiveSlideIndex(slideIndex);
+        const slide = chapter.slides?.[slideIndex];
+        if (slide && onSlideChange) {
+            onSlideChange(slide);
+        }
+    };
 
     return (
         <div 
@@ -34,7 +43,7 @@ export default function StoryChapter({
                     {chapter.slides && chapter.slides.length > 0 && (
                         <ChapterCarousel 
                             slides={chapter.slides} 
-                            onSlideChange={setActiveSlideIndex}
+                            onSlideChange={handleSlideChange}
                         />
                     )}
                     

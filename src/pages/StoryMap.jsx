@@ -205,10 +205,19 @@ export default function StoryMap() {
           ref={(el) => chapterRefs.current[index] = el}>
 
                         <StoryChapter
-            chapter={chapter}
-            isActive={activeChapter === index}
-            alignment={chapter.alignment}
-            index={index} />
+                        chapter={chapter}
+                        isActive={activeChapter === index}
+                        alignment={chapter.alignment}
+                        index={index}
+                        onSlideChange={(slide) => {
+                        if (slide.coordinates) {
+                        setMapConfig({
+                            center: slide.coordinates,
+                            zoom: slide.zoom || chapter.zoom || 12,
+                            mapStyle: chapter.map_style || 'light'
+                        });
+                        }
+                        }} />
 
                     </div>
         )}

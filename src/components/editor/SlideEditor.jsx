@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { GripVertical, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
+import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import LocationPicker from './LocationPicker';
 
 export default function SlideEditor({ slide, onUpdate, onDelete, dragHandleProps }) {
     const [isUploading, setIsUploading] = useState(false);
@@ -81,14 +82,30 @@ export default function SlideEditor({ slide, onUpdate, onDelete, dragHandleProps
                                 />
                             </div>
                         </div>
-                        <div>
-                            <Label className="text-xs">Description</Label>
-                            <Textarea 
-                                value={slide.description || ''} 
-                                onChange={(e) => onUpdate({ ...slide, description: e.target.value })}
-                                placeholder="Describe this moment..."
-                                className="h-16 resize-none"
-                            />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <Label className="text-xs">Description</Label>
+                                <Textarea 
+                                    value={slide.description || ''} 
+                                    onChange={(e) => onUpdate({ ...slide, description: e.target.value })}
+                                    placeholder="Describe this moment..."
+                                    className="h-16 resize-none"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs">Map Position (optional)</Label>
+                                <LocationPicker
+                                    coordinates={slide.coordinates}
+                                    zoom={slide.zoom}
+                                    onSelect={(coords, zoom) => onUpdate({ ...slide, coordinates: coords, zoom: zoom })}
+                                />
+                                {slide.coordinates && (
+                                    <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                        <MapPin className="w-3 h-3" />
+                                        {slide.coordinates[0].toFixed(4)}, {slide.coordinates[1].toFixed(4)}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
 
