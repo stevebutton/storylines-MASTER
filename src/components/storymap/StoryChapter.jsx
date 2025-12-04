@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import ChapterCarousel from './ChapterCarousel';
 
 export default function StoryChapter({ 
     chapter, 
@@ -25,16 +26,9 @@ export default function StoryChapter({
                     "bg-white/90 dark:bg-slate-900/90",
                     "border border-white/20"
                 )}>
-                    {/* Image */}
-                    {chapter.image && (
-                        <div className="relative h-48 md:h-56 overflow-hidden">
-                            <img 
-                                src={chapter.image} 
-                                alt={chapter.title}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                        </div>
+                    {/* Image Carousel */}
+                    {chapter.images && chapter.images.length > 0 && (
+                        <ChapterCarousel images={chapter.images} title={chapter.title} />
                     )}
                     
                     {/* Content */}
