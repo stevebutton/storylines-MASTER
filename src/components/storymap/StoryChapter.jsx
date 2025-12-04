@@ -14,7 +14,7 @@ export default function StoryChapter({
 
     return (
         <div 
-            className="flex items-center py-24 px-4 md:px-8 justify-end"
+            className="flex items-center py-24 px-4 md:px-8 pr-24 justify-end"
             style={{ minHeight: '75vh' }}
         >
             <motion.div
