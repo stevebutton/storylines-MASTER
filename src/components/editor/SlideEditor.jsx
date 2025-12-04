@@ -99,10 +99,10 @@ export default function SlideEditor({ slide, onUpdate, onDelete, dragHandleProps
                                     zoom={slide.zoom}
                                     onSelect={(coords, zoom) => onUpdate({ ...slide, coordinates: coords, zoom: zoom })}
                                 />
-                                {slide.coordinates && (
+                                {slide.coordinates && slide.coordinates.length >= 2 && (
                                     <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
                                         <MapPin className="w-3 h-3" />
-                                        {slide.coordinates[0].toFixed(4)}, {slide.coordinates[1].toFixed(4)}
+                                        {slide.coordinates[0]?.toFixed(4)}, {slide.coordinates[1]?.toFixed(4)}
                                     </p>
                                 )}
                             </div>
