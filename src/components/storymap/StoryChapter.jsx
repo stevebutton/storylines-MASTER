@@ -21,7 +21,7 @@ export default function StoryChapter({
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 viewport={{ once: false, amount: 0.5 }}
-                className="relative max-w-md"
+                className="relative w-1/2 min-w-[300px]"
             >
                 {/* Card */}
                 <div className={cn(
