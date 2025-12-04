@@ -3,11 +3,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Search, MapPin, Loader2, X } from 'lucide-react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
-mapboxgl.accessToken = MAPBOX_TOKEN;
+
+// Inject Mapbox CSS dynamically
+if (typeof document !== 'undefined' && !document.getElementById('mapbox-gl-css')) {
+    const link = document.createElement('link');
+    link.id = 'mapbox-gl-css';
+    link.rel = 'stylesheet';
+    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css';
+    document.head.appendChild(link);
+}
 
 export default function LocationPicker({ coordinates, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +29,11 @@ export default function LocationPicker({ coordinates, onSelect }) {
     useEffect(() => {
         if (!isOpen || !mapContainerRef.current || mapRef.current) return;
 
-        const initMap = () => {
+        const initMap = async () => {
+            const mapboxgl = (await import('https://cdn.jsdelivr.net/npm/mapbox-gl@3.0.1/+esm')).default;
+            
+            mapboxgl.accessToken = MAPBOX_TOKEN;
+
             const initialCenter = coordinates && coordinates[0] && coordinates[1] 
                 ? [coordinates[1], coordinates[0]] // Mapbox uses [lng, lat]
                 : [-73.97, 40.78];
@@ -91,11 +101,13 @@ export default function LocationPicker({ coordinates, onSelect }) {
     };
 
     // Select a search result
-    const selectSearchResult = (result) => {
+    const selectSearchResult = async (result) => {
         const [lng, lat] = result.center;
         
         if (mapRef.current) {
             mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
+            
+            const mapboxgl = (await import('https://cdn.jsdelivr.net/npm/mapbox-gl@3.0.1/+esm')).default;
             
             if (markerRef.current) {
                 markerRef.current.setLngLat([lng, lat]);
