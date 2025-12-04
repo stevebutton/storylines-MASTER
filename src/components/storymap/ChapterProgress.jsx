@@ -13,7 +13,7 @@ export default function ChapterProgress({
     const canGoNext = activeIndex < totalChapters - 1;
 
     return (
-        <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-3">
+        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-3">
             {/* Previous button */}
             <button
                 onClick={() => canGoPrev && onNavigate(activeIndex - 1)}
@@ -29,7 +29,7 @@ export default function ChapterProgress({
             </button>
 
             {/* Progress dots */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-full py-3 px-2 shadow-lg flex flex-col items-center gap-2">
+            <div className="bg-white/95 backdrop-blur-sm rounded-full py-3 px-2 shadow-lg flex flex-col items-center gap-4">
                 {Array.from({ length: totalChapters }).map((_, index) => (
                     <button
                         key={index}
