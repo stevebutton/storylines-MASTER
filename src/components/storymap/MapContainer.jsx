@@ -37,7 +37,7 @@ export default function MapBackground({
         // Add navigation controls (zoom, compass, pitch)
         map.current.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true
-        }), 'top-right');
+        }), 'top-left');
 
         return () => {
             if (map.current) {
@@ -117,8 +117,8 @@ export default function MapBackground({
     }, [markers, activeMarkerIndex, onMarkerClick]);
 
     return (
-        <div className="fixed inset-0 z-0">
-            <div ref={mapContainer} style={{ height: '100%', width: '100%' }} />
+        <div className="fixed inset-0" style={{ zIndex: 0 }}>
+            <div ref={mapContainer} style={{ height: '100%', width: '100%', zIndex: 0 }} />
         </div>
     );
 }
