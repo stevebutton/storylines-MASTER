@@ -29,8 +29,15 @@ export default function MapBackground({
             center: center ? [center[1], center[0]] : [-74.006, 40.7128],
             zoom: zoom || 12,
             bearing: bearing,
-            interactive: false
+            interactive: true,
+            dragRotate: true,
+            pitchWithRotate: true
         });
+
+        // Add navigation controls (zoom, compass, pitch)
+        map.current.addControl(new mapboxgl.NavigationControl({
+            visualizePitch: true
+        }), 'top-right');
 
         return () => {
             if (map.current) {

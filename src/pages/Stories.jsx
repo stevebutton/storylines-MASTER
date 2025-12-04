@@ -11,6 +11,7 @@ import { createPageUrl } from '@/utils';
 
 export default function Stories() {
     const [stories, setStories] = useState([]);
+    const [storyThumbnails, setStoryThumbnails] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -26,6 +27,19 @@ export default function Stories() {
         try {
             const data = await base44.entities.Story.list('-created_date');
             setStories(data);
+            
+            // Load thumbnails for each story
+            const thumbnails = {};
+            for (const story of data) {
+                const chapters = await base44.entities.Chapter.filter({ story_id: story.id }, 'order', 1);
+                if (chapters.length > 0) {
+                    const slides = await base44.entities.Slide.filter({ chapter_id: chapters[0].id }, 'order', 1);
+                    if (slides.length > 0 && slides[0].image) {
+                        thumbnails[story.id] = slides[0].image;
+                    }
+                }
+            }
+            setStoryThumbnails(thumbnails);
         } catch (error) {
             console.error('Failed to load stories:', error);
         } finally {
@@ -261,8 +275,23 @@ export default function Stories() {
                         {filteredAndSortedStories.map((story) => (
                             <Card key={story.id} className="group hover:shadow-lg transition-shadow overflow-hidden">
                                 <CardContent className="p-0">
+                                    {/* Thumbnail */}
+                                    {storyThumbnails[story.id] ? (
+                                        <div className="h-32 w-full overflow-hidden">
+                                            <img 
+                                                src={storyThumbnails[story.id]} 
+                                                alt={story.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                            <Map className="w-8 h-8 text-slate-300" />
+                                        </div>
+                                    )}
+
                                     {/* Status bar */}
-                                                                                        <div className={`px-4 py-2 flex items-center justify-between ${story.is_main_story ? 'bg-purple-50' : story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                    <div className={`px-4 py-2 flex items-center justify-between ${story.is_main_story ? 'bg-purple-50' : story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
                                                                                             <div className="flex items-center gap-2">
                                                                                                 {story.is_main_story && (
                                                                                                     <>
