@@ -12,7 +12,7 @@ export default function StoryMapBanner({
     return (
         <div className="fixed top-0 left-0 right-0 z-50 px-4 py-3">
             <div className="max-w-7xl mx-auto">
-                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-center justify-between">
+                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-left justify-between">
                     {/* Left - Logo */}
                     <div className="flex items-center gap-3">
                         <Link to={createPageUrl('Stories')} className="flex items-center gap-2">
