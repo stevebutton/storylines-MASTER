@@ -3,7 +3,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function ChapterCarousel({ images, title }) {
+export default function ChapterCarousel({ slides, onSlideChange }) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
     const [selectedIndex, setSelectedIndex] = React.useState(0);
 
@@ -11,25 +11,27 @@ export default function ChapterCarousel({ images, title }) {
         if (!emblaApi) return;
         
         const onSelect = () => {
-            setSelectedIndex(emblaApi.selectedScrollSnap());
+            const index = emblaApi.selectedScrollSnap();
+            setSelectedIndex(index);
+            onSlideChange?.(index);
         };
         
         emblaApi.on('select', onSelect);
         return () => emblaApi.off('select', onSelect);
-    }, [emblaApi]);
+    }, [emblaApi, onSlideChange]);
 
     const scrollPrev = () => emblaApi?.scrollPrev();
     const scrollNext = () => emblaApi?.scrollNext();
 
-    if (!images || images.length === 0) return null;
+    if (!slides || slides.length === 0) return null;
 
-    // Single image - no carousel needed
-    if (images.length === 1) {
+    // Single slide - no carousel controls needed
+    if (slides.length === 1) {
         return (
             <div className="relative h-48 md:h-56 overflow-hidden">
                 <img 
-                    src={images[0]} 
-                    alt={title}
+                    src={slides[0].image} 
+                    alt={slides[0].title}
                     className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
@@ -41,11 +43,11 @@ export default function ChapterCarousel({ images, title }) {
         <div className="relative h-48 md:h-56 overflow-hidden group">
             <div ref={emblaRef} className="h-full">
                 <div className="flex h-full">
-                    {images.map((image, index) => (
+                    {slides.map((slide, index) => (
                         <div key={index} className="flex-[0_0_100%] min-w-0 h-full">
                             <img 
-                                src={image} 
-                                alt={`${title} - ${index + 1}`}
+                                src={slide.image} 
+                                alt={slide.title}
                                 className="w-full h-full object-cover"
                             />
                         </div>
@@ -72,7 +74,7 @@ export default function ChapterCarousel({ images, title }) {
             
             {/* Dots indicator */}
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {images.map((_, index) => (
+                {slides.map((_, index) => (
                     <button
                         key={index}
                         onClick={() => emblaApi?.scrollTo(index)}

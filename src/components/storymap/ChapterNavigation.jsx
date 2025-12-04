@@ -46,10 +46,10 @@ export default function ChapterNavigation({ chapters, activeIndex, onNavigate })
                                         ? "text-amber-900" 
                                         : "text-slate-700"
                                 )}>
-                                    {chapter.title}
+                                    {chapter.slides?.[0]?.title || chapter.title}
                                 </p>
                                 <p className="text-xs text-slate-400 truncate">
-                                    {chapter.location}
+                                    {chapter.slides?.[0]?.location || chapter.location}
                                 </p>
                             </div>
                             

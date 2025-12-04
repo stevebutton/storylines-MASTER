@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ChapterCarousel from './ChapterCarousel';
 
@@ -9,6 +9,9 @@ export default function StoryChapter({
     alignment = 'left',
     index 
 }) {
+    const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+    const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
+
     return (
         <div 
             className="min-h-screen flex items-center py-24 px-4 md:px-8 justify-end"
@@ -27,8 +30,11 @@ export default function StoryChapter({
                     "border border-white/20"
                 )}>
                     {/* Image Carousel */}
-                    {chapter.images && chapter.images.length > 0 && (
-                        <ChapterCarousel images={chapter.images} title={chapter.title} />
+                    {chapter.slides && chapter.slides.length > 0 && (
+                        <ChapterCarousel 
+                            slides={chapter.slides} 
+                            onSlideChange={setActiveSlideIndex}
+                        />
                     )}
                     
                     {/* Content */}
@@ -41,18 +47,36 @@ export default function StoryChapter({
                             <div className="flex-1 h-px bg-gradient-to-r from-amber-600/50 to-transparent" />
                         </div>
                         
-                        {/* Title */}
-                        <h2 className="text-2xl md:text-3xl font-light text-slate-800 mb-4 leading-tight">
-                            {chapter.title}
-                        </h2>
+                        {/* Title - animated */}
+                        <AnimatePresence mode="wait">
+                            <motion.h2 
+                                key={currentSlide?.title}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                                className="text-2xl md:text-3xl font-light text-slate-800 mb-4 leading-tight"
+                            >
+                                {currentSlide?.title}
+                            </motion.h2>
+                        </AnimatePresence>
                         
-                        {/* Description */}
-                        <p className="text-slate-600 leading-relaxed text-sm md:text-base">
-                            {chapter.description}
-                        </p>
+                        {/* Description - animated */}
+                        <AnimatePresence mode="wait">
+                            <motion.p 
+                                key={currentSlide?.description}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                                className="text-slate-600 leading-relaxed text-sm md:text-base"
+                            >
+                                {currentSlide?.description}
+                            </motion.p>
+                        </AnimatePresence>
                         
                         {/* Location badge */}
-                        {chapter.location && (
+                        {currentSlide?.location && (
                             <div className="mt-6 pt-4 border-t border-slate-200/50">
                                 <div className="flex items-center gap-2 text-xs text-slate-500">
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -61,7 +85,7 @@ export default function StoryChapter({
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
                                             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
-                                    <span className="font-medium">{chapter.location}</span>
+                                    <span className="font-medium">{currentSlide.location}</span>
                                 </div>
                             </div>
                         )}
