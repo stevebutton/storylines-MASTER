@@ -6,8 +6,7 @@ import { MapPin } from 'lucide-react';
 export default function ChapterNavigation({ chapters, activeIndex, onNavigate, isOpen }) {
     return (
         <motion.div 
-            className="fixed left-6 top-1/2 z-50 hidden md:block"
-            style={{ transform: 'translateY(-50%)' }}
+            className="fixed left-6 top-[200px] z-50 hidden md:block"
             initial={{ x: -300, opacity: 0 }}
             animate={{ x: isOpen ? 0 : -300, opacity: isOpen ? 1 : 0 }}
             exit={{ x: -300, opacity: 0 }}

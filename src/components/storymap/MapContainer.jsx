@@ -133,10 +133,16 @@ export default function MapBackground({
                     border-radius: 12px !important;
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
                     border: 1px solid rgba(226, 232, 240, 0.5) !important;
+                    display: flex !important;
+                    flex-direction: row !important;
                 }
                 .mapboxgl-ctrl-group button {
                     width: 36px !important;
                     height: 36px !important;
+                }
+                .mapboxgl-ctrl-group button + button {
+                    border-top: none !important;
+                    border-left: 1px solid rgba(226, 232, 240, 0.5) !important;
                 }
             `}</style>
         </div>
