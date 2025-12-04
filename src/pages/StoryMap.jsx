@@ -4,6 +4,7 @@ import StoryChapter from '@/components/storymap/StoryChapter';
 import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
+import BottomMenuBar from '@/components/storymap/BottomMenuBar';
 import { defaultStory } from '@/components/storymap/storyData';
 
 export default function StoryMap() {
@@ -107,15 +108,8 @@ export default function StoryMap() {
                 onNavigate={navigateToChapter}
             />
             
-            {/* Mobile progress bar */}
-            <div className="fixed bottom-0 left-0 right-0 h-1 bg-black/20 z-50 md:hidden">
-                <div 
-                    className="h-full bg-amber-600 transition-all duration-300"
-                    style={{ 
-                        width: `${((activeChapter + 1) / defaultStory.chapters.length) * 100}%` 
-                    }}
-                />
-            </div>
+            {/* Bottom Menu Bar */}
+            <BottomMenuBar />
         </div>
     );
 }
