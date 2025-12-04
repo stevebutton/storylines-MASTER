@@ -10,9 +10,9 @@ import { defaultStory } from '@/components/storymap/storyData';
 export default function StoryMap() {
     const [activeChapter, setActiveChapter] = useState(0);
     const [mapConfig, setMapConfig] = useState({
-        center: defaultStory.chapters[0].coordinates,
-        zoom: defaultStory.chapters[0].zoom,
-        mapStyle: defaultStory.chapters[0].mapStyle
+        center: defaultStory.chapters[0]?.coordinates || [41.8902, 12.4922],
+        zoom: defaultStory.chapters[0]?.zoom || 12,
+        mapStyle: defaultStory.chapters[0]?.mapStyle || 'light'
     });
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
