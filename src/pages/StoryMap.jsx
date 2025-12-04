@@ -6,6 +6,7 @@ import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
+import ChapterProgress from '@/components/storymap/ChapterProgress';
 import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -225,6 +226,15 @@ export default function StoryMap() {
                         navigateToChapter(index);
                         setIsChapterMenuOpen(false);
                     }}
+                />
+            )}
+
+            {/* Chapter Progress Indicator */}
+            {isBannerVisible && chapters.length > 0 && (
+                <ChapterProgress
+                    totalChapters={chapters.length}
+                    activeIndex={activeChapter}
+                    onNavigate={navigateToChapter}
                 />
             )}
         </div>);
