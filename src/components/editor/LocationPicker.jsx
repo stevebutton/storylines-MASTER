@@ -2,18 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Search, MapPin, Loader2, X } from 'lucide-react';
+import { Search, MapPin, Loader2 } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
-
-// Inject Mapbox CSS dynamically
-if (typeof document !== 'undefined' && !document.getElementById('mapbox-gl-css')) {
-    const link = document.createElement('link');
-    link.id = 'mapbox-gl-css';
-    link.rel = 'stylesheet';
-    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css';
-    document.head.appendChild(link);
-}
+mapboxgl.accessToken = MAPBOX_TOKEN;
 
 export default function LocationPicker({ coordinates, onSelect }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -27,12 +21,11 @@ export default function LocationPicker({ coordinates, onSelect }) {
 
     // Initialize map when dialog opens
     useEffect(() => {
-        if (!isOpen || !mapContainerRef.current || mapRef.current) return;
-
-        const initMap = async () => {
-            const mapboxgl = (await import('https://cdn.jsdelivr.net/npm/mapbox-gl@3.0.1/+esm')).default;
-            
-            mapboxgl.accessToken = MAPBOX_TOKEN;
+        if (!isOpen || !mapContainerRef.current) return;
+        
+        // Small delay to ensure dialog is fully rendered
+        const timer = setTimeout(() => {
+            if (mapRef.current) return;
 
             const initialCenter = coordinates && coordinates[0] && coordinates[1] 
                 ? [coordinates[1], coordinates[0]] // Mapbox uses [lng, lat]
@@ -43,6 +36,10 @@ export default function LocationPicker({ coordinates, onSelect }) {
                 style: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
                 center: initialCenter,
                 zoom: 10
+            });
+
+            mapRef.current.on('load', () => {
+                mapRef.current.resize();
             });
 
             mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -69,11 +66,10 @@ export default function LocationPicker({ coordinates, onSelect }) {
                 
                 setSelectedLocation({ lat, lng });
             });
-        };
-
-        initMap();
+        }, 100);
 
         return () => {
+            clearTimeout(timer);
             if (mapRef.current) {
                 mapRef.current.remove();
                 mapRef.current = null;
@@ -101,13 +97,11 @@ export default function LocationPicker({ coordinates, onSelect }) {
     };
 
     // Select a search result
-    const selectSearchResult = async (result) => {
+    const selectSearchResult = (result) => {
         const [lng, lat] = result.center;
         
         if (mapRef.current) {
             mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
-            
-            const mapboxgl = (await import('https://cdn.jsdelivr.net/npm/mapbox-gl@3.0.1/+esm')).default;
             
             if (markerRef.current) {
                 markerRef.current.setLngLat([lng, lat]);
