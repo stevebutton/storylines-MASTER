@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { List, Plus, Map, Menu, X } from 'lucide-react';
+import { List, Plus, Map, Menu, X, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function StoryMapBanner({ 
@@ -64,6 +64,15 @@ export default function StoryMapBanner({
                         >
                             <List className="w-5 h-5" />
                             <span>My Stories</span>
+                        </Link>
+
+                        {/* Media Library */}
+                        <Link
+                            to={createPageUrl('MediaLibrary')}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
+                        >
+                            <Image className="w-5 h-5" />
+                            <span>Media</span>
                         </Link>
 
                         {/* Create Story */}
