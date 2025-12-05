@@ -53,7 +53,9 @@ export default function MediaLibrary() {
         try {
             for (const file of files) {
                 const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                await base44.entities.Media.create({
+                
+                // Create media record first
+                const mediaRecord = await base44.entities.Media.create({
                     url: file_url,
                     filename: file.name,
                     title: file.name.split('.')[0],
@@ -61,12 +63,47 @@ export default function MediaLibrary() {
                     category: 'other',
                     tags: []
                 });
+
+                // Generate AI description in background
+                generateImageDescription(mediaRecord.id, file_url);
             }
             loadMedia();
         } catch (error) {
             console.error('Failed to upload:', error);
         } finally {
             setIsUploading(false);
+        }
+    };
+
+    const generateImageDescription = async (mediaId, imageUrl) => {
+        try {
+            const response = await base44.integrations.Core.InvokeLLM({
+                prompt: `Analyze this image and provide a brief, engaging description suitable for a story map. Also suggest 3-5 relevant tags and a category.`,
+                file_urls: [imageUrl],
+                response_json_schema: {
+                    type: "object",
+                    properties: {
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        tags: { type: "array", items: { type: "string" } },
+                        category: { 
+                            type: "string",
+                            enum: ["landscape", "portrait", "architecture", "nature", "people", "food", "travel", "other"]
+                        }
+                    }
+                }
+            });
+            
+            await base44.entities.Media.update(mediaId, {
+                title: response.title,
+                description: response.description,
+                tags: response.tags || [],
+                category: response.category || 'other'
+            });
+            
+            loadMedia();
+        } catch (error) {
+            console.error('Failed to generate description:', error);
         }
     };
 

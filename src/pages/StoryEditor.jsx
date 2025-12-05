@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus, Save, Eye, Loader2, Undo2, Redo2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Eye, Loader2, Undo2, Redo2, AlertCircle, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ChapterEditor from '@/components/editor/ChapterEditor';
+import AIAssistant from '@/components/editor/AIAssistant';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function StoryEditor() {
@@ -35,6 +36,7 @@ export default function StoryEditor() {
     const [isSaving, setIsSaving] = useState(false);
     const [pendingLocation, setPendingLocation] = useState(null);
     const [storyErrors, setStoryErrors] = useState({});
+    const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
     
     // Undo/Redo state
     const [history, setHistory] = useState([]);
@@ -439,6 +441,14 @@ export default function StoryEditor() {
                                 </Tooltip>
                             </div>
                         </TooltipProvider>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsAIAssistantOpen(true)}
+                            className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                        >
+                            <Sparkles className="w-4 h-4 mr-2" /> AI Assistant
+                        </Button>
                         {storyId && (
                             <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
                                 <Button variant="outline" size="sm">
@@ -616,6 +626,74 @@ export default function StoryEditor() {
                     )}
                 </div>
             </div>
+
+            {/* AI Assistant Panel */}
+            <AIAssistant
+                isOpen={isAIAssistantOpen}
+                onClose={() => setIsAIAssistantOpen(false)}
+                story={story}
+                chapters={chapters}
+                slides={slides}
+                onApplyOutline={(outline) => {
+                    setStory(prev => ({ 
+                        ...prev, 
+                        title: outline.title || prev.title,
+                        subtitle: outline.subtitle || prev.subtitle 
+                    }));
+                    
+                    outline.chapters?.forEach((chapterData, idx) => {
+                        const newChapter = {
+                            id: `temp-ai-${Date.now()}-${idx}`,
+                            story_id: storyId,
+                            order: chapters.length + idx,
+                            coordinates: chapterData.coordinates || [0, 0],
+                            zoom: 12,
+                            map_style: 'light',
+                            alignment: 'left'
+                        };
+                        setChapters(prev => [...prev, newChapter]);
+                        
+                        chapterData.slides?.forEach((slideData, sIdx) => {
+                            const newSlide = {
+                                id: `temp-ai-slide-${Date.now()}-${idx}-${sIdx}`,
+                                chapter_id: newChapter.id,
+                                order: sIdx,
+                                title: slideData.title,
+                                description: slideData.description,
+                                location: chapterData.location,
+                                image: ''
+                            };
+                            setSlides(prev => [...prev, newSlide]);
+                        });
+                    });
+                    setIsAIAssistantOpen(false);
+                }}
+                onApplySlideContent={(content, chapterId) => {
+                    const chapterSlides = slides.filter(s => s.chapter_id === chapterId);
+                    
+                    content.slides?.forEach((slideData, idx) => {
+                        if (chapterSlides[idx]) {
+                            setSlides(prev => prev.map(s => 
+                                s.id === chapterSlides[idx].id 
+                                    ? { ...s, title: slideData.title, description: slideData.description, location: slideData.location || s.location }
+                                    : s
+                            ));
+                        } else {
+                            const newSlide = {
+                                id: `temp-ai-slide-${Date.now()}-${idx}`,
+                                chapter_id: chapterId,
+                                order: chapterSlides.length + idx,
+                                title: slideData.title,
+                                description: slideData.description,
+                                location: slideData.location || '',
+                                image: ''
+                            };
+                            setSlides(prev => [...prev, newSlide]);
+                        }
+                    });
+                    setIsAIAssistantOpen(false);
+                }}
+            />
         </div>
     );
 }
