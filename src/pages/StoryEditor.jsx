@@ -29,37 +29,49 @@ export default function StoryEditor() {
     const [slides, setSlides] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [pendingLocation, setPendingLocation] = useState(null);
+
+    // Store picked location on mount before data loads
+    useEffect(() => {
+        if (pickedLat && pickedLng) {
+            setPendingLocation({
+                lat: parseFloat(pickedLat),
+                lng: parseFloat(pickedLng),
+                name: pickedName ? decodeURIComponent(pickedName) : null,
+                chapterId: pickedChapterId,
+                slideId: pickedSlideId
+            });
+            // Clean URL immediately
+            window.history.replaceState({}, '', `${createPageUrl('StoryEditor')}${storyId ? `?id=${storyId}` : ''}`);
+        }
+    }, []);
 
     useEffect(() => {
         loadData();
     }, [storyId]);
 
-    // Handle picked location from LocationPickerPage
+    // Apply pending location after data loads
     useEffect(() => {
-        if (pickedLat && pickedLng) {
-            const lat = parseFloat(pickedLat);
-            const lng = parseFloat(pickedLng);
+        if (!isLoading && pendingLocation) {
+            const { lat, lng, name, chapterId, slideId } = pendingLocation;
             
-            if (pickedSlideId) {
-                // Update slide coordinates
+            if (slideId) {
                 setSlides(prev => prev.map(s => 
-                    s.id === pickedSlideId 
-                        ? { ...s, coordinates: [lat, lng], location: pickedName ? decodeURIComponent(pickedName).split(',')[0] : s.location }
+                    s.id === slideId 
+                        ? { ...s, coordinates: [lat, lng], location: name ? name.split(',')[0] : s.location }
                         : s
                 ));
-            } else if (pickedChapterId) {
-                // Update chapter coordinates
+            } else if (chapterId) {
                 setChapters(prev => prev.map(c => 
-                    c.id === pickedChapterId 
+                    c.id === chapterId 
                         ? { ...c, coordinates: [lat, lng] }
                         : c
                 ));
             }
             
-            // Clean URL
-            window.history.replaceState({}, '', `${createPageUrl('StoryEditor')}${storyId ? `?id=${storyId}` : ''}`);
+            setPendingLocation(null);
         }
-    }, [pickedLat, pickedLng, pickedChapterId, pickedSlideId]);
+    }, [isLoading, pendingLocation]);
 
     const loadData = async () => {
         setIsLoading(true);
