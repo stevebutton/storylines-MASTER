@@ -50,28 +50,57 @@ export default function StoryEditor() {
         loadData();
     }, [storyId]);
 
-    // Apply pending location after data loads
+    // Apply pending location after data loads and auto-save
     useEffect(() => {
         if (!isLoading && pendingLocation) {
             const { lat, lng, name, chapterId, slideId } = pendingLocation;
             
-            if (slideId) {
-                setSlides(prev => prev.map(s => 
-                    s.id === slideId 
-                        ? { ...s, coordinates: [lat, lng], location: name ? name.split(',')[0] : s.location }
-                        : s
-                ));
-            } else if (chapterId) {
-                setChapters(prev => prev.map(c => 
-                    c.id === chapterId 
-                        ? { ...c, coordinates: [lat, lng] }
-                        : c
-                ));
-            }
+            const saveLocationUpdate = async () => {
+                if (slideId && !slideId.startsWith('temp-')) {
+                    // Update slide in database
+                    const slideToUpdate = slides.find(s => s.id === slideId);
+                    if (slideToUpdate) {
+                        const updatedSlide = { 
+                            ...slideToUpdate, 
+                            coordinates: [lat, lng], 
+                            location: name ? name.split(',')[0] : slideToUpdate.location 
+                        };
+                        await base44.entities.Slide.update(slideId, updatedSlide);
+                        setSlides(prev => prev.map(s => s.id === slideId ? updatedSlide : s));
+                    }
+                } else if (slideId) {
+                    // Just update local state for temp slides
+                    setSlides(prev => prev.map(s => 
+                        s.id === slideId 
+                            ? { ...s, coordinates: [lat, lng], location: name ? name.split(',')[0] : s.location }
+                            : s
+                    ));
+                }
+                
+                if (chapterId && !slideId) {
+                    if (!chapterId.startsWith('temp-')) {
+                        // Update chapter in database
+                        const chapterToUpdate = chapters.find(c => c.id === chapterId);
+                        if (chapterToUpdate) {
+                            const updatedChapter = { ...chapterToUpdate, coordinates: [lat, lng] };
+                            await base44.entities.Chapter.update(chapterId, updatedChapter);
+                            setChapters(prev => prev.map(c => c.id === chapterId ? updatedChapter : c));
+                        }
+                    } else {
+                        // Just update local state for temp chapters
+                        setChapters(prev => prev.map(c => 
+                            c.id === chapterId 
+                                ? { ...c, coordinates: [lat, lng] }
+                                : c
+                        ));
+                    }
+                }
+            };
             
+            saveLocationUpdate();
             setPendingLocation(null);
         }
-    }, [isLoading, pendingLocation]);
+    }, [isLoading, pendingLocation, slides, chapters]);
 
     const loadData = async () => {
         setIsLoading(true);
