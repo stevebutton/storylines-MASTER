@@ -8,12 +8,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
-import LocationPicker from './LocationPicker';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function ChapterEditor({ 
     chapter, 
     slides, 
-    index, 
+    index,
+    storyId,
     onUpdateChapter, 
     onDeleteChapter,
     onAddSlide,
@@ -90,10 +92,11 @@ export default function ChapterEditor({
                                 <Label className="text-sm font-medium flex items-center gap-2">
                                     <MapPin className="w-4 h-4 text-amber-600" /> Location
                                 </Label>
-                                <LocationPicker 
-                                    coordinates={chapter.coordinates}
-                                    onSelect={handleLocationSelect}
-                                />
+                                <Link to={createPageUrl(`LocationPickerPage?returnTo=StoryEditor&storyId=${storyId}&chapterId=${chapter.id}${chapter.coordinates ? `&lat=${chapter.coordinates[0]}&lng=${chapter.coordinates[1]}` : ''}`)}>
+                                    <Button variant="outline" size="sm" className="h-9">
+                                        <MapPin className="w-4 h-4 mr-1" /> Pick Location
+                                    </Button>
+                                </Link>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <div>
@@ -184,6 +187,8 @@ export default function ChapterEditor({
                                                         >
                                                             <SlideEditor
                                                                 slide={slide}
+                                                                storyId={storyId}
+                                                                chapterId={chapter.id}
                                                                 onUpdate={onUpdateSlide}
                                                                 onDelete={() => onDeleteSlide(slide.id)}
                                                                 dragHandleProps={provided.dragHandleProps}
