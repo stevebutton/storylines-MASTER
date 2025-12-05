@@ -5,9 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle, Eye } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
+import ChapterPreviewModal from './ChapterPreviewModal';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -43,6 +44,7 @@ export default function ChapterEditor({
 }) {
     const [isOpen, setIsOpen] = useState(true);
     const [errors, setErrors] = useState({});
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
     const handleCoordinateChange = (idx, value) => {
         const type = idx === 0 ? 'lat' : 'lng';
@@ -101,6 +103,15 @@ export default function ChapterEditor({
                             </span>
                         </CollapsibleTrigger>
 
+                        <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => setIsPreviewOpen(true)}
+                            className="text-slate-400 hover:text-amber-600"
+                            title="Preview Chapter"
+                        >
+                            <Eye className="w-4 h-4" />
+                        </Button>
                         <Button 
                             variant="ghost" 
                             size="icon"
@@ -251,10 +262,17 @@ export default function ChapterEditor({
                                     No slides yet. Add your first slide.
                                 </div>
                             )}
-                        </div>
-                    </CardContent>
-                </CollapsibleContent>
-            </Collapsible>
-        </Card>
-    );
-}
+                            </div>
+                            </CardContent>
+                            </CollapsibleContent>
+                            </Collapsible>
+
+                            <ChapterPreviewModal
+                            isOpen={isPreviewOpen}
+                            onClose={() => setIsPreviewOpen(false)}
+                            chapter={chapter}
+                            slides={slides}
+                            />
+                            </Card>
+                            );
+                            }
