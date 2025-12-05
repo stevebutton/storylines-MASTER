@@ -57,7 +57,9 @@ export default function StoryMap() {
               image: s.image,
               title: s.title,
               description: s.description,
-              location: s.location
+              location: s.location,
+              coordinates: s.coordinates,
+              zoom: s.zoom
             }))
         }));
 
