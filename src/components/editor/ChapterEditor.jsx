@@ -5,11 +5,28 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin } from 'lucide-react';
+import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+
+const validateCoordinate = (value, type) => {
+    if (value === '' || value === undefined || value === null) return null;
+    const num = parseFloat(value);
+    if (isNaN(num)) return 'Must be a number';
+    if (type === 'lat' && (num < -90 || num > 90)) return 'Latitude must be between -90 and 90';
+    if (type === 'lng' && (num < -180 || num > 180)) return 'Longitude must be between -180 and 180';
+    return null;
+};
+
+const validateZoom = (value) => {
+    if (value === '' || value === undefined || value === null) return null;
+    const num = parseInt(value);
+    if (isNaN(num)) return 'Must be a number';
+    if (num < 1 || num > 20) return 'Zoom must be 1-20';
+    return null;
+};
 
 export default function ChapterEditor({ 
     chapter, 
@@ -25,11 +42,22 @@ export default function ChapterEditor({
     dragHandleProps 
 }) {
     const [isOpen, setIsOpen] = useState(true);
+    const [errors, setErrors] = useState({});
 
     const handleCoordinateChange = (idx, value) => {
+        const type = idx === 0 ? 'lat' : 'lng';
+        const error = validateCoordinate(value, type);
+        setErrors(prev => ({ ...prev, [type]: error }));
+        
         const newCoords = [...(chapter.coordinates || [0, 0])];
         newCoords[idx] = parseFloat(value) || 0;
         onUpdateChapter({ ...chapter, coordinates: newCoords });
+    };
+
+    const handleZoomChange = (value) => {
+        const error = validateZoom(value);
+        setErrors(prev => ({ ...prev, zoom: error }));
+        onUpdateChapter({ ...chapter, zoom: parseInt(value) || 12 });
     };
 
     const handleLocationSelect = (coords, locationName) => {
@@ -107,8 +135,13 @@ export default function ChapterEditor({
                                         value={chapter.coordinates?.[0] || ''} 
                                         onChange={(e) => handleCoordinateChange(0, e.target.value)}
                                         placeholder="41.8902"
-                                        className="h-9"
+                                        className={`h-9 ${errors.lat ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                     />
+                                    {errors.lat && (
+                                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3" /> {errors.lat}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <Label className="text-xs">Longitude</Label>
@@ -118,8 +151,13 @@ export default function ChapterEditor({
                                         value={chapter.coordinates?.[1] || ''} 
                                         onChange={(e) => handleCoordinateChange(1, e.target.value)}
                                         placeholder="12.4922"
-                                        className="h-9"
+                                        className={`h-9 ${errors.lng ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                     />
+                                    {errors.lng && (
+                                        <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3" /> {errors.lng}
+                                        </p>
+                                    )}
                                 </div>
                             <div>
                                 <Label className="text-xs">Zoom</Label>
@@ -128,9 +166,14 @@ export default function ChapterEditor({
                                     min="1"
                                     max="20"
                                     value={chapter.zoom || 12} 
-                                    onChange={(e) => onUpdateChapter({ ...chapter, zoom: parseInt(e.target.value) || 12 })}
-                                    className="h-9"
+                                    onChange={(e) => handleZoomChange(e.target.value)}
+                                    className={`h-9 ${errors.zoom ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                 />
+                                {errors.zoom && (
+                                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" /> {errors.zoom}
+                                    </p>
+                                )}
                             </div>
                                 <div>
                                     <Label className="text-xs">Map Style</Label>

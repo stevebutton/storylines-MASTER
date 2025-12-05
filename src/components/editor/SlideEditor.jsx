@@ -4,13 +4,31 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin } from 'lucide-react';
+import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
+const validateField = (field, value) => {
+    switch (field) {
+        case 'title':
+            if (!value || value.trim().length === 0) return 'Title is required';
+            if (value.length > 100) return 'Title must be under 100 characters';
+            return null;
+        case 'description':
+            if (value && value.length > 1000) return 'Description must be under 1000 characters';
+            return null;
+        case 'location':
+            if (value && value.length > 100) return 'Location must be under 100 characters';
+            return null;
+        default:
+            return null;
+    }
+};
+
 export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
     const [isUploading, setIsUploading] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -65,22 +83,40 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                     <div className="flex-1 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <Label className="text-xs">Title</Label>
+                                <Label className="text-xs">Title <span className="text-red-500">*</span></Label>
                                 <Input 
                                     value={slide.title || ''} 
-                                    onChange={(e) => onUpdate({ ...slide, title: e.target.value })}
+                                    onChange={(e) => {
+                                        const error = validateField('title', e.target.value);
+                                        setErrors(prev => ({ ...prev, title: error }));
+                                        onUpdate({ ...slide, title: e.target.value });
+                                    }}
                                     placeholder="Slide title"
-                                    className="h-9"
+                                    className={`h-9 ${errors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                 />
+                                {errors.title && (
+                                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" /> {errors.title}
+                                    </p>
+                                )}
                             </div>
                             <div>
                                 <Label className="text-xs">Location</Label>
                                 <Input 
                                     value={slide.location || ''} 
-                                    onChange={(e) => onUpdate({ ...slide, location: e.target.value })}
+                                    onChange={(e) => {
+                                        const error = validateField('location', e.target.value);
+                                        setErrors(prev => ({ ...prev, location: error }));
+                                        onUpdate({ ...slide, location: e.target.value });
+                                    }}
                                     placeholder="City, Country"
-                                    className="h-9"
+                                    className={`h-9 ${errors.location ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                 />
+                                {errors.location && (
+                                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" /> {errors.location}
+                                    </p>
+                                )}
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
@@ -88,10 +124,19 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                 <Label className="text-xs">Description</Label>
                                 <Textarea 
                                     value={slide.description || ''} 
-                                    onChange={(e) => onUpdate({ ...slide, description: e.target.value })}
+                                    onChange={(e) => {
+                                        const error = validateField('description', e.target.value);
+                                        setErrors(prev => ({ ...prev, description: error }));
+                                        onUpdate({ ...slide, description: e.target.value });
+                                    }}
                                     placeholder="Describe this moment..."
-                                    className="h-16 resize-none"
+                                    className={`h-16 resize-none ${errors.description ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                 />
+                                {errors.description && (
+                                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" /> {errors.description}
+                                    </p>
+                                )}
                             </div>
                             <div>
                                 <Label className="text-xs">Map Position (optional)</Label>

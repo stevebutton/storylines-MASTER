@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,11 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus, Save, Eye, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Eye, Loader2, Undo2, Redo2, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ChapterEditor from '@/components/editor/ChapterEditor';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function StoryEditor() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -33,6 +34,81 @@ export default function StoryEditor() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [pendingLocation, setPendingLocation] = useState(null);
+    const [storyErrors, setStoryErrors] = useState({});
+    
+    // Undo/Redo state
+    const [history, setHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+    const maxHistory = 50;
+
+    const canUndo = historyIndex > 0;
+    const canRedo = historyIndex < history.length - 1;
+
+    const saveToHistory = useCallback((newChapters, newSlides) => {
+        const snapshot = { chapters: newChapters, slides: newSlides };
+        setHistory(prev => {
+            const newHistory = prev.slice(0, historyIndex + 1);
+            newHistory.push(snapshot);
+            if (newHistory.length > maxHistory) newHistory.shift();
+            return newHistory;
+        });
+        setHistoryIndex(prev => Math.min(prev + 1, maxHistory - 1));
+    }, [historyIndex, maxHistory]);
+
+    const handleUndo = useCallback(() => {
+        if (historyIndex > 0) {
+            const prevState = history[historyIndex - 1];
+            setChapters(prevState.chapters);
+            setSlides(prevState.slides);
+            setHistoryIndex(prev => prev - 1);
+        }
+    }, [historyIndex, history]);
+
+    const handleRedo = useCallback(() => {
+        if (historyIndex < history.length - 1) {
+            const nextState = history[historyIndex + 1];
+            setChapters(nextState.chapters);
+            setSlides(nextState.slides);
+            setHistoryIndex(prev => prev + 1);
+        }
+    }, [historyIndex, history]);
+
+    // Keyboard shortcuts for undo/redo
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    handleRedo();
+                } else {
+                    handleUndo();
+                }
+            }
+            if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
+                e.preventDefault();
+                handleRedo();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleUndo, handleRedo]);
+
+    const validateStoryField = (field, value) => {
+        switch (field) {
+            case 'title':
+                if (!value || value.trim().length === 0) return 'Title is required';
+                if (value.length > 100) return 'Title must be under 100 characters';
+                return null;
+            case 'subtitle':
+                if (value && value.length > 300) return 'Subtitle must be under 300 characters';
+                return null;
+            case 'author':
+                if (value && value.length > 50) return 'Author name must be under 50 characters';
+                return null;
+            default:
+                return null;
+        }
+    };
 
     // Store picked location on mount before data loads
     useEffect(() => {
@@ -132,19 +208,23 @@ export default function StoryEditor() {
                     base44.entities.Slide.list('order')
                 ]);
                 if (storyData.length > 0) {
-                    setStory(storyData[0]);
+                setStory(storyData[0]);
                 }
                 setChapters(chaptersData);
                 // Filter slides for this story's chapters
                 const chapterIds = chaptersData.map(c => c.id);
-                setSlides(slidesData.filter(s => chapterIds.includes(s.chapter_id)));
-            }
-        } catch (error) {
-            console.error('Failed to load data:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+                const filteredSlides = slidesData.filter(s => chapterIds.includes(s.chapter_id));
+                setSlides(filteredSlides);
+                // Initialize history
+                setHistory([{ chapters: chaptersData, slides: filteredSlides }]);
+                setHistoryIndex(0);
+                }
+                } catch (error) {
+                console.error('Failed to load data:', error);
+                } finally {
+                setIsLoading(false);
+                }
+                };
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -211,11 +291,15 @@ export default function StoryEditor() {
             map_style: 'light',
             alignment: 'left'
         };
-        setChapters([...chapters, newChapter]);
+        const newChapters = [...chapters, newChapter];
+        setChapters(newChapters);
+        saveToHistory(newChapters, slides);
     };
 
     const updateChapter = (updatedChapter) => {
-        setChapters(prev => prev.map(c => c.id === updatedChapter.id ? updatedChapter : c));
+        const newChapters = chapters.map(c => c.id === updatedChapter.id ? updatedChapter : c);
+        setChapters(newChapters);
+        saveToHistory(newChapters, slides);
     };
 
     const deleteChapter = async (chapterId) => {
@@ -229,8 +313,11 @@ export default function StoryEditor() {
                 }
             }
         }
-        setChapters(prev => prev.filter(c => c.id !== chapterId));
-        setSlides(prev => prev.filter(s => s.chapter_id !== chapterId));
+        const newChapters = chapters.filter(c => c.id !== chapterId);
+        const newSlides = slides.filter(s => s.chapter_id !== chapterId);
+        setChapters(newChapters);
+        setSlides(newSlides);
+        saveToHistory(newChapters, newSlides);
     };
 
     const addSlide = (chapterId) => {
@@ -244,18 +331,24 @@ export default function StoryEditor() {
             location: '',
             image: ''
         };
-        setSlides([...slides, newSlide]);
+        const newSlides = [...slides, newSlide];
+        setSlides(newSlides);
+        saveToHistory(chapters, newSlides);
     };
 
     const updateSlide = (updatedSlide) => {
-        setSlides(prev => prev.map(s => s.id === updatedSlide.id ? updatedSlide : s));
+        const newSlides = slides.map(s => s.id === updatedSlide.id ? updatedSlide : s);
+        setSlides(newSlides);
+        saveToHistory(chapters, newSlides);
     };
 
     const deleteSlide = async (slideId) => {
         if (!slideId.startsWith('temp-')) {
             await base44.entities.Slide.delete(slideId);
         }
-        setSlides(prev => prev.filter(s => s.id !== slideId));
+        const newSlides = slides.filter(s => s.id !== slideId);
+        setSlides(newSlides);
+        saveToHistory(chapters, newSlides);
     };
 
     const reorderSlides = (chapterId, sourceIndex, destIndex) => {
@@ -267,7 +360,9 @@ export default function StoryEditor() {
         reordered.splice(destIndex, 0, removed);
         
         const updated = reordered.map((s, i) => ({ ...s, order: i }));
-        setSlides([...otherSlides, ...updated]);
+        const newSlides = [...otherSlides, ...updated];
+        setSlides(newSlides);
+        saveToHistory(chapters, newSlides);
     };
 
     const handleChapterDragEnd = (result) => {
@@ -277,7 +372,9 @@ export default function StoryEditor() {
         const [removed] = reordered.splice(result.source.index, 1);
         reordered.splice(result.destination.index, 0, removed);
         
-        setChapters(reordered.map((c, i) => ({ ...c, order: i })));
+        const newChapters = reordered.map((c, i) => ({ ...c, order: i }));
+        setChapters(newChapters);
+        saveToHistory(newChapters, slides);
     };
 
     const getSlidesForChapter = (chapterId) => {
@@ -310,6 +407,38 @@ export default function StoryEditor() {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                            <div className="flex items-center gap-1 mr-2">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={handleUndo} 
+                                            disabled={!canUndo}
+                                            className="h-8 w-8"
+                                        >
+                                            <Undo2 className="w-4 h-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={handleRedo} 
+                                            disabled={!canRedo}
+                                            className="h-8 w-8"
+                                        >
+                                            <Redo2 className="w-4 h-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Redo (Ctrl+Y)</TooltipContent>
+                                </Tooltip>
+                            </div>
+                        </TooltipProvider>
                         {storyId && (
                             <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
                                 <Button variant="outline" size="sm">
@@ -325,7 +454,7 @@ export default function StoryEditor() {
                             )}
                             Save
                         </Button>
-                    </div>
+                        </div>
                 </div>
             </div>
 
@@ -338,31 +467,59 @@ export default function StoryEditor() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <Label>Title</Label>
+                            <Label>Title <span className="text-red-500">*</span></Label>
                             <Input 
                                 value={story.title || ''} 
-                                onChange={(e) => setStory({ ...story, title: e.target.value })}
+                                onChange={(e) => {
+                                    const error = validateStoryField('title', e.target.value);
+                                    setStoryErrors(prev => ({ ...prev, title: error }));
+                                    setStory({ ...story, title: e.target.value });
+                                }}
                                 placeholder="A Journey Through Time"
-                                className="max-w-md"
+                                className={`max-w-md ${storyErrors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                             />
+                            {storyErrors.title && (
+                                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" /> {storyErrors.title}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <Label>Subtitle</Label>
                             <Textarea 
                                 value={story.subtitle || ''} 
-                                onChange={(e) => setStory({ ...story, subtitle: e.target.value })}
+                                onChange={(e) => {
+                                    const error = validateStoryField('subtitle', e.target.value);
+                                    setStoryErrors(prev => ({ ...prev, subtitle: error }));
+                                    setStory({ ...story, subtitle: e.target.value });
+                                }}
                                 placeholder="Exploring the world's most iconic landmarks..."
-                                className="max-w-lg h-20"
+                                className={`max-w-lg h-20 ${storyErrors.subtitle ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                             />
+                            {storyErrors.subtitle && (
+                                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" /> {storyErrors.subtitle}
+                                </p>
+                            )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label>Author</Label>
                                 <Input 
                                     value={story.author || ''} 
-                                    onChange={(e) => setStory({ ...story, author: e.target.value })}
+                                    onChange={(e) => {
+                                        const error = validateStoryField('author', e.target.value);
+                                        setStoryErrors(prev => ({ ...prev, author: error }));
+                                        setStory({ ...story, author: e.target.value });
+                                    }}
                                     placeholder="Your name"
+                                    className={storyErrors.author ? 'border-red-500 focus-visible:ring-red-500' : ''}
                                 />
+                                {storyErrors.author && (
+                                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" /> {storyErrors.author}
+                                    </p>
+                                )}
                             </div>
                             <div>
                                 <Label>Category</Label>
@@ -411,7 +568,7 @@ export default function StoryEditor() {
                                 <div 
                                     ref={provided.innerRef} 
                                     {...provided.droppableProps}
-                                    className="space-y-4"
+                                    className="space-y-4 max-h-[75vh] overflow-y-auto pr-2"
                                 >
                                     {chapters.map((chapter, index) => (
                                         <Draggable 
