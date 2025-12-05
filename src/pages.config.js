@@ -4,6 +4,7 @@ import Stories from './pages/Stories';
 import StoryMapView from './pages/StoryMapView';
 import LocationPickerPage from './pages/LocationPickerPage';
 import ChapterPreview from './pages/ChapterPreview';
+import MediaLibrary from './pages/MediaLibrary';
 
 
 export const PAGES = {
@@ -13,6 +14,7 @@ export const PAGES = {
     "StoryMapView": StoryMapView,
     "LocationPickerPage": LocationPickerPage,
     "ChapterPreview": ChapterPreview,
+    "MediaLibrary": MediaLibrary,
 }
 
 export const pagesConfig = {
