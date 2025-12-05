@@ -16,6 +16,13 @@ import ChapterEditor from '@/components/editor/ChapterEditor';
 export default function StoryEditor() {
     const urlParams = new URLSearchParams(window.location.search);
     const storyId = urlParams.get('id');
+    
+    // Check for picked location from LocationPickerPage
+    const pickedLat = urlParams.get('pickedLat');
+    const pickedLng = urlParams.get('pickedLng');
+    const pickedName = urlParams.get('pickedName');
+    const pickedChapterId = urlParams.get('chapterId');
+    const pickedSlideId = urlParams.get('slideId');
 
     const [story, setStory] = useState({ title: '', subtitle: '', author: '' });
     const [chapters, setChapters] = useState([]);
@@ -26,6 +33,33 @@ export default function StoryEditor() {
     useEffect(() => {
         loadData();
     }, [storyId]);
+
+    // Handle picked location from LocationPickerPage
+    useEffect(() => {
+        if (pickedLat && pickedLng) {
+            const lat = parseFloat(pickedLat);
+            const lng = parseFloat(pickedLng);
+            
+            if (pickedSlideId) {
+                // Update slide coordinates
+                setSlides(prev => prev.map(s => 
+                    s.id === pickedSlideId 
+                        ? { ...s, coordinates: [lat, lng], location: pickedName ? decodeURIComponent(pickedName).split(',')[0] : s.location }
+                        : s
+                ));
+            } else if (pickedChapterId) {
+                // Update chapter coordinates
+                setChapters(prev => prev.map(c => 
+                    c.id === pickedChapterId 
+                        ? { ...c, coordinates: [lat, lng] }
+                        : c
+                ));
+            }
+            
+            // Clean URL
+            window.history.replaceState({}, '', `${createPageUrl('StoryEditor')}${storyId ? `?id=${storyId}` : ''}`);
+        }
+    }, [pickedLat, pickedLng, pickedChapterId, pickedSlideId]);
 
     const loadData = async () => {
         setIsLoading(true);
@@ -333,6 +367,7 @@ export default function StoryEditor() {
                                                         chapter={chapter}
                                                         slides={getSlidesForChapter(chapter.id)}
                                                         index={index}
+                                                        storyId={storyId}
                                                         onUpdateChapter={updateChapter}
                                                         onDeleteChapter={deleteChapter}
                                                         onAddSlide={addSlide}
