@@ -8,7 +8,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle, Eye } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
-import ChapterPreviewModal from './ChapterPreviewModal';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -44,7 +43,6 @@ export default function ChapterEditor({
 }) {
     const [isOpen, setIsOpen] = useState(true);
     const [errors, setErrors] = useState({});
-    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
     const handleCoordinateChange = (idx, value) => {
         const type = idx === 0 ? 'lat' : 'lng';
@@ -103,15 +101,16 @@ export default function ChapterEditor({
                             </span>
                         </CollapsibleTrigger>
 
-                        <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => setIsPreviewOpen(true)}
-                            className="text-slate-400 hover:text-amber-600"
-                            title="Preview Chapter"
-                        >
-                            <Eye className="w-4 h-4" />
-                        </Button>
+                        <Link to={createPageUrl(`ChapterPreview?storyId=${storyId}&chapterId=${chapter.id}`)}>
+                            <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="text-slate-400 hover:text-amber-600"
+                                title="Preview Chapter"
+                            >
+                                <Eye className="w-4 h-4" />
+                            </Button>
+                        </Link>
                         <Button 
                             variant="ghost" 
                             size="icon"
@@ -266,13 +265,6 @@ export default function ChapterEditor({
                             </CardContent>
                             </CollapsibleContent>
                             </Collapsible>
-
-                            <ChapterPreviewModal
-                            isOpen={isPreviewOpen}
-                            onClose={() => setIsPreviewOpen(false)}
-                            chapter={chapter}
-                            slides={slides}
-                            />
                             </Card>
                             );
                             }
