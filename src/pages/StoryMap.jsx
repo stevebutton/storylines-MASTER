@@ -19,6 +19,8 @@ export default function StoryMap() {
   const [mapConfig, setMapConfig] = useState({
     center: [41.8902, 12.4922],
     zoom: 12,
+    bearing: 0,
+    pitch: 0,
     mapStyle: 'light'
   });
   const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
@@ -59,7 +61,9 @@ export default function StoryMap() {
               description: s.description,
               location: s.location,
               coordinates: s.coordinates,
-              zoom: s.zoom
+              zoom: s.zoom,
+              bearing: s.bearing,
+              pitch: s.pitch
             }))
         }));
 
@@ -187,6 +191,8 @@ export default function StoryMap() {
             <MapBackground
         center={mapConfig.center}
         zoom={mapConfig.zoom}
+        bearing={mapConfig.bearing}
+        pitch={mapConfig.pitch}
         mapStyle={mapConfig.mapStyle} />
 
             
@@ -220,6 +226,8 @@ export default function StoryMap() {
                         setMapConfig({
                             center: slide.coordinates,
                             zoom: slide.zoom || chapter.zoom || 12,
+                            bearing: slide.bearing || 0,
+                            pitch: slide.pitch || 0,
                             mapStyle: chapter.map_style || 'light'
                         });
                         }

@@ -10,7 +10,8 @@ mapboxgl.accessToken = MAPBOX_TOKEN;
 export default function MapBackground({ 
     center, 
     zoom, 
-    bearing = 0, 
+    bearing = 0,
+    pitch = 0, 
     markers = [], 
     activeMarkerIndex = -1,
     onMarkerClick 
@@ -50,16 +51,17 @@ export default function MapBackground({
     // Update map position
     useEffect(() => {
         if (!map.current || !center) return;
-        
+
         map.current.flyTo({
             center: [center[1], center[0]],
             zoom: zoom || 12,
-            bearing: bearing,
+            bearing: bearing || 0,
+            pitch: pitch || 0,
             duration: 10000,
             essential: true,
             easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
         });
-    }, [center, zoom, bearing]);
+    }, [center, zoom, bearing, pitch]);
 
     // Update markers
     useEffect(() => {
