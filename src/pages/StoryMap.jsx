@@ -212,7 +212,11 @@ export default function StoryMap() {
                         alignment={chapter.alignment}
                         index={index}
                         onSlideChange={(slide) => {
-                        if (slide.coordinates) {
+                        if (slide.coordinates && 
+                            Array.isArray(slide.coordinates) && 
+                            slide.coordinates.length === 2 &&
+                            !isNaN(slide.coordinates[0]) && 
+                            !isNaN(slide.coordinates[1])) {
                         setMapConfig({
                             center: slide.coordinates,
                             zoom: slide.zoom || chapter.zoom || 12,
