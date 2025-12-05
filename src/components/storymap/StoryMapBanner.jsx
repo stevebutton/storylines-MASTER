@@ -28,8 +28,8 @@ export default function StoryMapBanner({
                         </Link>
                     </div>
 
-                    {/* Center - Title */}
-                    <div className="absolute left-1/2 -translate-x-1/2">
+                    {/* Title */}
+                    <div className="absolute left-[100px]">
                         <img 
                             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/3971ea16c_contentthatmovess.png" 
                             alt="content that moves stories"
