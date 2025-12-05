@@ -20,6 +20,9 @@ export default function StoryEditor() {
     // Check for picked location from LocationPickerPage
     const pickedLat = urlParams.get('pickedLat');
     const pickedLng = urlParams.get('pickedLng');
+    const pickedZoom = urlParams.get('pickedZoom');
+    const pickedBearing = urlParams.get('pickedBearing');
+    const pickedPitch = urlParams.get('pickedPitch');
     const pickedName = urlParams.get('pickedName');
     const pickedChapterId = urlParams.get('chapterId');
     const pickedSlideId = urlParams.get('slideId');
@@ -37,6 +40,9 @@ export default function StoryEditor() {
             setPendingLocation({
                 lat: parseFloat(pickedLat),
                 lng: parseFloat(pickedLng),
+                zoom: pickedZoom ? parseFloat(pickedZoom) : null,
+                bearing: pickedBearing ? parseFloat(pickedBearing) : null,
+                pitch: pickedPitch ? parseFloat(pickedPitch) : null,
                 name: pickedName ? decodeURIComponent(pickedName) : null,
                 chapterId: pickedChapterId,
                 slideId: pickedSlideId
@@ -53,7 +59,7 @@ export default function StoryEditor() {
     // Apply pending location after data loads and auto-save
     useEffect(() => {
         if (!isLoading && pendingLocation) {
-            const { lat, lng, name, chapterId, slideId } = pendingLocation;
+            const { lat, lng, zoom, bearing, pitch, name, chapterId, slideId } = pendingLocation;
             
             const saveLocationUpdate = async () => {
                 if (slideId && !slideId.startsWith('temp-')) {
@@ -62,7 +68,10 @@ export default function StoryEditor() {
                     if (slideToUpdate) {
                         const updatedSlide = { 
                             ...slideToUpdate, 
-                            coordinates: [lat, lng], 
+                            coordinates: [lat, lng],
+                            zoom: zoom ?? slideToUpdate.zoom,
+                            bearing: bearing ?? slideToUpdate.bearing,
+                            pitch: pitch ?? slideToUpdate.pitch,
                             location: name ? name.split(',')[0] : slideToUpdate.location 
                         };
                         await base44.entities.Slide.update(slideId, updatedSlide);
@@ -72,7 +81,14 @@ export default function StoryEditor() {
                     // Just update local state for temp slides
                     setSlides(prev => prev.map(s => 
                         s.id === slideId 
-                            ? { ...s, coordinates: [lat, lng], location: name ? name.split(',')[0] : s.location }
+                            ? { 
+                                ...s, 
+                                coordinates: [lat, lng], 
+                                zoom: zoom ?? s.zoom,
+                                bearing: bearing ?? s.bearing,
+                                pitch: pitch ?? s.pitch,
+                                location: name ? name.split(',')[0] : s.location 
+                              }
                             : s
                     ));
                 }
@@ -82,7 +98,11 @@ export default function StoryEditor() {
                         // Update chapter in database
                         const chapterToUpdate = chapters.find(c => c.id === chapterId);
                         if (chapterToUpdate) {
-                            const updatedChapter = { ...chapterToUpdate, coordinates: [lat, lng] };
+                            const updatedChapter = { 
+                                ...chapterToUpdate, 
+                                coordinates: [lat, lng],
+                                zoom: zoom ?? chapterToUpdate.zoom,
+                            };
                             await base44.entities.Chapter.update(chapterId, updatedChapter);
                             setChapters(prev => prev.map(c => c.id === chapterId ? updatedChapter : c));
                         }
@@ -90,7 +110,7 @@ export default function StoryEditor() {
                         // Just update local state for temp chapters
                         setChapters(prev => prev.map(c => 
                             c.id === chapterId 
-                                ? { ...c, coordinates: [lat, lng] }
+                                ? { ...c, coordinates: [lat, lng], zoom: zoom ?? c.zoom }
                                 : c
                         ));
                     }
