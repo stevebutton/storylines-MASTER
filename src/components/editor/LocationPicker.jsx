@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Search, MapPin, Loader2 } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -23,13 +23,19 @@ export default function LocationPicker({ coordinates, onSelect }) {
     useEffect(() => {
         if (!isOpen || !mapContainerRef.current) return;
         
-        // Small delay to ensure dialog is fully rendered
+        // Longer delay to ensure dialog is fully rendered and laid out
         const timer = setTimeout(() => {
             if (mapRef.current) return;
 
-            const initialCenter = coordinates && coordinates[0] && coordinates[1] 
-                ? [coordinates[1], coordinates[0]] // Mapbox uses [lng, lat]
-                : [-73.97, 40.78];
+            const initialCenter = [-73.97, 40.78]; // Default to NYC
+            
+            // Check if we have valid coordinates
+            if (coordinates && Array.isArray(coordinates) && 
+                typeof coordinates[0] === 'number' && typeof coordinates[1] === 'number' &&
+                !isNaN(coordinates[0]) && !isNaN(coordinates[1])) {
+                initialCenter[0] = coordinates[1]; // lng
+                initialCenter[1] = coordinates[0]; // lat
+            }
 
             mapRef.current = new mapboxgl.Map({
                 container: mapContainerRef.current,
@@ -39,13 +45,21 @@ export default function LocationPicker({ coordinates, onSelect }) {
             });
 
             mapRef.current.on('load', () => {
+                // Call resize multiple times to ensure it takes effect
                 mapRef.current.resize();
+                setTimeout(() => {
+                    if (mapRef.current) mapRef.current.resize();
+                }, 100);
+                setTimeout(() => {
+                    if (mapRef.current) mapRef.current.resize();
+                }, 300);
             });
 
             mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
             // Add marker if coordinates exist
-            if (coordinates && coordinates[0] && coordinates[1]) {
+            if (coordinates && Array.isArray(coordinates) && 
+                typeof coordinates[0] === 'number' && typeof coordinates[1] === 'number') {
                 markerRef.current = new mapboxgl.Marker({ color: '#d97706' })
                     .setLngLat(initialCenter)
                     .addTo(mapRef.current);
@@ -66,7 +80,7 @@ export default function LocationPicker({ coordinates, onSelect }) {
                 
                 setSelectedLocation({ lat, lng });
             });
-        }, 100);
+        }, 300);
 
         return () => {
             clearTimeout(timer);
@@ -149,6 +163,7 @@ export default function LocationPicker({ coordinates, onSelect }) {
             <DialogContent className="max-w-3xl h-[600px] flex flex-col p-0">
                 <DialogHeader className="p-4 pb-0">
                     <DialogTitle>Choose Location</DialogTitle>
+                    <DialogDescription>Search or click on the map to select a location</DialogDescription>
                 </DialogHeader>
                 
                 <div className="p-4 space-y-3 flex-1 flex flex-col">
@@ -190,8 +205,8 @@ export default function LocationPicker({ coordinates, onSelect }) {
                     {/* Map */}
                     <div 
                         ref={mapContainerRef} 
-                        className="flex-1 rounded-lg overflow-hidden border"
-                        style={{ minHeight: '350px' }}
+                        className="rounded-lg overflow-hidden border"
+                        style={{ height: '400px', width: '100%' }}
                     />
 
                     {/* Selected location info */}
