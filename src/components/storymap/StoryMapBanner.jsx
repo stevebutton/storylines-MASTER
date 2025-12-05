@@ -30,9 +30,11 @@ export default function StoryMapBanner({
 
                     {/* Center - Title */}
                     <div className="absolute left-1/2 -translate-x-1/2">
-                        <h1 className="text-slate-800 text-2xl md:text-3xl font-thin tracking-wide">
-                            mapflow
-                        </h1>
+                        <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/3971ea16c_contentthatmovess.png" 
+                            alt="content that moves stories"
+                            className="h-6 md:h-7"
+                        />
                     </div>
 
                     {/* Right - Navigation Icons */}
