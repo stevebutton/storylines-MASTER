@@ -22,8 +22,12 @@ export default function LocationPickerPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
+    const initialZoom = parseFloat(urlParams.get('zoom')) || 10;
+    const initialBearing = parseFloat(urlParams.get('bearing')) || 0;
+    const initialPitch = parseFloat(urlParams.get('pitch')) || 0;
+
     const [selectedLocation, setSelectedLocation] = useState(
-        urlParams.get('lat') ? { lat: initialLat, lng: initialLng } : null
+        urlParams.get('lat') ? { lat: initialLat, lng: initialLng, zoom: initialZoom, bearing: initialBearing, pitch: initialPitch } : null
     );
     const mapContainerRef = useRef(null);
     const mapRef = useRef(null);
@@ -37,7 +41,9 @@ export default function LocationPickerPage() {
             container: mapContainerRef.current,
             style: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
             center: [initialLng, initialLat],
-            zoom: 10
+            zoom: initialZoom,
+            bearing: initialBearing,
+            pitch: initialPitch
         });
 
         mapRef.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -52,6 +58,9 @@ export default function LocationPickerPage() {
         // Click to place marker
         mapRef.current.on('click', (e) => {
             const { lng, lat } = e.lngLat;
+            const zoom = mapRef.current.getZoom();
+            const bearing = mapRef.current.getBearing();
+            const pitch = mapRef.current.getPitch();
             
             if (markerRef.current) {
                 markerRef.current.setLngLat([lng, lat]);
@@ -61,7 +70,19 @@ export default function LocationPickerPage() {
                     .addTo(mapRef.current);
             }
             
-            setSelectedLocation({ lat, lng });
+            setSelectedLocation({ lat, lng, zoom, bearing, pitch });
+        });
+
+        // Update zoom/bearing/pitch when map moves
+        mapRef.current.on('moveend', () => {
+            if (selectedLocation) {
+                setSelectedLocation(prev => prev ? {
+                    ...prev,
+                    zoom: mapRef.current.getZoom(),
+                    bearing: mapRef.current.getBearing(),
+                    pitch: mapRef.current.getPitch()
+                } : null);
+            }
         });
 
         return () => {
@@ -106,7 +127,10 @@ export default function LocationPickerPage() {
             }
         }
         
-        setSelectedLocation({ lat, lng, name: result.place_name });
+        const zoom = mapRef.current.getZoom();
+        const bearing = mapRef.current.getBearing();
+        const pitch = mapRef.current.getPitch();
+        setSelectedLocation({ lat, lng, name: result.place_name, zoom, bearing, pitch });
         setSearchResults([]);
         setSearchQuery(result.place_name);
     };
@@ -117,6 +141,7 @@ export default function LocationPickerPage() {
         if (storyId) url += `id=${storyId}&`;
         if (selectedLocation) {
             url += `pickedLat=${selectedLocation.lat}&pickedLng=${selectedLocation.lng}&`;
+            url += `pickedZoom=${selectedLocation.zoom}&pickedBearing=${selectedLocation.bearing}&pickedPitch=${selectedLocation.pitch}&`;
             if (selectedLocation.name) url += `pickedName=${encodeURIComponent(selectedLocation.name)}&`;
         }
         if (chapterId) url += `chapterId=${chapterId}&`;
@@ -193,11 +218,14 @@ export default function LocationPickerPage() {
                 {/* Selected location info */}
                 {selectedLocation && (
                     <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 z-10">
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2 text-sm mb-1">
                             <MapPin className="w-4 h-4 text-amber-600" />
                             <span className="text-slate-700">
                                 {selectedLocation.name || `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}`}
                             </span>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                            Zoom: {selectedLocation.zoom?.toFixed(1)} | Bearing: {selectedLocation.bearing?.toFixed(0)}° | Pitch: {selectedLocation.pitch?.toFixed(0)}°
                         </div>
                     </div>
                 )}
