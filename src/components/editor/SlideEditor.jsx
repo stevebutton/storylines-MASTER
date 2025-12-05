@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import LocationPicker from './LocationPicker';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
-export default function SlideEditor({ slide, onUpdate, onDelete, dragHandleProps }) {
+export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
     const [isUploading, setIsUploading] = useState(false);
 
     const handleImageUpload = async (e) => {
@@ -94,11 +95,11 @@ export default function SlideEditor({ slide, onUpdate, onDelete, dragHandleProps
                             </div>
                             <div>
                                 <Label className="text-xs">Map Position (optional)</Label>
-                                <LocationPicker
-                                    coordinates={slide.coordinates}
-                                    zoom={slide.zoom}
-                                    onSelect={(coords, zoom) => onUpdate({ ...slide, coordinates: coords, zoom: zoom })}
-                                />
+                                <Link to={createPageUrl(`LocationPickerPage?returnTo=StoryEditor&storyId=${storyId}&chapterId=${chapterId}&slideId=${slide.id}${slide.coordinates ? `&lat=${slide.coordinates[0]}&lng=${slide.coordinates[1]}` : ''}`)}>
+                                    <Button variant="outline" size="sm" className="h-9">
+                                        <MapPin className="w-4 h-4 mr-1" /> Pick Location
+                                    </Button>
+                                </Link>
                                 {slide.coordinates && slide.coordinates.length >= 2 && (
                                     <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
                                         <MapPin className="w-3 h-3" />
