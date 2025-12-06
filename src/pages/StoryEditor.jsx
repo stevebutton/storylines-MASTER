@@ -244,7 +244,10 @@ export default function StoryEditor() {
                 window.history.replaceState({}, '', `${createPageUrl('StoryEditor')}?id=${newStory.id}`);
             }
 
-            // Save chapters
+            // Track chapter ID mappings for updating slides
+            const chapterIdMap = {};
+            
+            // Save chapters and build ID mapping
             for (const chapter of chapters) {
                 if (chapter.id.startsWith('temp-')) {
                     const { id, ...chapterData } = chapter;
@@ -252,10 +255,7 @@ export default function StoryEditor() {
                         ...chapterData, 
                         story_id: savedStoryId 
                     });
-                    // Update slides with new chapter id
-                    setSlides(prev => prev.map(s => 
-                        s.chapter_id === id ? { ...s, chapter_id: newChapter.id } : s
-                    ));
+                    chapterIdMap[id] = newChapter.id;
                     setChapters(prev => prev.map(c => 
                         c.id === id ? newChapter : c
                     ));
@@ -264,11 +264,16 @@ export default function StoryEditor() {
                 }
             }
 
-            // Save slides
+            // Save slides using updated chapter IDs
             for (const slide of slides) {
                 if (slide.id.startsWith('temp-')) {
                     const { id, ...slideData } = slide;
-                    const newSlide = await base44.entities.Slide.create(slideData);
+                    // Use mapped chapter ID if this slide belongs to a newly created chapter
+                    const finalChapterId = chapterIdMap[slide.chapter_id] || slide.chapter_id;
+                    const newSlide = await base44.entities.Slide.create({ 
+                        ...slideData, 
+                        chapter_id: finalChapterId 
+                    });
                     setSlides(prev => prev.map(s => s.id === id ? newSlide : s));
                 } else {
                     await base44.entities.Slide.update(slide.id, slide);
