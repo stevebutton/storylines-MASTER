@@ -342,7 +342,7 @@ export default function Stories() {
                                     <div className="p-5">
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-semibold text-slate-800 truncate">
+                                                <h3 className="text-slate-800 text-xl font-semibold truncate">
                                                     {story.title || 'Untitled Story'}
                                                 </h3>
                                                 {story.author &&
