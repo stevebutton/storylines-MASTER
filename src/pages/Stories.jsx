@@ -373,7 +373,7 @@ export default function Stories() {
                                                     <Edit2 className="w-3.5 h-3.5 mr-1.5" /> Edit
                                                 </Button>
                                             </Link>
-                                            <Link to={`${createPageUrl('StoryViewer')}?id=${story.id}`}>
+                                            <Link to={`${createPageUrl('StoryMapView')}?id=${story.id}`}>
                                                 <Button variant="outline" size="sm">
                                                     <Eye className="w-3.5 h-3.5" />
                                                 </Button>

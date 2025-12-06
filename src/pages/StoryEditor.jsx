@@ -471,7 +471,7 @@ export default function StoryEditor() {
                             <Sparkles className="w-4 h-4 mr-2" /> AI Assistant
                         </Button>
                         {storyId && (
-                            <Link to={`${createPageUrl('StoryViewer')}?id=${storyId}`} target="_blank">
+                            <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
                                 <Button variant="outline" size="sm">
                                     <Eye className="w-4 h-4 mr-2" /> Preview
                                 </Button>
