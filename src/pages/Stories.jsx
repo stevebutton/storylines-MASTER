@@ -156,7 +156,7 @@ export default function Stories() {
     <div className="min-h-screen bg-slate-50">
             {/* Header */}
             <div className="bg-white border-b">
-                <div className="max-w-6xl mx-auto px-4 py-6">
+                <div className="bg-slate-100 mx-auto px-4 py-6 max-w-6xl">
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <h1 className="text-slate-800 text-4xl font-bold">Story Dashboard</h1>
