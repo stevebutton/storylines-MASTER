@@ -181,7 +181,7 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                     </TabsList>
 
                     <TabsContent value="outline" className="flex-1 flex flex-col overflow-hidden">
-                        <div className="flex-1 flex flex-col p-4 space-y-4 min-h-0">
+                        <div className="flex flex-col p-4 space-y-4" style={{ height: 'calc(100vh - 250px)' }}>
                             <div className="flex-shrink-0">
                                 <label className="text-sm font-medium text-slate-700 mb-2 block">
                                     Describe your story theme or location
@@ -195,8 +195,9 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                             </div>
 
                             {result?.type === 'outline' && (
-                                <ScrollArea className="flex-1 border rounded-lg min-h-0">
-                                    <div className="p-4 space-y-4">
+                                <div className="flex-1 overflow-hidden border rounded-lg">
+                                    <ScrollArea className="h-full">
+                                        <div className="p-4 space-y-4">
                                         <div className="flex items-center justify-between">
                                             <h3 className="font-semibold text-lg text-slate-800">{result.data.title}</h3>
                                             <Button variant="ghost" size="icon" onClick={() => handleCopy(result.data)}>
@@ -249,7 +250,7 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                     </TabsContent>
 
                     <TabsContent value="slides" className="flex-1 flex flex-col overflow-hidden">
-                        <div className="flex-1 flex flex-col p-4 space-y-4 min-h-0">
+                        <div className="flex flex-col p-4 space-y-4" style={{ height: 'calc(100vh - 250px)' }}>
                             <div className="flex-shrink-0 space-y-4">
                                 <div>
                                     <label className="text-sm font-medium text-slate-700 mb-2 block">
@@ -282,8 +283,9 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                             </div>
 
                             {result?.type === 'slides' && (
-                                <ScrollArea className="flex-1 border rounded-lg min-h-0">
-                                    <div className="p-4 space-y-3">
+                                <div className="flex-1 overflow-hidden border rounded-lg">
+                                    <ScrollArea className="h-full">
+                                        <div className="p-4 space-y-3">
                                         {result.data.chapterMood && (
                                             <p className="text-sm text-slate-500 italic border-l-2 border-amber-300 pl-2">
                                                 {result.data.chapterMood}
