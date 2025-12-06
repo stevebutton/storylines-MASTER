@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus, Save, Eye, Loader2, Undo2, Redo2, AlertCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Eye, Loader2, Undo2, Redo2, AlertCircle, Sparkles, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -37,6 +37,7 @@ export default function StoryEditor() {
     const [pendingLocation, setPendingLocation] = useState(null);
     const [storyErrors, setStoryErrors] = useState({});
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+    const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
     
     // Undo/Redo state
     const [history, setHistory] = useState([]);
@@ -390,6 +391,21 @@ export default function StoryEditor() {
             .sort((a, b) => a.order - b.order);
     };
 
+    const handleHeroImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingHeroImage(true);
+        try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            setStory({ ...story, hero_image: file_url });
+        } catch (error) {
+            console.error('Failed to upload hero image:', error);
+        } finally {
+            setIsUploadingHeroImage(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -554,6 +570,51 @@ export default function StoryEditor() {
                                         <SelectItem value="other">Other</SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </div>
+                        </div>
+                        <div>
+                            <Label>Hero Image</Label>
+                            <div className="mt-2 space-y-3">
+                                {story.hero_image && (
+                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border">
+                                        <img 
+                                            src={story.hero_image} 
+                                            alt="Hero" 
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            onClick={() => setStory({ ...story, hero_image: '' })}
+                                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+                                <div>
+                                    <input
+                                        type="file"
+                                        accept="image/jpeg,image/jpg,image/png"
+                                        onChange={handleHeroImageUpload}
+                                        className="hidden"
+                                        id="hero-image-upload"
+                                        disabled={isUploadingHeroImage}
+                                    />
+                                    <label htmlFor="hero-image-upload">
+                                        <Button 
+                                            type="button" 
+                                            variant="outline" 
+                                            disabled={isUploadingHeroImage}
+                                            onClick={() => document.getElementById('hero-image-upload').click()}
+                                            className="w-full md:w-auto"
+                                        >
+                                            {isUploadingHeroImage ? (
+                                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                                            ) : (
+                                                <><Plus className="w-4 h-4 mr-2" /> {story.hero_image ? 'Change' : 'Upload'} Hero Image</>
+                                            )}
+                                        </Button>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">

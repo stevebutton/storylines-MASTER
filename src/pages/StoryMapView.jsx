@@ -190,6 +190,7 @@ export default function StoryMapView() {
                     title={story.title}
                     subtitle={story.subtitle}
                     author={story.author}
+                    heroImage={story.hero_image}
                 />
                 
                 {/* Chapters */}

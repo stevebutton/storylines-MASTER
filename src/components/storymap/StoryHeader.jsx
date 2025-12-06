@@ -2,9 +2,17 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export default function StoryHeader({ title, subtitle, author, onExplore }) {
+export default function StoryHeader({ title, subtitle, author, heroImage, onExplore }) {
     return (
         <div className="min-h-screen flex items-center justify-center relative">
+            {/* Hero Image or Gradient Background */}
+            {heroImage ? (
+                <img 
+                    src={heroImage} 
+                    alt={title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+            ) : null}
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40 z-10" />
             
             <motion.div 
