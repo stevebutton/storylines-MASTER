@@ -244,10 +244,10 @@ export default function StoryEditor() {
                 window.history.replaceState({}, '', `${createPageUrl('StoryEditor')}?id=${newStory.id}`);
             }
 
+            // Track chapter ID mappings for updating slides
             const chapterIdMap = {};
-            const updatedChapters = [];
             
-            // Save all chapters first and build ID mapping
+            // Save chapters and build ID mapping
             for (const chapter of chapters) {
                 if (chapter.id.startsWith('temp-')) {
                     const { id, ...chapterData } = chapter;
@@ -256,43 +256,29 @@ export default function StoryEditor() {
                         story_id: savedStoryId 
                     });
                     chapterIdMap[id] = newChapter.id;
-                    updatedChapters.push(newChapter);
+                    setChapters(prev => prev.map(c => 
+                        c.id === id ? newChapter : c
+                    ));
                 } else {
                     await base44.entities.Chapter.update(chapter.id, chapter);
-                    updatedChapters.push(chapter);
                 }
             }
 
-            // Update state immediately with new chapter IDs
-            setChapters(updatedChapters);
-
-            const updatedSlides = [];
-            
-            // Save all slides using the mapped chapter IDs
+            // Save slides using updated chapter IDs
             for (const slide of slides) {
-                const finalChapterId = chapterIdMap[slide.chapter_id] || slide.chapter_id;
-                
                 if (slide.id.startsWith('temp-')) {
                     const { id, ...slideData } = slide;
+                    // Use mapped chapter ID if this slide belongs to a newly created chapter
+                    const finalChapterId = chapterIdMap[slide.chapter_id] || slide.chapter_id;
                     const newSlide = await base44.entities.Slide.create({ 
                         ...slideData, 
                         chapter_id: finalChapterId 
                     });
-                    updatedSlides.push(newSlide);
+                    setSlides(prev => prev.map(s => s.id === id ? newSlide : s));
                 } else {
-                    // Update existing slide if its chapter_id changed
-                    if (slide.chapter_id !== finalChapterId) {
-                        await base44.entities.Slide.update(slide.id, { ...slide, chapter_id: finalChapterId });
-                        updatedSlides.push({ ...slide, chapter_id: finalChapterId });
-                    } else {
-                        await base44.entities.Slide.update(slide.id, slide);
-                        updatedSlides.push(slide);
-                    }
+                    await base44.entities.Slide.update(slide.id, slide);
                 }
             }
-
-            // Update state with new slide data
-            setSlides(updatedSlides);
 
             await loadData();
         } catch (error) {
