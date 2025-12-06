@@ -198,37 +198,38 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                 <div className="flex-1 overflow-hidden border rounded-lg">
                                     <ScrollArea className="h-full">
                                         <div className="p-4 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="font-semibold text-lg text-slate-800">{result.data.title}</h3>
-                                            <Button variant="ghost" size="icon" onClick={() => handleCopy(result.data)}>
-                                                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                                            </Button>
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="font-semibold text-lg text-slate-800">{result.data.title}</h3>
+                                                <Button variant="ghost" size="icon" onClick={() => handleCopy(result.data)}>
+                                                    {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                                                </Button>
+                                            </div>
+                                            <p className="text-sm text-slate-600">{result.data.subtitle}</p>
+                                            
+                                            {result.data.chapters?.map((chapter, idx) => (
+                                                <Card key={idx} className="bg-slate-50">
+                                                    <CardHeader className="py-3">
+                                                        <CardTitle className="text-sm flex items-center gap-2">
+                                                            <MapPin className="w-4 h-4 text-amber-600" />
+                                                            {chapter.location}
+                                                        </CardTitle>
+                                                        {chapter.mood && (
+                                                            <p className="text-xs text-slate-500 italic">{chapter.mood}</p>
+                                                        )}
+                                                    </CardHeader>
+                                                    <CardContent className="py-2 space-y-2">
+                                                        {chapter.slides?.map((slide, sIdx) => (
+                                                            <div key={sIdx} className="text-xs border-l-2 border-amber-300 pl-2">
+                                                                <p className="font-medium">{slide.title}</p>
+                                                                <p className="text-slate-500">{slide.description}</p>
+                                                            </div>
+                                                        ))}
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
                                         </div>
-                                        <p className="text-sm text-slate-600">{result.data.subtitle}</p>
-                                        
-                                        {result.data.chapters?.map((chapter, idx) => (
-                                            <Card key={idx} className="bg-slate-50">
-                                                <CardHeader className="py-3">
-                                                    <CardTitle className="text-sm flex items-center gap-2">
-                                                        <MapPin className="w-4 h-4 text-amber-600" />
-                                                        {chapter.location}
-                                                    </CardTitle>
-                                                    {chapter.mood && (
-                                                        <p className="text-xs text-slate-500 italic">{chapter.mood}</p>
-                                                    )}
-                                                </CardHeader>
-                                                <CardContent className="py-2 space-y-2">
-                                                    {chapter.slides?.map((slide, sIdx) => (
-                                                        <div key={sIdx} className="text-xs border-l-2 border-amber-300 pl-2">
-                                                            <p className="font-medium">{slide.title}</p>
-                                                            <p className="text-slate-500">{slide.description}</p>
-                                                        </div>
-                                                    ))}
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
+                                    </ScrollArea>
+                                </div>
                             )}
                         </div>
 
@@ -286,31 +287,32 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                 <div className="flex-1 overflow-hidden border rounded-lg">
                                     <ScrollArea className="h-full">
                                         <div className="p-4 space-y-3">
-                                        {result.data.chapterMood && (
-                                            <p className="text-sm text-slate-500 italic border-l-2 border-amber-300 pl-2">
-                                                {result.data.chapterMood}
-                                            </p>
-                                        )}
-                                        {result.data.slides?.map((slide, idx) => (
-                                            <Card key={idx} className="bg-slate-50">
-                                                <CardContent className="py-3 space-y-2">
-                                                    <p className="font-medium text-slate-800">{slide.title}</p>
-                                                    <p className="text-sm text-slate-600">{slide.description}</p>
-                                                    {slide.location && (
-                                                        <p className="text-xs text-amber-600 flex items-center gap-1">
-                                                            <MapPin className="w-3 h-3" /> {slide.location}
-                                                        </p>
-                                                    )}
-                                                    {slide.imageIdea && (
-                                                        <p className="text-xs text-slate-400 italic">
-                                                            📷 {slide.imageIdea}
-                                                        </p>
-                                                    )}
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
+                                            {result.data.chapterMood && (
+                                                <p className="text-sm text-slate-500 italic border-l-2 border-amber-300 pl-2">
+                                                    {result.data.chapterMood}
+                                                </p>
+                                            )}
+                                            {result.data.slides?.map((slide, idx) => (
+                                                <Card key={idx} className="bg-slate-50">
+                                                    <CardContent className="py-3 space-y-2">
+                                                        <p className="font-medium text-slate-800">{slide.title}</p>
+                                                        <p className="text-sm text-slate-600">{slide.description}</p>
+                                                        {slide.location && (
+                                                            <p className="text-xs text-amber-600 flex items-center gap-1">
+                                                                <MapPin className="w-3 h-3" /> {slide.location}
+                                                            </p>
+                                                        )}
+                                                        {slide.imageIdea && (
+                                                            <p className="text-xs text-slate-400 italic">
+                                                                📷 {slide.imageIdea}
+                                                            </p>
+                                                        )}
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                </div>
                             )}
                         </div>
 
