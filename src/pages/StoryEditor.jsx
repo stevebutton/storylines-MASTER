@@ -646,9 +646,13 @@ export default function StoryEditor() {
                         subtitle: outline.subtitle || prev.subtitle 
                     }));
                     
+                    const newChapters = [];
+                    const newSlides = [];
+                    const timestamp = Date.now();
+                    
                     outline.chapters?.forEach((chapterData, idx) => {
                         const newChapter = {
-                            id: `temp-ai-${Date.now()}-${idx}`,
+                            id: `temp-ai-${timestamp}-${idx}`,
                             story_id: storyId,
                             order: chapters.length + idx,
                             coordinates: chapterData.coordinates || [0, 0],
@@ -656,11 +660,11 @@ export default function StoryEditor() {
                             map_style: 'light',
                             alignment: 'left'
                         };
-                        setChapters(prev => [...prev, newChapter]);
+                        newChapters.push(newChapter);
                         
                         chapterData.slides?.forEach((slideData, sIdx) => {
                             const newSlide = {
-                                id: `temp-ai-slide-${Date.now()}-${idx}-${sIdx}`,
+                                id: `temp-ai-slide-${timestamp}-${idx}-${sIdx}`,
                                 chapter_id: newChapter.id,
                                 order: sIdx,
                                 title: slideData.title,
@@ -668,24 +672,38 @@ export default function StoryEditor() {
                                 location: chapterData.location,
                                 image: ''
                             };
-                            setSlides(prev => [...prev, newSlide]);
+                            newSlides.push(newSlide);
                         });
                     });
+                    
+                    setChapters(prev => [...prev, ...newChapters]);
+                    setSlides(prev => [...prev, ...newSlides]);
+                    saveToHistory([...chapters, ...newChapters], [...slides, ...newSlides]);
                     setIsAIAssistantOpen(false);
                 }}
                 onApplySlideContent={(content, chapterId) => {
                     const chapterSlides = slides.filter(s => s.chapter_id === chapterId);
+                    const timestamp = Date.now();
+                    const newSlides = [];
+                    
+                    let updatedSlides = slides.map(s => {
+                        const idx = chapterSlides.findIndex(cs => cs.id === s.id);
+                        if (idx !== -1 && content.slides?.[idx]) {
+                            const slideData = content.slides[idx];
+                            return { 
+                                ...s, 
+                                title: slideData.title, 
+                                description: slideData.description, 
+                                location: slideData.location || s.location 
+                            };
+                        }
+                        return s;
+                    });
                     
                     content.slides?.forEach((slideData, idx) => {
-                        if (chapterSlides[idx]) {
-                            setSlides(prev => prev.map(s => 
-                                s.id === chapterSlides[idx].id 
-                                    ? { ...s, title: slideData.title, description: slideData.description, location: slideData.location || s.location }
-                                    : s
-                            ));
-                        } else {
+                        if (idx >= chapterSlides.length) {
                             const newSlide = {
-                                id: `temp-ai-slide-${Date.now()}-${idx}`,
+                                id: `temp-ai-slide-${timestamp}-${idx}`,
                                 chapter_id: chapterId,
                                 order: chapterSlides.length + idx,
                                 title: slideData.title,
@@ -693,9 +711,13 @@ export default function StoryEditor() {
                                 location: slideData.location || '',
                                 image: ''
                             };
-                            setSlides(prev => [...prev, newSlide]);
+                            newSlides.push(newSlide);
                         }
                     });
+                    
+                    const finalSlides = [...updatedSlides, ...newSlides];
+                    setSlides(finalSlides);
+                    saveToHistory(chapters, finalSlides);
                     setIsAIAssistantOpen(false);
                 }}
             />
