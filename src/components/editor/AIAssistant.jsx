@@ -20,7 +20,8 @@ export default function AIAssistant({
     const [activeTab, setActiveTab] = useState('outline');
     const [prompt, setPrompt] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
-    const [result, setResult] = useState(null);
+    const [outlineResult, setOutlineResult] = useState(null);
+    const [slideResult, setSlideResult] = useState(null);
     const [copied, setCopied] = useState(false);
     const [selectedChapterId, setSelectedChapterId] = useState(null);
 
@@ -28,7 +29,8 @@ export default function AIAssistant({
         if (!prompt.trim()) return;
         
         setIsGenerating(true);
-        setResult(null);
+        setOutlineResult(null);
+        setSlideResult(null);
         try {
             const response = await base44.integrations.Core.InvokeLLM({
                 prompt: `You are a creative storytelling assistant for an interactive story map application. 
@@ -77,7 +79,7 @@ Make it engaging, visual, and suitable for a map-based storytelling experience.`
                     }
                 }
             });
-            setResult({ type: 'outline', data: response });
+            setOutlineResult({ type: 'outline', data: response });
         } catch (error) {
             console.error('Failed to generate outline:', error);
         } finally {
@@ -92,7 +94,8 @@ Make it engaging, visual, and suitable for a map-based storytelling experience.`
         const chapterSlides = slides.filter(s => s.chapter_id === selectedChapterId);
         
         setIsGenerating(true);
-        setResult(null);
+        setOutlineResult(null);
+        setSlideResult(null);
         try {
             const response = await base44.integrations.Core.InvokeLLM({
                 prompt: `You are a creative writing assistant for an interactive story map.
@@ -129,7 +132,7 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                     }
                 }
             });
-            setResult({ type: 'slides', data: response, chapterId: selectedChapterId });
+            setSlideResult({ type: 'slides', data: response, chapterId: selectedChapterId });
         } catch (error) {
             console.error('Failed to generate slide content:', error);
         } finally {
@@ -194,19 +197,19 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                 />
                             </div>
 
-                            {result?.type === 'outline' && (
+                            {outlineResult && (
                                 <div className="flex-1 overflow-hidden border rounded-lg">
                                     <ScrollArea className="h-full">
                                         <div className="p-4 space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <h3 className="font-semibold text-lg text-slate-800">{result.data.title}</h3>
-                                                <Button variant="ghost" size="icon" onClick={() => handleCopy(result.data)}>
+                                                <h3 className="font-semibold text-lg text-slate-800">{outlineResult.data.title}</h3>
+                                                <Button variant="ghost" size="icon" onClick={() => handleCopy(outlineResult.data)}>
                                                     {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                                                 </Button>
                                             </div>
-                                            <p className="text-sm text-slate-600">{result.data.subtitle}</p>
+                                            <p className="text-sm text-slate-600">{outlineResult.data.subtitle}</p>
                                             
-                                            {result.data.chapters?.map((chapter, idx) => (
+                                            {outlineResult.data.chapters?.map((chapter, idx) => (
                                                 <Card key={idx} className="bg-slate-50">
                                                     <CardHeader className="py-3">
                                                         <CardTitle className="text-sm flex items-center gap-2">
@@ -235,13 +238,13 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
 
                         <div className="flex-shrink-0 p-4 border-t bg-white">
                             <Button 
-                                onClick={result?.type === 'outline' ? () => onApplyOutline?.(result.data) : generateOutline} 
-                                disabled={isGenerating || (!result?.type && !prompt.trim())}
+                                onClick={outlineResult ? () => onApplyOutline?.(outlineResult.data) : generateOutline} 
+                                disabled={isGenerating || (!outlineResult && !prompt.trim())}
                                 className="w-full bg-amber-600 hover:bg-amber-700"
                             >
                                 {isGenerating ? (
                                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
-                                ) : result?.type === 'outline' ? (
+                                ) : outlineResult ? (
                                     <><Check className="w-4 h-4 mr-2" /> Apply to Story</>
                                 ) : (
                                     <><Wand2 className="w-4 h-4 mr-2" /> Generate Outline</>
@@ -283,16 +286,16 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                 </div>
                             </div>
 
-                            {result?.type === 'slides' && (
+                            {slideResult && (
                                 <div className="flex-1 overflow-hidden border rounded-lg">
                                     <ScrollArea className="h-full">
                                         <div className="p-4 space-y-3">
-                                            {result.data.chapterMood && (
+                                            {slideResult.data.chapterMood && (
                                                 <p className="text-sm text-slate-500 italic border-l-2 border-amber-300 pl-2">
-                                                    {result.data.chapterMood}
+                                                    {slideResult.data.chapterMood}
                                                 </p>
                                             )}
-                                            {result.data.slides?.map((slide, idx) => (
+                                            {slideResult.data.slides?.map((slide, idx) => (
                                                 <Card key={idx} className="bg-slate-50">
                                                     <CardContent className="py-3 space-y-2">
                                                         <p className="font-medium text-slate-800">{slide.title}</p>
@@ -318,13 +321,13 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
 
                         <div className="flex-shrink-0 p-4 border-t bg-white">
                             <Button 
-                                onClick={result?.type === 'slides' ? () => onApplySlideContent?.(result.data, result.chapterId) : generateSlideContent} 
-                                disabled={isGenerating || (!result?.type && !selectedChapterId)}
+                                onClick={slideResult ? () => onApplySlideContent?.(slideResult.data, slideResult.chapterId) : generateSlideContent} 
+                                disabled={isGenerating || (!slideResult && !selectedChapterId)}
                                 className="w-full bg-amber-600 hover:bg-amber-700"
                             >
                                 {isGenerating ? (
                                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
-                                ) : result?.type === 'slides' ? (
+                                ) : slideResult ? (
                                     <><Check className="w-4 h-4 mr-2" /> Apply to Chapter</>
                                 ) : (
                                     <><Wand2 className="w-4 h-4 mr-2" /> Generate Content</>
