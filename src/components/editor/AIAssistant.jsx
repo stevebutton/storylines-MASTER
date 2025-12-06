@@ -234,18 +234,16 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                                         <p className="text-slate-500">{slide.description}</p>
                                                     </div>
                                                 ))}
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                    
-                                    {onApplyOutline && (
-                                        <Button 
-                                            onClick={() => onApplyOutline(result.data)} 
-                                            className="w-full bg-amber-600 hover:bg-amber-700"
-                                        >
-                                            Apply to Story
-                                        </Button>
-                                    )}
+                                                </CardContent>
+                                                </Card>
+                                                ))}
+
+                                                <Button 
+                                                onClick={() => onApplyOutline?.(result.data)} 
+                                                className="w-full bg-amber-600 hover:bg-amber-700"
+                                                >
+                                                Apply to Story
+                                                </Button>
                                 </div>
                             </ScrollArea>
                         )}
@@ -317,17 +315,15 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                                     </p>
                                                 )}
                                             </CardContent>
-                                        </Card>
-                                    ))}
-                                    
-                                    {onApplySlideContent && (
-                                        <Button 
-                                            onClick={() => onApplySlideContent(result.data, result.chapterId)} 
+                                            </Card>
+                                            ))}
+
+                                            <Button 
+                                            onClick={() => onApplySlideContent?.(result.data, result.chapterId)} 
                                             className="w-full bg-amber-600 hover:bg-amber-700"
-                                        >
+                                            >
                                             Apply to Chapter
-                                        </Button>
-                                    )}
+                                            </Button>
                                 </div>
                             </ScrollArea>
                         )}
