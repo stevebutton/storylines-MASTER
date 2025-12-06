@@ -180,7 +180,7 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="outline" className="flex-1 flex flex-col p-4 space-y-4">
+                    <TabsContent value="outline" className="flex-1 flex flex-col p-4 space-y-4 overflow-hidden">
                         <div>
                             <label className="text-sm font-medium text-slate-700 mb-2 block">
                                 Describe your story theme or location
@@ -192,59 +192,59 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                 className="h-24"
                             />
                         </div>
+
                         {result?.type === 'outline' && (
                             <ScrollArea className="flex-1 border rounded-lg">
-                                    <div className="p-4 space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="font-semibold text-lg text-slate-800">{result.data.title}</h3>
-                                            <Button variant="ghost" size="icon" onClick={() => handleCopy(result.data)}>
-                                                {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                                            </Button>
-                                        </div>
-                                        <p className="text-sm text-slate-600">{result.data.subtitle}</p>
-                                        
-                                        {result.data.chapters?.map((chapter, idx) => (
-                                            <Card key={idx} className="bg-slate-50">
-                                                <CardHeader className="py-3">
-                                                    <CardTitle className="text-sm flex items-center gap-2">
-                                                        <MapPin className="w-4 h-4 text-amber-600" />
-                                                        {chapter.location}
-                                                    </CardTitle>
-                                                    {chapter.mood && (
-                                                        <p className="text-xs text-slate-500 italic">{chapter.mood}</p>
-                                                    )}
-                                                </CardHeader>
-                                                <CardContent className="py-2 space-y-2">
-                                                    {chapter.slides?.map((slide, sIdx) => (
-                                                        <div key={sIdx} className="text-xs border-l-2 border-amber-300 pl-2">
-                                                            <p className="font-medium">{slide.title}</p>
-                                                            <p className="text-slate-500">{slide.description}</p>
-                                                        </div>
-                                                    ))}
-                                                </CardContent>
-                                            </Card>
-                                        ))}
+                                <div className="p-4 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-semibold text-lg text-slate-800">{result.data.title}</h3>
+                                        <Button variant="ghost" size="icon" onClick={() => handleCopy(result.data)}>
+                                            {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                                        </Button>
                                     </div>
-                                </ScrollArea>
+                                    <p className="text-sm text-slate-600">{result.data.subtitle}</p>
+                                    
+                                    {result.data.chapters?.map((chapter, idx) => (
+                                        <Card key={idx} className="bg-slate-50">
+                                            <CardHeader className="py-3">
+                                                <CardTitle className="text-sm flex items-center gap-2">
+                                                    <MapPin className="w-4 h-4 text-amber-600" />
+                                                    {chapter.location}
+                                                </CardTitle>
+                                                {chapter.mood && (
+                                                    <p className="text-xs text-slate-500 italic">{chapter.mood}</p>
+                                                )}
+                                            </CardHeader>
+                                            <CardContent className="py-2 space-y-2">
+                                                {chapter.slides?.map((slide, sIdx) => (
+                                                    <div key={sIdx} className="text-xs border-l-2 border-amber-300 pl-2">
+                                                        <p className="font-medium">{slide.title}</p>
+                                                        <p className="text-slate-500">{slide.description}</p>
+                                                    </div>
+                                                ))}
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </ScrollArea>
                         )}
 
                         <Button 
                             onClick={result?.type === 'outline' ? () => onApplyOutline?.(result.data) : generateOutline} 
-                            disabled={isGenerating || (!result && !prompt.trim())}
-                            className="bg-amber-600 hover:bg-amber-700"
+                            disabled={isGenerating || (!result?.type && !prompt.trim())}
+                            className="bg-amber-600 hover:bg-amber-700 flex-shrink-0"
                         >
                             {isGenerating ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
                             ) : result?.type === 'outline' ? (
-                                <Check className="w-4 h-4 mr-2" />
+                                <><Check className="w-4 h-4 mr-2" /> Apply to Story</>
                             ) : (
-                                <Wand2 className="w-4 h-4 mr-2" />
+                                <><Wand2 className="w-4 h-4 mr-2" /> Generate Outline</>
                             )}
-                            {result?.type === 'outline' ? 'Apply to Story' : 'Generate Outline'}
                         </Button>
                     </TabsContent>
 
-                    <TabsContent value="slides" className="flex-1 flex flex-col p-4 space-y-4">
+                    <TabsContent value="slides" className="flex-1 flex flex-col p-4 space-y-4 overflow-hidden">
                         <div>
                             <label className="text-sm font-medium text-slate-700 mb-2 block">
                                 Select chapter
@@ -273,49 +273,49 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                 className="h-20"
                             />
                         </div>
+
                         {result?.type === 'slides' && (
                             <ScrollArea className="flex-1 border rounded-lg">
-                                    <div className="p-4 space-y-3">
-                                        {result.data.chapterMood && (
-                                            <p className="text-sm text-slate-500 italic border-l-2 border-amber-300 pl-2">
-                                                {result.data.chapterMood}
-                                            </p>
-                                        )}
-                                        {result.data.slides?.map((slide, idx) => (
-                                            <Card key={idx} className="bg-slate-50">
-                                                <CardContent className="py-3 space-y-2">
-                                                    <p className="font-medium text-slate-800">{slide.title}</p>
-                                                    <p className="text-sm text-slate-600">{slide.description}</p>
-                                                    {slide.location && (
-                                                        <p className="text-xs text-amber-600 flex items-center gap-1">
-                                                            <MapPin className="w-3 h-3" /> {slide.location}
-                                                        </p>
-                                                    )}
-                                                    {slide.imageIdea && (
-                                                        <p className="text-xs text-slate-400 italic">
-                                                            📷 {slide.imageIdea}
-                                                        </p>
-                                                    )}
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
+                                <div className="p-4 space-y-3">
+                                    {result.data.chapterMood && (
+                                        <p className="text-sm text-slate-500 italic border-l-2 border-amber-300 pl-2">
+                                            {result.data.chapterMood}
+                                        </p>
+                                    )}
+                                    {result.data.slides?.map((slide, idx) => (
+                                        <Card key={idx} className="bg-slate-50">
+                                            <CardContent className="py-3 space-y-2">
+                                                <p className="font-medium text-slate-800">{slide.title}</p>
+                                                <p className="text-sm text-slate-600">{slide.description}</p>
+                                                {slide.location && (
+                                                    <p className="text-xs text-amber-600 flex items-center gap-1">
+                                                        <MapPin className="w-3 h-3" /> {slide.location}
+                                                    </p>
+                                                )}
+                                                {slide.imageIdea && (
+                                                    <p className="text-xs text-slate-400 italic">
+                                                        📷 {slide.imageIdea}
+                                                    </p>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </ScrollArea>
                         )}
 
                         <Button 
                             onClick={result?.type === 'slides' ? () => onApplySlideContent?.(result.data, result.chapterId) : generateSlideContent} 
-                            disabled={isGenerating || (!result && !selectedChapterId)}
-                            className="bg-amber-600 hover:bg-amber-700"
+                            disabled={isGenerating || (!result?.type && !selectedChapterId)}
+                            className="bg-amber-600 hover:bg-amber-700 flex-shrink-0"
                         >
                             {isGenerating ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
                             ) : result?.type === 'slides' ? (
-                                <Check className="w-4 h-4 mr-2" />
+                                <><Check className="w-4 h-4 mr-2" /> Apply to Chapter</>
                             ) : (
-                                <Wand2 className="w-4 h-4 mr-2" />
+                                <><Wand2 className="w-4 h-4 mr-2" /> Generate Content</>
                             )}
-                            {result?.type === 'slides' ? 'Apply to Chapter' : 'Generate Content'}
                         </Button>
                     </TabsContent>
                 </Tabs>
