@@ -192,22 +192,8 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                 className="h-24"
                             />
                         </div>
-                        <Button 
-                            onClick={generateOutline} 
-                            disabled={isGenerating || !prompt.trim()}
-                            className="bg-amber-600 hover:bg-amber-700"
-                        >
-                            {isGenerating ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <Wand2 className="w-4 h-4 mr-2" />
-                            )}
-                            Generate Outline
-                        </Button>
-
                         {result?.type === 'outline' && (
-                            <>
-                                <ScrollArea className="flex-1 border rounded-lg">
+                            <ScrollArea className="flex-1 border rounded-lg">
                                     <div className="p-4 space-y-4">
                                         <div className="flex items-center justify-between">
                                             <h3 className="font-semibold text-lg text-slate-800">{result.data.title}</h3>
@@ -240,14 +226,22 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                         ))}
                                     </div>
                                 </ScrollArea>
-                                <Button 
-                                    onClick={() => onApplyOutline?.(result.data)} 
-                                    className="w-full bg-amber-600 hover:bg-amber-700"
-                                >
-                                    Apply to Story
-                                </Button>
-                            </>
                         )}
+
+                        <Button 
+                            onClick={result?.type === 'outline' ? () => onApplyOutline?.(result.data) : generateOutline} 
+                            disabled={isGenerating || (!result && !prompt.trim())}
+                            className="bg-amber-600 hover:bg-amber-700"
+                        >
+                            {isGenerating ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : result?.type === 'outline' ? (
+                                <Check className="w-4 h-4 mr-2" />
+                            ) : (
+                                <Wand2 className="w-4 h-4 mr-2" />
+                            )}
+                            {result?.type === 'outline' ? 'Apply to Story' : 'Generate Outline'}
+                        </Button>
                     </TabsContent>
 
                     <TabsContent value="slides" className="flex-1 flex flex-col p-4 space-y-4">
@@ -279,22 +273,8 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                 className="h-20"
                             />
                         </div>
-                        <Button 
-                            onClick={generateSlideContent} 
-                            disabled={isGenerating || !selectedChapterId}
-                            className="bg-amber-600 hover:bg-amber-700"
-                        >
-                            {isGenerating ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <Wand2 className="w-4 h-4 mr-2" />
-                            )}
-                            Generate Content
-                        </Button>
-
                         {result?.type === 'slides' && (
-                            <>
-                                <ScrollArea className="flex-1 border rounded-lg">
+                            <ScrollArea className="flex-1 border rounded-lg">
                                     <div className="p-4 space-y-3">
                                         {result.data.chapterMood && (
                                             <p className="text-sm text-slate-500 italic border-l-2 border-amber-300 pl-2">
@@ -321,14 +301,22 @@ Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing
                                         ))}
                                     </div>
                                 </ScrollArea>
-                                <Button 
-                                    onClick={() => onApplySlideContent?.(result.data, result.chapterId)} 
-                                    className="w-full bg-amber-600 hover:bg-amber-700"
-                                >
-                                    Apply to Chapter
-                                </Button>
-                            </>
                         )}
+
+                        <Button 
+                            onClick={result?.type === 'slides' ? () => onApplySlideContent?.(result.data, result.chapterId) : generateSlideContent} 
+                            disabled={isGenerating || (!result && !selectedChapterId)}
+                            className="bg-amber-600 hover:bg-amber-700"
+                        >
+                            {isGenerating ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : result?.type === 'slides' ? (
+                                <Check className="w-4 h-4 mr-2" />
+                            ) : (
+                                <Wand2 className="w-4 h-4 mr-2" />
+                            )}
+                            {result?.type === 'slides' ? 'Apply to Chapter' : 'Generate Content'}
+                        </Button>
                     </TabsContent>
                 </Tabs>
             </motion.div>
