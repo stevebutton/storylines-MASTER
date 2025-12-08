@@ -182,6 +182,7 @@ export default function StoryMapView() {
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
                 isVisible={isBannerVisible}
+                storyTitle={story.title}
             />
 
             {/* Map Background */}
