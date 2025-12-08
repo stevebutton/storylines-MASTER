@@ -31,7 +31,7 @@ export default function StoryMapBanner({
                     {/* Title */}
                     <div className="absolute left-[100px]">
                         <img 
-                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/3971ea16c_contentthatmovess.png" 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/43db19a75_ctmlogo-centered.png" 
                             alt="content that moves stories"
                             className="h-6 md:h-7"
                         />
