@@ -19,7 +19,7 @@ export default function StoryMapView() {
     const [activeChapter, setActiveChapter] = useState(0);
     const [mapConfig, setMapConfig] = useState({
         center: [0, 0],
-        zoom: 12,
+        zoom: 2,
         mapStyle: 'light'
     });
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
@@ -68,14 +68,16 @@ export default function StoryMapView() {
 
             setChapters(chaptersWithSlides);
 
-            // Set initial map config
+            // Animate to first chapter after a brief delay
             if (chaptersWithSlides.length > 0) {
-                const first = chaptersWithSlides[0];
-                setMapConfig({
-                    center: first.coordinates || [0, 0],
-                    zoom: first.zoom || 12,
-                    mapStyle: first.map_style || 'light'
-                });
+                setTimeout(() => {
+                    const first = chaptersWithSlides[0];
+                    setMapConfig({
+                        center: first.coordinates || [0, 0],
+                        zoom: first.zoom || 12,
+                        mapStyle: first.map_style || 'light'
+                    });
+                }, 500);
             }
         } catch (error) {
             console.error('Failed to load story:', error);
