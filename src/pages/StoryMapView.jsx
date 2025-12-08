@@ -77,7 +77,7 @@ export default function StoryMapView() {
                         zoom: first.zoom || 12,
                         mapStyle: first.map_style || 'light'
                     });
-                }, 1500);
+                }, 3000);
             }
         } catch (error) {
             console.error('Failed to load story:', error);

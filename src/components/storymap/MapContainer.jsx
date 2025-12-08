@@ -57,7 +57,7 @@ export default function MapBackground({
             zoom: zoom || 12,
             bearing: bearing || 0,
             pitch: pitch || 0,
-            duration: 6000,
+            duration: 12000,
             essential: true,
             easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
         });
