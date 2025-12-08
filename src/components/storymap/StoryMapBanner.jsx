@@ -18,18 +18,9 @@ export default function StoryMapBanner({
             )}
         >
             <div className="max-w-7xl mx-auto">
-                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-left justify-between">
+                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-center justify-between">
                     {/* Left - Logo */}
-                    <div className="flex items-center gap-3 invisible">
-                        <Link to={createPageUrl('Stories')} className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-                                <Map className="w-4 h-4 text-white" />
-                            </div>
-                        </Link>
-                    </div>
-
-                    {/* Title */}
-                    <div className="absolute left-[100px]">
+                    <div className="flex items-center">
                         <img 
                             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/43db19a75_ctmlogo-centered.png" 
                             alt="content that moves stories"
