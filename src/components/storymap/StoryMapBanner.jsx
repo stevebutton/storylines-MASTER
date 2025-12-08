@@ -22,9 +22,9 @@ export default function StoryMapBanner({
                     {/* Left - Logo */}
                     <div className="flex items-center">
                         <img 
-                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/43db19a75_ctmlogo-centered.png" 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/48999fe7f_ctmlogo-centered.png" 
                             alt="content that moves stories"
-                            style={{ width: '635px', height: '78px' }}
+                            style={{ width: '430px', height: '78px' }}
                         />
                     </div>
 
