@@ -24,6 +24,7 @@ export default function StoryMapView() {
     });
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
+    const [showFirstChapter, setShowFirstChapter] = useState(false);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -77,6 +78,11 @@ export default function StoryMapView() {
                         zoom: first.zoom || 12,
                         mapStyle: first.map_style || 'light'
                     });
+                }, 3000);
+
+                // Show first chapter panel after delay
+                setTimeout(() => {
+                    setShowFirstChapter(true);
                 }, 3000);
             }
         } catch (error) {
@@ -209,6 +215,7 @@ export default function StoryMapView() {
                     <div 
                         key={chapter.id}
                         ref={el => chapterRefs.current[index] = el}
+                        style={index === 0 ? { opacity: showFirstChapter ? 1 : 0, transition: 'opacity 1s ease-in-out' } : {}}
                     >
                         <StoryChapter
                             chapter={chapter}
