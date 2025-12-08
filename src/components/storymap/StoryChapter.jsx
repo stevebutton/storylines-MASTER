@@ -8,7 +8,8 @@ export default function StoryChapter({
     isActive, 
     alignment = 'left',
     index,
-    onSlideChange
+    onSlideChange,
+    delay = 0
 }) {
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
@@ -29,7 +30,7 @@ export default function StoryChapter({
             <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: delay / 1000 }}
                 viewport={{ once: false, amount: 0.5 }}
                 className="relative w-1/2 min-w-[300px] pointer-events-auto"
             >
