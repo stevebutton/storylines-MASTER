@@ -22,7 +22,7 @@ export default function StoryMapBanner({
             <div className="max-w-7xl mx-auto">
                 <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-start justify-between">
                     {/* Left - Logo and Title */}
-                    <div className="flex flex-col" style={{ gap: '5px' }}>
+                    <div className="flex flex-col min-w-0 flex-shrink">
                         <Link 
                             to={createPageUrl('StoryMap')} 
                             className="block transition-transform duration-200 hover:scale-105"
@@ -34,12 +34,12 @@ export default function StoryMapBanner({
                             />
                         </Link>
                         {storyTitle && (
-                            <h2 className="text-2xl md:text-4xl font-thin text-slate-800 leading-tight whitespace-nowrap max-w-3xl">{storyTitle}</h2>
+                            <h2 className="text-2xl md:text-4xl font-thin text-slate-800 leading-tight truncate max-w-xl">{storyTitle}</h2>
                         )}
                     </div>
 
                     {/* Right - Navigation Icons */}
-                    <div className="flex items-center" style={{ gap: '30px' }}>
+                    <div className="flex items-center flex-shrink-0" style={{ gap: '30px' }}>
                         {/* View Other Stories */}
                         {onViewOtherStories && (
                             <button
