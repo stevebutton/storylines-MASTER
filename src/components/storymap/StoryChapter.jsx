@@ -74,16 +74,15 @@ export default function StoryChapter({
                         
                         {/* Description - animated */}
                         <AnimatePresence mode="wait">
-                            <motion.p 
+                            <motion.div 
                                 key={currentSlide?.description}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.3, delay: 0.1 }}
-                                className="text-slate-600 leading-relaxed text-sm md:text-base"
-                            >
-                                {currentSlide?.description}
-                            </motion.p>
+                                className="text-slate-600 leading-relaxed text-sm md:text-base prose prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{ __html: currentSlide?.description || '' }}
+                            />
                         </AnimatePresence>
                         
                         {/* Location badge */}

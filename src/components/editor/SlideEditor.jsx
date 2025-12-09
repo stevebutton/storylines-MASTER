@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import ReactQuill from 'react-quill';
 
 const validateField = (field, value) => {
     switch (field) {
@@ -122,15 +122,23 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <Label className="text-xs">Description</Label>
-                                <Textarea 
-                                    value={slide.description || ''} 
-                                    onChange={(e) => {
-                                        const error = validateField('description', e.target.value);
+                                <ReactQuill
+                                    value={slide.description || ''}
+                                    onChange={(content) => {
+                                        const error = validateField('description', content);
                                         setErrors(prev => ({ ...prev, description: error }));
-                                        onUpdate({ ...slide, description: e.target.value });
+                                        onUpdate({ ...slide, description: content });
                                     }}
                                     placeholder="Describe this moment..."
-                                    className={`h-16 resize-none ${errors.description ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                    className={`bg-white rounded-md ${errors.description ? 'border border-red-500' : 'border'}`}
+                                    style={{ height: '80px' }}
+                                    modules={{
+                                        toolbar: [
+                                            ['bold', 'italic', 'underline'],
+                                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                            ['link']
+                                        ]
+                                    }}
                                 />
                                 {errors.description && (
                                     <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
