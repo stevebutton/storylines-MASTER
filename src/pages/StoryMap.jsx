@@ -197,7 +197,7 @@ export default function StoryMap() {
 
             
             {/* Story Content */}
-            <div className="relative z-10 pt-[120px]">
+            <div className="relative z-10">
                 {/* Header */}
                 <StoryHeader
                 title={story.title}
@@ -210,6 +210,7 @@ export default function StoryMap() {
 
                 
                 {/* Chapters */}
+                <div className="pt-20" />
                 {chapters.map((chapter, index) =>
                 <div
                 key={chapter.id}

@@ -198,7 +198,7 @@ export default function StoryMapView() {
             />
             
             {/* Story Content */}
-            <div className="relative z-10 pt-[120px]">
+            <div className="relative z-10">
                 {/* Header */}
                 <StoryHeader
                     title={story.title}
