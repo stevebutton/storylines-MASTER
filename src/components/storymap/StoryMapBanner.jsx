@@ -22,11 +22,16 @@ export default function StoryMapBanner({
                 <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-center justify-between">
                     {/* Left - Logo and Title */}
                     <div className="flex flex-col gap-2">
-                        <img 
-                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/48999fe7f_ctmlogo-centered.png" 
-                            alt="content that moves stories"
-                            style={{ width: '430px', height: '78px' }}
-                        />
+                        <Link 
+                            to={createPageUrl('StoryMap')} 
+                            className="block transition-transform duration-200 hover:scale-105"
+                        >
+                            <img 
+                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/48999fe7f_ctmlogo-centered.png" 
+                                alt="content that moves stories"
+                                style={{ width: '430px', height: '78px' }}
+                            />
+                        </Link>
                         {storyTitle && (
                             <h1 className="text-2xl font-bold text-slate-800">{storyTitle}</h1>
                         )}
