@@ -7,6 +7,7 @@ import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
+import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import { Loader2 } from 'lucide-react';
 
 export default function StoryMapView() {
@@ -24,6 +25,7 @@ export default function StoryMapView() {
     });
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
+    const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -183,6 +185,7 @@ export default function StoryMapView() {
                 hasChapters={chapters.length > 0}
                 isVisible={isBannerVisible}
                 storyTitle={story.title}
+                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
             />
 
             {/* Map Background */}
@@ -259,6 +262,13 @@ export default function StoryMapView() {
                     onNavigate={navigateToChapter}
                 />
             )}
-        </div>
-    );
-}
+
+            {/* Floating Story Slideshow */}
+            <FloatingStorySlideshow
+                isOpen={isStorySlideshowOpen}
+                onClose={() => setIsStorySlideshowOpen(false)}
+                currentStoryId={storyId}
+            />
+            </div>
+            );
+            }

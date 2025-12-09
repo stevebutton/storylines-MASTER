@@ -9,7 +9,8 @@ export default function StoryMapBanner({
     onToggleChapterMenu,
     hasChapters = false,
     isVisible = true,
-    storyTitle = ''
+    storyTitle = '',
+    onViewOtherStories
 }) {
     return (
         <div 
@@ -39,6 +40,17 @@ export default function StoryMapBanner({
 
                     {/* Right - Navigation Icons */}
                     <div className="flex items-center" style={{ gap: '30px' }}>
+                        {/* View Other Stories */}
+                        {onViewOtherStories && (
+                            <button
+                                onClick={onViewOtherStories}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
+                            >
+                                <Map className="w-5 h-5" />
+                                <span>View Other Stories</span>
+                            </button>
+                        )}
+
                         {/* Chapters Toggle */}
                         {hasChapters && (
                             <button
