@@ -33,7 +33,7 @@ export default function StoryMapBanner({
                             />
                         </Link>
                         {storyTitle && (
-                            <h1 className="text-2xl font-bold text-slate-800">{storyTitle}</h1>
+                            <h2 className="text-2xl md:text-3xl font-light text-slate-800 leading-tight">{storyTitle}</h2>
                         )}
                     </div>
 
