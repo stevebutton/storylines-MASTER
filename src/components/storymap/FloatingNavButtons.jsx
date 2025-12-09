@@ -14,10 +14,19 @@ export default function FloatingNavButtons({
     return (
         <div 
             className={cn(
-                "fixed top-4 right-4 z-[70] transition-all duration-700",
+                "fixed top-4 left-0 right-0 z-[70] transition-all duration-700 flex items-center justify-between px-6",
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
+            {/* Logo on the left */}
+            <div className="flex-shrink-0">
+                <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/e4051c9fc_ctmlogo-centered.png" 
+                    alt="Logo" 
+                    className="h-[60px] w-auto"
+                />
+            </div>
+
             <div className="flex items-center flex-shrink-0 px-4 py-3" style={{ gap: '30px' }}>
                 {/* View Other Stories */}
                 {onViewOtherStories && (
