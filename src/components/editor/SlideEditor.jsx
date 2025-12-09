@@ -125,9 +125,12 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                 <ReactQuill
                                     value={slide.description || ''}
                                     onChange={(content) => {
-                                        const error = validateField('description', content);
-                                        setErrors(prev => ({ ...prev, description: error }));
-                                        onUpdate({ ...slide, description: content });
+                                        // Only update if content actually changed
+                                        if (content !== slide.description) {
+                                            const error = validateField('description', content);
+                                            setErrors(prev => ({ ...prev, description: error }));
+                                            onUpdate({ ...slide, description: content });
+                                        }
                                     }}
                                     placeholder="Describe this moment..."
                                     className={`bg-white rounded-md ${errors.description ? 'border border-red-500' : 'border'}`}
