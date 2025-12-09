@@ -15,7 +15,7 @@ export default function StoryMapBanner({
     return (
         <div 
             className={cn(
-                "fixed top-0 left-0 right-0 z-[70] px-4 py-3 transition-all duration-700",
+                "fixed top-0 left-0 right-0 z-50 px-4 py-3 transition-all duration-700",
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
@@ -39,7 +39,7 @@ export default function StoryMapBanner({
                     </div>
 
                     {/* Right - Navigation Icons */}
-                    <div className="flex items-center flex-shrink-0" style={{ gap: '30px' }}>
+                    <div className="flex items-center flex-shrink-0 relative z-[70]" style={{ gap: '30px' }}>
                         {/* View Other Stories */}
                         {onViewOtherStories && (
                             <button
