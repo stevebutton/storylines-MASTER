@@ -20,7 +20,7 @@ export default function StoryMapBanner({
                     {/* Story Title */}
                     <div className="flex flex-col min-w-0 flex-shrink">
                         {storyTitle && (
-                            <h2 className="text-2xl md:text-4xl font-thin text-slate-800 leading-tight whitespace-nowrap">{storyTitle}</h2>
+                            <h2 className="text-2xl md:text-4xl font-thin text-slate-800 leading-tight whitespace-nowrap pt-[50px]">{storyTitle}</h2>
                         )}
                     </div>
 
