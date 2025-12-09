@@ -2,11 +2,20 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export default function StoryHeader({ title, subtitle, author, heroImage, onExplore }) {
+export default function StoryHeader({ title, subtitle, author, heroImage, heroVideo, heroType, onExplore }) {
     return (
         <div className="min-h-screen flex items-center justify-center relative">
-            {/* Hero Image or Gradient Background */}
-            {heroImage ? (
+            {/* Hero Video or Image or Gradient Background */}
+            {heroType === 'video' && heroVideo ? (
+                <video 
+                    src={heroVideo} 
+                    className="absolute inset-0 w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                />
+            ) : heroImage ? (
                 <img 
                     src={heroImage} 
                     alt={title}

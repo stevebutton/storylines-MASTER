@@ -200,10 +200,13 @@ export default function StoryMap() {
             <div className="relative z-10">
                 {/* Header */}
                 <StoryHeader
-          title={story.title}
-          subtitle={story.subtitle}
-          author={story.author}
-          onExplore={() => navigateToChapter(0)} />
+                title={story.title}
+                subtitle={story.subtitle}
+                author={story.author}
+                heroImage={story.hero_image}
+                heroVideo={story.hero_video}
+                heroType={story.hero_type}
+                onExplore={() => navigateToChapter(0)} />
 
                 
                 {/* Chapters */}

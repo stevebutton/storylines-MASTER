@@ -38,6 +38,7 @@ export default function StoryEditor() {
     const [storyErrors, setStoryErrors] = useState({});
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
     const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
+    const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
     
     // Undo/Redo state
     const [history, setHistory] = useState([]);
@@ -398,11 +399,26 @@ export default function StoryEditor() {
         setIsUploadingHeroImage(true);
         try {
             const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            setStory({ ...story, hero_image: file_url });
+            setStory({ ...story, hero_image: file_url, hero_type: 'image' });
         } catch (error) {
             console.error('Failed to upload hero image:', error);
         } finally {
             setIsUploadingHeroImage(false);
+        }
+    };
+
+    const handleHeroVideoUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingHeroVideo(true);
+        try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            setStory({ ...story, hero_video: file_url, hero_type: 'video' });
+        } catch (error) {
+            console.error('Failed to upload hero video:', error);
+        } finally {
+            setIsUploadingHeroVideo(false);
         }
     };
 
@@ -573,47 +589,93 @@ export default function StoryEditor() {
                             </div>
                         </div>
                         <div>
-                            <Label>Hero Image</Label>
+                            <Label>Hero Media</Label>
                             <div className="mt-2 space-y-3">
-                                {story.hero_image && (
-                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border">
-                                        <img 
-                                            src={story.hero_image} 
-                                            alt="Hero" 
+                                {/* Preview */}
+                                {story.hero_type === 'video' && story.hero_video && (
+                                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                                        <video 
+                                            src={story.hero_video} 
                                             className="w-full h-full object-cover"
+                                            autoPlay
+                                            muted
+                                            loop
+                                            playsInline
                                         />
                                         <button
-                                            onClick={() => setStory({ ...story, hero_image: '' })}
+                                            onClick={() => setStory({ ...story, hero_video: '', hero_type: 'image' })}
                                             className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
                                     </div>
                                 )}
-                                <div>
-                                    <input
-                                        type="file"
-                                        accept="image/jpeg,image/jpg,image/png"
-                                        onChange={handleHeroImageUpload}
-                                        className="hidden"
-                                        id="hero-image-upload"
-                                        disabled={isUploadingHeroImage}
-                                    />
-                                    <label htmlFor="hero-image-upload">
-                                        <Button 
-                                            type="button" 
-                                            variant="outline" 
-                                            disabled={isUploadingHeroImage}
-                                            onClick={() => document.getElementById('hero-image-upload').click()}
-                                            className="w-full md:w-auto"
+                                {story.hero_type === 'image' && story.hero_image && (
+                                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                                        <img 
+                                            src={story.hero_image} 
+                                            alt="Hero" 
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            onClick={() => setStory({ ...story, hero_image: '', hero_type: 'image' })}
+                                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                                         >
-                                            {isUploadingHeroImage ? (
-                                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
-                                            ) : (
-                                                <><Plus className="w-4 h-4 mr-2" /> {story.hero_image ? 'Change' : 'Upload'} Hero Image</>
-                                            )}
-                                        </Button>
-                                    </label>
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+                                
+                                {/* Upload Buttons */}
+                                <div className="flex gap-2">
+                                    <div>
+                                        <input
+                                            type="file"
+                                            accept="image/jpeg,image/jpg,image/png"
+                                            onChange={handleHeroImageUpload}
+                                            className="hidden"
+                                            id="hero-image-upload"
+                                            disabled={isUploadingHeroImage}
+                                        />
+                                        <label htmlFor="hero-image-upload">
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                disabled={isUploadingHeroImage || isUploadingHeroVideo}
+                                                onClick={() => document.getElementById('hero-image-upload').click()}
+                                            >
+                                                {isUploadingHeroImage ? (
+                                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                                                ) : (
+                                                    <><Plus className="w-4 h-4 mr-2" /> Upload Image</>
+                                                )}
+                                            </Button>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <input
+                                            type="file"
+                                            accept="video/mp4,video/webm,video/quicktime"
+                                            onChange={handleHeroVideoUpload}
+                                            className="hidden"
+                                            id="hero-video-upload"
+                                            disabled={isUploadingHeroVideo}
+                                        />
+                                        <label htmlFor="hero-video-upload">
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                disabled={isUploadingHeroVideo || isUploadingHeroImage}
+                                                onClick={() => document.getElementById('hero-video-upload').click()}
+                                            >
+                                                {isUploadingHeroVideo ? (
+                                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                                                ) : (
+                                                    <><Plus className="w-4 h-4 mr-2" /> Upload Video</>
+                                                )}
+                                            </Button>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
