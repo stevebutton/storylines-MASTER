@@ -210,12 +210,13 @@ export default function StoryMap() {
 
                 
                 {/* Chapters */}
+                <div className="pt-20" />
                 {chapters.map((chapter, index) =>
-        <div
-          key={chapter.id}
-          ref={(el) => chapterRefs.current[index] = el}>
+                <div
+                key={chapter.id}
+                ref={(el) => chapterRefs.current[index] = el}>
 
-                        <StoryChapter
+                            <StoryChapter
                         chapter={chapter}
                         isActive={activeChapter === index}
                         alignment={chapter.alignment}
