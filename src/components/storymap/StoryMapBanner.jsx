@@ -19,7 +19,7 @@ export default function StoryMapBanner({
             )}
         >
             <div className="max-w-7xl mx-auto">
-                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-center justify-between">
+                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-start justify-between">
                     {/* Left - Logo and Title */}
                     <div className="flex flex-col gap-2">
                         <Link 
@@ -33,7 +33,7 @@ export default function StoryMapBanner({
                             />
                         </Link>
                         {storyTitle && (
-                            <h2 className="text-2xl md:text-3xl font-light text-slate-800 leading-tight">{storyTitle}</h2>
+                            <h2 className="text-2xl md:text-3xl font-light text-slate-800 leading-tight whitespace-nowrap max-w-3xl">{storyTitle}</h2>
                         )}
                     </div>
 
