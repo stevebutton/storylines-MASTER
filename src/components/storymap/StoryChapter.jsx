@@ -25,7 +25,7 @@ export default function StoryChapter({
     return (
         <div 
             className="flex items-center py-24 px-4 md:px-8 pr-24 justify-end"
-            style={{ minHeight: '75vh', paddingTop: '140px' }}
+            style={{ minHeight: '75vh' }}
         >
             <motion.div
                 initial={index === 0 ? { opacity: 0, x: 100 } : { opacity: 0, y: 40 }}
