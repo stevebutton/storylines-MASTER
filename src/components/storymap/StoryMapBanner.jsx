@@ -24,7 +24,7 @@ export default function StoryMapBanner({
                     <div className="flex flex-col gap-2">
                         <Link 
                             to={createPageUrl('StoryMap')} 
-                            className="block transition-transform duration-200 hover:scale-110"
+                            className="block transition-transform duration-200 hover:scale-105"
                         >
                             <img 
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/48999fe7f_ctmlogo-centered.png" 
