@@ -34,7 +34,7 @@ export default function StoryMapBanner({
                             />
                         </Link>
                         {storyTitle && (
-                            <h2 className="text-2xl md:text-4xl font-light text-slate-800 leading-tight whitespace-nowrap max-w-3xl" style={{ marginTop: '-20px' }}>{storyTitle}</h2>
+                            <h2 className="text-2xl md:text-4xl font-light text-slate-800 leading-tight whitespace-nowrap max-w-3xl" style={{ marginTop: '-10px' }}>{storyTitle}</h2>
                         )}
                     </div>
 
