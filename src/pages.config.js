@@ -5,6 +5,7 @@ import StoryMapView from './pages/StoryMapView';
 import LocationPickerPage from './pages/LocationPickerPage';
 import ChapterPreview from './pages/ChapterPreview';
 import MediaLibrary from './pages/MediaLibrary';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -20,4 +21,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "StoryMap",
     Pages: PAGES,
+    Layout: __Layout,
 };
