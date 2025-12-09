@@ -8,6 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const validateField = (field, value) => {
     switch (field) {
