@@ -58,7 +58,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[65]"
                         onClick={onClose}
                     />
 
@@ -68,7 +68,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-2xl"
+                        className="fixed bottom-0 left-0 right-0 z-[65] bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-2xl"
                         style={{ maxHeight: '50vh' }}
                     >
                         <div className="max-w-7xl mx-auto p-6">
