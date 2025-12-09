@@ -13,7 +13,7 @@ export default function ChapterProgress({
     const canGoNext = activeIndex < totalChapters - 1;
 
     return (
-        <div className="fixed right-4 bottom-20 z-40 flex flex-col items-center gap-3 drop-shadow-xl">
+        <div className="fixed right-4 bottom-20 z-[70] flex flex-col items-center gap-3 drop-shadow-xl">
             {/* Previous button */}
             <button
                 onClick={() => canGoPrev && onNavigate(activeIndex - 1)}
