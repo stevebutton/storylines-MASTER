@@ -21,7 +21,7 @@ export default function StoryMapBanner({
             <div className="max-w-7xl mx-auto">
                 <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3 flex items-start justify-between">
                     {/* Left - Logo and Title */}
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col" style={{ gap: '5px' }}>
                         <Link 
                             to={createPageUrl('StoryMap')} 
                             className="block transition-transform duration-200 hover:scale-105"
@@ -55,7 +55,7 @@ export default function StoryMapBanner({
                                 ) : (
                                     <Menu className="w-5 h-5" />
                                 )}
-                                <span>Chapters</span>
+                                <span>Story Chapters</span>
                             </button>
                         )}
 
@@ -65,7 +65,7 @@ export default function StoryMapBanner({
                             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
                         >
                             <List className="w-5 h-5" />
-                            <span>My Stories</span>
+                            <span>Stories</span>
                         </Link>
 
                         {/* Media Library */}
