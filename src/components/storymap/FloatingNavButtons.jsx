@@ -14,7 +14,7 @@ export default function FloatingNavButtons({
     return (
         <div 
             className={cn(
-                "fixed top-4 left-0 right-0 z-[70] transition-all duration-700 flex items-center justify-between px-6",
+                "fixed top-4 left-0 right-0 z-[110] transition-all duration-700 flex items-center justify-between px-6",
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
