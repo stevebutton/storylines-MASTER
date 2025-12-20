@@ -4,7 +4,7 @@ import { ChevronDown } from 'lucide-react';
 
 export default function StoryHeader({ title, subtitle, author, heroImage, heroVideo, heroType, onExplore }) {
     return (
-        <div className="min-h-screen flex items-center justify-center relative z-0">
+        <div className="min-h-screen flex items-center justify-center relative -z-20">
             {/* Hero Video or Image or Gradient Background */}
             {heroType === 'video' && heroVideo ? (
                 <video 
