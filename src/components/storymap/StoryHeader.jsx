@@ -9,7 +9,7 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
             {heroType === 'video' && heroVideo ? (
                 <video 
                     src={heroVideo} 
-                    className="absolute inset-0 w-full h-full object-cover z-0"
+                    className="absolute inset-0 w-full h-full object-cover -z-10"
                     autoPlay
                     muted
                     loop
@@ -19,7 +19,7 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
                 <img 
                     src={heroImage} 
                     alt={title}
-                    className="absolute inset-0 w-full h-full object-cover z-0"
+                    className="absolute inset-0 w-full h-full object-cover -z-10"
                 />
             ) : null}
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40 z-10" />
