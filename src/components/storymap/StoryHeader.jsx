@@ -4,12 +4,12 @@ import { ChevronDown } from 'lucide-react';
 
 export default function StoryHeader({ title, subtitle, author, heroImage, heroVideo, heroType, onExplore }) {
     return (
-        <div className="min-h-screen flex items-center justify-center relative">
+        <div className="min-h-screen flex items-center justify-center relative z-0">
             {/* Hero Video or Image or Gradient Background */}
             {heroType === 'video' && heroVideo ? (
                 <video 
                     src={heroVideo} 
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover z-0"
                     autoPlay
                     muted
                     loop
@@ -19,7 +19,7 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
                 <img 
                     src={heroImage} 
                     alt={title}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover z-0"
                 />
             ) : null}
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40 z-10" />
