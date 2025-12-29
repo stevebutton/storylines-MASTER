@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Plus, Save, Eye, Loader2, Undo2, Redo2, AlertCircle, Sparkles, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import ChapterEditor from '@/components/editor/ChapterEditor';
@@ -16,7 +16,8 @@ import AIAssistant from '@/components/editor/AIAssistant';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function StoryEditor() {
-    const urlParams = new URLSearchParams(window.location.search);
+    const location = useLocation();
+    const urlParams = new URLSearchParams(location.search);
     const storyId = urlParams.get('id');
     
     // Check for picked location from LocationPickerPage
@@ -242,8 +243,10 @@ export default function StoryEditor() {
                 const newStory = await base44.entities.Story.create(story);
                 savedStoryId = newStory.id;
                 setStory(newStory);
-                // Update URL without reload
-                window.history.replaceState({}, '', `${createPageUrl('StoryEditor')}?id=${newStory.id}`);
+                // Update URL without reload and trigger re-render
+                const newUrl = `${createPageUrl('StoryEditor')}?id=${newStory.id}`;
+                window.history.replaceState({}, '', newUrl);
+                window.location.href = newUrl;
             }
 
             // Track chapter ID mappings for updating slides
