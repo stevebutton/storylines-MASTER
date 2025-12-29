@@ -130,7 +130,7 @@ export default function ChapterEditor({
                                 <Label className="text-sm font-medium flex items-center gap-2">
                                     <MapPin className="w-4 h-4 text-amber-600" /> Location
                                 </Label>
-                                <Link to={createPageUrl(`LocationPickerPage?returnTo=StoryEditor&storyId=${storyId}&chapterId=${chapter.id}${chapter.coordinates ? `&lat=${chapter.coordinates[0]}&lng=${chapter.coordinates[1]}` : ''}`)}>
+                                <Link to={createPageUrl(`LocationPickerPage?returnTo=StoryEditor&storyId=${storyId}&chapterId=${chapter.id}${chapter.coordinates ? `&lat=${chapter.coordinates[0]}&lng=${chapter.coordinates[1]}&zoom=${chapter.zoom || 12}&bearing=${chapter.bearing || 0}&pitch=${chapter.pitch || 0}` : ''}`)}>
                                     <Button variant="outline" size="sm" className="h-9">
                                         <MapPin className="w-4 h-4 mr-1" /> Pick Location
                                     </Button>
@@ -202,6 +202,30 @@ export default function ChapterEditor({
                                             <SelectItem value="terrain">Terrain</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mt-2">
+                                <div>
+                                    <Label className="text-xs">Bearing (Rotation)</Label>
+                                    <Input 
+                                        type="number"
+                                        min="0"
+                                        max="360"
+                                        value={chapter.bearing || 0} 
+                                        onChange={(e) => onUpdateChapter({ ...chapter, bearing: parseFloat(e.target.value) || 0 })}
+                                        className="h-9"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Pitch (Tilt)</Label>
+                                    <Input 
+                                        type="number"
+                                        min="0"
+                                        max="60"
+                                        value={chapter.pitch || 0} 
+                                        onChange={(e) => onUpdateChapter({ ...chapter, pitch: parseFloat(e.target.value) || 0 })}
+                                        className="h-9"
+                                    />
                                 </div>
                             </div>
                         </div>
