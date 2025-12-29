@@ -255,7 +255,7 @@ export default function StoryEditor() {
                     const { id, ...chapterData } = chapter;
                     const newChapter = await base44.entities.Chapter.create({ 
                         ...chapterData, 
-                        story_id: currentStoryId 
+                        story_id: savedStoryId 
                     });
                     chapterIdMap[id] = newChapter.id;
                     setChapters(prev => prev.map(c => 
