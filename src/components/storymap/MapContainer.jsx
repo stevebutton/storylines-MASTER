@@ -75,7 +75,7 @@ export default function MapBackground({
             // After flying to position, start 360-degree rotation
             setTimeout(() => {
                 const startBearing = bearing || 0;
-                const rotationDuration = 60000; // 60 seconds
+                const rotationDuration = 120000; // 120 seconds
                 const startTime = Date.now();
 
                 const animate = () => {
@@ -83,7 +83,7 @@ export default function MapBackground({
 
                     const elapsed = Date.now() - startTime;
                     const progress = Math.min(elapsed / rotationDuration, 1);
-                    const currentBearing = startBearing + (progress * 360);
+                    const currentBearing = startBearing - (progress * 360);
 
                     map.current.setBearing(currentBearing);
 
