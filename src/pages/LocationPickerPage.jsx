@@ -75,9 +75,12 @@ export default function LocationPickerPage() {
 
         // Update zoom/bearing/pitch when map moves
         mapRef.current.on('moveend', () => {
-            if (selectedLocation) {
+            if (selectedLocation && markerRef.current) {
+                const markerLngLat = markerRef.current.getLngLat();
                 setSelectedLocation(prev => prev ? {
                     ...prev,
+                    lat: markerLngLat.lat,
+                    lng: markerLngLat.lng,
                     zoom: mapRef.current.getZoom(),
                     bearing: mapRef.current.getBearing(),
                     pitch: mapRef.current.getPitch()
