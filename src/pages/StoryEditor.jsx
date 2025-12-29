@@ -183,6 +183,8 @@ export default function StoryEditor() {
                                 ...chapterToUpdate, 
                                 coordinates: [lat, lng],
                                 zoom: zoom ?? chapterToUpdate.zoom,
+                                bearing: bearing ?? chapterToUpdate.bearing,
+                                pitch: pitch ?? chapterToUpdate.pitch,
                             };
                             await base44.entities.Chapter.update(chapterId, updatedChapter);
                             setChapters(prev => prev.map(c => c.id === chapterId ? updatedChapter : c));
@@ -191,7 +193,13 @@ export default function StoryEditor() {
                         // Just update local state for temp chapters
                         setChapters(prev => prev.map(c => 
                             c.id === chapterId 
-                                ? { ...c, coordinates: [lat, lng], zoom: zoom ?? c.zoom }
+                                ? { 
+                                    ...c, 
+                                    coordinates: [lat, lng], 
+                                    zoom: zoom ?? c.zoom,
+                                    bearing: bearing ?? c.bearing,
+                                    pitch: pitch ?? c.pitch
+                                  }
                                 : c
                         ));
                     }
@@ -300,6 +308,8 @@ export default function StoryEditor() {
             order: chapters.length,
             coordinates: [0, 0],
             zoom: 12,
+            bearing: 0,
+            pitch: 0,
             map_style: 'light',
             alignment: 'left'
         };
