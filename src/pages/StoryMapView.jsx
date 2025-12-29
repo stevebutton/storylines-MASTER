@@ -78,6 +78,8 @@ export default function StoryMapView() {
                     setMapConfig({
                         center: first.coordinates || [0, 0],
                         zoom: first.zoom || 12,
+                        bearing: first.bearing || 0,
+                        pitch: first.pitch || 0,
                         mapStyle: first.map_style || 'light'
                     });
                 }, 3000);
@@ -112,6 +114,8 @@ export default function StoryMapView() {
                             setMapConfig({
                                 center: chapter.coordinates || [0, 0],
                                 zoom: chapter.zoom || 12,
+                                bearing: chapter.bearing || 0,
+                                pitch: chapter.pitch || 0,
                                 mapStyle: chapter.map_style || 'light'
                             });
                         }
