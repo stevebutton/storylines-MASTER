@@ -14,11 +14,13 @@ export default function MapBackground({
     pitch = 0, 
     markers = [], 
     activeMarkerIndex = -1,
-    onMarkerClick 
+    onMarkerClick,
+    shouldRotate = false
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markersRef = useRef([]);
+    const rotationRef = useRef(null);
 
     // Initialize map
     useEffect(() => {
@@ -52,16 +54,68 @@ export default function MapBackground({
     useEffect(() => {
         if (!map.current || !center) return;
 
-        map.current.flyTo({
-            center: [center[1], center[0]],
-            zoom: zoom || 12,
-            bearing: bearing || 0,
-            pitch: pitch || 0,
-            duration: 12000,
-            essential: true,
-            easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-        });
-    }, [center, zoom, bearing, pitch]);
+        // Cancel any ongoing rotation
+        if (rotationRef.current) {
+            cancelAnimationFrame(rotationRef.current);
+            rotationRef.current = null;
+        }
+
+        if (shouldRotate) {
+            // First fly to the position with initial bearing/pitch
+            map.current.flyTo({
+                center: [center[1], center[0]],
+                zoom: zoom || 12,
+                bearing: bearing || 0,
+                pitch: pitch || 0,
+                duration: 3000,
+                essential: true,
+                easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+            });
+
+            // After flying to position, start 360-degree rotation
+            setTimeout(() => {
+                const startBearing = bearing || 0;
+                const rotationDuration = 60000; // 60 seconds
+                const startTime = Date.now();
+
+                const animate = () => {
+                    if (!map.current) return;
+
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / rotationDuration, 1);
+                    const currentBearing = startBearing + (progress * 360);
+
+                    map.current.setBearing(currentBearing);
+
+                    if (progress < 1) {
+                        rotationRef.current = requestAnimationFrame(animate);
+                    } else {
+                        rotationRef.current = null;
+                    }
+                };
+
+                rotationRef.current = requestAnimationFrame(animate);
+            }, 3000);
+        } else {
+            // Normal flyTo without rotation
+            map.current.flyTo({
+                center: [center[1], center[0]],
+                zoom: zoom || 12,
+                bearing: bearing || 0,
+                pitch: pitch || 0,
+                duration: 12000,
+                essential: true,
+                easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+            });
+        }
+
+        return () => {
+            if (rotationRef.current) {
+                cancelAnimationFrame(rotationRef.current);
+                rotationRef.current = null;
+            }
+        };
+    }, [center, zoom, bearing, pitch, shouldRotate]);
 
     // Update markers
     useEffect(() => {

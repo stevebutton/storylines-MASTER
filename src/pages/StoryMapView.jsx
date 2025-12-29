@@ -22,7 +22,8 @@ export default function StoryMapView() {
     const [mapConfig, setMapConfig] = useState({
         center: [0, 0],
         zoom: 2,
-        mapStyle: 'light'
+        mapStyle: 'light',
+        shouldRotate: false
     });
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
@@ -80,7 +81,8 @@ export default function StoryMapView() {
                         zoom: first.zoom || 12,
                         bearing: first.bearing || 0,
                         pitch: first.pitch || 0,
-                        mapStyle: first.map_style || 'light'
+                        mapStyle: first.map_style || 'light',
+                        shouldRotate: true
                     });
                 }, 3000);
             }
@@ -116,7 +118,8 @@ export default function StoryMapView() {
                                 zoom: chapter.zoom || 12,
                                 bearing: chapter.bearing || 0,
                                 pitch: chapter.pitch || 0,
-                                mapStyle: chapter.map_style || 'light'
+                                mapStyle: chapter.map_style || 'light',
+                                shouldRotate: true
                             });
                         }
                     }
@@ -205,6 +208,7 @@ export default function StoryMapView() {
                 bearing={mapConfig.bearing}
                 pitch={mapConfig.pitch}
                 mapStyle={mapConfig.mapStyle}
+                shouldRotate={mapConfig.shouldRotate}
             />
             
             {/* Story Content */}
@@ -241,7 +245,8 @@ export default function StoryMapView() {
                                         zoom: slide.zoom || chapter.zoom || 12,
                                         bearing: slide.bearing || 0,
                                         pitch: slide.pitch || 0,
-                                        mapStyle: chapter.map_style || 'light'
+                                        mapStyle: chapter.map_style || 'light',
+                                        shouldRotate: false
                                     });
                                 }
                             }}
