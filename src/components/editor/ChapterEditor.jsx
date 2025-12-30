@@ -227,6 +227,17 @@ export default function ChapterEditor({
                                         className="h-9"
                                     />
                                 </div>
+                                <div>
+                                    <Label className="text-xs">Fly Duration (seconds)</Label>
+                                    <Input 
+                                        type="number"
+                                        min="1"
+                                        max="60"
+                                        value={chapter.fly_duration || 12} 
+                                        onChange={(e) => onUpdateChapter({ ...chapter, fly_duration: parseFloat(e.target.value) || 12 })}
+                                        className="h-9"
+                                    />
+                                </div>
                             </div>
                         </div>
 

@@ -23,7 +23,8 @@ export default function StoryMapView() {
         center: [0, 0],
         zoom: 2,
         mapStyle: 'light',
-        shouldRotate: false
+        shouldRotate: false,
+        flyDuration: 12
     });
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
@@ -82,7 +83,8 @@ export default function StoryMapView() {
                         bearing: first.bearing || 0,
                         pitch: first.pitch || 0,
                         mapStyle: first.map_style || 'light',
-                        shouldRotate: true
+                        shouldRotate: true,
+                        flyDuration: first.fly_duration || 12
                     });
                 }, 3000);
             }
@@ -119,7 +121,8 @@ export default function StoryMapView() {
                                 bearing: chapter.bearing || 0,
                                 pitch: chapter.pitch || 0,
                                 mapStyle: chapter.map_style || 'light',
-                                shouldRotate: true
+                                shouldRotate: true,
+                                flyDuration: chapter.fly_duration || 12
                             });
                         }
                     }
@@ -209,6 +212,7 @@ export default function StoryMapView() {
                 pitch={mapConfig.pitch}
                 mapStyle={mapConfig.mapStyle}
                 shouldRotate={mapConfig.shouldRotate}
+                flyDuration={mapConfig.flyDuration}
             />
             
             {/* Story Content */}
@@ -246,7 +250,8 @@ export default function StoryMapView() {
                                         bearing: slide.bearing || 0,
                                         pitch: slide.pitch || 0,
                                         mapStyle: chapter.map_style || 'light',
-                                        shouldRotate: false
+                                        shouldRotate: false,
+                                        flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : chapter.fly_duration || 12
                                     });
                                 }
                             }}

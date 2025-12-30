@@ -150,19 +150,33 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     </p>
                                 )}
                             </div>
-                            <div>
-                                <Label className="text-xs">Map Position (optional)</Label>
-                                <Link to={createPageUrl(`LocationPickerPage?returnTo=StoryEditor&storyId=${storyId}&chapterId=${chapterId}&slideId=${slide.id}${slide.coordinates ? `&lat=${slide.coordinates[0]}&lng=${slide.coordinates[1]}` : ''}`)}>
-                                    <Button variant="outline" size="sm" className="h-9">
-                                        <MapPin className="w-4 h-4 mr-1" /> Pick Location
-                                    </Button>
-                                </Link>
-                                {slide.coordinates && slide.coordinates.length >= 2 && (
-                                    <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                                        <MapPin className="w-3 h-3" />
-                                        {slide.coordinates[0]?.toFixed(4)}, {slide.coordinates[1]?.toFixed(4)}
-                                    </p>
-                                )}
+                            <div className="space-y-2">
+                                <div>
+                                    <Label className="text-xs">Map Position (optional)</Label>
+                                    <Link to={createPageUrl(`LocationPickerPage?returnTo=StoryEditor&storyId=${storyId}&chapterId=${chapterId}&slideId=${slide.id}${slide.coordinates ? `&lat=${slide.coordinates[0]}&lng=${slide.coordinates[1]}` : ''}`)}>
+                                        <Button variant="outline" size="sm" className="h-9 w-full">
+                                            <MapPin className="w-4 h-4 mr-1" /> Pick Location
+                                        </Button>
+                                    </Link>
+                                    {slide.coordinates && slide.coordinates.length >= 2 && (
+                                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                            <MapPin className="w-3 h-3" />
+                                            {slide.coordinates[0]?.toFixed(4)}, {slide.coordinates[1]?.toFixed(4)}
+                                        </p>
+                                    )}
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Fly Duration (seconds)</Label>
+                                    <Input 
+                                        type="number"
+                                        min="1"
+                                        max="60"
+                                        value={slide.fly_duration !== undefined ? slide.fly_duration : ''} 
+                                        onChange={(e) => onUpdate({ ...slide, fly_duration: e.target.value ? parseFloat(e.target.value) : undefined })}
+                                        placeholder="Use chapter default"
+                                        className="h-9"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>

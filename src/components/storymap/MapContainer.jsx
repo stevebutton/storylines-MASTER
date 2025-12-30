@@ -15,7 +15,8 @@ export default function MapBackground({
     markers = [], 
     activeMarkerIndex = -1,
     onMarkerClick,
-    shouldRotate = false
+    shouldRotate = false,
+    flyDuration = 12
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
@@ -62,17 +63,19 @@ export default function MapBackground({
 
         if (shouldRotate) {
             // First fly to the position with initial bearing/pitch
+            const flyMs = (flyDuration || 12) * 1000;
             map.current.flyTo({
                 center: [center[1], center[0]],
                 zoom: zoom || 12,
                 bearing: bearing || 0,
                 pitch: pitch || 0,
-                duration: 3000,
+                duration: flyMs,
                 essential: true,
                 easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
             });
 
             // After flying to position, start 360-degree rotation
+            const flyMs = (flyDuration || 12) * 1000;
             setTimeout(() => {
                 const startBearing = bearing || 0;
                 const rotationDuration = 120000; // 120 seconds
@@ -95,15 +98,16 @@ export default function MapBackground({
                 };
 
                 rotationRef.current = requestAnimationFrame(animate);
-            }, 3000);
+            }, flyMs);
         } else {
             // Normal flyTo without rotation
+            const flyMs = (flyDuration || 12) * 1000;
             map.current.flyTo({
                 center: [center[1], center[0]],
                 zoom: zoom || 12,
                 bearing: bearing || 0,
                 pitch: pitch || 0,
-                duration: 12000,
+                duration: flyMs,
                 essential: true,
                 easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
             });
@@ -115,7 +119,7 @@ export default function MapBackground({
                 rotationRef.current = null;
             }
         };
-    }, [center, zoom, bearing, pitch, shouldRotate]);
+    }, [center, zoom, bearing, pitch, shouldRotate, flyDuration]);
 
     // Update markers
     useEffect(() => {
