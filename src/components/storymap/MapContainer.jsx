@@ -61,9 +61,10 @@ export default function MapBackground({
             rotationRef.current = null;
         }
 
+        const flyMs = (flyDuration || 12) * 1000;
+
         if (shouldRotate) {
             // First fly to the position with initial bearing/pitch
-            const flyMs = (flyDuration || 12) * 1000;
             map.current.flyTo({
                 center: [center[1], center[0]],
                 zoom: zoom || 12,
@@ -75,7 +76,6 @@ export default function MapBackground({
             });
 
             // After flying to position, start 360-degree rotation
-            const flyMs = (flyDuration || 12) * 1000;
             setTimeout(() => {
                 const startBearing = bearing || 0;
                 const rotationDuration = 120000; // 120 seconds
@@ -101,7 +101,6 @@ export default function MapBackground({
             }, flyMs);
         } else {
             // Normal flyTo without rotation
-            const flyMs = (flyDuration || 12) * 1000;
             map.current.flyTo({
                 center: [center[1], center[0]],
                 zoom: zoom || 12,
