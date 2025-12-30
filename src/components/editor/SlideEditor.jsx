@@ -29,6 +29,7 @@ const validateField = (field, value) => {
 
 export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
     const [isUploading, setIsUploading] = useState(false);
+    const [isUploadingBackground, setIsUploadingBackground] = useState(false);
     const [errors, setErrors] = useState({});
 
     const handleImageUpload = async (e) => {

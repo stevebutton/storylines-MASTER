@@ -22,7 +22,7 @@ export default function StoryChapter({
         }
     };
 
-    const cardStyle = chapter.card_style || 'default';
+    const cardStyle = currentSlide?.card_style || 'default';
 
     // Full Background Style
     if (cardStyle === 'full_background') {
@@ -41,10 +41,10 @@ export default function StoryChapter({
                     {/* Full Background Card */}
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ minHeight: '500px' }}>
                         {/* Background Image */}
-                        {chapter.background_image && (
+                        {currentSlide?.background_image && (
                             <div 
                                 className="absolute inset-0 bg-cover bg-center"
-                                style={{ backgroundImage: `url(${chapter.background_image})` }}
+                                style={{ backgroundImage: `url(${currentSlide.background_image})` }}
                             />
                         )}
                         
