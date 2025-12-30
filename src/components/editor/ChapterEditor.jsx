@@ -5,11 +5,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle, Eye } from 'lucide-react';
+import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle, Eye, Upload, Loader2 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 
 const validateCoordinate = (value, type) => {
     if (value === '' || value === undefined || value === null) return null;
@@ -43,6 +44,7 @@ export default function ChapterEditor({
 }) {
     const [isOpen, setIsOpen] = useState(true);
     const [errors, setErrors] = useState({});
+    const [isUploadingBackground, setIsUploadingBackground] = useState(false);
 
     const handleCoordinateChange = (idx, value) => {
         const type = idx === 0 ? 'lat' : 'lng';
@@ -186,6 +188,21 @@ export default function ChapterEditor({
                                 )}
                             </div>
                                 <div>
+                                    <Label className="text-xs">Card Style</Label>
+                                    <Select 
+                                        value={chapter.card_style || 'default'} 
+                                        onValueChange={(value) => onUpdateChapter({ ...chapter, card_style: value })}
+                                    >
+                                        <SelectTrigger className="h-9">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="default">Default Card</SelectItem>
+                                            <SelectItem value="full_background">Full Background</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
                                     <Label className="text-xs">Map Style</Label>
                                     <Select 
                                         value={chapter.map_style || 'light'} 
@@ -239,9 +256,72 @@ export default function ChapterEditor({
                                     />
                                 </div>
                             </div>
-                        </div>
+                            </div>
 
-                        {/* Slides */}
+                            {/* Background Image for Full Background Style */}
+                            {chapter.card_style === 'full_background' && (
+                            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                <Label className="text-sm font-medium">Background Image</Label>
+                                <p className="text-xs text-slate-500 mb-3">Upload a background image for the full background card style</p>
+                                {chapter.background_image ? (
+                                    <div className="relative">
+                                        <img 
+                                            src={chapter.background_image} 
+                                            alt="Background" 
+                                            className="w-full h-32 object-cover rounded-lg"
+                                        />
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            className="absolute top-2 right-2"
+                                            onClick={() => onUpdateChapter({ ...chapter, background_image: '' })}
+                                        >
+                                            Remove
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                setIsUploadingBackground(true);
+                                                try {
+                                                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                                    onUpdateChapter({ ...chapter, background_image: file_url });
+                                                } catch (error) {
+                                                    console.error('Failed to upload background:', error);
+                                                } finally {
+                                                    setIsUploadingBackground(false);
+                                                }
+                                            }}
+                                            className="hidden"
+                                            id={`bg-upload-${chapter.id}`}
+                                            disabled={isUploadingBackground}
+                                        />
+                                        <label htmlFor={`bg-upload-${chapter.id}`}>
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                disabled={isUploadingBackground}
+                                                onClick={() => document.getElementById(`bg-upload-${chapter.id}`).click()}
+                                                className="w-full"
+                                            >
+                                                {isUploadingBackground ? (
+                                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                                                ) : (
+                                                    <><Upload className="w-4 h-4 mr-2" /> Upload Background</>
+                                                )}
+                                            </Button>
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+                            )}
+
+                            {/* Slides */}
                         <div>
                             <div className="flex items-center justify-between mb-3">
                                 <Label className="text-sm font-medium">Slides</Label>
