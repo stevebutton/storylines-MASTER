@@ -39,17 +39,17 @@ export default function StoryChapter({
                     className="relative w-1/2 min-w-[300px] pointer-events-auto"
                 >
                     {/* Full Background Card */}
-                    <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ minHeight: '500px' }}>
+                    <div 
+                        className="relative rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl bg-black/50 border border-white/20"
+                        style={{ minHeight: '500px' }}
+                    >
                         {/* Background Image */}
                         {currentSlide?.background_image && (
                             <div 
-                                className="absolute inset-0 bg-cover bg-center"
+                                className="absolute inset-0 bg-cover bg-center -z-10"
                                 style={{ backgroundImage: `url(${currentSlide.background_image})` }}
                             />
                         )}
-                        
-                        {/* 50% Overlay */}
-                        <div className="absolute inset-0 bg-black/50" />
                         
                         {/* Content */}
                         <div className="relative z-10 p-6 md:p-8 flex flex-col h-full justify-center">
@@ -135,7 +135,7 @@ export default function StoryChapter({
                 {/* Card */}
                 <div className={cn(
                     "backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl",
-                    "bg-white/90 dark:bg-slate-900/90",
+                    "bg-white/50 dark:bg-slate-900/50",
                     "border border-white/20"
                 )}>
                     {/* Image Carousel */}
