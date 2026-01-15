@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { storyDataAPI } from '@/components/storymap/storyData';
 import MapBackground from '@/components/storymap/MapContainer';
 import StoryChapter from '@/components/storymap/StoryChapter';
 import ChapterNavigation from '@/components/storymap/ChapterNavigation';
@@ -44,14 +44,12 @@ export default function StoryMapView() {
         }
 
         try {
-            const [storyData, chaptersData, slidesData] = await Promise.all([
-                base44.entities.Story.filter({ id: storyId }),
-                base44.entities.Chapter.filter({ story_id: storyId }, 'order'),
-                base44.entities.Slide.list('order')
-            ]);
+            const storyData = storyDataAPI.getStory(storyId);
+            const chaptersData = storyDataAPI.getChapters(storyId);
+            const slidesData = storyDataAPI.getAllSlides();
 
-            if (storyData.length > 0) {
-                setStory(storyData[0]);
+            if (storyData) {
+                setStory(storyData);
             }
 
             // Attach slides to chapters

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { storyDataAPI } from '@/components/storymap/storyData';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,15 +25,15 @@ export default function Stories() {
   const loadStories = async () => {
     setIsLoading(true);
     try {
-      const data = await base44.entities.Story.list('-created_date');
+      const data = storyDataAPI.getStories().sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
       setStories(data);
 
       // Load thumbnails for each story
       const thumbnails = {};
       for (const story of data) {
-        const chapters = await base44.entities.Chapter.filter({ story_id: story.id }, 'order', 1);
+        const chapters = storyDataAPI.getChapters(story.id);
         if (chapters.length > 0) {
-          const slides = await base44.entities.Slide.filter({ chapter_id: chapters[0].id }, 'order', 1);
+          const slides = storyDataAPI.getSlides(chapters[0].id);
           if (slides.length > 0 && slides[0].image) {
             thumbnails[story.id] = slides[0].image;
           }
@@ -93,7 +93,7 @@ export default function Stories() {
 
   const togglePublishStatus = async (story) => {
     try {
-      await base44.entities.Story.update(story.id, { is_published: !story.is_published });
+      storyDataAPI.updateStory(story.id, { is_published: !story.is_published });
       loadStories();
     } catch (error) {
       console.error('Failed to update story:', error);
@@ -105,10 +105,10 @@ export default function Stories() {
       // Unset any current main story
       const currentMainStories = stories.filter((s) => s.is_main_story);
       for (const mainStory of currentMainStories) {
-        await base44.entities.Story.update(mainStory.id, { is_main_story: false });
+        storyDataAPI.updateStory(mainStory.id, { is_main_story: false });
       }
       // Set new main story
-      await base44.entities.Story.update(story.id, { is_main_story: true });
+      storyDataAPI.updateStory(story.id, { is_main_story: true });
       loadStories();
     } catch (error) {
       console.error('Failed to set main story:', error);
@@ -129,15 +129,15 @@ export default function Stories() {
 
     try {
       // Delete all chapters and slides
-      const chapters = await base44.entities.Chapter.filter({ story_id: storyId });
+      const chapters = storyDataAPI.getChapters(storyId);
       for (const chapter of chapters) {
-        const slides = await base44.entities.Slide.filter({ chapter_id: chapter.id });
+        const slides = storyDataAPI.getSlides(chapter.id);
         for (const slide of slides) {
-          await base44.entities.Slide.delete(slide.id);
+          storyDataAPI.deleteSlide(slide.id);
         }
-        await base44.entities.Chapter.delete(chapter.id);
+        storyDataAPI.deleteChapter(chapter.id);
       }
-      await base44.entities.Story.delete(storyId);
+      storyDataAPI.deleteStory(storyId);
       loadStories();
     } catch (error) {
       console.error('Failed to delete story:', error);
