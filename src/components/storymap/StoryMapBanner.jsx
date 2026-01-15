@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+
 import { cn } from '@/lib/utils';
 
 export default function StoryMapBanner({ 
@@ -19,7 +20,7 @@ export default function StoryMapBanner({
                     {/* Logo - Link to StoriesMap */}
                     <Link to={createPageUrl('StoriesMap')} className="absolute top-4 left-4 z-10">
                         <img 
-                            src="ctmlogo-centered.png" 
+                            src="https://i.ibb.co/wcQgqn0/map-logo.png" 
                             alt="Logo" 
                             className="h-10 w-10 hover:opacity-80 transition-opacity cursor-pointer"
                         />
