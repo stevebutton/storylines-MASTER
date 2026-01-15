@@ -103,11 +103,11 @@ export default function StoriesMap() {
         stories.forEach((story) => {
             if (!story.coordinates) return;
 
-            // Create marker wrapper and inner element
+            // Create marker wrapper element
             const el = document.createElement('div');
             el.style.cssText = `
-                width: 80px;
-                height: 80px;
+                width: 120px;
+                height: 100px;
             `;
 
             const inner = document.createElement('div');
@@ -123,6 +123,10 @@ export default function StoriesMap() {
                 transition: all 0.3s ease;
                 background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
                 transform: translate(-50%, -50%);
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
             `;
 
             if (story.hero_image) {
@@ -130,6 +134,27 @@ export default function StoriesMap() {
                 inner.style.backgroundSize = 'cover';
                 inner.style.backgroundPosition = 'center';
             }
+
+            // Add title overlay
+            const titleOverlay = document.createElement('div');
+            titleOverlay.style.cssText = `
+                background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+                padding: 8px 6px;
+                color: white;
+                font-size: 11px;
+                font-weight: 600;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+                line-height: 1.2;
+                text-align: center;
+                max-height: 45%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            `;
+            titleOverlay.textContent = story.title;
+            inner.appendChild(titleOverlay);
 
             el.addEventListener('mouseenter', () => {
                 inner.style.transform = 'translate(-50%, -50%) scale(1.15)';
@@ -175,7 +200,7 @@ export default function StoriesMap() {
             `;
 
             const popup = new mapboxgl.Popup({ 
-                offset: 45,
+                offset: 55,
                 closeButton: false,
                 maxWidth: '300px'
             }).setHTML(popupContent);
