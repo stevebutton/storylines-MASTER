@@ -103,12 +103,18 @@ export default function StoriesMap() {
         stories.forEach((story) => {
             if (!story.coordinates) return;
 
-            // Create marker element with thumbnail
+            // Create marker wrapper and inner element
             const el = document.createElement('div');
-            el.className = 'story-marker';
             el.style.cssText = `
                 width: 80px;
                 height: 80px;
+            `;
+
+            const inner = document.createElement('div');
+            inner.className = 'story-marker-inner';
+            inner.style.cssText = `
+                width: 100%;
+                height: 100%;
                 border-radius: 12px;
                 overflow: hidden;
                 cursor: pointer;
@@ -116,25 +122,28 @@ export default function StoriesMap() {
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                 transition: all 0.3s ease;
                 background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+                transform: translate(-50%, -50%);
             `;
 
             if (story.hero_image) {
-                el.style.backgroundImage = `url(${story.hero_image})`;
-                el.style.backgroundSize = 'cover';
-                el.style.backgroundPosition = 'center';
+                inner.style.backgroundImage = `url(${story.hero_image})`;
+                inner.style.backgroundSize = 'cover';
+                inner.style.backgroundPosition = 'center';
             }
 
             el.addEventListener('mouseenter', () => {
-                el.style.transform = 'scale(1.15)';
-                el.style.zIndex = '1000';
-                el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+                inner.style.transform = 'translate(-50%, -50%) scale(1.15)';
+                inner.style.zIndex = '1000';
+                inner.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
             });
 
             el.addEventListener('mouseleave', () => {
-                el.style.transform = 'scale(1)';
-                el.style.zIndex = 'auto';
-                el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                inner.style.transform = 'translate(-50%, -50%) scale(1)';
+                inner.style.zIndex = 'auto';
+                inner.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
             });
+
+            el.appendChild(inner);
 
             el.addEventListener('click', () => {
                 navigate(`${createPageUrl('StoryMapView')}?id=${story.id}`);
