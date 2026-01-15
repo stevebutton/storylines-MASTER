@@ -106,8 +106,8 @@ export default function StoriesMap() {
             // Create marker wrapper element
             const el = document.createElement('div');
             el.style.cssText = `
-                width: 120px;
-                height: 100px;
+                width: 180px;
+                height: 112px;
             `;
 
             const inner = document.createElement('div');
@@ -139,14 +139,14 @@ export default function StoriesMap() {
             const titleOverlay = document.createElement('div');
             titleOverlay.style.cssText = `
                 background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
-                padding: 8px 6px;
+                padding: 8px 10px;
                 color: white;
-                font-size: 11px;
+                font-size: 14px;
                 font-weight: 600;
                 text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-                line-height: 1.2;
-                text-align: center;
-                max-height: 45%;
+                line-height: 1.3;
+                text-align: left;
+                max-height: 50%;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 display: -webkit-box;
@@ -200,7 +200,7 @@ export default function StoriesMap() {
             `;
 
             const popup = new mapboxgl.Popup({ 
-                offset: 55,
+                offset: 70,
                 closeButton: false,
                 maxWidth: '300px'
             }).setHTML(popupContent);
