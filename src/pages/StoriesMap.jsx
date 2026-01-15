@@ -99,6 +99,10 @@ export default function StoriesMap() {
         markers.current.forEach(marker => marker.remove());
         markers.current = [];
 
+        // Store initial map state for reset on mouseleave
+        let initialZoom = map.current.getZoom();
+        let initialCenter = map.current.getCenter();
+
         // Add story markers
         stories.forEach((story) => {
             if (!story.coordinates) return;
@@ -158,15 +162,36 @@ export default function StoriesMap() {
             inner.appendChild(titleOverlay);
 
             el.addEventListener('mouseenter', () => {
+                // Store current state before changing
+                initialZoom = map.current.getZoom();
+                initialCenter = map.current.getCenter();
+                
                 inner.style.transform = 'translate(-50%, -50%) scale(1.15)';
                 inner.style.zIndex = '1000';
                 inner.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+                
+                // Zoom to location with 25% increase
+                const newZoom = initialZoom * 1.25;
+                map.current.flyTo({
+                    center: [story.coordinates[1], story.coordinates[0]],
+                    zoom: newZoom,
+                    duration: 800,
+                    easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+                });
             });
 
             el.addEventListener('mouseleave', () => {
                 inner.style.transform = 'translate(-50%, -50%) scale(1)';
                 inner.style.zIndex = 'auto';
                 inner.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                
+                // Return to original state
+                map.current.flyTo({
+                    center: initialCenter,
+                    zoom: initialZoom,
+                    duration: 800,
+                    easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+                });
             });
 
             el.appendChild(inner);
