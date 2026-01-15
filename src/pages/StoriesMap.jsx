@@ -116,8 +116,6 @@ export default function StoriesMap() {
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
                 transition: all 0.3s ease;
                 background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
-                position: relative;
-                transform-origin: center center;
             `;
 
             if (story.hero_image) {
@@ -127,13 +125,13 @@ export default function StoriesMap() {
             }
 
             el.addEventListener('mouseenter', () => {
-                el.style.transform = 'scale(1.15) translate(-50%, -50%)';
+                el.style.transform = 'scale(1.15)';
                 el.style.zIndex = '1000';
                 el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
             });
 
             el.addEventListener('mouseleave', () => {
-                el.style.transform = 'scale(1) translate(-50%, -50%)';
+                el.style.transform = 'scale(1)';
                 el.style.zIndex = 'auto';
                 el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
             });
