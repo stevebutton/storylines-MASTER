@@ -138,20 +138,21 @@ export default function StoriesMap() {
             // Add title overlay
             const titleOverlay = document.createElement('div');
             titleOverlay.style.cssText = `
-                background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
-                padding: 8px 10px;
+                background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%);
+                padding: 6px 10px;
                 color: white;
-                font-size: 14px;
-                font-weight: 600;
-                text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-                line-height: 1.3;
+                font-size: 21px;
+                font-weight: 700;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+                line-height: 1.1;
                 text-align: left;
-                max-height: 50%;
+                max-height: 55%;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
                 -webkit-box-orient: vertical;
+                margin-top: auto;
             `;
             titleOverlay.textContent = story.title;
             inner.appendChild(titleOverlay);
