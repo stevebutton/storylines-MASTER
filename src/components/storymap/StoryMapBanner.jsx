@@ -19,7 +19,7 @@ export default function StoryMapBanner({
                     {/* Logo - Link to StoriesMap */}
                     <Link to={createPageUrl('StoriesMap')} className="absolute top-4 left-4 z-10">
                         <img 
-                            src="https://i.ibb.co/wcQgqn0/map-logo.png" 
+                            src="ctmlogo-centered.png" 
                             alt="Logo" 
                             className="h-10 w-10 hover:opacity-80 transition-opacity cursor-pointer"
                         />
