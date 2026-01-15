@@ -219,8 +219,8 @@ export default function StoriesMap() {
             )}
 
             <style>{`
-                .mapboxgl-marker {
-                    transform: translate(-50%, -50%) !important;
+                .mapboxgl-marker > div {
+                    transform: translate(-50%, -50%);
                 }
                 .mapboxgl-popup-content {
                     padding: 16px !important;
