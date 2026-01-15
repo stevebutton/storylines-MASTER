@@ -62,21 +62,27 @@ export default function StoriesMap() {
 
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-left');
 
-        // Calculate bounds to fit all stories
-        if (stories.length > 0) {
-            const bounds = new mapboxgl.LngLatBounds();
-            stories.forEach(story => {
-                if (story.coordinates) {
-                    bounds.extend([story.coordinates[1], story.coordinates[0]]);
-                }
-            });
+        // Wait for map to load before adding markers and fitting bounds
+        map.current.on('load', () => {
+            // Calculate bounds to fit all stories
+            if (stories.length > 0) {
+                const bounds = new mapboxgl.LngLatBounds();
+                stories.forEach(story => {
+                    if (story.coordinates) {
+                        bounds.extend([story.coordinates[1], story.coordinates[0]]);
+                    }
+                });
 
-            map.current.fitBounds(bounds, {
-                padding: { top: 100, bottom: 100, left: 100, right: 100 },
-                maxZoom: 12,
-                duration: 2000
-            });
-        }
+                map.current.fitBounds(bounds, {
+                    padding: { top: 100, bottom: 100, left: 100, right: 100 },
+                    maxZoom: 12,
+                    duration: 2000
+                });
+            }
+
+            // Add markers after map is loaded
+            addMarkers();
+        });
 
         return () => {
             if (map.current) {
@@ -86,7 +92,7 @@ export default function StoriesMap() {
         };
     }, [stories]);
 
-    useEffect(() => {
+    const addMarkers = () => {
         if (!map.current || stories.length === 0) return;
 
         // Clear existing markers
@@ -174,7 +180,7 @@ export default function StoriesMap() {
 
             markers.current.push(marker);
         });
-    }, [stories, navigate]);
+    };
 
     if (isLoading) {
         return (

@@ -3,10 +3,10 @@ import Home from './pages/Home';
 import LocationPickerPage from './pages/LocationPickerPage';
 import MediaLibrary from './pages/MediaLibrary';
 import Stories from './pages/Stories';
+import StoriesMap from './pages/StoriesMap';
 import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
-import StoriesMap from './pages/StoriesMap';
 import __Layout from './Layout.jsx';
 
 
@@ -16,10 +16,10 @@ export const PAGES = {
     "LocationPickerPage": LocationPickerPage,
     "MediaLibrary": MediaLibrary,
     "Stories": Stories,
+    "StoriesMap": StoriesMap,
     "StoryEditor": StoryEditor,
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
-    "StoriesMap": StoriesMap,
 }
 
 export const pagesConfig = {
