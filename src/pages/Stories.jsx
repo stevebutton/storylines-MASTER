@@ -162,11 +162,18 @@ export default function Stories() {
                             <h1 className="text-slate-800 text-4xl font-bold">Story Dashboard</h1>
                             <p className="text-slate-500 mt-1">Create and manage your interactive story maps</p>
                         </div>
-                        <Link to={createPageUrl('StoryEditor')}>
-                            <Button className="bg-amber-600 hover:bg-amber-700">
-                                <Plus className="w-4 h-4 mr-2" /> New Story
-                            </Button>
-                        </Link>
+                        <div className="flex gap-2">
+                            <Link to={createPageUrl('StoriesMap')}>
+                                <Button variant="outline" className="border-amber-600 text-amber-700 hover:bg-amber-50">
+                                    <Map className="w-4 h-4 mr-2" /> View Map
+                                </Button>
+                            </Link>
+                            <Link to={createPageUrl('StoryEditor')}>
+                                <Button className="bg-amber-600 hover:bg-amber-700">
+                                    <Plus className="w-4 h-4 mr-2" /> New Story
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Stats */}
