@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Plus, GripVertical, Trash2, Save, Image as ImageIcon, Video, Loader2, MapPin, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -88,6 +89,7 @@ export default function HomePageEditor() {
       video_url: '',
       order: sections.length,
       layout_type: 'text_left_image_right',
+      show_gradient: true,
       linked_story_id: ''
     });
   };
@@ -220,6 +222,17 @@ export default function HomePageEditor() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {(editingSection.layout_type === 'hero_image_text_overlay' || editingSection.layout_type === 'full_width_video') && (
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="show-gradient">Show Gradient Overlay</Label>
+                  <Switch
+                    id="show-gradient"
+                    checked={editingSection.show_gradient !== false}
+                    onCheckedChange={(checked) => setEditingSection({ ...editingSection, show_gradient: checked })}
+                  />
+                </div>
+              )}
 
               <div>
                 <Label>Image</Label>
