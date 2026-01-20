@@ -25,13 +25,13 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
             <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5 z-10" />
             
             <motion.div
-        className="absolute left-[25%] z-20 px-6 max-w-3xl pointer-events-auto"
+        className="absolute left-[15%] z-20 px-6 max-w-3xl pointer-events-auto"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.3 }}>
 
                 {/* Decorative line */}
-                <div className="flex items-center justify-center gap-4 mb-8">
+                <div className="flex items-center gap-4 mb-8">
                     <div className="w-12 h-px bg-white/40" />
                     <div className="w-2 h-2 rounded-full bg-amber-500" />
                     <div className="w-12 h-px bg-white/40" />
