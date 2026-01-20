@@ -306,14 +306,14 @@ export default function HomePageEditor() {
               <div>
                 <Label>Map Location (optional)</Label>
                 <div className="space-y-2">
-                  {editingSection.coordinates && (
+                  {editingSection.coordinates && editingSection.coordinates.length === 2 && editingSection.coordinates[0] !== undefined && (
                     <p className="text-sm text-slate-600">
                       Coordinates: {editingSection.coordinates[0].toFixed(4)}, {editingSection.coordinates[1].toFixed(4)}
                       {editingSection.zoom && ` | Zoom: ${editingSection.zoom}`}
                     </p>
                   )}
                   <Link
-                    to={`${createPageUrl('LocationPickerPage')}?sectionId=${editingSection.id || 'new'}${editingSection.coordinates ? `&lat=${editingSection.coordinates[0]}&lng=${editingSection.coordinates[1]}&zoom=${editingSection.zoom || 12}&bearing=${editingSection.bearing || 0}&pitch=${editingSection.pitch || 0}` : ''}`}
+                    to={`${createPageUrl('LocationPickerPage')}?sectionId=${editingSection.id || 'new'}${editingSection.coordinates && editingSection.coordinates.length === 2 ? `&lat=${editingSection.coordinates[0]}&lng=${editingSection.coordinates[1]}&zoom=${editingSection.zoom || 12}&bearing=${editingSection.bearing || 0}&pitch=${editingSection.pitch || 0}` : ''}`}
                   >
                     <Button type="button" variant="outline">
                       <MapPin className="w-4 h-4 mr-2" /> Pick Location
