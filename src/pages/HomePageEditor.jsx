@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Plus, GripVertical, Trash2, Save, Image as ImageIcon, Video, Loader2, MapPin, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -341,6 +342,18 @@ export default function HomePageEditor() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {(editingSection.layout_type === 'hero_image_text_overlay' || editingSection.layout_type === 'full_width_video') && (
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={editingSection.show_gradient !== false}
+                    onCheckedChange={(checked) => setEditingSection({ ...editingSection, show_gradient: checked })}
+                  />
+                  <Label className="cursor-pointer">
+                    Show gradient overlay
+                  </Label>
+                </div>
+              )}
 
               <div className="flex gap-2 pt-4">
                 <Button onClick={saveSection} disabled={isSaving}>
