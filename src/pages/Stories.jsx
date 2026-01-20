@@ -160,7 +160,7 @@ export default function Stories() {
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <h1 className="text-slate-800 text-4xl font-bold">Story Dashboard</h1>
-                            <p className="text-slate-500 mt-1">Create and manage your interactive story maps</p>
+                            <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
                         </div>
                         <div className="flex gap-2">
                             <Link to={createPageUrl('StoriesMap')}>
