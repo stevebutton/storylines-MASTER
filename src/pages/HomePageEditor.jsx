@@ -7,21 +7,45 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Plus, GripVertical, Trash2, Save, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Plus, GripVertical, Trash2, Save, Image as ImageIcon, Video, Loader2, MapPin, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 export default function HomePageEditor() {
+  const location = useLocation();
   const [sections, setSections] = useState([]);
   const [stories, setStories] = useState([]);
   const [media, setMedia] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingSection, setEditingSection] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const pickedLat = urlParams.get('pickedLat');
+    const pickedLng = urlParams.get('pickedLng');
+    const pickedZoom = urlParams.get('pickedZoom');
+    const pickedBearing = urlParams.get('pickedBearing');
+    const pickedPitch = urlParams.get('pickedPitch');
+    const sectionId = urlParams.get('sectionId');
+
+    if (pickedLat && pickedLng && sectionId && editingSection?.id === sectionId) {
+      setEditingSection({
+        ...editingSection,
+        coordinates: [parseFloat(pickedLat), parseFloat(pickedLng)],
+        zoom: pickedZoom ? parseFloat(pickedZoom) : editingSection.zoom,
+        bearing: pickedBearing ? parseFloat(pickedBearing) : editingSection.bearing,
+        pitch: pickedPitch ? parseFloat(pickedPitch) : editingSection.pitch
+      });
+      window.history.replaceState({}, '', createPageUrl('HomePageEditor'));
+    }
+  }, [location.search]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -97,13 +121,33 @@ export default function HomePageEditor() {
     }
   };
 
-  const uploadFile = async (file) => {
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
     try {
-      const { data } = await base44.integrations.Core.UploadFile({ file });
-      return data.file_url;
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setEditingSection({ ...editingSection, image_url: file_url });
     } catch (error) {
       console.error('Upload failed:', error);
-      return null;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingVideo(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setEditingSection({ ...editingSection, video_url: file_url });
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setIsUploadingVideo(false);
     }
   };
 
@@ -179,31 +223,103 @@ export default function HomePageEditor() {
 
               <div>
                 <Label>Image</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        const url = await uploadFile(file);
-                        if (url) setEditingSection({ ...editingSection, image_url: url });
-                      }
-                    }}
-                  />
+                <div className="space-y-2">
                   {editingSection.image_url && (
-                    <img src={editingSection.image_url} alt="Preview" className="h-10 w-10 object-cover rounded" />
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                      <img src={editingSection.image_url} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => setEditingSection({ ...editingSection, image_url: '' })}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="section-image-upload"
+                      disabled={isUploadingImage}
+                    />
+                    <label htmlFor="section-image-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isUploadingImage}
+                        onClick={() => document.getElementById('section-image-upload').click()}
+                      >
+                        {isUploadingImage ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><ImageIcon className="w-4 h-4 mr-2" /> Upload Image</>
+                        )}
+                      </Button>
+                    </label>
+                  </div>
                 </div>
               </div>
 
               <div>
-                <Label>Video URL</Label>
-                <Input
-                  value={editingSection.video_url}
-                  onChange={(e) => setEditingSection({ ...editingSection, video_url: e.target.value })}
-                  placeholder="Video URL"
-                />
+                <Label>Video</Label>
+                <div className="space-y-2">
+                  {editingSection.video_url && (
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                      <video src={editingSection.video_url} className="w-full h-full object-cover" autoPlay muted loop />
+                      <button
+                        onClick={() => setEditingSection({ ...editingSection, video_url: '' })}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                      id="section-video-upload"
+                      disabled={isUploadingVideo}
+                    />
+                    <label htmlFor="section-video-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isUploadingVideo}
+                        onClick={() => document.getElementById('section-video-upload').click()}
+                      >
+                        {isUploadingVideo ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><Video className="w-4 h-4 mr-2" /> Upload Video</>
+                        )}
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Map Location (optional)</Label>
+                <div className="space-y-2">
+                  {editingSection.coordinates && (
+                    <p className="text-sm text-slate-600">
+                      Coordinates: {editingSection.coordinates[0].toFixed(4)}, {editingSection.coordinates[1].toFixed(4)}
+                      {editingSection.zoom && ` | Zoom: ${editingSection.zoom}`}
+                    </p>
+                  )}
+                  <Link
+                    to={`${createPageUrl('LocationPickerPage')}?sectionId=${editingSection.id || 'new'}${editingSection.coordinates ? `&lat=${editingSection.coordinates[0]}&lng=${editingSection.coordinates[1]}&zoom=${editingSection.zoom || 12}&bearing=${editingSection.bearing || 0}&pitch=${editingSection.pitch || 0}` : ''}`}
+                  >
+                    <Button type="button" variant="outline">
+                      <MapPin className="w-4 h-4 mr-2" /> Pick Location
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
               <div>
