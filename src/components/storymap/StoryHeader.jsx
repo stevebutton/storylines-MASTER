@@ -43,7 +43,7 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
                 </h1>
                 
                 {/* Subtitle */}
-                <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-left md:text-xl max-w-xl">
+                <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-left max-w-xl">
                     {subtitle}
                 </p>
                 
