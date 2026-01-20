@@ -69,7 +69,9 @@ export default function Home() {
               <video src={section.video_url} autoPlay muted loop className="absolute inset-0 w-full h-full object-cover opacity-60" />
             )}
             {section.show_gradient !== false && (
-              <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/5" />
+              <div className="absolute inset-0" style={{
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.05) 100%)'
+              }} />
             )}
             <div className="relative z-10 text-center text-white px-6 max-w-4xl">
               <h2 className="text-4xl md:text-6xl font-bold mb-6">{section.title}</h2>
