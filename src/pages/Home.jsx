@@ -45,9 +45,7 @@ export default function Home() {
             {section.image_url && (
               <img src={section.image_url} alt={section.title} className="absolute inset-0 w-full h-full object-cover" />
             )}
-            {section.show_gradient !== false && (
-              <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5" />
-            )}
+            <div className="absolute inset-0 bg-black/40" />
             <div className="relative z-10 text-center text-white px-6 max-w-4xl">
               <h1 className="text-5xl md:text-7xl font-bold mb-6">{section.title}</h1>
               {section.content && <p className="text-xl md:text-2xl mb-8">{section.content}</p>}
@@ -67,9 +65,6 @@ export default function Home() {
           <div className="relative min-h-screen flex items-center justify-center bg-slate-900">
             {section.video_url && (
               <video src={section.video_url} autoPlay muted loop className="absolute inset-0 w-full h-full object-cover opacity-60" />
-            )}
-            {section.show_gradient !== false && (
-              <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5" />
             )}
             <div className="relative z-10 text-center text-white px-6 max-w-4xl">
               <h2 className="text-4xl md:text-6xl font-bold mb-6">{section.title}</h2>
