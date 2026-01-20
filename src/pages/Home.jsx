@@ -46,7 +46,9 @@ export default function Home() {
               <img src={section.image_url} alt={section.title} className="absolute inset-0 w-full h-full object-cover" />
             )}
             {section.show_gradient !== false && (
-              <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/5" />
+              <div className="absolute inset-0" style={{
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.05) 100%)'
+              }} />
             )}
             <div className="relative z-10 text-center text-white px-6 max-w-4xl">
               <h1 className="text-5xl md:text-7xl font-bold mb-6">{section.title}</h1>
