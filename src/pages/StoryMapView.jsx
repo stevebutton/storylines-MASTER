@@ -223,6 +223,9 @@ export default function StoryMapView() {
                     subtitle={story.subtitle}
                     author={story.author}
                     heroImage={story.hero_image}
+                    heroVideo={story.hero_video}
+                    heroType={story.hero_type}
+                    heroVideoLoop={story.hero_video_loop}
                     onExplore={() => navigateToChapter(0)}
                 />
                 

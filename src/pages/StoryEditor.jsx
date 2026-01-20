@@ -692,6 +692,17 @@ export default function StoryEditor() {
                                 </div>
                             </div>
                         </div>
+                        {story.hero_type === 'video' && story.hero_video && (
+                            <div className="flex items-center gap-3">
+                                <Switch
+                                    checked={story.hero_video_loop !== false}
+                                    onCheckedChange={(checked) => setStory({ ...story, hero_video_loop: checked })}
+                                />
+                                <Label className="cursor-pointer">
+                                    Loop video
+                                </Label>
+                            </div>
+                        )}
                         <div className="flex items-center gap-3">
                             <Switch
                                 checked={story.is_published || false}
