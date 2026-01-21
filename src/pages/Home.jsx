@@ -45,7 +45,7 @@ export default function Home() {
             {section.image_url && (
               <img src={section.image_url} alt={section.title} className="absolute inset-0 w-full h-full object-cover" />
             )}
-            {section.show_gradient && (
+            {section.show_gradient === true && (
               <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5" />
             )}
             <div className="relative z-10 text-center text-white px-6 max-w-4xl">
@@ -68,7 +68,7 @@ export default function Home() {
             {section.video_url && (
               <video src={section.video_url} autoPlay muted loop className="absolute inset-0 w-full h-full object-cover opacity-60" />
             )}
-            {section.show_gradient && (
+            {section.show_gradient === true && (
               <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5" />
             )}
             <div className="relative z-10 text-center text-white px-6 max-w-4xl">
