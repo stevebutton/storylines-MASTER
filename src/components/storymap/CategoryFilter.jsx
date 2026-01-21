@@ -11,8 +11,8 @@ export default function CategoryFilter({ categories, selectedCategory, onCategor
             variant={selectedCategory === 'all' ? 'default' : 'ghost'}
             size="sm"
             className={selectedCategory === 'all' 
-              ? 'bg-white text-slate-800 hover:bg-white/90' 
-              : 'text-white hover:bg-white/20'}
+              ? 'bg-white text-slate-800 hover:bg-white/90 font-bold' 
+              : 'text-slate-700 hover:bg-white/20 hover:text-black hover:font-bold'}
           >
             All
           </Button>
@@ -23,8 +23,8 @@ export default function CategoryFilter({ categories, selectedCategory, onCategor
               variant={selectedCategory === category ? 'default' : 'ghost'}
               size="sm"
               className={selectedCategory === category 
-                ? 'bg-white text-slate-800 hover:bg-white/90' 
-                : 'text-white hover:bg-white/20 capitalize'}
+                ? 'bg-white text-slate-800 hover:bg-white/90 font-bold capitalize' 
+                : 'text-slate-700 hover:bg-white/20 hover:text-black hover:font-bold capitalize'}
             >
               {category}
             </Button>

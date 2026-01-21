@@ -132,17 +132,32 @@ export default function ProjectInterface() {
   const addMarkers = () => {
     if (!map.current || allStories.length === 0) return;
 
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
+    // Fade out existing markers
+    markers.current.forEach(marker => {
+      const el = marker.getElement();
+      el.style.transition = 'opacity 500ms ease-out';
+      el.style.opacity = '0';
+    });
 
-    let initialZoom = map.current.getZoom();
-    let initialCenter = map.current.getCenter();
+    // Remove markers after fade out
+    setTimeout(() => {
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
 
-    const filteredStories = selectedCategory === 'all' 
-      ? allStories 
-      : allStories.filter(s => s.category === selectedCategory);
+      let initialZoom = map.current.getZoom();
+      let initialCenter = map.current.getCenter();
 
-    filteredStories.forEach((story) => {
+      const filteredStories = selectedCategory === 'all' 
+        ? allStories 
+        : allStories.filter(s => s.category === selectedCategory);
+
+      filteredStories.forEach((story) => {
+        createMarker(story, initialZoom, initialCenter);
+      });
+    }, 500);
+  };
+
+  const createMarker = (story, initialZoom, initialCenter) => {
       if (!story.coordinates) return;
 
       const el = document.createElement('div');
@@ -268,8 +283,14 @@ export default function ProjectInterface() {
         .setPopup(popup)
         .addTo(map.current);
 
+      // Fade in new marker
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 500ms ease-in';
+      setTimeout(() => {
+        el.style.opacity = '1';
+      }, 10);
+
       markers.current.push(marker);
-    });
   };
 
   const scrollToMap = () => {
