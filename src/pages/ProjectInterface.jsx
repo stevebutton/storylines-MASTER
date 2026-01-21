@@ -23,7 +23,6 @@ export default function ProjectInterface() {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markers = useRef([]);
-  const lines = useRef([]);
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isOtherStoriesOpen, setIsOtherStoriesOpen] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
@@ -88,6 +87,27 @@ export default function ProjectInterface() {
   }, [selectedCategory]);
 
   useEffect(() => {
+    if (!map.current || !mapInitialized) return;
+
+    const handleMapMove = () => {
+      const filteredStories = selectedCategory === 'all' 
+        ? allStories 
+        : allStories.filter(s => s.category === selectedCategory);
+      updateConnectionLines(filteredStories);
+    };
+
+    map.current.on('move', handleMapMove);
+    map.current.on('zoom', handleMapMove);
+
+    return () => {
+      if (map.current) {
+        map.current.off('move', handleMapMove);
+        map.current.off('zoom', handleMapMove);
+      }
+    };
+  }, [selectedCategory, allStories, mapInitialized]);
+
+  useEffect(() => {
     const handleScroll = () => {
       const heroHeight = window.innerHeight;
       setIsBannerVisible(window.scrollY > heroHeight * 0.5);
@@ -125,6 +145,30 @@ export default function ProjectInterface() {
         });
       }
 
+      // Add source and layer for connection lines
+      map.current.addSource('marker-lines', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+
+      map.current.addLayer({
+        id: 'marker-lines-layer',
+        type: 'line',
+        source: 'marker-lines',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': 8,
+          'line-dasharray': [1, 1]
+        }
+      });
+
       addMarkers();
       setMapInitialized(true);
     });
@@ -133,23 +177,17 @@ export default function ProjectInterface() {
   const addMarkers = () => {
     if (!map.current || allStories.length === 0) return;
 
-    // Fade out existing markers and lines
+    // Fade out existing markers
     markers.current.forEach(marker => {
       const el = marker.getElement();
       el.style.transition = 'opacity 500ms ease-out';
       el.style.opacity = '0';
     });
-    lines.current.forEach(line => {
-      line.style.transition = 'opacity 500ms ease-out';
-      line.style.opacity = '0';
-    });
 
-    // Remove markers and lines after fade out
+    // Remove markers after fade out
     setTimeout(() => {
       markers.current.forEach(marker => marker.remove());
       markers.current = [];
-      lines.current.forEach(line => line.remove());
-      lines.current = [];
 
       let initialZoom = map.current.getZoom();
       let initialCenter = map.current.getCenter();
@@ -161,7 +199,44 @@ export default function ProjectInterface() {
       filteredStories.forEach((story) => {
         createMarker(story, initialZoom, initialCenter);
       });
+
+      // Update line features
+      updateConnectionLines(filteredStories);
     }, 500);
+  };
+
+  const updateConnectionLines = (stories) => {
+    if (!map.current) return;
+
+    const features = stories.map(story => {
+      if (!story.coordinates) return null;
+      
+      // Get the screen position of the marker
+      const lngLat = [story.coordinates[1], story.coordinates[0]];
+      const point = map.current.project(lngLat);
+      
+      // Offset the line start point above the actual location (since marker floats above)
+      const offsetLngLat = map.current.unproject([point.x, point.y - 100]);
+      
+      return {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [offsetLngLat.lng, offsetLngLat.lat],
+            lngLat
+          ]
+        }
+      };
+    }).filter(Boolean);
+
+    const source = map.current.getSource('marker-lines');
+    if (source) {
+      source.setData({
+        type: 'FeatureCollection',
+        features
+      });
+    }
   };
 
   const createMarker = (story, initialZoom, initialCenter) => {
@@ -290,63 +365,11 @@ export default function ProjectInterface() {
         .setPopup(popup)
         .addTo(map.current);
 
-      // Create dotted line connecting marker to location
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 50;
-      `;
-      
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('stroke', 'white');
-      line.setAttribute('stroke-width', '8');
-      line.setAttribute('stroke-dasharray', '10,10');
-      svg.appendChild(line);
-      
-      const lineContainer = mapContainer.current.querySelector('.mapboxgl-canvas-container');
-      if (lineContainer) {
-        lineContainer.appendChild(svg);
-      } else {
-        mapContainer.current.appendChild(svg);
-      }
-      lines.current.push(svg);
-
-      // Function to update line position
-      const updateLine = () => {
-        const markerPos = map.current.project([story.coordinates[1], story.coordinates[0]]);
-        const markerElement = el.getBoundingClientRect();
-        const mapRect = mapContainer.current.getBoundingClientRect();
-        
-        // Calculate marker center (accounting for the transform offset)
-        const markerCenterX = markerElement.left - mapRect.left + markerElement.width / 2;
-        const markerCenterY = markerElement.top - mapRect.top + markerElement.height / 2;
-        
-        line.setAttribute('x1', markerCenterX);
-        line.setAttribute('y1', markerCenterY);
-        line.setAttribute('x2', markerPos.x);
-        line.setAttribute('y2', markerPos.y);
-      };
-
-      // Update line on map move
-      map.current.on('move', updateLine);
-      map.current.on('zoom', updateLine);
-      
-      // Initial line position
-      setTimeout(updateLine, 50);
-
-      // Fade in new marker and line
+      // Fade in new marker
       el.style.opacity = '0';
-      svg.style.opacity = '0';
       el.style.transition = 'opacity 500ms ease-in';
-      svg.style.transition = 'opacity 500ms ease-in';
       setTimeout(() => {
         el.style.opacity = '1';
-        svg.style.opacity = '1';
       }, 10);
 
       markers.current.push(marker);
