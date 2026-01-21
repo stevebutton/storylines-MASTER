@@ -5,6 +5,7 @@ import { createPageUrl } from '@/utils';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
+import CategoryFilter from '@/components/storymap/CategoryFilter';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Loader2, ChevronDown } from 'lucide-react';
@@ -25,6 +26,8 @@ export default function ProjectInterface() {
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isOtherStoriesOpen, setIsOtherStoriesOpen] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -52,6 +55,10 @@ export default function ProjectInterface() {
       }).filter(s => s.coordinates);
 
       setAllStories(storiesWithCoords);
+
+      // Extract unique categories
+      const uniqueCategories = [...new Set(storiesWithCoords.map(s => s.category).filter(Boolean))];
+      setCategories(uniqueCategories);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -72,6 +79,12 @@ export default function ProjectInterface() {
       }
     };
   }, [allStories]);
+
+  useEffect(() => {
+    if (map.current && mapInitialized) {
+      addMarkers();
+    }
+  }, [selectedCategory]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -112,6 +125,7 @@ export default function ProjectInterface() {
       }
 
       addMarkers();
+      setMapInitialized(true);
     });
   };
 
@@ -124,7 +138,11 @@ export default function ProjectInterface() {
     let initialZoom = map.current.getZoom();
     let initialCenter = map.current.getCenter();
 
-    allStories.forEach((story) => {
+    const filteredStories = selectedCategory === 'all' 
+      ? allStories 
+      : allStories.filter(s => s.category === selectedCategory);
+
+    filteredStories.forEach((story) => {
       if (!story.coordinates) return;
 
       const el = document.createElement('div');
@@ -314,6 +332,14 @@ export default function ProjectInterface() {
         />
 
         <div ref={mapContainer} className="h-[80vh] w-full" />
+
+        {categories.length > 0 && (
+          <CategoryFilter
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
+        )}
 
         {allStories.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
