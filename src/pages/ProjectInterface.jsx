@@ -299,16 +299,21 @@ export default function ProjectInterface() {
         width: 100%;
         height: 100%;
         pointer-events: none;
-        z-index: 1;
+        z-index: 50;
       `;
       
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.6)');
-      line.setAttribute('stroke-width', '2');
-      line.setAttribute('stroke-dasharray', '5,5');
+      line.setAttribute('stroke', 'white');
+      line.setAttribute('stroke-width', '8');
+      line.setAttribute('stroke-dasharray', '10,10');
       svg.appendChild(line);
       
-      mapContainer.current.appendChild(svg);
+      const lineContainer = mapContainer.current.querySelector('.mapboxgl-canvas-container');
+      if (lineContainer) {
+        lineContainer.appendChild(svg);
+      } else {
+        mapContainer.current.appendChild(svg);
+      }
       lines.current.push(svg);
 
       // Function to update line position
