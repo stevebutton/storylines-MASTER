@@ -4,7 +4,7 @@ import { ChevronDown } from 'lucide-react';
 
 export default function StoryHeader({ title, subtitle, author, heroImage, heroVideo, heroType, onExplore }) {
   return (
-    <div className="min-h-screen flex items-center justify-center relative -z-20">
+    <div className="min-h-screen flex items-center justify-center relative">
             {/* Hero Video or Image or Gradient Background */}
             {heroType === 'video' && heroVideo ?
       <video
@@ -19,13 +19,13 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
       <img
         src={heroImage}
         alt={title}
-        className="absolute inset-0 w-full h-full object-cover -z-10" /> :
+        className="absolute inset-0 w-full h-full object-cover z-0" /> :
 
       null}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5 z-10" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5 z-[1]" />
             
             <motion.div
-        className="absolute left-[15%] z-20 px-6 max-w-3xl pointer-events-auto"
+        className="absolute left-[15%] z-[2] px-6 max-w-3xl pointer-events-auto"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.3 }}>
