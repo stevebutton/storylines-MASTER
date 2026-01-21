@@ -210,20 +210,26 @@ export default function ProjectInterface() {
     const features = stories.map(story => {
       if (!story.coordinates) return null;
       
-      // Get the screen position of the marker
-      const lngLat = [story.coordinates[1], story.coordinates[0]];
-      const point = map.current.project(lngLat);
+      // The actual geo-coordinate (center of marker)
+      const geoLngLat = [story.coordinates[1], story.coordinates[0]];
+      const geoScreenPoint = map.current.project(geoLngLat);
       
-      // Offset the line start point above the actual location (since marker floats above)
-      const offsetLngLat = map.current.unproject([point.x, point.y - 100]);
+      // Thumbnail is 135px tall, centered on the geo-coordinate
+      // Bottom-center of thumbnail is 67.5px below the center
+      const thumbnailBottomY = geoScreenPoint.y + 67.5;
+      const lineStartLngLat = map.current.unproject([geoScreenPoint.x, thumbnailBottomY]);
+      
+      // Line extends 50px down from thumbnail bottom to the geo-coordinate
+      const lineEndY = thumbnailBottomY + 50;
+      const lineEndLngLat = map.current.unproject([geoScreenPoint.x, lineEndY]);
       
       return {
         type: 'Feature',
         geometry: {
           type: 'LineString',
           coordinates: [
-            [offsetLngLat.lng, offsetLngLat.lat],
-            lngLat
+            [lineStartLngLat.lng, lineStartLngLat.lat],
+            [lineEndLngLat.lng, lineEndLngLat.lat]
           ]
         }
       };
