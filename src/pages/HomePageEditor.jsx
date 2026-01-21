@@ -347,7 +347,7 @@ export default function HomePageEditor() {
               {(editingSection.layout_type === 'hero_image_text_overlay' || editingSection.layout_type === 'full_width_video') && (
                 <div className="flex items-center gap-3">
                   <Switch
-                    checked={editingSection.show_gradient !== false}
+                    checked={!!editingSection.show_gradient}
                     onCheckedChange={(checked) => setEditingSection(prev => ({ ...prev, show_gradient: checked }))}
                   />
                   <Label className="cursor-pointer">
