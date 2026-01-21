@@ -90,7 +90,7 @@ export default function HomePageEditor() {
       order: sections.length,
       layout_type: 'text_left_image_right',
       linked_story_id: '',
-      show_gradient: true
+      show_gradient: false
     });
   };
 
@@ -99,10 +99,16 @@ export default function HomePageEditor() {
 
     setIsSaving(true);
     try {
+      // Ensure show_gradient is explicitly a boolean
+      const sectionData = {
+        ...editingSection,
+        show_gradient: !!editingSection.show_gradient
+      };
+      
       if (editingSection.id) {
-        await base44.entities.HomePageSection.update(editingSection.id, editingSection);
+        await base44.entities.HomePageSection.update(editingSection.id, sectionData);
       } else {
-        await base44.entities.HomePageSection.create(editingSection);
+        await base44.entities.HomePageSection.create(sectionData);
       }
       await loadData();
       setEditingSection(null);
@@ -408,7 +414,7 @@ export default function HomePageEditor() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setEditingSection(section)}
+                                onClick={() => setEditingSection({ ...section, show_gradient: section.show_gradient === true })}
                               >
                                 Edit
                               </Button>
