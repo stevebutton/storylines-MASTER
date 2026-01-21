@@ -21,9 +21,15 @@ export default function Stories() {
   const [sortBy, setSortBy] = useState('newest');
   const [editingStory, setEditingStory] = useState(null);
   const [newCategory, setNewCategory] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryColor, setCategoryColor] = useState('bg-slate-100 text-slate-800');
 
   useEffect(() => {
     loadStories();
+    loadCategories();
   }, []);
 
   const loadStories = async () => {
@@ -48,6 +54,15 @@ export default function Stories() {
       console.error('Failed to load stories:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await base44.entities.Category.list('name');
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
     }
   };
 
@@ -119,13 +134,9 @@ export default function Stories() {
     }
   };
 
-  const categoryColors = {
-    travel: 'bg-blue-100 text-blue-800',
-    history: 'bg-amber-100 text-amber-800',
-    nature: 'bg-green-100 text-green-800',
-    culture: 'bg-purple-100 text-purple-800',
-    adventure: 'bg-red-100 text-red-800',
-    other: 'bg-slate-100 text-slate-800'
+  const getCategoryColor = (categoryName) => {
+    const category = categories.find(c => c.name === categoryName);
+    return category?.color || 'bg-slate-100 text-slate-800';
   };
 
   const deleteStory = async (storyId) => {
@@ -161,6 +172,41 @@ export default function Stories() {
     }
   };
 
+  const saveCategory = async () => {
+    if (!categoryName.trim()) return;
+
+    try {
+      if (editingCategory) {
+        await base44.entities.Category.update(editingCategory.id, {
+          name: categoryName.toLowerCase(),
+          color: categoryColor
+        });
+      } else {
+        await base44.entities.Category.create({
+          name: categoryName.toLowerCase(),
+          color: categoryColor
+        });
+      }
+      setCategoryName('');
+      setCategoryColor('bg-slate-100 text-slate-800');
+      setEditingCategory(null);
+      loadCategories();
+    } catch (error) {
+      console.error('Failed to save category:', error);
+    }
+  };
+
+  const deleteCategory = async (categoryId) => {
+    if (!confirm('Delete this category? Stories with this category will keep it.')) return;
+    
+    try {
+      await base44.entities.Category.delete(categoryId);
+      loadCategories();
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -180,6 +226,13 @@ export default function Stories() {
                             <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
                         </div>
                         <div className="flex gap-2">
+                            <Button 
+                                variant="outline" 
+                                onClick={() => setIsCategoryManagerOpen(true)}
+                                className="border-slate-300"
+                            >
+                                <Tag className="w-4 h-4 mr-2" /> Manage Categories
+                            </Button>
                             <Link to={createPageUrl('StoriesMap')}>
                                 <Button variant="outline" className="border-amber-600 text-amber-700 hover:bg-amber-50">
                                     <Map className="w-4 h-4 mr-2" /> View Map
@@ -237,12 +290,9 @@ export default function Stories() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Categories</SelectItem>
-                                <SelectItem value="travel">Travel</SelectItem>
-                                <SelectItem value="history">History</SelectItem>
-                                <SelectItem value="nature">Nature</SelectItem>
-                                <SelectItem value="culture">Culture</SelectItem>
-                                <SelectItem value="adventure">Adventure</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
+                                {categories.map(cat => (
+                                    <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -377,7 +427,7 @@ export default function Stories() {
 
                                         <div className="flex items-center gap-2 mb-3">
                                             {story.category &&
-                <Badge className={`${categoryColors[story.category]}`}>
+                <Badge className={getCategoryColor(story.category)}>
                                                     {story.category}
                                                 </Badge>
                 }
@@ -401,18 +451,15 @@ export default function Stories() {
                                                     </DialogHeader>
                                                     <div className="space-y-4 pt-4">
                                                         <div>
-                                                            <Label htmlFor="category">Select Existing Category</Label>
+                                                            <Label htmlFor="category">Select Category</Label>
                                                             <Select value={newCategory} onValueChange={setNewCategory}>
                                                                 <SelectTrigger id="category">
                                                                     <SelectValue placeholder="Choose a category" />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    <SelectItem value="travel">Travel</SelectItem>
-                                                                    <SelectItem value="history">History</SelectItem>
-                                                                    <SelectItem value="nature">Nature</SelectItem>
-                                                                    <SelectItem value="culture">Culture</SelectItem>
-                                                                    <SelectItem value="adventure">Adventure</SelectItem>
-                                                                    <SelectItem value="other">Other</SelectItem>
+                                                                    {categories.map(cat => (
+                                                                        <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                                                    ))}
                                                                 </SelectContent>
                                                             </Select>
                                                         </div>
@@ -470,6 +517,110 @@ export default function Stories() {
                     </div>
         }
             </div>
+
+            {/* Category Manager Dialog */}
+            <Dialog open={isCategoryManagerOpen} onOpenChange={setIsCategoryManagerOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Manage Categories</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6 pt-4">
+                        {/* Add/Edit Form */}
+                        <div className="border rounded-lg p-4 space-y-4">
+                            <h3 className="font-semibold">{editingCategory ? 'Edit Category' : 'Add New Category'}</h3>
+                            <div>
+                                <Label htmlFor="cat-name">Category Name</Label>
+                                <Input
+                                    id="cat-name"
+                                    placeholder="e.g., food, art, sports"
+                                    value={categoryName}
+                                    onChange={(e) => setCategoryName(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <Label>Badge Color</Label>
+                                <div className="grid grid-cols-4 gap-2 mt-2">
+                                    {[
+                                        { label: 'Blue', value: 'bg-blue-100 text-blue-800' },
+                                        { label: 'Amber', value: 'bg-amber-100 text-amber-800' },
+                                        { label: 'Green', value: 'bg-green-100 text-green-800' },
+                                        { label: 'Purple', value: 'bg-purple-100 text-purple-800' },
+                                        { label: 'Red', value: 'bg-red-100 text-red-800' },
+                                        { label: 'Pink', value: 'bg-pink-100 text-pink-800' },
+                                        { label: 'Indigo', value: 'bg-indigo-100 text-indigo-800' },
+                                        { label: 'Gray', value: 'bg-slate-100 text-slate-800' }
+                                    ].map((color) => (
+                                        <button
+                                            key={color.value}
+                                            onClick={() => setCategoryColor(color.value)}
+                                            className={`px-3 py-2 rounded-md text-sm font-medium transition-all ${color.value} ${
+                                                categoryColor === color.value ? 'ring-2 ring-offset-2 ring-slate-400' : ''
+                                            }`}
+                                        >
+                                            {color.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button onClick={saveCategory} className="flex-1 bg-amber-600 hover:bg-amber-700">
+                                    {editingCategory ? 'Update' : 'Add'} Category
+                                </Button>
+                                {editingCategory && (
+                                    <Button 
+                                        variant="outline" 
+                                        onClick={() => {
+                                            setEditingCategory(null);
+                                            setCategoryName('');
+                                            setCategoryColor('bg-slate-100 text-slate-800');
+                                        }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Categories List */}
+                        <div>
+                            <h3 className="font-semibold mb-3">Existing Categories</h3>
+                            <div className="space-y-2 max-h-64 overflow-y-auto">
+                                {categories.map((cat) => (
+                                    <div key={cat.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <Badge className={cat.color}>{cat.name}</Badge>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setEditingCategory(cat);
+                                                    setCategoryName(cat.name);
+                                                    setCategoryColor(cat.color);
+                                                }}
+                                            >
+                                                <Edit2 className="w-3.5 h-3.5" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => deleteCategory(cat.id)}
+                                                className="text-red-500 hover:text-red-600"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {categories.length === 0 && (
+                                    <p className="text-center text-slate-500 py-8">No categories yet</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>);
 
 }
