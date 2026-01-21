@@ -93,7 +93,7 @@ export default function ProjectInterface() {
       zoom: 2
     });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-left');
+    map.current.addControl(new mapboxgl.NavigationControl(), 'bottom-left');
 
     map.current.on('load', () => {
       if (allStories.length > 0) {
@@ -312,15 +312,6 @@ export default function ProjectInterface() {
           hasChapters={false}
           isVisible={isBannerVisible}
         />
-
-        <div className="absolute top-20 left-0 right-0 z-10 bg-gradient-to-b from-black/40 to-transparent p-6">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl font-light text-white">Explore All Stories</h2>
-            <p className="text-white/80 text-sm mt-1">
-              {allStories.length} {allStories.length === 1 ? 'story' : 'stories'} to discover
-            </p>
-          </div>
-        </div>
 
         <div ref={mapContainer} className="h-[80vh] w-full" />
 
