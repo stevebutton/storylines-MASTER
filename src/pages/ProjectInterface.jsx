@@ -163,9 +163,8 @@ export default function ProjectInterface() {
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#ffffff',
-          'line-width': 8,
-          'line-dasharray': [1, 1]
+          'line-color': '#00ff00',
+          'line-width': 8
         }
       });
 

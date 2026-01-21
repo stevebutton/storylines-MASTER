@@ -3,12 +3,12 @@ import Home from './pages/Home';
 import HomePageEditor from './pages/HomePageEditor';
 import LocationPickerPage from './pages/LocationPickerPage';
 import MediaLibrary from './pages/MediaLibrary';
+import ProjectInterface from './pages/ProjectInterface';
 import Stories from './pages/Stories';
 import StoriesMap from './pages/StoriesMap';
 import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
-import ProjectInterface from './pages/ProjectInterface';
 import __Layout from './Layout.jsx';
 
 
@@ -18,12 +18,12 @@ export const PAGES = {
     "HomePageEditor": HomePageEditor,
     "LocationPickerPage": LocationPickerPage,
     "MediaLibrary": MediaLibrary,
+    "ProjectInterface": ProjectInterface,
     "Stories": Stories,
     "StoriesMap": StoriesMap,
     "StoryEditor": StoryEditor,
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
-    "ProjectInterface": ProjectInterface,
 }
 
 export const pagesConfig = {
