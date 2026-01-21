@@ -5,7 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -17,6 +19,8 @@ export default function Stories() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [editingStory, setEditingStory] = useState(null);
+  const [newCategory, setNewCategory] = useState('');
 
   useEffect(() => {
     loadStories();
@@ -141,6 +145,19 @@ export default function Stories() {
       loadStories();
     } catch (error) {
       console.error('Failed to delete story:', error);
+    }
+  };
+
+  const updateStoryCategory = async () => {
+    if (!editingStory || !newCategory.trim()) return;
+    
+    try {
+      await base44.entities.Story.update(editingStory.id, { category: newCategory.toLowerCase() });
+      setEditingStory(null);
+      setNewCategory('');
+      loadStories();
+    } catch (error) {
+      console.error('Failed to update category:', error);
     }
   };
 
@@ -358,11 +375,54 @@ export default function Stories() {
                                             </div>
                                         </div>
 
-                                        {story.category &&
-                <Badge className={`${categoryColors[story.category]} mb-3`}>
-                                                {story.category}
-                                            </Badge>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            {story.category &&
+                <Badge className={`${categoryColors[story.category]}`}>
+                                                    {story.category}
+                                                </Badge>
                 }
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setEditingStory(story);
+                                                            setNewCategory(story.category || '');
+                                                        }}
+                                                        className="h-6 px-2"
+                                                    >
+                                                        <Tag className="w-3 h-3" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Edit Category</DialogTitle>
+                                                    </DialogHeader>
+                                                    <div className="space-y-4 pt-4">
+                                                        <div>
+                                                            <Label htmlFor="category">Select Category</Label>
+                                                            <Select value={newCategory} onValueChange={setNewCategory}>
+                                                                <SelectTrigger id="category">
+                                                                    <SelectValue placeholder="Choose a category" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="travel">Travel</SelectItem>
+                                                                    <SelectItem value="history">History</SelectItem>
+                                                                    <SelectItem value="nature">Nature</SelectItem>
+                                                                    <SelectItem value="culture">Culture</SelectItem>
+                                                                    <SelectItem value="adventure">Adventure</SelectItem>
+                                                                    <SelectItem value="other">Other</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <Button onClick={updateStoryCategory} className="w-full bg-amber-600 hover:bg-amber-700">
+                                                            Update Category
+                                                        </Button>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
+                                        </div>
                                         
                                         {story.subtitle &&
                 <p className="text-sm text-slate-600 line-clamp-2 mb-4">
