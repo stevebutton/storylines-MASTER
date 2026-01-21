@@ -24,6 +24,7 @@ export default function ProjectInterface() {
   const markers = useRef([]);
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isOtherStoriesOpen, setIsOtherStoriesOpen] = useState(false);
+  const [isBannerVisible, setIsBannerVisible] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -71,6 +72,16 @@ export default function ProjectInterface() {
       }
     };
   }, [allStories]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const heroHeight = window.innerHeight;
+      setIsBannerVisible(window.scrollY > heroHeight * 0.5);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const initializeMap = () => {
     if (!mapContainer.current || map.current) return;
@@ -292,14 +303,14 @@ export default function ProjectInterface() {
       </div>
 
       {/* Map Section - StoriesMap */}
-      <div id="map-section" className="relative h-[80vh] w-full">
-        <StoryMapBanner isVisible={true} />
+      <div id="map-section" className="relative h-screen w-full flex items-center justify-center">
+        <StoryMapBanner isVisible={isBannerVisible} />
         
         <FloatingNavButtons
           isChapterMenuOpen={isOtherStoriesOpen}
           onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
           hasChapters={false}
-          isVisible={true}
+          isVisible={isBannerVisible}
         />
 
         <div className="absolute top-20 left-0 right-0 z-10 bg-gradient-to-b from-black/40 to-transparent p-6">
@@ -311,7 +322,7 @@ export default function ProjectInterface() {
           </div>
         </div>
 
-        <div ref={mapContainer} className="h-full w-full" />
+        <div ref={mapContainer} className="h-[80vh] w-full" />
 
         {allStories.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
