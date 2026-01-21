@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryHeader from '@/components/storymap/StoryHeader';
+import StoryMapBanner from '@/components/storymap/StoryMapBanner';
+import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Loader2, ChevronDown } from 'lucide-react';
@@ -21,6 +23,7 @@ export default function ProjectInterface() {
   const map = useRef(null);
   const markers = useRef([]);
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [isOtherStoriesOpen, setIsOtherStoriesOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -289,8 +292,17 @@ export default function ProjectInterface() {
       </div>
 
       {/* Map Section - StoriesMap */}
-      <div id="map-section" className="relative h-screen w-full">
-        <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent p-6">
+      <div id="map-section" className="relative h-[80vh] w-full">
+        <StoryMapBanner isVisible={true} />
+        
+        <FloatingNavButtons
+          isChapterMenuOpen={isOtherStoriesOpen}
+          onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
+          hasChapters={false}
+          isVisible={true}
+        />
+
+        <div className="absolute top-20 left-0 right-0 z-10 bg-gradient-to-b from-black/40 to-transparent p-6">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-3xl font-light text-white">Explore All Stories</h2>
             <p className="text-white/80 text-sm mt-1">
