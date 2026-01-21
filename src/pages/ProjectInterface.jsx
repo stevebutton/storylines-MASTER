@@ -23,6 +23,7 @@ export default function ProjectInterface() {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markers = useRef([]);
+  const lines = useRef([]);
   const [mapInitialized, setMapInitialized] = useState(false);
   const [isOtherStoriesOpen, setIsOtherStoriesOpen] = useState(false);
   const [isBannerVisible, setIsBannerVisible] = useState(false);
@@ -132,17 +133,23 @@ export default function ProjectInterface() {
   const addMarkers = () => {
     if (!map.current || allStories.length === 0) return;
 
-    // Fade out existing markers
+    // Fade out existing markers and lines
     markers.current.forEach(marker => {
       const el = marker.getElement();
       el.style.transition = 'opacity 500ms ease-out';
       el.style.opacity = '0';
     });
+    lines.current.forEach(line => {
+      line.style.transition = 'opacity 500ms ease-out';
+      line.style.opacity = '0';
+    });
 
-    // Remove markers after fade out
+    // Remove markers and lines after fade out
     setTimeout(() => {
       markers.current.forEach(marker => marker.remove());
       markers.current = [];
+      lines.current.forEach(line => line.remove());
+      lines.current = [];
 
       let initialZoom = map.current.getZoom();
       let initialCenter = map.current.getCenter();
@@ -283,11 +290,58 @@ export default function ProjectInterface() {
         .setPopup(popup)
         .addTo(map.current);
 
-      // Fade in new marker
+      // Create dotted line connecting marker to location
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      `;
+      
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.6)');
+      line.setAttribute('stroke-width', '2');
+      line.setAttribute('stroke-dasharray', '5,5');
+      svg.appendChild(line);
+      
+      mapContainer.current.appendChild(svg);
+      lines.current.push(svg);
+
+      // Function to update line position
+      const updateLine = () => {
+        const markerPos = map.current.project([story.coordinates[1], story.coordinates[0]]);
+        const markerElement = el.getBoundingClientRect();
+        const mapRect = mapContainer.current.getBoundingClientRect();
+        
+        // Calculate marker center (accounting for the transform offset)
+        const markerCenterX = markerElement.left - mapRect.left + markerElement.width / 2;
+        const markerCenterY = markerElement.top - mapRect.top + markerElement.height / 2;
+        
+        line.setAttribute('x1', markerCenterX);
+        line.setAttribute('y1', markerCenterY);
+        line.setAttribute('x2', markerPos.x);
+        line.setAttribute('y2', markerPos.y);
+      };
+
+      // Update line on map move
+      map.current.on('move', updateLine);
+      map.current.on('zoom', updateLine);
+      
+      // Initial line position
+      setTimeout(updateLine, 50);
+
+      // Fade in new marker and line
       el.style.opacity = '0';
+      svg.style.opacity = '0';
       el.style.transition = 'opacity 500ms ease-in';
+      svg.style.transition = 'opacity 500ms ease-in';
       setTimeout(() => {
         el.style.opacity = '1';
+        svg.style.opacity = '1';
       }, 10);
 
       markers.current.push(marker);
