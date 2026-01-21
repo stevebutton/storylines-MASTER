@@ -56,31 +56,18 @@ export default function ProjectInterface() {
   };
 
   useEffect(() => {
-    if (!mapContainer.current || allStories.length === 0) return;
+    if (allStories.length === 0 || !mapContainer.current) return;
     if (map.current) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !mapInitialized) {
-            initializeMap();
-            setMapInitialized(true);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(mapContainer.current);
+    initializeMap();
 
     return () => {
-      observer.disconnect();
       if (map.current) {
         map.current.remove();
         map.current = null;
       }
     };
-  }, [allStories, mapInitialized]);
+  }, [allStories]);
 
   const initializeMap = () => {
     if (!mapContainer.current || map.current) return;
