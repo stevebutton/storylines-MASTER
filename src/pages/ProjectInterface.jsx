@@ -8,7 +8,7 @@ import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
 import CategoryFilter from '@/components/storymap/CategoryFilter';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Loader2, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 
 const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
@@ -382,9 +382,53 @@ export default function ProjectInterface() {
 
   const scrollToMap = () => {
     const mapSection = document.getElementById('map-section');
-    if (mapSection) {
-      mapSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (!mapSection) return;
+    
+    const targetPosition = mapSection.getBoundingClientRect().top + window.scrollY;
+    const startPosition = window.scrollY;
+    const distance = targetPosition - startPosition;
+    const duration = 2000;
+    let startTime = null;
+    
+    const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    
+    const animateScroll = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeInOutCubic(progress);
+      
+      window.scrollTo(0, startPosition + (distance * easedProgress));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll);
+      }
+    };
+    
+    requestAnimationFrame(animateScroll);
+  };
+
+  const scrollToTop = () => {
+    const startPosition = window.scrollY;
+    const duration = 2000;
+    let startTime = null;
+    
+    const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    
+    const animateScroll = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeInOutCubic(progress);
+      
+      window.scrollTo(0, startPosition - (startPosition * easedProgress));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll);
+      }
+    };
+    
+    requestAnimationFrame(animateScroll);
   };
 
   if (isLoading) {
@@ -431,7 +475,7 @@ export default function ProjectInterface() {
       {/* Map Section - StoriesMap */}
       <div id="map-section" className="relative h-screen w-full flex items-center justify-center">
         <StoryMapBanner isVisible={isBannerVisible} />
-        
+
         <FloatingNavButtons
           isChapterMenuOpen={isOtherStoriesOpen}
           onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
@@ -454,6 +498,14 @@ export default function ProjectInterface() {
             <p className="text-slate-600 text-lg">No published stories available</p>
           </div>
         )}
+
+        {/* Scroll to Top Button */}
+        <button
+          onClick={scrollToTop}
+          className="absolute bottom-8 right-8 z-30 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg transition-all hover:shadow-xl"
+        >
+          <ChevronUp className="w-6 h-6 text-slate-800" />
+        </button>
       </div>
 
       <style>{`
