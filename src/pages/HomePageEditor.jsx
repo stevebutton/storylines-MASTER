@@ -414,7 +414,7 @@ export default function HomePageEditor() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setEditingSection({ ...section, show_gradient: section.show_gradient === true })}
+                                onClick={() => setEditingSection({ ...section, show_gradient: section.show_gradient === true ? true : false })}
                               >
                                 Edit
                               </Button>
