@@ -401,7 +401,7 @@ export default function Stories() {
                                                     </DialogHeader>
                                                     <div className="space-y-4 pt-4">
                                                         <div>
-                                                            <Label htmlFor="category">Select Category</Label>
+                                                            <Label htmlFor="category">Select Existing Category</Label>
                                                             <Select value={newCategory} onValueChange={setNewCategory}>
                                                                 <SelectTrigger id="category">
                                                                     <SelectValue placeholder="Choose a category" />
@@ -415,6 +415,15 @@ export default function Stories() {
                                                                     <SelectItem value="other">Other</SelectItem>
                                                                 </SelectContent>
                                                             </Select>
+                                                        </div>
+                                                        <div>
+                                                            <Label htmlFor="custom-category">Or Enter Custom Category</Label>
+                                                            <Input
+                                                                id="custom-category"
+                                                                placeholder="e.g., food, art, sports"
+                                                                value={newCategory}
+                                                                onChange={(e) => setNewCategory(e.target.value)}
+                                                            />
                                                         </div>
                                                         <Button onClick={updateStoryCategory} className="w-full bg-amber-600 hover:bg-amber-700">
                                                             Update Category
