@@ -89,7 +89,8 @@ export default function HomePageEditor() {
       video_url: '',
       order: sections.length,
       layout_type: 'text_left_image_right',
-      linked_story_id: ''
+      linked_story_id: '',
+      show_gradient: true
     });
   };
 
@@ -347,7 +348,7 @@ export default function HomePageEditor() {
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={editingSection.show_gradient !== false}
-                    onCheckedChange={(checked) => setEditingSection({ ...editingSection, show_gradient: checked })}
+                    onCheckedChange={(checked) => setEditingSection(prev => ({ ...prev, show_gradient: checked }))}
                   />
                   <Label className="cursor-pointer">
                     Show gradient overlay
