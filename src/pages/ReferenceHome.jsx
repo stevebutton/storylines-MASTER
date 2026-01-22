@@ -48,14 +48,8 @@ export default function ReferenceHome() {
 
       // Check for hero section first, fallback to main story
       const heroSection = sections.find(s => s.layout_type === 'hero_section');
-      const mainStoryRecord = stories.find(s => s.is_main_story);
-      const mainStoryData = heroSection || mainStoryRecord;
+      const mainStoryData = heroSection || stories.find(s => s.is_main_story);
       setMainStory(mainStoryData);
-      
-      console.log('Sections found:', sections.length);
-      console.log('Hero section:', heroSection);
-      console.log('Main story:', mainStoryRecord);
-      console.log('Final mainStory:', mainStoryData);
 
       // Attach coordinates to all stories
       const storiesWithCoords = stories.map(story => {
