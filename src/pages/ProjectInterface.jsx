@@ -132,11 +132,11 @@ export default function ProjectInterface() {
     if (!map.current || !mapInitialized) return;
 
     if (isMapSectionVisible) {
-      // Start rotation: 360 degrees in 20 seconds = 18 degrees per second
+      // Start rotation: 360 degrees in 35 seconds = ~10.3 degrees per second
       const rotateMap = () => {
         if (map.current) {
-          const currentBearing = map.current.getBearing();
-          map.current.setBearing(currentBearing - 0.3); // -0.3 degrees every frame (~60fps) = ~18 deg/sec
+          const currentCenter = map.current.getCenter();
+          map.current.setCenter([currentCenter.lng - 0.171, currentCenter.lat]); // ~0.171 degrees per frame (~60fps)
         }
       };
 
