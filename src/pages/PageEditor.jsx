@@ -314,6 +314,7 @@ export default function PageEditor() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="rotating_globe">Rotating Globe with Thumbnails</SelectItem>
+                      <SelectItem value="interactive_story_map">Interactive Story Map</SelectItem>
                       <SelectItem value="custom">Custom Component</SelectItem>
                     </SelectContent>
                   </Select>
