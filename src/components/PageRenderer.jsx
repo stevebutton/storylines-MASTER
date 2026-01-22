@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2 } from 'lucide-react';
 import InteractiveStoryMap from '@/components/storymap/InteractiveStoryMap';
+import HeroWithSlidesSection from '@/components/sections/HeroWithSlidesSection';
 
 function InteractiveStoryMapWrapper() {
   const [stories, setStories] = useState([]);
@@ -49,6 +50,7 @@ function InteractiveStoryMapWrapper() {
 
 export default function PageRenderer({ pageName }) {
   const [sections, setSections] = useState([]);
+  const [heroSlides, setHeroSlides] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -63,6 +65,16 @@ export default function PageRenderer({ pageName }) {
         'order'
       );
       setSections(sectionsData);
+
+      const heroSections = sectionsData.filter(s => s.layout_type === 'hero_with_slides');
+      if (heroSections.length > 0) {
+        const allSlides = await base44.entities.HeroSlide.list('order');
+        const slidesBySection = {};
+        heroSections.forEach(section => {
+          slidesBySection[section.id] = allSlides.filter(slide => slide.section_id === section.id);
+        });
+        setHeroSlides(slidesBySection);
+      }
     } catch (error) {
       console.error('Failed to load sections:', error);
     } finally {
@@ -228,6 +240,19 @@ export default function PageRenderer({ pageName }) {
               </div>
             </div>
           </div>
+        );
+
+      case 'hero_with_slides':
+        return (
+          <HeroWithSlidesSection
+            title={title}
+            tagline={section.tagline}
+            image_url={image_url}
+            video_url={video_url}
+            cta_text={section.cta_text}
+            cta_link={section.cta_link}
+            slides={heroSlides[section.id] || []}
+          />
         );
 
       case 'component':
