@@ -141,6 +141,18 @@ export default function ProjectInterface() {
       };
 
       rotationIntervalRef.current = setInterval(rotateMap, 16.67); // ~60fps
+
+      // Stop rotation on user interaction
+      const stopRotation = () => {
+        if (rotationIntervalRef.current) {
+          clearInterval(rotationIntervalRef.current);
+          rotationIntervalRef.current = null;
+        }
+      };
+
+      map.current.on('mousedown', stopRotation);
+      map.current.on('touchstart', stopRotation);
+      map.current.on('wheel', stopRotation);
     } else {
       if (rotationIntervalRef.current) {
         clearInterval(rotationIntervalRef.current);
@@ -153,6 +165,11 @@ export default function ProjectInterface() {
         clearInterval(rotationIntervalRef.current);
         rotationIntervalRef.current = null;
       }
+      if (map.current) {
+        map.current.off('mousedown');
+        map.current.off('touchstart');
+        map.current.off('wheel');
+      }
     };
   }, [isMapSectionVisible, mapInitialized]);
 
@@ -162,7 +179,7 @@ export default function ProjectInterface() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: MAPBOX_STYLE,
-      center: [18.21152, 5.73476],
+      center: [26.33845, 21.32637],
       zoom: 1.80
     });
 
