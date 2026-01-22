@@ -28,6 +28,8 @@ export default function ProjectInterface() {
   const [isBannerVisible, setIsBannerVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState([]);
+  const [isMapSectionVisible, setIsMapSectionVisible] = useState(false);
+  const rotationIntervalRef = useRef(null);
 
   useEffect(() => {
     loadData();
@@ -111,11 +113,48 @@ export default function ProjectInterface() {
     const handleScroll = () => {
       const heroHeight = window.innerHeight;
       setIsBannerVisible(window.scrollY > heroHeight * 0.5);
+
+      // Check if map section is in viewport
+      const mapSection = document.getElementById('map-section');
+      if (mapSection) {
+        const rect = mapSection.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        setIsMapSectionVisible(isVisible);
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Handle map rotation when section is visible
+  useEffect(() => {
+    if (!map.current || !mapInitialized) return;
+
+    if (isMapSectionVisible) {
+      // Start rotation: 360 degrees in 20 seconds = 18 degrees per second
+      const rotateMap = () => {
+        if (map.current) {
+          const currentBearing = map.current.getBearing();
+          map.current.setBearing(currentBearing - 0.3); // -0.3 degrees every frame (~60fps) = ~18 deg/sec
+        }
+      };
+
+      rotationIntervalRef.current = setInterval(rotateMap, 16.67); // ~60fps
+    } else {
+      if (rotationIntervalRef.current) {
+        clearInterval(rotationIntervalRef.current);
+        rotationIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (rotationIntervalRef.current) {
+        clearInterval(rotationIntervalRef.current);
+        rotationIntervalRef.current = null;
+      }
+    };
+  }, [isMapSectionVisible, mapInitialized]);
 
   const initializeMap = () => {
     if (!mapContainer.current || map.current) return;
@@ -123,8 +162,8 @@ export default function ProjectInterface() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: MAPBOX_STYLE,
-      center: [0, 0],
-      zoom: 2
+      center: [18.21152, 5.73476],
+      zoom: 1.80
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'bottom-left');
