@@ -10,6 +10,7 @@ import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
 import PageEditor from './pages/PageEditor';
+import PageTest from './pages/PageTest';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
     "PageEditor": PageEditor,
+    "PageTest": PageTest,
 }
 
 export const pagesConfig = {
