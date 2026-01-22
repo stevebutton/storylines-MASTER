@@ -55,25 +55,25 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
         }
                 
                 {/* Buttons */}
-                <div className="flex flex-col mt-8" style={{ gap: '80px' }}>
+                <div className="flex flex-col" style={{ marginTop: '62px', gap: '50px' }}>
                     <motion.button
                         onClick={onWhatIsStorylines}
-                        className="cursor-pointer relative z-[85]"
+                        className="cursor-pointer relative z-[95]"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
-                        <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[200px]">
+                        <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[240px]">
                             <span>What is Storylines</span>
                         </div>
                     </motion.button>
 
                     <motion.button
                         onClick={onExplore}
-                        className="cursor-pointer relative z-[85]"
+                        className="cursor-pointer relative z-[95]"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
-                        <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[200px]">
+                        <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[240px]">
                             <span>Explore the story</span>
                             <ChevronDown className="w-5 h-5" />
                         </div>

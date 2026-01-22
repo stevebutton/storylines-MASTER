@@ -439,32 +439,42 @@ export default function ProjectInterface() {
   };
 
   const scrollToMap = () => {
+    const wasOpen = showStorylinesPanel;
     setShowStorylinesPanel(false);
-    const mapSection = document.getElementById('map-section');
-    if (!mapSection) return;
 
-    const targetPosition = mapSection.getBoundingClientRect().top + window.scrollY;
-    const startPosition = window.scrollY;
-    const distance = targetPosition - startPosition;
-    const duration = 2000;
-    let startTime = null;
+    const performScroll = () => {
+      const mapSection = document.getElementById('map-section');
+      if (!mapSection) return;
 
-    const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const targetPosition = mapSection.getBoundingClientRect().top + window.scrollY;
+      const startPosition = window.scrollY;
+      const distance = targetPosition - startPosition;
+      const duration = 2000;
+      let startTime = null;
 
-    const animateScroll = (currentTime) => {
-      if (!startTime) startTime = currentTime;
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeInOutCubic(progress);
+      const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-      window.scrollTo(0, startPosition + (distance * easedProgress));
+      const animateScroll = (currentTime) => {
+        if (!startTime) startTime = currentTime;
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeInOutCubic(progress);
 
-      if (progress < 1) {
-        requestAnimationFrame(animateScroll);
-      }
+        window.scrollTo(0, startPosition + (distance * easedProgress));
+
+        if (progress < 1) {
+          requestAnimationFrame(animateScroll);
+        }
+      };
+
+      requestAnimationFrame(animateScroll);
     };
 
-    requestAnimationFrame(animateScroll);
+    if (wasOpen) {
+      setTimeout(performScroll, 1000);
+    } else {
+      performScroll();
+    }
   };
 
   const scrollToTop = () => {
