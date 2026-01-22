@@ -40,7 +40,7 @@ export default function WhatIsStorylinesPanel({ isOpen, onClose }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 1.5 }}
             className="fixed inset-0 bg-black/50 z-[80]"
             onClick={onClose}
           />
@@ -50,7 +50,7 @@ export default function WhatIsStorylinesPanel({ isOpen, onClose }) {
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            transition={{ duration: 1.5, ease: 'easeInOut' }}
             className="fixed right-0 top-0 h-full w-full md:w-[500px] z-[90] flex items-center justify-center"
           >
             <div className="relative h-full w-full flex items-center justify-center p-8">
