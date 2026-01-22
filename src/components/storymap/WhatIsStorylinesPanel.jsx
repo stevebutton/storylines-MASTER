@@ -1,34 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+
+const STORYLINES_CONTENT = [
+  {
+    image: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=800&q=80',
+    title: 'Welcome to Storylines',
+    description: 'Storylines is a platform for creating immersive, location-based narratives that bring stories to life through interactive maps and rich media.'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=800&q=80',
+    title: 'Create Your Journey',
+    description: 'Build captivating stories by combining stunning visuals with geographic locations. Guide your audience through chapters that unfold across the map.'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
+    title: 'Share Your Story',
+    description: 'Publish your stories and let your audience explore them in an engaging, interactive format. Perfect for travel logs, historical narratives, or educational content.'
+  }
+];
 
 export default function WhatIsStorylinesPanel({ isOpen, onClose }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [slides, setSlides] = useState([]);
-
-  useEffect(() => {
-    loadSlides();
-  }, []);
-
-  const loadSlides = async () => {
-    try {
-      const slidesData = await base44.entities.StorylinesSlide.list('order');
-      setSlides(slidesData);
-    } catch (error) {
-      console.error('Failed to load storylines slides:', error);
-    }
-  };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setCurrentSlide((prev) => (prev + 1) % STORYLINES_CONTENT.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setCurrentSlide((prev) => (prev - 1 + STORYLINES_CONTENT.length) % STORYLINES_CONTENT.length);
   };
-
-  if (slides.length === 0) return null;
 
   return (
     <AnimatePresence>
@@ -74,30 +75,28 @@ export default function WhatIsStorylinesPanel({ isOpen, onClose }) {
                   >
                     {/* Image */}
                     <div className="relative h-64 w-full">
-                      {slides[currentSlide]?.image && (
-                        <img
-                          src={slides[currentSlide].image}
-                          alt={slides[currentSlide].title}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
+                      <img
+                        src={STORYLINES_CONTENT[currentSlide].image}
+                        alt={STORYLINES_CONTENT[currentSlide].title}
+                        className="w-full h-full object-cover"
+                      />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     </div>
 
                     {/* Text Content */}
                     <div className="p-8">
                       <h3 className="text-2xl font-semibold text-slate-900 mb-4">
-                        {slides[currentSlide]?.title}
+                        {STORYLINES_CONTENT[currentSlide].title}
                       </h3>
                       <p className="text-slate-600 leading-relaxed">
-                        {slides[currentSlide]?.description}
+                        {STORYLINES_CONTENT[currentSlide].description}
                       </p>
                     </div>
                   </motion.div>
                 </AnimatePresence>
 
                 {/* Navigation Controls */}
-                {slides.length > 1 && (
+                {STORYLINES_CONTENT.length > 1 && (
                   <div className="px-8 pb-8 flex items-center justify-between">
                     <button
                       onClick={prevSlide}
@@ -109,7 +108,7 @@ export default function WhatIsStorylinesPanel({ isOpen, onClose }) {
 
                     {/* Dots Indicator */}
                     <div className="flex gap-2">
-                      {slides.map((_, index) => (
+                      {STORYLINES_CONTENT.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => setCurrentSlide(index)}
@@ -125,7 +124,7 @@ export default function WhatIsStorylinesPanel({ isOpen, onClose }) {
                     <button
                       onClick={nextSlide}
                       className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
-                      disabled={currentSlide === slides.length - 1}
+                      disabled={currentSlide === STORYLINES_CONTENT.length - 1}
                     >
                       <ChevronRight className="w-5 h-5 text-slate-700" />
                     </button>
