@@ -140,7 +140,7 @@ export default function ProjectInterface() {
 
         map.current.fitBounds(bounds, {
           padding: { top: 100, bottom: 100, left: 100, right: 100 },
-          maxZoom: 12,
+          maxZoom: 2,
           duration: 2000
         });
       }
