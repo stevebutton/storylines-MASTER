@@ -4,13 +4,14 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, GripVertical, Trash2, Save, Image as ImageIcon, Video, Loader2, MapPin, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function HomePageEditor() {
   const location = useLocation();
@@ -22,10 +23,11 @@ export default function HomePageEditor() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [currentPageName, setCurrentPageName] = useState('ProjectInterface');
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [currentPageName]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -52,7 +54,7 @@ export default function HomePageEditor() {
     setIsLoading(true);
     try {
       const [sectionsData, storiesData, mediaData] = await Promise.all([
-        base44.entities.HomePageSection.list('order'),
+        base44.entities.HomePageSection.filter({ pageName: currentPageName }, 'order'),
         base44.entities.Story.filter({ is_published: true }),
         base44.entities.Media.list('-created_date')
       ]);
@@ -90,7 +92,8 @@ export default function HomePageEditor() {
       order: sections.length,
       layout_type: 'text_left_image_right',
       linked_story_id: '',
-      show_gradient: false
+      show_gradient: false,
+      pageName: currentPageName
     });
   };
 
@@ -99,10 +102,10 @@ export default function HomePageEditor() {
 
     setIsSaving(true);
     try {
-      // Ensure show_gradient is explicitly a boolean
       const sectionData = {
         ...editingSection,
-        show_gradient: !!editingSection.show_gradient
+        show_gradient: !!editingSection.show_gradient,
+        pageName: currentPageName
       };
       
       if (editingSection.id) {
@@ -172,12 +175,21 @@ export default function HomePageEditor() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Home Page Editor</h1>
-            <p className="text-slate-500 mt-1">Manage your home page sections</p>
+            <h1 className="text-3xl font-bold text-slate-800">Page Section Editor</h1>
+            <p className="text-slate-500 mt-1">Manage page content sections</p>
           </div>
-          <div className="flex gap-2">
-            <Link to={createPageUrl('Home')}>
-              <Button variant="outline">Preview</Button>
+          <div className="flex gap-3 items-center">
+            <Select value={currentPageName} onValueChange={setCurrentPageName}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ProjectInterface">Project Interface</SelectItem>
+                <SelectItem value="Home">Home</SelectItem>
+              </SelectContent>
+            </Select>
+            <Link to={createPageUrl(currentPageName)} target="_blank">
+              <Button variant="outline">Preview Page</Button>
             </Link>
             <Button onClick={createSection} className="bg-amber-600 hover:bg-amber-700">
               <Plus className="w-4 h-4 mr-2" /> Add Section
@@ -201,12 +213,21 @@ export default function HomePageEditor() {
               </div>
 
               <div>
-                <Label>Content</Label>
-                <Textarea
-                  value={editingSection.content}
-                  onChange={(e) => setEditingSection({ ...editingSection, content: e.target.value })}
-                  placeholder="Section content text"
-                  rows={4}
+                <Label>Content (Rich Text)</Label>
+                <ReactQuill
+                  theme="snow"
+                  value={editingSection.content || ''}
+                  onChange={(value) => setEditingSection({ ...editingSection, content: value })}
+                  className="bg-white rounded-md"
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['link'],
+                      ['clean']
+                    ]
+                  }}
                 />
               </div>
 
@@ -395,7 +416,7 @@ export default function HomePageEditor() {
                               <h3 className="font-semibold text-lg text-slate-800">{section.title}</h3>
                               <p className="text-sm text-slate-500 mt-1">{section.layout_type}</p>
                               {section.content && (
-                                <p className="text-sm text-slate-600 mt-2 line-clamp-2">{section.content}</p>
+                                <div className="text-sm text-slate-600 mt-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: section.content }} />
                               )}
                               <div className="flex gap-2 mt-2">
                                 {section.image_url && (
@@ -443,7 +464,7 @@ export default function HomePageEditor() {
           <Card className="border-2 border-dashed">
             <CardContent className="py-16 text-center">
               <h3 className="text-lg font-medium text-slate-700 mb-2">No sections yet</h3>
-              <p className="text-slate-500 mb-6">Create your first home page section</p>
+              <p className="text-slate-500 mb-6">Create your first section for {currentPageName}</p>
               <Button onClick={createSection} className="bg-amber-600 hover:bg-amber-700">
                 <Plus className="w-4 h-4 mr-2" /> Add Section
               </Button>

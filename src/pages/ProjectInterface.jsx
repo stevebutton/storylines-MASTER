@@ -21,6 +21,7 @@ export default function ProjectInterface() {
   const [mainStory, setMainStory] = useState(null);
   const [allStories, setAllStories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pageSections, setPageSections] = useState([]);
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markers = useRef([]);
@@ -39,9 +40,10 @@ export default function ProjectInterface() {
 
   const loadData = async () => {
     try {
-      const [stories, chapters] = await Promise.all([
+      const [stories, chapters, sections] = await Promise.all([
         base44.entities.Story.filter({ is_published: true }),
-        base44.entities.Chapter.list('order')
+        base44.entities.Chapter.list('order'),
+        base44.entities.HomePageSection.filter({ pageName: 'ProjectInterface' }, 'order')
       ]);
 
       const mainStoryData = stories.find(s => s.is_main_story);
@@ -59,6 +61,7 @@ export default function ProjectInterface() {
       }).filter(s => s.coordinates);
 
       setAllStories(storiesWithCoords);
+      setPageSections(sections);
 
       // Extract unique categories
       const uniqueCategories = [...new Set(storiesWithCoords.map(s => s.category).filter(Boolean))];
@@ -542,6 +545,20 @@ export default function ProjectInterface() {
         </div>
       </div>
 
+      {/* Dynamic Content Sections */}
+      {pageSections.map((section) => (
+        <div key={section.id} className="py-16 px-8 max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-slate-800 mb-6">{section.title}</h2>
+          <div className="text-lg text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: section.content }} />
+          {section.image_url && (
+            <img src={section.image_url} alt={section.title} className="mt-8 rounded-lg shadow-lg w-full" />
+          )}
+          {section.video_url && (
+            <video src={section.video_url} controls className="mt-8 rounded-lg shadow-lg w-full" />
+          )}
+        </div>
+      ))}
+
       {/* Map Section - StoriesMap */}
       <div id="map-section" className="relative h-screen w-full flex items-center justify-center">
         <StoryMapBanner isVisible={isBannerVisible} />
@@ -594,6 +611,6 @@ export default function ProjectInterface() {
           display: none !important;
         }
       `}</style>
-      </div>
-      );
-      }
+    </div>
+  );
+}
