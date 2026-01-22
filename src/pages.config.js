@@ -11,6 +11,7 @@ import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
 import Reference from './pages/Reference';
+import ReferenceHome from './pages/ReferenceHome';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
     "Reference": Reference,
+    "ReferenceHome": ReferenceHome,
 }
 
 export const pagesConfig = {
