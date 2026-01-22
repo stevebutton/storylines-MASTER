@@ -27,6 +27,8 @@ export default function PageEditor() {
   const [availablePages, setAvailablePages] = useState(['ProjectInterface', 'Home', 'HomeTest']);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
   const [newPageName, setNewPageName] = useState('');
+  const [heroSlides, setHeroSlides] = useState([]);
+  const [editingSlide, setEditingSlide] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -75,10 +77,23 @@ export default function PageEditor() {
       setSections(sectionsData);
       setStories(storiesData);
       setMedia(mediaData);
+      
+      if (editingSection?.id) {
+        loadHeroSlides(editingSection.id);
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadHeroSlides = async (sectionId) => {
+    try {
+      const slides = await base44.entities.HeroSlide.filter({ section_id: sectionId }, 'order');
+      setHeroSlides(slides);
+    } catch (error) {
+      console.error('Failed to load hero slides:', error);
     }
   };
 
@@ -107,8 +122,12 @@ export default function PageEditor() {
       component_type: '',
       linked_story_id: '',
       show_gradient: false,
+      tagline: '',
+      cta_text: '',
+      cta_link: '',
       pageName: currentPageName
     });
+    setHeroSlides([]);
   };
 
   const saveSection = async () => {
@@ -297,6 +316,7 @@ export default function PageEditor() {
                     <SelectItem value="full_width_video">Full Width Video</SelectItem>
                     <SelectItem value="centered_text">Centered Text</SelectItem>
                     <SelectItem value="hero_image_text_overlay">Hero Image with Text Overlay</SelectItem>
+                    <SelectItem value="hero_with_slides">Hero with Slides Panel</SelectItem>
                     <SelectItem value="component">Component (Globe, etc.)</SelectItem>
                   </SelectContent>
                 </Select>
@@ -442,6 +462,94 @@ export default function PageEditor() {
                 </Select>
               </div>
 
+              {editingSection.layout_type === 'hero_with_slides' && (
+                <>
+                  <div>
+                    <Label>Tagline</Label>
+                    <Input
+                      value={editingSection.tagline || ''}
+                      onChange={(e) => setEditingSection({ ...editingSection, tagline: e.target.value })}
+                      placeholder="Hero tagline"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Call to Action Button Text</Label>
+                    <Input
+                      value={editingSection.cta_text || ''}
+                      onChange={(e) => setEditingSection({ ...editingSection, cta_text: e.target.value })}
+                      placeholder="e.g., Get Started"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Call to Action Link</Label>
+                    <Input
+                      value={editingSection.cta_link || ''}
+                      onChange={(e) => setEditingSection({ ...editingSection, cta_link: e.target.value })}
+                      placeholder="e.g., /contact or https://example.com"
+                    />
+                  </div>
+
+                  {editingSection.id && (
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <Label className="text-base">Slides ({heroSlides.length})</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => setEditingSlide({
+                            section_id: editingSection.id,
+                            title: '',
+                            description: '',
+                            image_url: '',
+                            link: '',
+                            order: heroSlides.length
+                          })}
+                        >
+                          <Plus className="w-4 h-4 mr-2" /> Add Slide
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {heroSlides.map((slide, index) => (
+                          <div key={slide.id} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                            <span className="text-sm font-medium text-slate-600">#{index + 1}</span>
+                            <span className="flex-1 text-sm text-slate-800">{slide.title}</span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditingSlide(slide)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-500"
+                              onClick={async () => {
+                                if (confirm('Delete this slide?')) {
+                                  await base44.entities.HeroSlide.delete(slide.id);
+                                  loadHeroSlides(editingSection.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!editingSection.id && (
+                    <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">
+                      Save the section first to add slides
+                    </p>
+                  )}
+                </>
+              )}
+
               {(editingSection.layout_type === 'hero_image_text_overlay' || editingSection.layout_type === 'full_width_video' || editingSection.layout_type === 'full_width_image') && (
                 <div className="flex items-center gap-3">
                   <Switch
@@ -459,6 +567,112 @@ export default function PageEditor() {
                   <Save className="w-4 h-4 mr-2" /> Save
                 </Button>
                 <Button variant="outline" onClick={() => setEditingSection(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {editingSlide && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>
+                {editingSlide.id ? 'Edit Slide' : 'New Slide'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Title</Label>
+                <Input
+                  value={editingSlide.title}
+                  onChange={(e) => setEditingSlide({ ...editingSlide, title: e.target.value })}
+                  placeholder="Slide title"
+                />
+              </div>
+
+              <div>
+                <Label>Description</Label>
+                <Input
+                  value={editingSlide.description || ''}
+                  onChange={(e) => setEditingSlide({ ...editingSlide, description: e.target.value })}
+                  placeholder="Slide description"
+                />
+              </div>
+
+              <div>
+                <Label>Link (optional)</Label>
+                <Input
+                  value={editingSlide.link || ''}
+                  onChange={(e) => setEditingSlide({ ...editingSlide, link: e.target.value })}
+                  placeholder="https://example.com"
+                />
+              </div>
+
+              <div>
+                <Label>Image</Label>
+                <div className="space-y-2">
+                  {editingSlide.image_url && (
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                      <img src={editingSlide.image_url} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => setEditingSlide({ ...editingSlide, image_url: '' })}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                          setEditingSlide({ ...editingSlide, image_url: file_url });
+                        } catch (error) {
+                          console.error('Upload failed:', error);
+                        }
+                      }}
+                      className="hidden"
+                      id="slide-image-upload"
+                    />
+                    <label htmlFor="slide-image-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('slide-image-upload').click()}
+                      >
+                        <ImageIcon className="w-4 h-4 mr-2" /> Upload Image
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={async () => {
+                    if (!editingSlide.title) return;
+                    try {
+                      if (editingSlide.id) {
+                        await base44.entities.HeroSlide.update(editingSlide.id, editingSlide);
+                      } else {
+                        await base44.entities.HeroSlide.create(editingSlide);
+                      }
+                      setEditingSlide(null);
+                      loadHeroSlides(editingSection.id);
+                    } catch (error) {
+                      console.error('Failed to save slide:', error);
+                    }
+                  }}
+                >
+                  <Save className="w-4 h-4 mr-2" /> Save Slide
+                </Button>
+                <Button variant="outline" onClick={() => setEditingSlide(null)}>
                   Cancel
                 </Button>
               </div>
@@ -511,7 +725,12 @@ export default function PageEditor() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setEditingSection({ ...section, show_gradient: section.show_gradient === true ? true : false })}
+                                onClick={async () => {
+                                  setEditingSection({ ...section, show_gradient: section.show_gradient === true ? true : false });
+                                  if (section.layout_type === 'hero_with_slides') {
+                                    await loadHeroSlides(section.id);
+                                  }
+                                }}
                               >
                                 Edit
                               </Button>
