@@ -54,14 +54,16 @@ export default function HomePageEditor() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [sectionsData, storiesData, mediaData] = await Promise.all([
+      const [sectionsData, storiesData, mediaData, slidesData] = await Promise.all([
         base44.entities.HomePageSection.filter({ pageName: currentPageName }, 'order'),
         base44.entities.Story.filter({ is_published: true }),
-        base44.entities.Media.list('-created_date')
+        base44.entities.Media.list('-created_date'),
+        base44.entities.StorylinesSlide.list('order')
       ]);
       setSections(sectionsData);
       setStories(storiesData);
       setMedia(mediaData);
+      setStorylinesSlides(slidesData);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -84,17 +86,22 @@ export default function HomePageEditor() {
     }
   };
 
-  const createSection = () => {
+  const createSection = (layoutType = 'text_left_image_right') => {
     setEditingSection({
-      title: '',
+      title: layoutType === 'hero_section' ? 'Hero Title' : '',
       content: '',
       image_url: '',
       video_url: '',
       order: sections.length,
-      layout_type: 'text_left_image_right',
+      layout_type: layoutType,
       linked_story_id: '',
       show_gradient: false,
-      pageName: currentPageName
+      pageName: currentPageName,
+      ...(layoutType === 'hero_section' && {
+        subtitle: '',
+        author: '',
+        hero_type: 'image'
+      })
     });
   };
 
@@ -192,13 +199,104 @@ export default function HomePageEditor() {
             <Link to={createPageUrl(currentPageName)} target="_blank">
               <Button variant="outline">Preview Page</Button>
             </Link>
-            <Button onClick={createSection} className="bg-amber-600 hover:bg-amber-700">
-              <Plus className="w-4 h-4 mr-2" /> Add Section
+            <Button onClick={() => setEditingSection('storylines')} variant="outline">
+              Edit Storylines Panel
+            </Button>
+            <Button onClick={() => createSection('text_left_image_right')} className="bg-amber-600 hover:bg-amber-700">
+              <Plus className="w-4 h-4 mr-2" /> Add Content Section
+            </Button>
+            <Button onClick={() => createSection('hero_section')} variant="outline" className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="w-4 h-4 mr-2" /> Add Hero Section
             </Button>
           </div>
         </div>
 
-        {editingSection && (
+        {editingSection === 'storylines' && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Edit "What is Storylines" Panel</span>
+                <Button onClick={() => setEditingSection(null)} variant="ghost" size="sm">
+                  <X className="w-4 h-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {storylinesSlides.map((slide, index) => (
+                <Card key={slide.id} className="p-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Slide {index + 1}</span>
+                      <Button
+                        onClick={async () => {
+                          await base44.entities.StorylinesSlide.delete(slide.id);
+                          const updated = storylinesSlides.filter(s => s.id !== slide.id);
+                          setStorylinesSlides(updated);
+                        }}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    <div>
+                      <Label>Title</Label>
+                      <Input
+                        value={slide.title}
+                        onChange={async (e) => {
+                          const updated = await base44.entities.StorylinesSlide.update(slide.id, { title: e.target.value });
+                          setStorylinesSlides(storylinesSlides.map(s => s.id === slide.id ? updated : s));
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Description</Label>
+                      <Input
+                        value={slide.description}
+                        onChange={async (e) => {
+                          const updated = await base44.entities.StorylinesSlide.update(slide.id, { description: e.target.value });
+                          setStorylinesSlides(storylinesSlides.map(s => s.id === slide.id ? updated : s));
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Image URL</Label>
+                      <Input
+                        value={slide.image || ''}
+                        onChange={async (e) => {
+                          const updated = await base44.entities.StorylinesSlide.update(slide.id, { image: e.target.value });
+                          setStorylinesSlides(storylinesSlides.map(s => s.id === slide.id ? updated : s));
+                        }}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                </Card>
+              ))}
+              
+              <Button
+                onClick={async () => {
+                  const maxOrder = storylinesSlides.length > 0 ? Math.max(...storylinesSlides.map(s => s.order)) : -1;
+                  const newSlide = await base44.entities.StorylinesSlide.create({
+                    title: 'New Slide',
+                    description: 'Add your description here',
+                    order: maxOrder + 1
+                  });
+                  setStorylinesSlides([...storylinesSlides, newSlide]);
+                }}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Slide
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {editingSection && editingSection !== 'storylines' && (
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>{editingSection.id ? 'Edit Section' : 'New Section'}</CardTitle>
@@ -242,6 +340,7 @@ export default function HomePageEditor() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="hero_section">Hero Section</SelectItem>
                     <SelectItem value="text_left_image_right">Text Left, Image Right</SelectItem>
                     <SelectItem value="text_right_image_left">Text Right, Image Left</SelectItem>
                     <SelectItem value="full_width_video">Full Width Video</SelectItem>
@@ -250,6 +349,44 @@ export default function HomePageEditor() {
                   </SelectContent>
                 </Select>
               </div>
+              
+              {editingSection.layout_type === 'hero_section' && (
+                <>
+                  <div>
+                    <Label>Subtitle</Label>
+                    <Input
+                      value={editingSection.subtitle || ''}
+                      onChange={(e) => setEditingSection({ ...editingSection, subtitle: e.target.value })}
+                      placeholder="Hero subtitle"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Author</Label>
+                    <Input
+                      value={editingSection.author || ''}
+                      onChange={(e) => setEditingSection({ ...editingSection, author: e.target.value })}
+                      placeholder="Author name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Hero Media Type</Label>
+                    <Select
+                      value={editingSection.hero_type || 'image'}
+                      onValueChange={(value) => setEditingSection({ ...editingSection, hero_type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="image">Image</SelectItem>
+                        <SelectItem value="video">Video</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
 
               <div>
                 <Label>Image</Label>
@@ -466,9 +603,14 @@ export default function HomePageEditor() {
             <CardContent className="py-16 text-center">
               <h3 className="text-lg font-medium text-slate-700 mb-2">No sections yet</h3>
               <p className="text-slate-500 mb-6">Create your first section for {currentPageName}</p>
-              <Button onClick={createSection} className="bg-amber-600 hover:bg-amber-700">
-                <Plus className="w-4 h-4 mr-2" /> Add Section
-              </Button>
+              <div className="flex gap-2 justify-center">
+                <Button onClick={() => createSection('text_left_image_right')} className="bg-amber-600 hover:bg-amber-700">
+                  <Plus className="w-4 h-4 mr-2" /> Add Content Section
+                </Button>
+                <Button onClick={() => createSection('hero_section')} variant="outline" className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Plus className="w-4 h-4 mr-2" /> Add Hero Section
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
