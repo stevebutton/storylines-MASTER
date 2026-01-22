@@ -46,9 +46,10 @@ export default function ReferenceHome() {
         base44.entities.HomePageSection.filter({ pageName: 'ProjectInterface' }, 'order')
       ]);
 
-      // Check for hero section first, fallback to main story
+      // Check for hero section first, fallback to main story, then first story
       const heroSection = sections.find(s => s.layout_type === 'hero_section');
-      const mainStoryData = heroSection || stories.find(s => s.is_main_story);
+      const mainStoryRecord = stories.find(s => s.is_main_story === true);
+      const mainStoryData = heroSection || mainStoryRecord || stories[0];
       setMainStory(mainStoryData);
 
       // Attach coordinates to all stories
