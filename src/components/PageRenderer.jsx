@@ -1,6 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2 } from 'lucide-react';
+import InteractiveStoryMap from '@/components/storymap/InteractiveStoryMap';
+
+function InteractiveStoryMapWrapper() {
+  const [stories, setStories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadStories();
+  }, []);
+
+  const loadStories = async () => {
+    try {
+      const [storiesData, chaptersData] = await Promise.all([
+        base44.entities.Story.filter({ is_published: true }),
+        base44.entities.Chapter.list('order')
+      ]);
+
+      const storiesWithCoords = storiesData.map(story => {
+        const storyChapters = chaptersData.filter(c => c.story_id === story.id);
+        const firstChapterWithCoords = storyChapters.find(c => c.coordinates && c.coordinates.length === 2);
+        
+        return {
+          ...story,
+          coordinates: story.coordinates || firstChapterWithCoords?.coordinates || null
+        };
+      }).filter(s => s.coordinates);
+
+      setStories(storiesWithCoords);
+    } catch (error) {
+      console.error('Failed to load stories:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+      </div>
+    );
+  }
+
+  return <InteractiveStoryMap stories={stories} isVisible={true} />;
+}
 
 export default function PageRenderer({ pageName }) {
   const [sections, setSections] = useState([]);
@@ -195,6 +240,14 @@ export default function PageRenderer({ pageName }) {
                   Rotating Globe Component - To be implemented
                 </p>
               </div>
+            </div>
+          );
+        }
+        if (component_type === 'interactive_story_map') {
+          return (
+            <div className="py-16">
+              <h2 className="text-4xl font-bold text-slate-800 mb-8 text-center">{title}</h2>
+              <InteractiveStoryMapWrapper />
             </div>
           );
         }
