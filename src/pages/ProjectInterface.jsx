@@ -6,6 +6,7 @@ import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
 import CategoryFilter from '@/components/storymap/CategoryFilter';
+import WhatIsStorylinesPanel from '@/components/storymap/WhatIsStorylinesPanel';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
@@ -30,6 +31,7 @@ export default function ProjectInterface() {
   const [categories, setCategories] = useState([]);
   const [isMapSectionVisible, setIsMapSectionVisible] = useState(false);
   const rotationIntervalRef = useRef(null);
+  const [showStorylinesPanel, setShowStorylinesPanel] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -437,30 +439,31 @@ export default function ProjectInterface() {
   };
 
   const scrollToMap = () => {
+    setShowStorylinesPanel(false);
     const mapSection = document.getElementById('map-section');
     if (!mapSection) return;
-    
+
     const targetPosition = mapSection.getBoundingClientRect().top + window.scrollY;
     const startPosition = window.scrollY;
     const distance = targetPosition - startPosition;
     const duration = 2000;
     let startTime = null;
-    
+
     const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    
+
     const animateScroll = (currentTime) => {
       if (!startTime) startTime = currentTime;
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const easedProgress = easeInOutCubic(progress);
-      
+
       window.scrollTo(0, startPosition + (distance * easedProgress));
-      
+
       if (progress < 1) {
         requestAnimationFrame(animateScroll);
       }
     };
-    
+
     requestAnimationFrame(animateScroll);
   };
 
@@ -515,6 +518,7 @@ export default function ProjectInterface() {
           heroVideo={mainStory.hero_video}
           heroType={mainStory.hero_type}
           onExplore={scrollToMap}
+          onWhatIsStorylines={() => setShowStorylinesPanel(true)}
         />
         
         {/* Scroll indicator */}
@@ -564,6 +568,12 @@ export default function ProjectInterface() {
         </button>
       </div>
 
+      {/* What is Storylines Panel */}
+      <WhatIsStorylinesPanel
+        isOpen={showStorylinesPanel}
+        onClose={() => setShowStorylinesPanel(false)}
+      />
+
       <style>{`
         .mapboxgl-popup-content {
           padding: 16px !important;
@@ -574,6 +584,6 @@ export default function ProjectInterface() {
           display: none !important;
         }
       `}</style>
-    </div>
-  );
-}
+      </div>
+      );
+      }

@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export default function StoryHeader({ title, subtitle, author, heroImage, heroVideo, heroType, onExplore }) {
+export default function StoryHeader({ title, subtitle, author, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines }) {
   return (
     <div className="min-h-screen flex items-center justify-center relative">
             {/* Hero Video or Image or Gradient Background */}
@@ -54,18 +54,31 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
                     </p>
         }
                 
-                {/* Explore button */}
-                <motion.button
-          onClick={onExplore}
-          className="mt-8 cursor-pointer"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}>
+                {/* Buttons */}
+                <div className="flex flex-col gap-4 mt-8">
+                    <motion.button
+                        onClick={onWhatIsStorylines}
+                        className="cursor-pointer"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <div className="flex items-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow">
+                            <span>What is Storylines</span>
+                        </div>
+                    </motion.button>
 
-                    <div className="flex items-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow">
-                        <span>Explore the story</span>
-                        <ChevronDown className="w-5 h-5" />
-                    </div>
-                </motion.button>
+                    <motion.button
+                        onClick={onExplore}
+                        className="cursor-pointer"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <div className="flex items-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow">
+                            <span>Explore the story</span>
+                            <ChevronDown className="w-5 h-5" />
+                        </div>
+                    </motion.button>
+                </div>
             </motion.div>
         </div>);
 
