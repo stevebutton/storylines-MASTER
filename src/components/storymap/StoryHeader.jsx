@@ -25,7 +25,7 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
             <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5 z-[1]" />
             
             <motion.div
-        className="absolute left-[15%] z-[2] px-6 max-w-3xl pointer-events-auto"
+        className="absolute left-[15%] z-[95] px-6 max-w-3xl pointer-events-auto"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.3 }}>
