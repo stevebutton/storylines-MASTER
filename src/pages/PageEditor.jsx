@@ -6,14 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, GripVertical, Trash2, Save, Image as ImageIcon, Video, Loader2, MapPin, X } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Save, Image as ImageIcon, Video, Loader2, MapPin, X, Layout } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-export default function HomePageEditor() {
+export default function PageEditor() {
   const location = useLocation();
   const [sections, setSections] = useState([]);
   const [stories, setStories] = useState([]);
@@ -24,9 +24,13 @@ export default function HomePageEditor() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [currentPageName, setCurrentPageName] = useState('ProjectInterface');
+  const [availablePages, setAvailablePages] = useState(['ProjectInterface', 'Home', 'HomeTest']);
+  const [isCreatingPage, setIsCreatingPage] = useState(false);
+  const [newPageName, setNewPageName] = useState('');
 
   useEffect(() => {
     loadData();
+    loadAvailablePages();
   }, [currentPageName]);
 
   useEffect(() => {
@@ -46,9 +50,19 @@ export default function HomePageEditor() {
         bearing: pickedBearing ? parseFloat(pickedBearing) : editingSection.bearing,
         pitch: pickedPitch ? parseFloat(pickedPitch) : editingSection.pitch
       });
-      window.history.replaceState({}, '', createPageUrl('HomePageEditor'));
+      window.history.replaceState({}, '', createPageUrl('PageEditor'));
     }
   }, [location.search]);
+
+  const loadAvailablePages = async () => {
+    try {
+      const allSections = await base44.entities.HomePageSection.list();
+      const pageNames = [...new Set(allSections.map(s => s.pageName).filter(Boolean))];
+      setAvailablePages(['ProjectInterface', 'Home', 'HomeTest', ...pageNames.filter(p => !['ProjectInterface', 'Home', 'HomeTest'].includes(p))]);
+    } catch (error) {
+      console.error('Failed to load pages:', error);
+    }
+  };
 
   const loadData = async () => {
     setIsLoading(true);
@@ -77,7 +91,6 @@ export default function HomePageEditor() {
 
     setSections(items);
 
-    // Update order in database
     for (let i = 0; i < items.length; i++) {
       await base44.entities.HomePageSection.update(items[i].id, { order: i });
     }
@@ -90,7 +103,8 @@ export default function HomePageEditor() {
       image_url: '',
       video_url: '',
       order: sections.length,
-      layout_type: 'text_left_image_right',
+      layout_type: 'single_column',
+      component_type: '',
       linked_story_id: '',
       show_gradient: false,
       pageName: currentPageName
@@ -130,6 +144,18 @@ export default function HomePageEditor() {
     } catch (error) {
       console.error('Failed to delete section:', error);
     }
+  };
+
+  const createNewPage = async () => {
+    if (!newPageName.trim()) return;
+    
+    const pageName = newPageName.trim().replace(/\s+/g, '');
+    if (!availablePages.includes(pageName)) {
+      setAvailablePages([...availablePages, pageName]);
+      setCurrentPageName(pageName);
+    }
+    setNewPageName('');
+    setIsCreatingPage(false);
   };
 
   const handleImageUpload = async (e) => {
@@ -175,19 +201,39 @@ export default function HomePageEditor() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Page Section Editor</h1>
-            <p className="text-slate-500 mt-1">Manage page content sections</p>
+            <h1 className="text-3xl font-bold text-slate-800">Page Editor</h1>
+            <p className="text-slate-500 mt-1">Create and manage section-based scrolling pages</p>
           </div>
           <div className="flex gap-3 items-center">
-            <Select value={currentPageName} onValueChange={setCurrentPageName}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ProjectInterface">Project Interface</SelectItem>
-                <SelectItem value="Home">Home</SelectItem>
-              </SelectContent>
-            </Select>
+            {isCreatingPage ? (
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={newPageName}
+                  onChange={(e) => setNewPageName(e.target.value)}
+                  placeholder="Page name (e.g., AboutUs)"
+                  className="w-[200px]"
+                  onKeyDown={(e) => e.key === 'Enter' && createNewPage()}
+                />
+                <Button onClick={createNewPage} size="sm">Create</Button>
+                <Button onClick={() => { setIsCreatingPage(false); setNewPageName(''); }} variant="outline" size="sm">Cancel</Button>
+              </div>
+            ) : (
+              <>
+                <Select value={currentPageName} onValueChange={setCurrentPageName}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePages.map(page => (
+                      <SelectItem key={page} value={page}>{page}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => setIsCreatingPage(true)} variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-2" /> New Page
+                </Button>
+              </>
+            )}
             <Link to={createPageUrl(currentPageName)} target="_blank">
               <Button variant="outline">Preview Page</Button>
             </Link>
@@ -224,7 +270,9 @@ export default function HomePageEditor() {
                       [{ 'header': [1, 2, 3, false] }],
                       ['bold', 'italic', 'underline', 'strike'],
                       [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                      ['link'],
+                      [{ 'align': [] }],
+                      ['link', 'image'],
+                      [{ 'color': [] }, { 'background': [] }],
                       ['clean']
                     ]
                   }}
@@ -232,7 +280,7 @@ export default function HomePageEditor() {
               </div>
 
               <div>
-                <Label>Layout Type</Label>
+                <Label>Layout Template</Label>
                 <Select
                   value={editingSection.layout_type}
                   onValueChange={(value) => setEditingSection({ ...editingSection, layout_type: value })}
@@ -241,14 +289,36 @@ export default function HomePageEditor() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="single_column">Single Column</SelectItem>
+                    <SelectItem value="two_column">Two Column</SelectItem>
                     <SelectItem value="text_left_image_right">Text Left, Image Right</SelectItem>
                     <SelectItem value="text_right_image_left">Text Right, Image Left</SelectItem>
+                    <SelectItem value="full_width_image">Full Width Image</SelectItem>
                     <SelectItem value="full_width_video">Full Width Video</SelectItem>
                     <SelectItem value="centered_text">Centered Text</SelectItem>
                     <SelectItem value="hero_image_text_overlay">Hero Image with Text Overlay</SelectItem>
+                    <SelectItem value="component">Component (Globe, etc.)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {editingSection.layout_type === 'component' && (
+                <div>
+                  <Label>Component Type</Label>
+                  <Select
+                    value={editingSection.component_type || ''}
+                    onValueChange={(value) => setEditingSection({ ...editingSection, component_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select component" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rotating_globe">Rotating Globe with Thumbnails</SelectItem>
+                      <SelectItem value="custom">Custom Component</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div>
                 <Label>Image</Label>
@@ -371,7 +441,7 @@ export default function HomePageEditor() {
                 </Select>
               </div>
 
-              {(editingSection.layout_type === 'hero_image_text_overlay' || editingSection.layout_type === 'full_width_video') && (
+              {(editingSection.layout_type === 'hero_image_text_overlay' || editingSection.layout_type === 'full_width_video' || editingSection.layout_type === 'full_width_image') && (
                 <div className="flex items-center gap-3">
                   <Switch
                     checked={!!editingSection.show_gradient}
@@ -415,6 +485,11 @@ export default function HomePageEditor() {
                             <div className="flex-1">
                               <h3 className="font-semibold text-lg text-slate-800">{section.title}</h3>
                               <p className="text-sm text-slate-500 mt-1">{section.layout_type}</p>
+                              {section.component_type && (
+                                <p className="text-xs text-amber-600 mt-1">
+                                  <Layout className="w-3 h-3 inline mr-1" />Component: {section.component_type}
+                                </p>
+                              )}
                               {section.content && (
                                 <div className="text-sm text-slate-600 mt-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: section.content }} />
                               )}
