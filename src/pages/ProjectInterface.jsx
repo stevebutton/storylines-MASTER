@@ -46,7 +46,9 @@ export default function ProjectInterface() {
         base44.entities.HomePageSection.filter({ pageName: 'ProjectInterface' }, 'order')
       ]);
 
-      const mainStoryData = stories.find(s => s.is_main_story);
+      // Check for hero section first, fallback to main story
+      const heroSection = sections.find(s => s.layout_type === 'hero_section');
+      const mainStoryData = heroSection || stories.find(s => s.is_main_story);
       setMainStory(mainStoryData);
 
       // Attach coordinates to all stories
@@ -546,7 +548,7 @@ export default function ProjectInterface() {
       </div>
 
       {/* Dynamic Content Sections */}
-      {pageSections.map((section) => (
+      {pageSections.filter(s => s.layout_type !== 'hero_section').map((section) => (
         <div key={section.id} className="py-16 px-8 max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-slate-800 mb-6">{section.title}</h2>
           <div className="text-lg text-slate-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: section.content }} />

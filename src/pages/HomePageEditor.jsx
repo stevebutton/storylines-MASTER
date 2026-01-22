@@ -23,6 +23,7 @@ export default function HomePageEditor() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [storylinesSlides, setStorylinesSlides] = useState([]);
   const [currentPageName, setCurrentPageName] = useState('ProjectInterface');
 
   useEffect(() => {
