@@ -157,7 +157,6 @@ export default function ProjectInterface() {
         <StoryHeader
           title={mainStory.title}
           subtitle={mainStory.subtitle}
-          author={mainStory.author}
           heroImage={mainStory.hero_image}
           heroVideo={mainStory.hero_video}
           heroType={mainStory.hero_type}
