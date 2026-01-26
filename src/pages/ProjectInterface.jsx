@@ -157,6 +157,8 @@ export default function ProjectInterface() {
         <StoryHeader
           title={mainStory.title}
           subtitle={mainStory.subtitle}
+          titleImage="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/e88b2df1f_STORYLINES.png"
+          subtitleImage="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/257cd1385_storytellingfordevelopmentmadesimple.png"
           heroImage={mainStory.hero_image}
           heroVideo={mainStory.hero_video}
           heroType={mainStory.hero_type}

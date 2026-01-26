@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export default function StoryHeader({ title, subtitle, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines }) {
+export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines }) {
   return (
     <div className="min-h-screen flex items-center justify-center relative">
             {/* Hero Video or Image or Gradient Background */}
@@ -38,14 +38,22 @@ export default function StoryHeader({ title, subtitle, heroImage, heroVideo, her
                 </div>
                 
                 {/* Title */}
-                <h1 className="text-white mb-6 text-4xl font-light text-left tracking-tight leading-tight md:text-6xl lg:text-7xl">
-                    {title}
-                </h1>
+                {titleImage ? (
+                    <img src={titleImage} alt={title} className="h-16 md:h-20 mb-6 object-contain object-left" />
+                ) : (
+                    <h1 className="text-white mb-6 text-4xl font-light text-left tracking-tight leading-tight md:text-6xl lg:text-7xl">
+                        {title}
+                    </h1>
+                )}
                 
                 {/* Subtitle */}
-                <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-left max-w-xl">
-                    {subtitle}
-                </p>
+                {subtitleImage ? (
+                    <img src={subtitleImage} alt={subtitle} className="h-8 md:h-10 mb-6 object-contain object-left" />
+                ) : (
+                    <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-left max-w-xl">
+                        {subtitle}
+                    </p>
+                )}
                 
                 {/* Buttons */}
                 <div className="flex flex-col" style={{ marginTop: '62px', gap: '50px' }}>
