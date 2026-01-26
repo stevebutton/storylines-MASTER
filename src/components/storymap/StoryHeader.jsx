@@ -39,7 +39,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
                 
                 {/* Title */}
                 {titleImage ? (
-                    <img src={titleImage} alt={title} style={{ width: '229.6px', height: '46.4px' }} className="mb-6 object-contain object-left" />
+                    <img src={titleImage} alt={title} style={{ width: '344px', height: '69.6px' }} className="mb-6 object-contain object-left" />
                 ) : (
                     <h1 className="text-white mb-6 text-4xl font-light text-left tracking-tight leading-tight md:text-6xl lg:text-7xl">
                         {title}
@@ -48,7 +48,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
                 
                 {/* Subtitle */}
                 {subtitleImage ? (
-                    <img src={subtitleImage} alt={subtitle} style={{ width: '247.2px', height: '15.2px' }} className="mb-6 object-contain object-left" />
+                    <img src={subtitleImage} alt={subtitle} style={{ width: '339.2px', height: '21.6px' }} className="mb-6 object-contain object-left" />
                 ) : (
                     <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-left max-w-xl">
                         {subtitle}
