@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export default function StoryHeader({ title, subtitle, author, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines }) {
+export default function StoryHeader({ title, subtitle, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines }) {
   return (
     <div className="min-h-screen flex items-center justify-center relative">
             {/* Hero Video or Image or Gradient Background */}
@@ -46,13 +46,6 @@ export default function StoryHeader({ title, subtitle, author, heroImage, heroVi
                 <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-left max-w-xl">
                     {subtitle}
                 </p>
-                
-                {/* Author */}
-                {author &&
-        <p className="text-sm text-white/60 tracking-widest uppercase">
-                        By {author}
-                    </p>
-        }
                 
                 {/* Buttons */}
                 <div className="flex flex-col" style={{ marginTop: '62px', gap: '50px' }}>
