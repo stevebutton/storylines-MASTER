@@ -107,7 +107,10 @@ export default function ChapterEditor({
                                 {slides.length} slide{slides.length !== 1 ? 's' : ''}
                             </span>
                             {hasPDF && (
-                                <FileText className="w-4 h-4 text-blue-600 mr-2" title="Contains PDF attachments" />
+                                <div className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded">
+                                    <FileText className="w-4 h-4 text-blue-600" title="Contains PDF attachments" />
+                                    <span className="text-xs text-blue-600 font-medium">PDF</span>
+                                </div>
                             )}
                         </CollapsibleTrigger>
 
