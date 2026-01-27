@@ -97,8 +97,6 @@ export default function PdfThumbnail({ url, className = '' }) {
         };
     }, [url]);
 
-    console.log('[PdfThumbnail] Render - isLoading:', isLoading, 'error:', error, 'className:', className);
-
     if (isLoading) {
         return (
             <div className={`flex items-center justify-center bg-slate-100 min-h-[100px] ${className}`}>
