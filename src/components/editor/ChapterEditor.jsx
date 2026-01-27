@@ -76,7 +76,6 @@ export default function ChapterEditor({
     };
 
     const firstSlideTitle = slides[0]?.title || `Chapter ${index + 1}`;
-    const hasPdfAttachments = slides.some(slide => slide.pdf_url);
 
     return (
         <Card className="border-slate-200 overflow-hidden">
@@ -102,7 +101,7 @@ export default function ChapterEditor({
                             <span className="text-xs text-slate-400 ml-auto mr-2">
                                 {slides.length} slide{slides.length !== 1 ? 's' : ''}
                             </span>
-                            {hasPdfAttachments && (
+                            {slides.some(s => s.pdf_url) && (
                                 <FileText className="w-4 h-4 text-blue-600 mr-2" title="Contains PDF attachments" />
                             )}
                         </CollapsibleTrigger>
