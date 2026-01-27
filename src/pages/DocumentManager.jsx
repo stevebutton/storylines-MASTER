@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Upload, FileText, Download, Trash2, Edit, Search, Folder, Filter } from 'lucide-react';
 import PdfViewer from '@/components/pdf/PdfViewer';
+import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 
 export default function DocumentManager() {
     const queryClient = useQueryClient();
@@ -196,7 +197,7 @@ export default function DocumentManager() {
                     {filteredDocs.map((doc) => (
                         <Card key={doc.id} className="hover:shadow-lg transition-shadow">
                             <CardHeader className="pb-3">
-                                <div className="flex items-start justify-between">
+                                <div className="flex items-start justify-between mb-3">
                                     <Checkbox
                                         checked={selectedDocs.includes(doc.id)}
                                         onCheckedChange={(checked) => {
@@ -225,8 +226,19 @@ export default function DocumentManager() {
                                         </Button>
                                     </div>
                                 </div>
-                                <CardTitle className="text-lg flex items-center gap-2 mt-2">
-                                    <FileText className="w-5 h-5 text-amber-600" />
+
+                                {/* PDF Thumbnail */}
+                                <div 
+                                    className="rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:border-amber-600 transition-colors"
+                                    onClick={() => {
+                                        setCurrentDoc(doc);
+                                        setShowPdfDialog(true);
+                                    }}
+                                >
+                                    <PdfThumbnail url={doc.file_url} className="w-full h-48" />
+                                </div>
+
+                                <CardTitle className="text-lg mt-3">
                                     {doc.title}
                                 </CardTitle>
                             </CardHeader>
