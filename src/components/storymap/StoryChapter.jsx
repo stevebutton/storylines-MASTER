@@ -16,6 +16,8 @@ export default function StoryChapter({
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const [showPdfModal, setShowPdfModal] = useState(false);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
+    
+    console.log("Current Slide for debugging:", currentSlide);
 
     const handleSlideChange = (slideIndex) => {
         setActiveSlideIndex(slideIndex);
