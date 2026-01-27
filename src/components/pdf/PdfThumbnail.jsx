@@ -11,46 +11,66 @@ export default function PdfThumbnail({ url, className = '' }) {
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        if (!url) return;
+        console.log('[PdfThumbnail] useEffect triggered, url:', url);
+        
+        if (!url) {
+            console.log('[PdfThumbnail] No URL provided');
+            setIsLoading(false);
+            setError(true);
+            return;
+        }
 
         let isMounted = true;
         setIsLoading(true);
         setError(false);
 
         const loadPdfAndRenderThumbnail = async () => {
+            console.log('[PdfThumbnail] Starting PDF load...');
+            
             if (pdfRef.current) {
                 pdfRef.current.destroy();
                 pdfRef.current = null;
             }
 
             try {
+                console.log('[PdfThumbnail] Fetching PDF document...');
                 const pdf = await pdfjsLib.getDocument(url).promise;
+                console.log('[PdfThumbnail] PDF loaded successfully, pages:', pdf.numPages);
+                
                 if (!isMounted) {
+                    console.log('[PdfThumbnail] Component unmounted, aborting');
                     pdf.destroy();
                     return;
                 }
                 pdfRef.current = pdf;
                 
+                console.log('[PdfThumbnail] Getting first page...');
                 const page = await pdf.getPage(1);
                 const viewport = page.getViewport({ scale: 0.5 });
+                console.log('[PdfThumbnail] Viewport dimensions:', viewport.width, 'x', viewport.height);
                 
                 if (canvasRef.current && isMounted) {
                     const canvas = canvasRef.current;
                     const context = canvas.getContext('2d', { willReadFrequently: true });
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
-
+                    
+                    console.log('[PdfThumbnail] Rendering to canvas...');
                     await page.render({
                         canvasContext: context,
                         viewport: viewport,
                     }).promise;
+                    console.log('[PdfThumbnail] Render complete!');
+                } else {
+                    console.log('[PdfThumbnail] Canvas not available or unmounted');
                 }
                 
                 if (isMounted) {
+                    console.log('[PdfThumbnail] Setting loading to false');
                     setIsLoading(false);
                 }
             } catch (err) {
-                console.error('Error loading PDF thumbnail:', err);
+                console.error('[PdfThumbnail] Error loading PDF:', err);
                 if (isMounted) {
                     setError(true);
                     setIsLoading(false);
@@ -61,6 +81,7 @@ export default function PdfThumbnail({ url, className = '' }) {
         loadPdfAndRenderThumbnail();
 
         return () => {
+            console.log('[PdfThumbnail] Cleanup');
             isMounted = false;
             if (pdfRef.current) {
                 pdfRef.current.destroy();
