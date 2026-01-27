@@ -36,7 +36,7 @@ export default function PdfThumbnail({ url, className = '' }) {
                 
                 if (canvasRef.current && isMounted) {
                     const canvas = canvasRef.current;
-                    const context = canvas.getContext('2d');
+                    const context = canvas.getContext('2d', { willReadFrequently: true });
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
 
@@ -44,10 +44,10 @@ export default function PdfThumbnail({ url, className = '' }) {
                         canvasContext: context,
                         viewport: viewport,
                     }).promise;
-                    
-                    if (isMounted) {
-                        setIsLoading(false);
-                    }
+                }
+                
+                if (isMounted) {
+                    setIsLoading(false);
                 }
             } catch (err) {
                 console.error('Error loading PDF thumbnail:', err);
