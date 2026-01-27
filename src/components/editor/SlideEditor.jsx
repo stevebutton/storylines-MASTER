@@ -224,7 +224,8 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                         setIsUploadingPdf(true);
                                                         try {
                                                             const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                                                            onUpdate({ ...slide, pdf_url: file_url });
+                                                            const updatedSlide = { ...slide, pdf_url: file_url };
+                                                            onUpdate(updatedSlide);
                                                         } catch (error) {
                                                             console.error('Failed to upload PDF:', error);
                                                         } finally {
