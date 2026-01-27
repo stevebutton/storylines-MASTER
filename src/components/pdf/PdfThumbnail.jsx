@@ -28,7 +28,9 @@ export default function PdfThumbnail({ url, className = '' }) {
             }
 
             try {
+                console.log('[THUMB] Loading PDF:', url.substring(0, 50));
                 const pdf = await pdfjsLib.getDocument(url).promise;
+                console.log('[THUMB] PDF loaded, pages:', pdf.numPages);
                 
                 if (!isMounted) {
                     pdf.destroy();
@@ -37,6 +39,7 @@ export default function PdfThumbnail({ url, className = '' }) {
                 pdfRef.current = pdf;
                 
                 const page = await pdf.getPage(1);
+                console.log('[THUMB] Got page 1');
                 
                 if (canvasRef.current && isMounted) {
                     const canvas = canvasRef.current;
@@ -45,6 +48,7 @@ export default function PdfThumbnail({ url, className = '' }) {
                     // Get container dimensions
                     const containerWidth = container?.offsetWidth || 300;
                     const containerHeight = container?.offsetHeight || 200;
+                    console.log('[THUMB] Container:', containerWidth, 'x', containerHeight);
                     
                     // Get PDF page dimensions at scale 1
                     const viewport = page.getViewport({ scale: 1 });
@@ -60,6 +64,7 @@ export default function PdfThumbnail({ url, className = '' }) {
                         // PDF is taller - fit to height
                         scale = containerHeight / viewport.height;
                     }
+                    console.log('[THUMB] Calculated scale:', scale);
                     
                     // Create viewport with calculated scale
                     const scaledViewport = page.getViewport({ scale });
@@ -67,18 +72,22 @@ export default function PdfThumbnail({ url, className = '' }) {
                     const context = canvas.getContext('2d');
                     canvas.width = scaledViewport.width;
                     canvas.height = scaledViewport.height;
+                    console.log('[THUMB] Canvas size:', canvas.width, 'x', canvas.height);
                     
                     await page.render({
                         canvasContext: context,
                         viewport: scaledViewport,
                     }).promise;
+                    console.log('[THUMB] ✓ Render complete!');
+                } else {
+                    console.log('[THUMB] No canvas or unmounted');
                 }
                 
                 if (isMounted) {
                     setIsLoading(false);
                 }
             } catch (err) {
-                console.error('[PdfThumbnail] Error loading PDF:', err);
+                console.error('[THUMB] Error:', err);
                 if (isMounted) {
                     setError(true);
                     setIsLoading(false);
