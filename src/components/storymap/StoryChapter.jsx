@@ -152,11 +152,16 @@ export default function StoryChapter({
                             </DialogTitle>
                         </DialogHeader>
                         <div className="flex-1 h-full">
-                            <iframe
-                                src={`${currentSlide?.pdf_url}#view=FitH`}
+                            <object
+                                data={`${currentSlide?.pdf_url}#toolbar=0&navpanes=0&scrollbar=1`}
+                                type="application/pdf"
                                 className="w-full h-full rounded-lg"
                                 title="PDF Viewer"
-                            />
+                            >
+                                <p className="text-center p-4">
+                                    Unable to display PDF. <a href={currentSlide?.pdf_url} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Click here to view</a>
+                                </p>
+                            </object>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -277,11 +282,16 @@ export default function StoryChapter({
                         </DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 h-full">
-                        <iframe
-                            src={`${currentSlide?.pdf_url}#view=FitH`}
+                        <object
+                            data={`${currentSlide?.pdf_url}#toolbar=0&navpanes=0&scrollbar=1`}
+                            type="application/pdf"
                             className="w-full h-full rounded-lg"
                             title="PDF Viewer"
-                        />
+                        >
+                            <p className="text-center p-4">
+                                Unable to display PDF. <a href={currentSlide?.pdf_url} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Click here to view</a>
+                            </p>
+                        </object>
                     </div>
                 </DialogContent>
             </Dialog>
