@@ -19,7 +19,7 @@ export default function PdfViewer({ url, className = '' }) {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
-    const [showThumbnails, setShowThumbnails] = useState(false);
+    const [showThumbnails, setShowThumbnails] = useState(true);
     const [thumbnails, setThumbnails] = useState([]);
 
     // Load PDF document
