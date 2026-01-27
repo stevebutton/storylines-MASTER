@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle, Eye, Upload, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle, Eye, Upload, Loader2, FileText } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
 import { Link } from 'react-router-dom';
@@ -76,6 +76,7 @@ export default function ChapterEditor({
     };
 
     const firstSlideTitle = slides[0]?.title || `Chapter ${index + 1}`;
+    const hasPdfAttachments = slides.some(slide => slide.pdf_url);
 
     return (
         <Card className="border-slate-200 overflow-hidden">
@@ -101,6 +102,9 @@ export default function ChapterEditor({
                             <span className="text-xs text-slate-400 ml-auto mr-2">
                                 {slides.length} slide{slides.length !== 1 ? 's' : ''}
                             </span>
+                            {hasPdfAttachments && (
+                                <FileText className="w-4 h-4 text-blue-600 mr-2" title="Contains PDF attachments" />
+                            )}
                         </CollapsibleTrigger>
 
                         <Link to={createPageUrl(`ChapterPreview?storyId=${storyId}&chapterId=${chapter.id}`)}>
