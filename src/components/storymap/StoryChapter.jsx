@@ -249,12 +249,8 @@ export default function StoryChapter({
                     <DialogHeader>
                         <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
                     </DialogHeader>
-                    <div className="flex-1 h-full">
-                        <embed
-                            src={currentSlide?.pdf_url}
-                            type="application/pdf"
-                            className="w-full h-full rounded-lg"
-                        />
+                    <div className="flex-1 h-full overflow-hidden">
+                        <PdfViewer url={currentSlide?.pdf_url} />
                     </div>
                 </DialogContent>
             </Dialog>
