@@ -105,7 +105,7 @@ export default function StoryChapter({
                             
                             {/* Location & PDF */}
                             {(currentSlide?.location || currentSlide?.pdf_url) && (
-                                <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between">
+                                <div className="mt-6 pt-4 border-t border-white/20 flex flex-col items-center gap-3">
                                     {currentSlide?.location && (
                                         <div className="flex items-center gap-2 text-xs text-white/80">
                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,14 +117,14 @@ export default function StoryChapter({
                                             <span className="font-medium">{currentSlide.location}</span>
                                         </div>
                                     )}
-                                    
+
                                     {currentSlide?.pdf_url && (
                                         <button
                                             onClick={() => setShowPdfModal(true)}
                                             className="flex items-center gap-1.5 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
                                         >
                                             <FileText className="w-3.5 h-3.5" />
-                                            <span>PDF</span>
+                                            <span>View Document</span>
                                         </button>
                                     )}
                                 </div>
@@ -135,13 +135,25 @@ export default function StoryChapter({
 
                 {/* PDF Modal */}
                 <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                    <DialogContent className="max-w-4xl h-[90vh]">
+                    <DialogContent className="max-w-4xl h-[90vh] z-[9999]">
                         <DialogHeader>
-                            <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
+                            <DialogTitle className="flex items-center justify-between">
+                                <span>{currentSlide?.title} - Document</span>
+                                <a
+                                    href={currentSlide?.pdf_url}
+                                    download
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-amber-600 hover:text-amber-700 font-normal flex items-center gap-2"
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    Download PDF
+                                </a>
+                            </DialogTitle>
                         </DialogHeader>
                         <div className="flex-1 h-full">
                             <iframe
-                                src={currentSlide?.pdf_url}
+                                src={`${currentSlide?.pdf_url}#view=FitH`}
                                 className="w-full h-full rounded-lg"
                                 title="PDF Viewer"
                             />
@@ -218,7 +230,7 @@ export default function StoryChapter({
                         
                         {/* Location & PDF */}
                         {(currentSlide?.location || currentSlide?.pdf_url) && (
-                            <div className="mt-6 pt-4 border-t border-slate-200/50 flex items-center justify-between">
+                            <div className="mt-6 pt-4 border-t border-slate-200/50 flex flex-col items-center gap-3">
                                 {currentSlide?.location && (
                                     <div className="flex items-center gap-2 text-xs text-slate-500">
                                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -230,14 +242,14 @@ export default function StoryChapter({
                                         <span className="font-medium">{currentSlide.location}</span>
                                     </div>
                                 )}
-                                
+
                                 {currentSlide?.pdf_url && (
                                     <button
                                         onClick={() => setShowPdfModal(true)}
                                         className="flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
                                     >
                                         <FileText className="w-3.5 h-3.5" />
-                                        <span>PDF</span>
+                                        <span>View Document</span>
                                     </button>
                                 )}
                             </div>
@@ -248,13 +260,25 @@ export default function StoryChapter({
 
             {/* PDF Modal */}
             <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                <DialogContent className="max-w-4xl h-[90vh]">
+                <DialogContent className="max-w-4xl h-[90vh] z-[9999]">
                     <DialogHeader>
-                        <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
+                        <DialogTitle className="flex items-center justify-between">
+                            <span>{currentSlide?.title} - Document</span>
+                            <a
+                                href={currentSlide?.pdf_url}
+                                download
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-amber-600 hover:text-amber-700 font-normal flex items-center gap-2"
+                            >
+                                <FileText className="w-4 h-4" />
+                                Download PDF
+                            </a>
+                        </DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 h-full">
                         <iframe
-                            src={currentSlide?.pdf_url}
+                            src={`${currentSlide?.pdf_url}#view=FitH`}
                             className="w-full h-full rounded-lg"
                             title="PDF Viewer"
                         />
