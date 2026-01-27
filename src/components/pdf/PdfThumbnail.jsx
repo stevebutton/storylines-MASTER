@@ -90,9 +90,11 @@ export default function PdfThumbnail({ url, className = '' }) {
         };
     }, [url]);
 
+    console.log('[PdfThumbnail] Render - isLoading:', isLoading, 'error:', error, 'className:', className);
+
     if (isLoading) {
         return (
-            <div className={`flex items-center justify-center bg-slate-100 ${className}`}>
+            <div className={`flex items-center justify-center bg-slate-100 min-h-[100px] ${className}`}>
                 <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
             </div>
         );
@@ -100,14 +102,14 @@ export default function PdfThumbnail({ url, className = '' }) {
 
     if (error) {
         return (
-            <div className={`flex items-center justify-center bg-slate-100 ${className}`}>
+            <div className={`flex items-center justify-center bg-slate-100 min-h-[100px] ${className}`}>
                 <FileText className="w-8 h-8 text-slate-400" />
             </div>
         );
     }
 
     return (
-        <div className={`${className} overflow-hidden bg-white`}>
+        <div className={`${className} overflow-hidden bg-white min-h-[100px]`}>
             <canvas ref={canvasRef} className="w-full h-full object-cover" />
         </div>
     );
