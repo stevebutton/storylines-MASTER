@@ -106,25 +106,19 @@ export default function PdfThumbnail({ url, className = '' }) {
         };
     }, [url]);
 
-    if (isLoading) {
-        return (
-            <div className={`flex items-center justify-center bg-slate-100 min-h-[100px] ${className}`}>
-                <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className={`flex items-center justify-center bg-slate-100 min-h-[100px] ${className}`}>
-                <FileText className="w-8 h-8 text-slate-400" />
-            </div>
-        );
-    }
-
     return (
-        <div className={`${className} overflow-hidden bg-white flex items-center justify-center`}>
+        <div className={`${className} overflow-hidden bg-white flex items-center justify-center relative`}>
             <canvas ref={canvasRef} className="max-w-full max-h-full" />
+            {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+                    <Loader2 className="w-6 h-6 animate-spin text-amber-600" />
+                </div>
+            )}
+            {error && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+                    <FileText className="w-8 h-8 text-slate-400" />
+                </div>
+            )}
         </div>
     );
 }
