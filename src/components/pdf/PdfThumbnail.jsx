@@ -34,7 +34,6 @@ export default function PdfThumbnail({ url, className = '' }) {
                 }
                 
                 setIsLoading(false);
-                pdf.destroy();
             })
             .catch((err) => {
                 console.error('Error loading PDF thumbnail:', err);
