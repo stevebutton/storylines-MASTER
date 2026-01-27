@@ -137,31 +137,14 @@ export default function StoryChapter({
                 <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
                     <DialogContent className="max-w-4xl h-[90vh] z-[9999]">
                         <DialogHeader>
-                            <DialogTitle className="flex items-center justify-between">
-                                <span>{currentSlide?.title} - Document</span>
-                                <a
-                                    href={currentSlide?.pdf_url}
-                                    download
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm text-amber-600 hover:text-amber-700 font-normal flex items-center gap-2"
-                                >
-                                    <FileText className="w-4 h-4" />
-                                    Download PDF
-                                </a>
-                            </DialogTitle>
+                            <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
                         </DialogHeader>
                         <div className="flex-1 h-full">
-                            <object
-                                data={`${currentSlide?.pdf_url}#toolbar=0&navpanes=0&scrollbar=1`}
+                            <embed
+                                src={currentSlide?.pdf_url}
                                 type="application/pdf"
                                 className="w-full h-full rounded-lg"
-                                title="PDF Viewer"
-                            >
-                                <p className="text-center p-4">
-                                    Unable to display PDF. <a href={currentSlide?.pdf_url} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Click here to view</a>
-                                </p>
-                            </object>
+                            />
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -267,31 +250,14 @@ export default function StoryChapter({
             <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
                 <DialogContent className="max-w-4xl h-[90vh] z-[9999]">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center justify-between">
-                            <span>{currentSlide?.title} - Document</span>
-                            <a
-                                href={currentSlide?.pdf_url}
-                                download
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-amber-600 hover:text-amber-700 font-normal flex items-center gap-2"
-                            >
-                                <FileText className="w-4 h-4" />
-                                Download PDF
-                            </a>
-                        </DialogTitle>
+                        <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
                     </DialogHeader>
                     <div className="flex-1 h-full">
-                        <object
-                            data={`${currentSlide?.pdf_url}#toolbar=0&navpanes=0&scrollbar=1`}
+                        <embed
+                            src={currentSlide?.pdf_url}
                             type="application/pdf"
                             className="w-full h-full rounded-lg"
-                            title="PDF Viewer"
-                        >
-                            <p className="text-center p-4">
-                                Unable to display PDF. <a href={currentSlide?.pdf_url} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Click here to view</a>
-                            </p>
-                        </object>
+                        />
                     </div>
                 </DialogContent>
             </Dialog>
