@@ -15,6 +15,7 @@ import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 
 export default function DocumentManager() {
     const queryClient = useQueryClient();
+    const [user, setUser] = useState(null);
     const [selectedDocs, setSelectedDocs] = useState([]);
     const [showUploadDialog, setShowUploadDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
@@ -30,6 +31,18 @@ export default function DocumentManager() {
         folder: '',
         tags: ''
     });
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const currentUser = await base44.auth.me();
+                setUser(currentUser);
+            } catch (error) {
+                setUser(null);
+            }
+        };
+        checkAuth();
+    }, []);
 
     const { data: documents = [] } = useQuery({
         queryKey: ['documents'],
@@ -171,7 +184,7 @@ export default function DocumentManager() {
                             </div>
                             
                             <div className="flex gap-2">
-                                {selectedDocs.length > 0 && (
+                                {user && selectedDocs.length > 0 && (
                                     <>
                                         <Button variant="outline" onClick={handleBulkDownload}>
                                             <Download className="w-4 h-4 mr-2" />
@@ -183,10 +196,12 @@ export default function DocumentManager() {
                                         </Button>
                                     </>
                                 )}
-                                <Button onClick={() => setShowUploadDialog(true)}>
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    Upload Document
-                                </Button>
+                                {user && (
+                                    <Button onClick={() => setShowUploadDialog(true)}>
+                                        <Upload className="w-4 h-4 mr-2" />
+                                        Upload Document
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -198,33 +213,37 @@ export default function DocumentManager() {
                         <Card key={doc.id} className="hover:shadow-lg transition-shadow">
                             <CardHeader className="pb-3">
                                 <div className="flex items-start justify-between mb-3">
-                                    <Checkbox
-                                        checked={selectedDocs.includes(doc.id)}
-                                        onCheckedChange={(checked) => {
-                                            setSelectedDocs(prev =>
-                                                checked ? [...prev, doc.id] : prev.filter(id => id !== doc.id)
-                                            );
-                                        }}
-                                    />
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => {
-                                                setCurrentDoc(doc);
-                                                setShowEditDialog(true);
+                                    {user && (
+                                        <Checkbox
+                                            checked={selectedDocs.includes(doc.id)}
+                                            onCheckedChange={(checked) => {
+                                                setSelectedDocs(prev =>
+                                                    checked ? [...prev, doc.id] : prev.filter(id => id !== doc.id)
+                                                );
                                             }}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => deleteDocMutation.mutate(doc.id)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
+                                        />
+                                    )}
+                                    {user && (
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => {
+                                                    setCurrentDoc(doc);
+                                                    setShowEditDialog(true);
+                                                }}
+                                            >
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => deleteDocMutation.mutate(doc.id)}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* PDF Thumbnail */}
