@@ -114,8 +114,8 @@ export default function PdfThumbnail({ url, className = '' }) {
     }
 
     return (
-        <div className={`${className} overflow-hidden bg-white min-h-[100px]`}>
-            <canvas ref={canvasRef} className="w-full h-full object-cover" />
+        <div className={`${className} overflow-hidden bg-white flex items-center justify-center`}>
+            <canvas ref={canvasRef} className="max-w-full max-h-full" />
         </div>
     );
 }
