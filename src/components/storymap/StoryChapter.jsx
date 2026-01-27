@@ -101,30 +101,31 @@ export default function StoryChapter({
                                 />
                             </AnimatePresence>
                             
-                            {/* Location badge */}
-                            {currentSlide?.location && (
-                                <div className="mt-6 pt-4 border-t border-white/20">
-                                    <div className="flex items-center gap-2 text-xs text-white/80">
-                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
-                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
-                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        <span className="font-medium">{currentSlide.location}</span>
-                                    </div>
+                            {/* Location & PDF */}
+                            {(currentSlide?.location || currentSlide?.pdf_url) && (
+                                <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between">
+                                    {currentSlide?.location && (
+                                        <div className="flex items-center gap-2 text-xs text-white/80">
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            <span className="font-medium">{currentSlide.location}</span>
+                                        </div>
+                                    )}
+                                    
+                                    {currentSlide?.pdf_url && (
+                                        <button
+                                            onClick={() => setShowPdfModal(true)}
+                                            className="flex items-center gap-1.5 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
+                                        >
+                                            <FileText className="w-3.5 h-3.5" />
+                                            <span>PDF</span>
+                                        </button>
+                                    )}
                                 </div>
-                            )}
-
-                            {/* PDF Attachment Icon */}
-                            {currentSlide?.pdf_url && (
-                                <button
-                                    onClick={() => setShowPdfModal(true)}
-                                    className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                                >
-                                    <FileText className="w-4 h-4 text-white" />
-                                    <span className="text-xs text-white font-medium">View Document</span>
-                                </button>
                             )}
                         </div>
                     </div>
@@ -213,30 +214,31 @@ export default function StoryChapter({
                             />
                         </AnimatePresence>
                         
-                        {/* Location badge */}
-                        {currentSlide?.location && (
-                            <div className="mt-6 pt-4 border-t border-slate-200/50">
-                                <div className="flex items-center gap-2 text-xs text-slate-500">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
-                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
-                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <span className="font-medium">{currentSlide.location}</span>
-                                </div>
+                        {/* Location & PDF */}
+                        {(currentSlide?.location || currentSlide?.pdf_url) && (
+                            <div className="mt-6 pt-4 border-t border-slate-200/50 flex items-center justify-between">
+                                {currentSlide?.location && (
+                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        <span className="font-medium">{currentSlide.location}</span>
+                                    </div>
+                                )}
+                                
+                                {currentSlide?.pdf_url && (
+                                    <button
+                                        onClick={() => setShowPdfModal(true)}
+                                        className="flex items-center gap-1.5 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
+                                    >
+                                        <FileText className="w-3.5 h-3.5" />
+                                        <span>PDF</span>
+                                    </button>
+                                )}
                             </div>
-                        )}
-
-                        {/* PDF Attachment Icon */}
-                        {currentSlide?.pdf_url && (
-                            <button
-                                onClick={() => setShowPdfModal(true)}
-                                className="mt-4 flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors"
-                            >
-                                <FileText className="w-4 h-4 text-amber-700" />
-                                <span className="text-xs text-amber-700 font-medium">View Document</span>
-                            </button>
                         )}
                     </div>
                 </div>
