@@ -76,6 +76,11 @@ export default function ChapterEditor({
     };
 
     const firstSlideTitle = slides[0]?.title || `Chapter ${index + 1}`;
+    const hasPDF = slides.some(s => s.pdf_url);
+    
+    console.log(`[ChapterEditor Chapter ${index + 1}] Slides:`, slides);
+    console.log(`[ChapterEditor Chapter ${index + 1}] Has PDF:`, hasPDF);
+    console.log(`[ChapterEditor Chapter ${index + 1}] PDF URLs:`, slides.map(s => ({ title: s.title, pdf_url: s.pdf_url })));
 
     return (
         <Card className="border-slate-200 overflow-hidden">
@@ -101,7 +106,7 @@ export default function ChapterEditor({
                             <span className="text-xs text-slate-400 ml-auto mr-2">
                                 {slides.length} slide{slides.length !== 1 ? 's' : ''}
                             </span>
-                            {slides.some(s => s.pdf_url) && (
+                            {hasPDF && (
                                 <FileText className="w-4 h-4 text-blue-600 mr-2" title="Contains PDF attachments" />
                             )}
                         </CollapsibleTrigger>
