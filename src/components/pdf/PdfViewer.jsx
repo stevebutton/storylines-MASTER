@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Loader2, Download, Printer } from 'lucide-react';
 
 // Set up the worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -83,6 +83,24 @@ export default function PdfViewer({ url, className = '' }) {
         setScale(Math.max(scale - 0.25, 0.5));
     };
 
+    const handleSave = () => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = url.split('/').pop() || 'document.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handlePrint = () => {
+        const printWindow = window.open(url);
+        if (printWindow) {
+            printWindow.onload = () => {
+                printWindow.print();
+            };
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -131,6 +149,13 @@ export default function PdfViewer({ url, className = '' }) {
                     <span className="text-sm text-slate-600">{Math.round(scale * 100)}%</span>
                     <Button variant="outline" size="sm" onClick={zoomIn}>
                         <ZoomIn className="w-4 h-4" />
+                    </Button>
+                    <div className="w-px h-6 bg-slate-200 mx-2" />
+                    <Button variant="outline" size="sm" onClick={handleSave}>
+                        <Download className="w-4 h-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handlePrint}>
+                        <Printer className="w-4 h-4" />
                     </Button>
                 </div>
             </div>
