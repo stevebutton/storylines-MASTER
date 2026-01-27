@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ChapterCarousel from './ChapterCarousel';
+import { FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function StoryChapter({ 
     chapter, 
@@ -12,6 +14,7 @@ export default function StoryChapter({
     delay = 0
 }) {
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+    const [showPdfModal, setShowPdfModal] = useState(false);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
 
     const handleSlideChange = (slideIndex) => {
@@ -112,9 +115,36 @@ export default function StoryChapter({
                                     </div>
                                 </div>
                             )}
+
+                            {/* PDF Attachment Icon */}
+                            {currentSlide?.pdf_url && (
+                                <button
+                                    onClick={() => setShowPdfModal(true)}
+                                    className="mt-4 flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                                >
+                                    <FileText className="w-4 h-4 text-white" />
+                                    <span className="text-xs text-white font-medium">View Document</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </motion.div>
+
+                {/* PDF Modal */}
+                <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
+                    <DialogContent className="max-w-4xl h-[90vh]">
+                        <DialogHeader>
+                            <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-1 h-full">
+                            <iframe
+                                src={currentSlide?.pdf_url}
+                                className="w-full h-full rounded-lg"
+                                title="PDF Viewer"
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         );
     }
@@ -197,9 +227,36 @@ export default function StoryChapter({
                                 </div>
                             </div>
                         )}
+
+                        {/* PDF Attachment Icon */}
+                        {currentSlide?.pdf_url && (
+                            <button
+                                onClick={() => setShowPdfModal(true)}
+                                className="mt-4 flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors"
+                            >
+                                <FileText className="w-4 h-4 text-amber-700" />
+                                <span className="text-xs text-amber-700 font-medium">View Document</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </motion.div>
+
+            {/* PDF Modal */}
+            <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
+                <DialogContent className="max-w-4xl h-[90vh]">
+                    <DialogHeader>
+                        <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 h-full">
+                        <iframe
+                            src={currentSlide?.pdf_url}
+                            className="w-full h-full rounded-lg"
+                            title="PDF Viewer"
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

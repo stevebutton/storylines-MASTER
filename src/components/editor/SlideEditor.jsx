@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2 } from 'lucide-react';
+import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -31,6 +31,7 @@ const validateField = (field, value) => {
 export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingBackground, setIsUploadingBackground] = useState(false);
+    const [isUploadingPdf, setIsUploadingPdf] = useState(false);
     const [errors, setErrors] = useState({});
 
     const handleImageUpload = async (e) => {
@@ -195,6 +196,63 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     />
                                     </div>
                                     </div>
+                                    </div>
+
+                                    {/* PDF Attachment */}
+                                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                        <Label className="text-xs font-medium">PDF Attachment (optional)</Label>
+                                        <p className="text-xs text-slate-500 mb-2">Attach a PDF document to this slide</p>
+                                        {slide.pdf_url ? (
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="w-4 h-4 text-blue-600" />
+                                                <span className="text-xs text-slate-600 flex-1">PDF attached</span>
+                                                <button
+                                                    onClick={() => onUpdate({ ...slide, pdf_url: '' })}
+                                                    className="text-red-500 hover:text-red-600"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <input
+                                                    type="file"
+                                                    accept="application/pdf"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        setIsUploadingPdf(true);
+                                                        try {
+                                                            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                                            onUpdate({ ...slide, pdf_url: file_url });
+                                                        } catch (error) {
+                                                            console.error('Failed to upload PDF:', error);
+                                                        } finally {
+                                                            setIsUploadingPdf(false);
+                                                        }
+                                                    }}
+                                                    className="hidden"
+                                                    id={`slide-pdf-upload-${slide.id}`}
+                                                    disabled={isUploadingPdf}
+                                                />
+                                                <label htmlFor={`slide-pdf-upload-${slide.id}`}>
+                                                    <Button 
+                                                        type="button" 
+                                                        variant="outline"
+                                                        size="sm"
+                                                        disabled={isUploadingPdf}
+                                                        onClick={() => document.getElementById(`slide-pdf-upload-${slide.id}`).click()}
+                                                        className="w-full h-8"
+                                                    >
+                                                        {isUploadingPdf ? (
+                                                            <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...</>
+                                                        ) : (
+                                                            <><FileText className="w-3 h-3 mr-2" /> Upload PDF</>
+                                                        )}
+                                                    </Button>
+                                                </label>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Background Image for Full Background Style */}
