@@ -106,15 +106,16 @@ export default function ChapterEditor({
                             <span className="text-xs text-slate-400 ml-auto mr-2">
                                 {slides.length} slide{slides.length !== 1 ? 's' : ''}
                             </span>
-                            {hasPDF && (
-                                <div className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded">
-                                    <FileText className="w-4 h-4 text-blue-600" title="Contains PDF attachments" />
-                                    <span className="text-xs text-blue-600 font-medium">PDF</span>
-                                </div>
-                            )}
-                        </CollapsibleTrigger>
+                            </CollapsibleTrigger>
 
-                        <Link to={createPageUrl(`ChapterPreview?storyId=${storyId}&chapterId=${chapter.id}`)}>
+                            {hasPDF && (
+                            <div className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded mr-2">
+                                <FileText className="w-4 h-4 text-blue-600" title="Contains PDF attachments" />
+                                <span className="text-xs text-blue-600 font-medium">PDF</span>
+                            </div>
+                            )}
+
+                            <Link to={createPageUrl(`ChapterPreview?storyId=${storyId}&chapterId=${chapter.id}`)}>
                             <Button 
                                 variant="ghost" 
                                 size="icon"
@@ -123,7 +124,7 @@ export default function ChapterEditor({
                             >
                                 <Eye className="w-4 h-4" />
                             </Button>
-                        </Link>
+                            </Link>
                         <Button 
                             variant="ghost" 
                             size="icon"

@@ -35,6 +35,20 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
     const [pdfFileName, setPdfFileName] = useState('');
     const [errors, setErrors] = useState({});
 
+    React.useEffect(() => {
+        if (slide.pdf_url) {
+            try {
+                const url = new URL(slide.pdf_url);
+                const filename = url.pathname.split('/').pop();
+                setPdfFileName(decodeURIComponent(filename));
+            } catch (e) {
+                setPdfFileName('Attached PDF');
+            }
+        } else {
+            setPdfFileName('');
+        }
+    }, [slide.pdf_url]);
+
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
