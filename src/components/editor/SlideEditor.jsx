@@ -32,6 +32,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingBackground, setIsUploadingBackground] = useState(false);
     const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+    const [pdfFileName, setPdfFileName] = useState('');
     const [errors, setErrors] = useState({});
 
     const handleImageUpload = async (e) => {
@@ -203,13 +204,19 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                         <Label className="text-xs font-medium">PDF Attachment (optional)</Label>
                                         <p className="text-xs text-slate-500 mb-2">Attach a PDF document to this slide</p>
                                         {slide.pdf_url ? (
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 p-2 bg-white rounded border border-blue-300">
                                                 <FileText className="w-4 h-4 text-blue-600" />
-                                                <span className="text-xs text-slate-600 flex-1">PDF attached</span>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-medium text-slate-700">PDF attached</p>
+                                                    {pdfFileName && (
+                                                        <p className="text-xs text-slate-500">{pdfFileName}</p>
+                                                    )}
+                                                </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         onUpdate({ ...slide, pdf_url: null });
+                                                        setPdfFileName('');
                                                     }}
                                                     className="text-red-500 hover:text-red-600"
                                                 >
@@ -225,11 +232,13 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                         const file = e.target.files?.[0];
                                                         if (!file) return;
                                                         setIsUploadingPdf(true);
+                                                        setPdfFileName(file.name);
                                                         try {
                                                            const { file_url } = await base44.integrations.Core.UploadFile({ file });
                                                            onUpdate({ ...slide, pdf_url: file_url });
                                                         } catch (error) {
                                                            console.error('Failed to upload PDF:', error);
+                                                           setPdfFileName('');
                                                         } finally {
                                                            setIsUploadingPdf(false);
                                                            e.target.value = '';
