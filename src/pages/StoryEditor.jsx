@@ -359,9 +359,11 @@ export default function StoryEditor() {
     };
 
     const updateSlide = (updatedSlide) => {
-        const newSlides = slides.map(s => s.id === updatedSlide.id ? updatedSlide : s);
-        setSlides(newSlides);
-        saveToHistory(chapters, newSlides);
+        setSlides(prevSlides => {
+            const newSlides = prevSlides.map(s => s.id === updatedSlide.id ? updatedSlide : s);
+            saveToHistory(chapters, newSlides);
+            return newSlides;
+        });
     };
 
     const deleteSlide = async (slideId) => {

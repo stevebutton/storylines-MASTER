@@ -207,7 +207,10 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                 <FileText className="w-4 h-4 text-blue-600" />
                                                 <span className="text-xs text-slate-600 flex-1">PDF attached</span>
                                                 <button
-                                                    onClick={() => onUpdate({ ...slide, pdf_url: '' })}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        onUpdate({ ...slide, pdf_url: null });
+                                                    }}
                                                     className="text-red-500 hover:text-red-600"
                                                 >
                                                     <X className="w-4 h-4" />
@@ -223,13 +226,13 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                         if (!file) return;
                                                         setIsUploadingPdf(true);
                                                         try {
-                                                            const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                                                            const updatedSlide = { ...slide, pdf_url: file_url };
-                                                            onUpdate(updatedSlide);
+                                                           const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                                           onUpdate({ ...slide, pdf_url: file_url });
                                                         } catch (error) {
-                                                            console.error('Failed to upload PDF:', error);
+                                                           console.error('Failed to upload PDF:', error);
                                                         } finally {
-                                                            setIsUploadingPdf(false);
+                                                           setIsUploadingPdf(false);
+                                                           e.target.value = '';
                                                         }
                                                     }}
                                                     className="hidden"
