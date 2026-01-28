@@ -221,7 +221,7 @@ export default function ProjectInterface() {
 
       {/* Document Library Modal */}
       <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
-        <DialogContent className="max-w-7xl h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl h-[90vh] overflow-y-auto z-[200]">
           <DialogHeader>
             <DialogTitle>Document Library</DialogTitle>
           </DialogHeader>
