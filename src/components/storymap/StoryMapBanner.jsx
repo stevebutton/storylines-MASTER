@@ -19,7 +19,7 @@ export default function StoryMapBanner({
             <div className="w-full h-full">
                 <div className="w-full h-full px-4 py-3">
                     {/* Logo - Link to ProjectInterface */}
-                    <Link to={createPageUrl('ProjectInterface')} className="absolute left-[65px] top-[40px] z-10">
+                    <Link to={createPageUrl('ProjectInterface')} className="absolute left-[65px] top-[40px] z-[120]">
                         <img 
                             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/f1188d1fa_storylines-frame.png" 
                             alt="Storylines" 
