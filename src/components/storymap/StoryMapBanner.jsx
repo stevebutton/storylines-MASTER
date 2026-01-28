@@ -72,8 +72,8 @@ export default function StoryMapBanner({
                             fontFamily: 'Montserrat, sans-serif',
                             fontWeight: '800'
                         }}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
                         transition={{ duration: 1.5, delay: hasExplored ? 3 : 0, ease: "easeOut" }}
                     >
                         {storyTitle}
