@@ -44,6 +44,55 @@ export default function StoryMapView() {
         loadStory();
     }, [storyId]);
 
+    // Update og:image meta tag for social media sharing
+    useEffect(() => {
+        if (story && story.hero_image) {
+            // Update or create og:image meta tag
+            let ogImage = document.querySelector('meta[property="og:image"]');
+            if (!ogImage) {
+                ogImage = document.createElement('meta');
+                ogImage.setAttribute('property', 'og:image');
+                document.head.appendChild(ogImage);
+            }
+            ogImage.setAttribute('content', story.hero_image);
+
+            // Also set og:title
+            let ogTitle = document.querySelector('meta[property="og:title"]');
+            if (!ogTitle) {
+                ogTitle = document.createElement('meta');
+                ogTitle.setAttribute('property', 'og:title');
+                document.head.appendChild(ogTitle);
+            }
+            ogTitle.setAttribute('content', story.title);
+
+            // And og:description
+            let ogDescription = document.querySelector('meta[property="og:description"]');
+            if (!ogDescription) {
+                ogDescription = document.createElement('meta');
+                ogDescription.setAttribute('property', 'og:description');
+                document.head.appendChild(ogDescription);
+            }
+            ogDescription.setAttribute('content', story.subtitle || story.title);
+
+            // Twitter card meta tags
+            let twitterCard = document.querySelector('meta[name="twitter:card"]');
+            if (!twitterCard) {
+                twitterCard = document.createElement('meta');
+                twitterCard.setAttribute('name', 'twitter:card');
+                document.head.appendChild(twitterCard);
+            }
+            twitterCard.setAttribute('content', 'summary_large_image');
+
+            let twitterImage = document.querySelector('meta[name="twitter:image"]');
+            if (!twitterImage) {
+                twitterImage = document.createElement('meta');
+                twitterImage.setAttribute('name', 'twitter:image');
+                document.head.appendChild(twitterImage);
+            }
+            twitterImage.setAttribute('content', story.hero_image);
+        }
+    }, [story]);
+
     const loadStory = async () => {
         if (!storyId) {
             setIsLoading(false);
@@ -198,6 +247,8 @@ export default function StoryMapView() {
                 isVisible={isBannerVisible}
                 storyTitle={story.title}
                 hasExplored={hasExplored}
+                storyId={storyId}
+                isShareable={story.is_shareable}
             />
 
             {/* Floating Navigation Buttons */}

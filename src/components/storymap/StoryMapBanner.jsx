@@ -6,11 +6,14 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { List, LogIn, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import SocialShareButtons from './SocialShareButtons';
 
 export default function StoryMapBanner({ 
     isVisible = true,
     storyTitle = '',
-    hasExplored = false
+    hasExplored = false,
+    storyId = '',
+    isShareable = false
 }) {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -98,6 +101,14 @@ export default function StoryMapBanner({
 
                 {/* Buttons - Right Side */}
                 <div className="absolute left-1/2 flex items-center" style={{ gap: '30px' }}>
+                    {/* Social Share Buttons */}
+                    {isShareable && storyId && (
+                        <SocialShareButtons 
+                            storyTitle={storyTitle}
+                            storyUrl={`${window.location.origin}${createPageUrl('StoryMapView')}?id=${storyId}`}
+                        />
+                    )}
+
                     {/* Edit Stories */}
                     <Link
                         to={createPageUrl('Stories')}

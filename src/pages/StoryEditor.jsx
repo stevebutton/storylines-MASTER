@@ -705,14 +705,25 @@ export default function StoryEditor() {
                                 </Label>
                             </div>
                         )}
-                        <div className="flex items-center gap-3">
-                            <Switch
-                                checked={story.is_published || false}
-                                onCheckedChange={(checked) => setStory({ ...story, is_published: checked })}
-                            />
-                            <Label className="cursor-pointer">
-                                {story.is_published ? 'Published' : 'Draft'}
-                            </Label>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                                <Switch
+                                    checked={story.is_published || false}
+                                    onCheckedChange={(checked) => setStory({ ...story, is_published: checked })}
+                                />
+                                <Label className="cursor-pointer">
+                                    {story.is_published ? 'Published' : 'Draft'}
+                                </Label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Switch
+                                    checked={story.is_shareable || false}
+                                    onCheckedChange={(checked) => setStory({ ...story, is_shareable: checked })}
+                                />
+                                <Label className="cursor-pointer">
+                                    Allow social media sharing
+                                </Label>
+                            </div>
                         </div>
                         </CardContent>
                 </Card>
