@@ -155,15 +155,6 @@ export default function ProjectInterface() {
 
   return (
     <div className="relative">
-      {/* Storylines Logo - Fixed Position */}
-      <Link to={createPageUrl('ProjectInterface')} className="fixed left-[65px] top-[40px] z-[120]">
-        <img 
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/f1188d1fa_storylines-frame.png" 
-          alt="Storylines" 
-          className="h-auto hover:opacity-80 transition-opacity cursor-pointer"
-        />
-      </Link>
-
       {/* Hero Section - StoryMap Opening */}
       <div className="relative h-screen">
         <StoryHeader
