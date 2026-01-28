@@ -9,7 +9,8 @@ export default function FloatingNavButtons({
     onToggleChapterMenu,
     hasChapters = false,
     isVisible = true,
-    onViewOtherStories
+    onViewOtherStories,
+    onOpenLibrary
 }) {
     return (
         <div 
