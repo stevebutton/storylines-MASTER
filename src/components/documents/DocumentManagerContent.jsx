@@ -134,7 +134,7 @@ export default function DocumentManagerContent() {
     const uniqueFolders = [...new Set(documents.map(d => d.folder).filter(Boolean))];
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col h-full space-y-6 overflow-y-auto">
             {/* Toolbar */}
             <Card>
                 <CardContent className="p-4">
