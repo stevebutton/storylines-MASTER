@@ -86,7 +86,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "AboutContentThatMoves",
+    mainPage: "ProjectInterface",
     Pages: PAGES,
     Layout: __Layout,
 };
