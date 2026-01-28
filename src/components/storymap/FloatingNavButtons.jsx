@@ -20,7 +20,7 @@ export default function FloatingNavButtons({
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
-            <div className="flex items-center absolute left-1/2" style={{ gap: '30px', marginTop: '53px' }}>
+            <div className="flex items-center absolute left-1/2" style={{ gap: '30px', marginTop: '58px' }}>
                 {/* Chapters Toggle */}
                 {hasChapters && (
                     <button
