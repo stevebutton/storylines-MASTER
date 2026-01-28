@@ -22,6 +22,7 @@ export default function ProjectInterface() {
   const [isMapSectionVisible, setIsMapSectionVisible] = useState(false);
   const [showStorylinesPanel, setShowStorylinesPanel] = useState(false);
   const [showLibraryModal, setShowLibraryModal] = useState(false);
+  const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -167,6 +168,7 @@ export default function ProjectInterface() {
           heroType={mainStory.hero_type}
           onExplore={scrollToMap}
           onWhatIsStorylines={() => setShowStorylinesPanel(true)}
+          onHeroLoaded={() => setHeroMediaLoaded(true)}
         />
         
         {/* Scroll indicator */}
@@ -195,23 +197,25 @@ export default function ProjectInterface() {
       ))}
 
       {/* Map Section - StoriesMap */}
-      <div id="map-section">
-        <StoryMapBanner isVisible={isBannerVisible} storyTitle={mainStory.title} />
+      {heroMediaLoaded && (
+        <div id="map-section">
+          <StoryMapBanner isVisible={isBannerVisible} storyTitle={mainStory.title} />
 
-        <FloatingNavButtons
-          isChapterMenuOpen={isOtherStoriesOpen}
-          onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
-          hasChapters={false}
-          isVisible={isBannerVisible}
-          onOpenLibrary={() => setShowLibraryModal(true)}
-        />
+          <FloatingNavButtons
+            isChapterMenuOpen={isOtherStoriesOpen}
+            onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
+            hasChapters={false}
+            isVisible={isBannerVisible}
+            onOpenLibrary={() => setShowLibraryModal(true)}
+          />
 
-        <InteractiveStoryMap
-          stories={allStories}
-          onScrollToTop={scrollToTop}
-          isVisible={isMapSectionVisible}
-        />
-      </div>
+          <InteractiveStoryMap
+            stories={allStories}
+            onScrollToTop={scrollToTop}
+            isVisible={isMapSectionVisible}
+          />
+        </div>
+      )}
 
       {/* What is Storylines Panel */}
       <WhatIsStorylinesPanel
