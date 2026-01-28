@@ -70,16 +70,18 @@ export default function FloatingNavButtons({
                 </Link>
 
                 {/* Document Library */}
-                <button
-                    onClick={() => {
-                        console.log('FloatingNavButtons: "Library" button clicked');
-                        onOpenLibrary();
-                    }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
-                >
-                    <FileText className="w-5 h-5" />
-                    <span>Library</span>
-                </button>
+                {onOpenLibrary && (
+                    <button
+                        onClick={() => {
+                            console.log('FloatingNavButtons: "Library" button clicked');
+                            onOpenLibrary();
+                        }}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
+                    >
+                        <FileText className="w-5 h-5" />
+                        <span>Library</span>
+                    </button>
+                )}
 
                 {/* Create Story */}
                 <Link
