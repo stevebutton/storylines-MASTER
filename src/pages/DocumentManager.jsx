@@ -9,9 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Download, Trash2, Edit, Search, Folder, Filter } from 'lucide-react';
+import { Upload, FileText, Download, Trash2, Edit, Search, Folder, Filter, ArrowLeft } from 'lucide-react';
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function DocumentManager() {
     const queryClient = useQueryClient();
@@ -138,8 +140,17 @@ export default function DocumentManager() {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Document Manager</h1>
-                    <p className="text-slate-600">Organize and manage your PDF documents</p>
+                    <div className="flex items-center gap-4 mb-4">
+                        <Link to={createPageUrl('ProjectInterface')}>
+                            <Button variant="ghost" size="icon">
+                                <ArrowLeft className="w-5 h-5" />
+                            </Button>
+                        </Link>
+                        <div>
+                            <h1 className="text-3xl font-bold text-slate-900">Document Manager</h1>
+                            <p className="text-slate-600">Organize and manage your PDF documents</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Toolbar */}

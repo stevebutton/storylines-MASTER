@@ -1,6 +1,7 @@
 import AboutContentThatMoves from './pages/AboutContentThatMoves';
 import AboutStorylines from './pages/AboutStorylines';
 import ChapterPreview from './pages/ChapterPreview';
+import DocumentManager from './pages/DocumentManager';
 import Home from './pages/Home';
 import HomeTest from './pages/HomeTest';
 import LocationPickerPage from './pages/LocationPickerPage';
@@ -13,7 +14,6 @@ import StoriesMap from './pages/StoriesMap';
 import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
-import DocumentManager from './pages/DocumentManager';
 import __Layout from './Layout.jsx';
 
 
@@ -21,6 +21,7 @@ export const PAGES = {
     "AboutContentThatMoves": AboutContentThatMoves,
     "AboutStorylines": AboutStorylines,
     "ChapterPreview": ChapterPreview,
+    "DocumentManager": DocumentManager,
     "Home": Home,
     "HomeTest": HomeTest,
     "LocationPickerPage": LocationPickerPage,
@@ -33,7 +34,6 @@ export const PAGES = {
     "StoryEditor": StoryEditor,
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
-    "DocumentManager": DocumentManager,
 }
 
 export const pagesConfig = {
