@@ -1,13 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { List, LogIn, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function StoryMapBanner({ 
     isVisible = true,
     storyTitle = ''
 }) {
+    const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const currentUser = await base44.auth.me();
+                setUser(currentUser);
+            } catch (error) {
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        checkAuth();
+    }, []);
+
+    const handleLogin = () => {
+        base44.auth.redirectToLogin();
+    };
+
+    const handleLogout = () => {
+        base44.auth.logout();
+    };
     return (
         <>
             {/* Logo - Fixed position, always visible when banner is active */}
@@ -38,11 +64,58 @@ export default function StoryMapBanner({
             {/* Footer */}
             <div 
                 className={cn(
-                    "fixed bottom-0 left-0 right-0 z-[100] h-[50px] transition-all duration-700",
+                    "fixed bottom-0 left-0 right-0 z-[100] h-[50px] transition-all duration-700 flex items-center",
                     "bg-white/95 backdrop-blur-xl shadow-lg border-t border-slate-200/50",
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full pointer-events-none"
                 )}
             >
+                {/* CTM Logo */}
+                <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/8b6a9082b_CTM.png"
+                    alt="Content That Moves"
+                    className="h-[30px] ml-[60px]"
+                />
+
+                {/* Buttons - Right Side */}
+                <div className="ml-auto flex items-center gap-4 mr-6">
+                    {/* Edit Stories */}
+                    <Link
+                        to={createPageUrl('Stories')}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
+                    >
+                        <List className="w-5 h-5" />
+                        <span>Edit Stories</span>
+                    </Link>
+
+                    {/* Auth Button */}
+                    {!isLoading && (
+                        user ? (
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                    <User className="w-4 h-4 text-slate-600" />
+                                    <span className="text-sm text-slate-700">{user.email}</span>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleLogout}
+                                    className="gap-2"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    Logout
+                                </Button>
+                            </div>
+                        ) : (
+                            <Button
+                                onClick={handleLogin}
+                                className="bg-amber-600 hover:bg-amber-700 gap-2"
+                            >
+                                <LogIn className="w-4 h-4" />
+                                Login
+                            </Button>
+                        )
+                    )}
+                </div>
             </div>
         </>
     );
