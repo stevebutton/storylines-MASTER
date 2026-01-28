@@ -9,6 +9,8 @@ import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
+import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 
 export default function StoryMapView() {
@@ -29,6 +31,7 @@ export default function StoryMapView() {
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
+    const [showLibraryModal, setShowLibraryModal] = useState(false);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -203,6 +206,7 @@ export default function StoryMapView() {
                 hasChapters={chapters.length > 0}
                 isVisible={isBannerVisible}
                 onViewOtherStories={() => setIsStorySlideshowOpen(true)}
+                onOpenLibrary={() => setShowLibraryModal(true)}
             />
 
             {/* Map Background */}
@@ -293,6 +297,16 @@ export default function StoryMapView() {
                 onClose={() => setIsStorySlideshowOpen(false)}
                 currentStoryId={storyId}
             />
+
+            {/* Document Library Modal */}
+            <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
+                <DialogContent className="max-w-7xl h-[90vh] overflow-y-auto z-[200]">
+                    <DialogHeader>
+                        <DialogTitle>Document Library</DialogTitle>
+                    </DialogHeader>
+                    <DocumentManagerContent />
+                </DialogContent>
+            </Dialog>
             </div>
             );
             }
