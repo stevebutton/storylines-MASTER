@@ -35,6 +35,7 @@ export default function StoryMapView() {
     const [showLibraryModal, setShowLibraryModal] = useState(false);
     const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
+    const [hasExplored, setHasExplored] = useState(false);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -79,22 +80,6 @@ export default function StoryMapView() {
             }));
 
             setChapters(chaptersWithSlides);
-
-            // Animate to first chapter after a brief delay
-            if (chaptersWithSlides.length > 0) {
-                setTimeout(() => {
-                    const first = chaptersWithSlides[0];
-                    setMapConfig({
-                        center: first.coordinates || [0, 0],
-                        zoom: first.zoom || 12,
-                        bearing: first.bearing || 0,
-                        pitch: first.pitch || 0,
-                        mapStyle: first.map_style || 'light',
-                        shouldRotate: true,
-                        flyDuration: first.fly_duration || 12
-                    });
-                }, 3000);
-            }
         } catch (error) {
             console.error('Failed to load story:', error);
         } finally {
@@ -200,7 +185,7 @@ export default function StoryMapView() {
             <AnimatePresence>
                 {showBlackOverlay && (
                     <motion.div
-                        className="fixed inset-0 bg-black z-[200]"
+                        className="fixed inset-0 bg-black z-[50]"
                         initial={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
@@ -246,7 +231,24 @@ export default function StoryMapView() {
                     heroVideo={story.hero_video}
                     heroType={story.hero_type}
                     heroVideoLoop={story.hero_video_loop}
-                    onExplore={() => navigateToChapter(0)}
+                    onExplore={() => {
+                        setHasExplored(true);
+                        navigateToChapter(0);
+                        
+                        // Animate to first chapter
+                        if (chapters.length > 0) {
+                            const first = chapters[0];
+                            setMapConfig({
+                                center: first.coordinates || [0, 0],
+                                zoom: first.zoom || 12,
+                                bearing: first.bearing || 0,
+                                pitch: first.pitch || 0,
+                                mapStyle: first.map_style || 'light',
+                                shouldRotate: true,
+                                flyDuration: first.fly_duration || 12
+                            });
+                        }
+                    }}
                     onHeroLoaded={() => {
                         setHeroMediaLoaded(true);
                         setTimeout(() => setShowBlackOverlay(false), 6000);

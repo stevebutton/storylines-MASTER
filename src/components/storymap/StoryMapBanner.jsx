@@ -38,7 +38,11 @@ export default function StoryMapBanner({
         <>
             {/* Logo - Fixed position, always visible when banner is active */}
             <Link 
-                to={createPageUrl('ProjectInterface')} 
+                to={createPageUrl('ProjectInterface')}
+                onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = createPageUrl('ProjectInterface');
+                }}
                 className={cn(
                     "fixed left-[65px] top-[40px] z-[130] transition-all duration-700",
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
