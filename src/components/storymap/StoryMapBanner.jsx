@@ -11,12 +11,13 @@ export default function StoryMapBanner({
     return (
         <div 
             className={cn(
-                "fixed top-0 left-0 right-0 z-[100] px-4 py-3 transition-all duration-700",
+                "fixed top-0 left-0 right-0 z-[100] h-[100px] transition-all duration-700",
+                "bg-white/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50",
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
-            <div className="max-w-7xl mx-auto">
-                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 px-4 py-3">
+            <div className="w-full h-full">
+                <div className="w-full h-full px-4 py-3">
                     {/* Logo - Link to StoriesMap */}
                     <Link to={createPageUrl('StoriesMap')} className="absolute top-4 left-4 z-10">
                         <img 
