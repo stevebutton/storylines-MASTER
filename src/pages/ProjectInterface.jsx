@@ -7,6 +7,8 @@ import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
 import WhatIsStorylinesPanel from '@/components/storymap/WhatIsStorylinesPanel';
 import InteractiveStoryMap from '@/components/storymap/InteractiveStoryMap';
+import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, ChevronDown } from 'lucide-react';
 
 export default function ProjectInterface() {
@@ -19,6 +21,7 @@ export default function ProjectInterface() {
   const [isBannerVisible, setIsBannerVisible] = useState(false);
   const [isMapSectionVisible, setIsMapSectionVisible] = useState(false);
   const [showStorylinesPanel, setShowStorylinesPanel] = useState(false);
+  const [showLibraryModal, setShowLibraryModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -200,6 +203,7 @@ export default function ProjectInterface() {
           onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
           hasChapters={false}
           isVisible={isBannerVisible}
+          onOpenLibrary={() => setShowLibraryModal(true)}
         />
 
         <InteractiveStoryMap
@@ -214,6 +218,16 @@ export default function ProjectInterface() {
         isOpen={showStorylinesPanel}
         onClose={() => setShowStorylinesPanel(false)}
       />
+
+      {/* Document Library Modal */}
+      <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
+        <DialogContent className="max-w-7xl h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Document Library</DialogTitle>
+          </DialogHeader>
+          <DocumentManagerContent />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

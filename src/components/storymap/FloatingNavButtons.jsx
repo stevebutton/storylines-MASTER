@@ -69,13 +69,13 @@ export default function FloatingNavButtons({
                 </Link>
 
                 {/* Document Library */}
-                <Link
-                    to={createPageUrl('DocumentManager')}
+                <button
+                    onClick={onOpenLibrary}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
                 >
                     <FileText className="w-5 h-5" />
                     <span>Library</span>
-                </Link>
+                </button>
 
                 {/* Create Story */}
                 <Link
