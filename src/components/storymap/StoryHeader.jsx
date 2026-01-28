@@ -1,25 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines }) {
+export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines, onHeroLoaded }) {
+  const [mediaLoaded, setMediaLoaded] = useState(false);
+
+  const handleMediaLoad = () => {
+    setMediaLoaded(true);
+    if (onHeroLoaded) {
+      onHeroLoaded();
+    }
+  };
   return (
     <div className="min-h-screen flex items-center justify-center relative">
             {/* Hero Video or Image or Gradient Background */}
             {heroType === 'video' && heroVideo ?
-      <video
+      <motion.video
         src={heroVideo}
         className="absolute inset-0 w-full h-full object-cover -z-10"
         autoPlay
         muted
         loop
-        playsInline /> :
+        playsInline
+        onLoadedData={handleMediaLoad}
+        initial={{ scale: 1.25, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          scale: { duration: 3, ease: "easeOut" },
+          opacity: { duration: 1, ease: "easeIn" }
+        }} /> :
 
       heroImage ?
-      <img
+      <motion.img
         src={heroImage}
         alt={title}
-        className="absolute inset-0 w-full h-full object-cover z-0" /> :
+        className="absolute inset-0 w-full h-full object-cover z-0"
+        onLoad={handleMediaLoad}
+        initial={{ scale: 1.25, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          scale: { duration: 3, ease: "easeOut" },
+          opacity: { duration: 1, ease: "easeIn" }
+        }} /> :
 
       null}
             <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5 z-[1]" />
