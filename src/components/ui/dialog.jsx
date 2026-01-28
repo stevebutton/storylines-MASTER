@@ -18,14 +18,9 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm",
-      "data-[state=open]:animate-[fadeIn_1000ms_ease-out]",
-      "data-[state=closed]:animate-[fadeOut_1000ms_ease-in]",
+      "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-1000 data-[state=closed]:opacity-0 data-[state=open]:opacity-100",
       className
     )}
-    style={{
-      animationFillMode: 'forwards'
-    }}
     {...props} />
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
@@ -36,14 +31,9 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
-        "data-[state=open]:animate-[slideUpFadeIn_1000ms_ease-out]",
-        "data-[state=closed]:animate-[slideDownFadeOut_1000ms_ease-in]",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] gap-4 border bg-background p-6 shadow-lg transition-all duration-1000 data-[state=closed]:opacity-0 data-[state=open]:opacity-100 data-[state=closed]:translate-y-[calc(-50%+100px)] data-[state=open]:translate-y-[-50%] sm:rounded-lg",
         className
       )}
-      style={{
-        animationFillMode: 'forwards'
-      }}
       {...props}>
       {children}
       <DialogPrimitive.Close
