@@ -300,7 +300,7 @@ export default function StoryMapView() {
 
             {/* Document Library Modal */}
             <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
-                <DialogContent className="max-w-6xl h-[80vh] overflow-y-auto z-[200]">
+                <DialogContent className="max-w-6xl h-[80vh] z-[100000]">
                     <DialogHeader>
                         <DialogTitle>Document Library</DialogTitle>
                     </DialogHeader>
