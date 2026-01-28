@@ -59,6 +59,21 @@ export default function StoryMapBanner({
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
                 )}
             >
+                {/* Story Title */}
+                {storyTitle && (
+                    <div 
+                        className="absolute text-slate-800"
+                        style={{ 
+                            left: '342px', 
+                            top: '32px', 
+                            fontSize: '32px',
+                            fontFamily: 'Montserrat, sans-serif',
+                            fontWeight: '800'
+                        }}
+                    >
+                        {storyTitle}
+                    </div>
+                )}
             </div>
 
             {/* Footer */}

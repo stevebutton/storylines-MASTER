@@ -20,18 +20,7 @@ export default function FloatingNavButtons({
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
-            <div className="flex items-center flex-shrink-0 px-4 py-3 ml-auto" style={{ gap: '30px' }}>
-                {/* View Other Stories */}
-                {onViewOtherStories && (
-                    <button
-                        onClick={onViewOtherStories}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
-                    >
-                        <Map className="w-5 h-5" />
-                        <span>Other Stories</span>
-                    </button>
-                )}
-
+            <div className="flex items-center flex-shrink-0 px-4 py-3 ml-auto" style={{ gap: '30px', marginTop: '20px' }}>
                 {/* Chapters Toggle */}
                 {hasChapters && (
                     <button
@@ -66,14 +55,16 @@ export default function FloatingNavButtons({
                     </button>
                 )}
 
-                {/* Create Story */}
-                <Link
-                    to={createPageUrl('StoryEditor')}
-                    className="p-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white transition-colors"
-                    title="Create Story"
-                >
-                    <Plus className="w-5 h-5" />
-                </Link>
+                {/* View Other Stories */}
+                {onViewOtherStories && (
+                    <button
+                        onClick={onViewOtherStories}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
+                    >
+                        <Map className="w-5 h-5" />
+                        <span>Other Stories</span>
+                    </button>
+                )}
             </div>
         </div>
     );
