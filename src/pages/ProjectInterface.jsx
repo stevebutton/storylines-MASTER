@@ -222,7 +222,7 @@ export default function ProjectInterface() {
       {/* Document Library Modal */}
       {console.log('ProjectInterface: showLibraryModal state before Dialog:', showLibraryModal)}
       <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
-        <DialogContent className="max-w-6xl h-[80vh] z-[100000]">
+        <DialogContent className="w-[90vw] max-w-6xl h-[80vh] z-[100000]">
           <DialogHeader>
             <DialogTitle>Document Library</DialogTitle>
           </DialogHeader>
