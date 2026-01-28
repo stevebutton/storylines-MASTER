@@ -40,7 +40,7 @@ export default function StoryMapBanner({
             <Link 
                 to={createPageUrl('ProjectInterface')} 
                 className={cn(
-                    "fixed left-[65px] top-[40px] z-[120] transition-all duration-700",
+                    "fixed left-[65px] top-[40px] z-[130] transition-all duration-700",
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
                 )}
             >
