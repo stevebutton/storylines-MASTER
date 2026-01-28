@@ -92,11 +92,11 @@ export default function StoryMapBanner({
                 />
 
                 {/* Buttons - Right Side */}
-                <div className="ml-auto flex items-center gap-4 mr-6">
+                <div className="absolute left-1/2 flex items-center" style={{ gap: '30px' }}>
                     {/* Edit Stories */}
                     <Link
                         to={createPageUrl('Stories')}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors text-sm font-medium"
+                        className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
                     >
                         <List className="w-5 h-5" />
                         <span>Edit Stories</span>
@@ -107,27 +107,25 @@ export default function StoryMapBanner({
                         user ? (
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4 text-slate-600" />
-                                    <span className="text-sm text-slate-700">{user.email}</span>
+                                    <User className="w-4 h-4 text-slate-500" />
+                                    <span className="text-sm text-slate-500">{user.email}</span>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
+                                <button
                                     onClick={handleLogout}
-                                    className="gap-2"
+                                    className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
                                 >
                                     <LogOut className="w-4 h-4" />
                                     Logout
-                                </Button>
+                                </button>
                             </div>
                         ) : (
-                            <Button
+                            <button
                                 onClick={handleLogin}
-                                className="bg-amber-600 hover:bg-amber-700 gap-2"
+                                className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
                             >
                                 <LogIn className="w-4 h-4" />
                                 Login
-                            </Button>
+                            </button>
                         )
                     )}
                 </div>
