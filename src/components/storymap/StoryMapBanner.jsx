@@ -65,7 +65,7 @@ export default function StoryMapBanner({
                         className="absolute text-slate-800"
                         style={{ 
                             left: '342px', 
-                            top: '32px', 
+                            top: '24px', 
                             fontSize: '32px',
                             fontFamily: 'Montserrat, sans-serif',
                             fontWeight: '800'
