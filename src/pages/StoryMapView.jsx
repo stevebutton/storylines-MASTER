@@ -197,6 +197,7 @@ export default function StoryMapView() {
             <StoryMapBanner
                 isVisible={isBannerVisible}
                 storyTitle={story.title}
+                hasExplored={hasExplored}
             />
 
             {/* Floating Navigation Buttons */}

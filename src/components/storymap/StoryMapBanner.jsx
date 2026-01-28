@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { List, LogIn, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function StoryMapBanner({ 
     isVisible = true,
-    storyTitle = ''
+    storyTitle = '',
+    hasExplored = false
 }) {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -39,10 +41,6 @@ export default function StoryMapBanner({
             {/* Logo - Fixed position, always visible when banner is active */}
             <Link 
                 to={createPageUrl('ProjectInterface')}
-                onClick={(e) => {
-                    e.preventDefault();
-                    window.location.href = createPageUrl('ProjectInterface');
-                }}
                 className={cn(
                     "fixed left-[65px] top-[40px] z-[130] transition-all duration-700",
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
@@ -65,7 +63,7 @@ export default function StoryMapBanner({
             >
                 {/* Story Title */}
                 {storyTitle && (
-                    <div 
+                    <motion.div 
                         className="absolute text-slate-800"
                         style={{ 
                             left: '342px', 
@@ -74,9 +72,12 @@ export default function StoryMapBanner({
                             fontFamily: 'Montserrat, sans-serif',
                             fontWeight: '800'
                         }}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                        transition={{ duration: 1.5, delay: hasExplored ? 3 : 0, ease: "easeOut" }}
                     >
                         {storyTitle}
-                    </div>
+                    </motion.div>
                 )}
             </div>
 
