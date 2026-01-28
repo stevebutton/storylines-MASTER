@@ -168,7 +168,7 @@ export default function ProjectInterface() {
           heroType={mainStory.hero_type}
           onExplore={scrollToMap}
           onWhatIsStorylines={() => setShowStorylinesPanel(true)}
-          onHeroLoaded={() => setTimeout(() => setHeroMediaLoaded(true), 3000)}
+          onHeroLoaded={() => setTimeout(() => setHeroMediaLoaded(true), 6000)}
         />
         
         {/* Scroll indicator */}
