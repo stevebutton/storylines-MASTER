@@ -127,16 +127,16 @@ export default function DocumentManagerContent() {
         const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = categoryFilter === 'all' || doc.category === categoryFilter;
-        const matchesFolder = folderFilter === 'all' || doc.folder === folderFilter;
+        const matchesFolder = folderFilter === 'all' || doc.folder === folderFolder;
         return matchesSearch && matchesCategory && matchesFolder;
     });
 
     const uniqueFolders = [...new Set(documents.map(d => d.folder).filter(Boolean))];
 
     return (
-        <>
+        <div className="space-y-6">
             {/* Toolbar */}
-            <Card className="mb-6">
+            <Card>
                 <CardContent className="p-4">
                     <div className="flex flex-wrap gap-4 items-center justify-between">
                         <div className="flex gap-2 flex-1">
@@ -284,7 +284,7 @@ export default function DocumentManagerContent() {
 
             {/* Upload Dialog */}
             <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md z-[100000]">
                     <DialogHeader>
                         <DialogTitle>Upload Document</DialogTitle>
                     </DialogHeader>
@@ -348,7 +348,7 @@ export default function DocumentManagerContent() {
             {/* Edit Dialog */}
             {currentDoc && (
                 <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-md z-[100000]">
                         <DialogHeader>
                             <DialogTitle>Edit Document</DialogTitle>
                         </DialogHeader>
@@ -407,7 +407,7 @@ export default function DocumentManagerContent() {
             {/* PDF Viewer Dialog */}
             {currentDoc && (
                 <Dialog open={showPdfDialog} onOpenChange={setShowPdfDialog}>
-                    <DialogContent className="max-w-6xl h-[90vh] z-[9999]">
+                    <DialogContent className="max-w-6xl h-[80vh] z-[100000]">
                         <DialogHeader>
                             <DialogTitle>{currentDoc.title}</DialogTitle>
                         </DialogHeader>
@@ -417,6 +417,6 @@ export default function DocumentManagerContent() {
                     </DialogContent>
                 </Dialog>
             )}
-        </>
+        </div>
     );
 }
