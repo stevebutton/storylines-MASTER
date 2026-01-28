@@ -18,12 +18,12 @@ export default function StoryMapBanner({
         >
             <div className="w-full h-full">
                 <div className="w-full h-full px-4 py-3">
-                    {/* Logo - Link to StoriesMap */}
-                    <Link to={createPageUrl('StoriesMap')} className="absolute top-4 left-4 z-10">
+                    {/* Logo - Link to ProjectInterface */}
+                    <Link to={createPageUrl('ProjectInterface')} className="absolute left-[65px] top-[40px] z-10">
                         <img 
-                            src="https://i.ibb.co/wcQgqn0/map-logo.png" 
-                            alt="Logo" 
-                            className="h-10 w-10 hover:opacity-80 transition-opacity cursor-pointer"
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/f1188d1fa_storylines-frame.png" 
+                            alt="Storylines" 
+                            className="h-auto hover:opacity-80 transition-opacity cursor-pointer"
                         />
                     </Link>
 
