@@ -196,7 +196,7 @@ export default function ProjectInterface() {
 
       {/* Map Section - StoriesMap */}
       <div id="map-section">
-        <StoryMapBanner isVisible={isBannerVisible} />
+        <StoryMapBanner isVisible={isBannerVisible} storyTitle={mainStory.title} />
 
         <FloatingNavButtons
           isChapterMenuOpen={isOtherStoriesOpen}
