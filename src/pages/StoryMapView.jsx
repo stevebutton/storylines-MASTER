@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
+import { motion, AnimatePresence } from 'framer-motion';
 import MapBackground from '@/components/storymap/MapContainer';
 import StoryChapter from '@/components/storymap/StoryChapter';
 import ChapterNavigation from '@/components/storymap/ChapterNavigation';
@@ -32,6 +33,8 @@ export default function StoryMapView() {
     const [isBannerVisible, setIsBannerVisible] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
     const [showLibraryModal, setShowLibraryModal] = useState(false);
+    const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
+    const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -193,6 +196,18 @@ export default function StoryMapView() {
 
     return (
         <div ref={containerRef} className="relative">
+            {/* Black Overlay - Fades out when hero loads */}
+            <AnimatePresence>
+                {showBlackOverlay && (
+                    <motion.div
+                        className="fixed inset-0 bg-black z-[200]"
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                    />
+                )}
+            </AnimatePresence>
+
             {/* Top Banner */}
             <StoryMapBanner
                 isVisible={isBannerVisible}
@@ -232,6 +247,10 @@ export default function StoryMapView() {
                     heroType={story.hero_type}
                     heroVideoLoop={story.hero_video_loop}
                     onExplore={() => navigateToChapter(0)}
+                    onHeroLoaded={() => {
+                        setHeroMediaLoaded(true);
+                        setTimeout(() => setShowBlackOverlay(false), 6000);
+                    }}
                 />
                 
                 {/* Chapters */}
