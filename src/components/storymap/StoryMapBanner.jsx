@@ -64,7 +64,7 @@ export default function StoryMapBanner({
             {/* Footer */}
             <div 
                 className={cn(
-                    "fixed bottom-0 left-0 right-0 z-[100] h-[50px] transition-all duration-700 flex items-center",
+                    "fixed bottom-0 left-0 right-0 z-[100] h-[60px] transition-all duration-700 flex items-center",
                     "bg-white/95 backdrop-blur-xl shadow-lg border-t border-slate-200/50",
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full pointer-events-none"
                 )}
@@ -73,7 +73,7 @@ export default function StoryMapBanner({
                 <img 
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/8b6a9082b_CTM.png"
                     alt="Content That Moves"
-                    className="h-[30px] ml-[60px]"
+                    className="h-[60px] ml-[60px]"
                 />
 
                 {/* Buttons - Right Side */}
