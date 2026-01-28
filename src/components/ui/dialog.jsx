@@ -19,11 +19,8 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay ref={ref} asChild {...props}>
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ 
-        opacity: { duration: 1, ease: "easeOut" }
-      }}
+      animate={{ opacity: 1, transition: { duration: 1, ease: "easeOut" } }}
+      exit={{ opacity: 0, transition: { duration: 1, ease: "easeOut" } }}
       className={cn(
         "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm",
         className
@@ -39,11 +36,23 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
     <DialogPrimitive.Content ref={ref} asChild {...props}>
       <motion.div
         initial={{ opacity: 0, y: 100, x: "-50%" }}
-        animate={{ opacity: 1, y: "-50%", x: "-50%" }}
-        exit={{ opacity: 0, y: 100, x: "-50%" }}
-        transition={{ 
-          y: { duration: 2, ease: "easeOut" },
-          opacity: { duration: 1, ease: "easeOut" }
+        animate={{ 
+          opacity: 1, 
+          y: "-50%", 
+          x: "-50%",
+          transition: {
+            y: { duration: 2, ease: "easeOut" },
+            opacity: { duration: 1, ease: "easeOut" }
+          }
+        }}
+        exit={{ 
+          opacity: 0, 
+          y: 100, 
+          x: "-50%",
+          transition: {
+            y: { duration: 1, ease: "easeIn" },
+            opacity: { duration: 1, ease: "easeIn" }
+          }
         }}
         className={cn(
           "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
