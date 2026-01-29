@@ -48,7 +48,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             
             {mediaLoaded && (
                 <motion.div
-                        className="absolute left-1/2 -translate-x-1/2 z-[95] px-6 max-w-3xl pointer-events-auto flex flex-col items-center"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[95] px-6 max-w-3xl pointer-events-auto flex flex-col items-center"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, delay: 0.3 }}>
@@ -99,7 +99,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
                                     className="cursor-pointer relative z-[95]"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 1, delay: 6 }}
+                                    transition={{ duration: 1, delay: 7 }}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
