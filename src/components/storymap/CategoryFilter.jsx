@@ -1,11 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 
 export default function CategoryFilter({ categories, selectedCategory, onCategoryChange }) {
+  const [showTitle, setShowTitle] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTitle(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="backdrop-blur-md bg-white/90 border border-white/30 rounded-2xl px-6 py-4 shadow-lg">
-      <div className="flex gap-4 items-center">
-        <h3 className="text-sm font-semibold text-slate-800 whitespace-nowrap">Story Categories</h3>
+    <div className="backdrop-blur-md bg-white/90 border border-white/30 rounded-2xl px-6 py-6 shadow-lg">
+      <div className="flex flex-col gap-4 items-center">
+        <div className="w-full flex justify-center overflow-hidden h-[40px]">
+          {showTitle && (
+            <motion.h2
+              className="text-[36px] text-black"
+              style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800 }}
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              Explore the Stories
+            </motion.h2>
+          )}
+        </div>
         <div className="flex gap-2 items-center">
           <Button
             onClick={() => onCategoryChange('all')}
