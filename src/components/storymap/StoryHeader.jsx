@@ -112,7 +112,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
                                     className="cursor-pointer relative z-[95]"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 1, delay: 3 }}
+                                    transition={{ duration: 1, delay: 7 }}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
@@ -126,7 +126,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
                                     className="cursor-pointer relative z-[95]"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 1, delay: 7 }}
+                                    transition={{ duration: 1, delay: 9 }}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
@@ -136,7 +136,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
                                     </div>
                                 </motion.button>
                             </div>
-                        </motion.div>
+                        </div>
             )}
         </div>);
 
