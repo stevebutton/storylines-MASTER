@@ -375,11 +375,13 @@ export default function InteractiveStoryMap({
       <div ref={mapContainer} className="h-[80vh] w-full" />
 
       {categories.length > 0 && (
-        <CategoryFilter
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-        />
+        <div className="absolute top-1/2 -translate-y-1/2 left-4 z-[130]">
+          <CategoryFilter
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
+        </div>
       )}
 
       {stories.length === 0 && (
