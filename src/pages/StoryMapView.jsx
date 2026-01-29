@@ -124,7 +124,9 @@ export default function StoryMapView() {
                         title: s.title,
                         description: s.description,
                         location: s.location,
-                        pdf_url: s.pdf_url
+                        pdf_url: s.pdf_url,
+                        video_url: s.video_url,
+                        video_thumbnail_url: s.video_thumbnail_url
                     }))
             }));
 
