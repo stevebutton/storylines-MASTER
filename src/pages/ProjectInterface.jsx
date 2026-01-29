@@ -213,6 +213,7 @@ export default function ProjectInterface() {
             stories={allStories}
             onScrollToTop={scrollToTop}
             isVisible={isMapSectionVisible}
+            showCategories={isMapSectionVisible}
           />
         </div>
       )}

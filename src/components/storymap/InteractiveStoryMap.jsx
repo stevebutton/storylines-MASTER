@@ -16,7 +16,8 @@ export default function InteractiveStoryMap({
   initialCenter = [26.33845, 21.32637],
   initialZoom = 1.80,
   onScrollToTop,
-  isVisible = true
+  isVisible = true,
+  showCategories = true
 }) {
   const navigate = useNavigate();
   const mapContainer = useRef(null);
@@ -374,7 +375,7 @@ export default function InteractiveStoryMap({
     <div className="relative h-screen w-full flex items-center justify-center">
       <div ref={mapContainer} className="h-[80vh] w-full" />
 
-      {categories.length > 0 && (
+      {categories.length > 0 && showCategories && (
         <div className="fixed bottom-[15%] left-1/2 -translate-x-1/2 z-[130]">
           <CategoryFilter
             categories={categories}
