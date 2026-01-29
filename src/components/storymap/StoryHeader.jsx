@@ -98,7 +98,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
                         whileTap={{ scale: 0.95 }}
                     >
                         <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[240px]">
-                            <span>Explore the story</span>
+                            <span>Explore the Stories</span>
                             <ChevronDown className="w-5 h-5" />
                         </div>
                     </motion.button>
