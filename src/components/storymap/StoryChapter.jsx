@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ChapterCarousel from './ChapterCarousel';
-import { FileText } from 'lucide-react';
+import { FileText, Play, Maximize2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PdfViewer from '@/components/pdf/PdfViewer';
+import VideoPlayerModal from './VideoPlayerModal';
 
 export default function StoryChapter({ 
     chapter, 
@@ -16,6 +17,8 @@ export default function StoryChapter({
 }) {
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const [showPdfModal, setShowPdfModal] = useState(false);
+    const [showVideoModal, setShowVideoModal] = useState(false);
+    const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
     
     console.log("Current Slide for debugging:", currentSlide);
@@ -67,8 +70,41 @@ export default function StoryChapter({
                                 <div className="flex-1 h-px bg-gradient-to-r from-amber-400/50 to-transparent" />
                             </div>
                             
-                            {/* Image Carousel */}
-                            {chapter.slides && chapter.slides.length > 0 && (
+                            {/* Video or Image Carousel */}
+                            {currentSlide?.video_url ? (
+                                <div className="mb-6 relative">
+                                    {!isVideoPlaying && currentSlide.video_thumbnail_url ? (
+                                        <div 
+                                            className="relative cursor-pointer group"
+                                            onClick={() => setIsVideoPlaying(true)}
+                                        >
+                                            <img 
+                                                src={currentSlide.video_thumbnail_url}
+                                                alt="Video thumbnail"
+                                                className="w-full h-64 object-cover rounded-lg"
+                                            />
+                                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center">
+                                                <Play className="w-16 h-16 text-white" fill="white" />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="relative">
+                                            <video 
+                                                src={currentSlide.video_url}
+                                                controls
+                                                autoPlay={isVideoPlaying}
+                                                className="w-full h-64 object-cover rounded-lg"
+                                            />
+                                            <button
+                                                onClick={() => setShowVideoModal(true)}
+                                                className="absolute bottom-2 right-2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors"
+                                            >
+                                                <Maximize2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : chapter.slides && chapter.slides.length > 0 && (
                                 <div className="mb-6">
                                     <ChapterCarousel 
                                         slides={chapter.slides} 
@@ -148,6 +184,14 @@ export default function StoryChapter({
                         </div>
                     </DialogContent>
                 </Dialog>
+
+                {/* Video Modal */}
+                <VideoPlayerModal
+                    isOpen={showVideoModal}
+                    onClose={() => setShowVideoModal(false)}
+                    videoUrl={currentSlide?.video_url}
+                    title={currentSlide?.title}
+                />
             </div>
         );
     }
@@ -171,8 +215,41 @@ export default function StoryChapter({
                     "bg-white/90 dark:bg-slate-900/90",
                     "border border-white/20"
                 )}>
-                    {/* Image Carousel */}
-                    {chapter.slides && chapter.slides.length > 0 && (
+                    {/* Video or Image Carousel */}
+                    {currentSlide?.video_url ? (
+                        <div className="relative">
+                            {!isVideoPlaying && currentSlide.video_thumbnail_url ? (
+                                <div 
+                                    className="relative cursor-pointer group h-64"
+                                    onClick={() => setIsVideoPlaying(true)}
+                                >
+                                    <img 
+                                        src={currentSlide.video_thumbnail_url}
+                                        alt="Video thumbnail"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                        <Play className="w-16 h-16 text-white" fill="white" />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <video 
+                                        src={currentSlide.video_url}
+                                        controls
+                                        autoPlay={isVideoPlaying}
+                                        className="w-full h-64 object-cover"
+                                    />
+                                    <button
+                                        onClick={() => setShowVideoModal(true)}
+                                        className="absolute bottom-2 right-2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors"
+                                    >
+                                        <Maximize2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : chapter.slides && chapter.slides.length > 0 && (
                         <ChapterCarousel 
                             slides={chapter.slides} 
                             onSlideChange={handleSlideChange}
@@ -260,6 +337,14 @@ export default function StoryChapter({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Video Modal */}
+            <VideoPlayerModal
+                isOpen={showVideoModal}
+                onClose={() => setShowVideoModal(false)}
+                videoUrl={currentSlide?.video_url}
+                title={currentSlide?.title}
+            />
         </div>
     );
 }

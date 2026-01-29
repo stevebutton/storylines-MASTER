@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2, FileText } from 'lucide-react';
+import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2, FileText, Video } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -32,6 +32,8 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingBackground, setIsUploadingBackground] = useState(false);
     const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+    const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+    const [isUploadingVideoThumbnail, setIsUploadingVideoThumbnail] = useState(false);
     const [pdfFileName, setPdfFileName] = useState('');
     const [errors, setErrors] = useState({});
 
@@ -211,6 +213,139 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     />
                                     </div>
                                     </div>
+                                    </div>
+
+                                    {/* Video Section */}
+                                    <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                                        <Label className="text-xs font-medium">Video (optional)</Label>
+                                        <p className="text-xs text-slate-500 mb-2">Upload a video or enter a URL</p>
+                                        
+                                        {/* Video URL Input */}
+                                        <div className="mb-2">
+                                            <Input 
+                                                value={slide.video_url || ''} 
+                                                onChange={(e) => onUpdate({ ...slide, video_url: e.target.value })}
+                                                placeholder="Enter video URL or upload below"
+                                                className="h-9 text-xs"
+                                            />
+                                        </div>
+
+                                        {/* Video Upload */}
+                                        <div className="mb-2">
+                                            <input
+                                                type="file"
+                                                accept="video/*"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    setIsUploadingVideo(true);
+                                                    try {
+                                                        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                                        onUpdate({ ...slide, video_url: file_url });
+                                                    } catch (error) {
+                                                        console.error('Failed to upload video:', error);
+                                                    } finally {
+                                                        setIsUploadingVideo(false);
+                                                        e.target.value = '';
+                                                    }
+                                                }}
+                                                className="hidden"
+                                                id={`slide-video-upload-${slide.id}`}
+                                                disabled={isUploadingVideo}
+                                            />
+                                            <label htmlFor={`slide-video-upload-${slide.id}`}>
+                                                <Button 
+                                                    type="button" 
+                                                    variant="outline"
+                                                    size="sm"
+                                                    disabled={isUploadingVideo}
+                                                    onClick={() => document.getElementById(`slide-video-upload-${slide.id}`).click()}
+                                                    className="w-full h-8"
+                                                >
+                                                    {isUploadingVideo ? (
+                                                        <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading Video...</>
+                                                    ) : (
+                                                        <><Video className="w-3 h-3 mr-2" /> Upload Video</>
+                                                    )}
+                                                </Button>
+                                            </label>
+                                        </div>
+
+                                        {/* Video Thumbnail */}
+                                        {slide.video_url && (
+                                            <div>
+                                                <Label className="text-xs font-medium">Video Thumbnail</Label>
+                                                <p className="text-xs text-slate-500 mb-2">Upload a preview image for the video</p>
+                                                {slide.video_thumbnail_url ? (
+                                                    <div className="relative">
+                                                        <img 
+                                                            src={slide.video_thumbnail_url} 
+                                                            alt="Video thumbnail" 
+                                                            className="w-full h-24 object-cover rounded-lg"
+                                                        />
+                                                        <button
+                                                            onClick={() => onUpdate({ ...slide, video_thumbnail_url: '' })}
+                                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={async (e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (!file) return;
+                                                                setIsUploadingVideoThumbnail(true);
+                                                                try {
+                                                                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                                                    onUpdate({ ...slide, video_thumbnail_url: file_url });
+                                                                } catch (error) {
+                                                                    console.error('Failed to upload thumbnail:', error);
+                                                                } finally {
+                                                                    setIsUploadingVideoThumbnail(false);
+                                                                    e.target.value = '';
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                            id={`slide-video-thumb-${slide.id}`}
+                                                            disabled={isUploadingVideoThumbnail}
+                                                        />
+                                                        <label htmlFor={`slide-video-thumb-${slide.id}`}>
+                                                            <Button 
+                                                                type="button" 
+                                                                variant="outline"
+                                                                size="sm"
+                                                                disabled={isUploadingVideoThumbnail}
+                                                                onClick={() => document.getElementById(`slide-video-thumb-${slide.id}`).click()}
+                                                                className="w-full h-8"
+                                                            >
+                                                                {isUploadingVideoThumbnail ? (
+                                                                    <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...</>
+                                                                ) : (
+                                                                    <><Upload className="w-3 h-3 mr-2" /> Upload Thumbnail</>
+                                                                )}
+                                                            </Button>
+                                                        </label>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Clear Video */}
+                                        {slide.video_url && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => onUpdate({ ...slide, video_url: '', video_thumbnail_url: '' })}
+                                                className="w-full h-8 mt-2 text-red-500 hover:text-red-600"
+                                            >
+                                                <X className="w-3 h-3 mr-2" /> Clear Video
+                                            </Button>
+                                        )}
                                     </div>
 
                                     {/* PDF Attachment */}
