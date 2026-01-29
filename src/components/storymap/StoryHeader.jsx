@@ -48,62 +48,68 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             
             {mediaLoaded && (
                 <motion.div
-            className="absolute left-[15%] z-[95] px-6 max-w-3xl pointer-events-auto"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}>
+                        className="absolute left-1/2 -translate-x-1/2 z-[95] px-6 max-w-3xl pointer-events-auto flex flex-col items-center"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 1, delay: 0.3 }}>
 
-                {/* Decorative line */}
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-px bg-white/40" />
-                    <div className="w-2 h-2 rounded-full bg-amber-500" />
-                    <div className="w-12 h-px bg-white/40" />
-                </div>
-                
-                {/* Title */}
-                {titleImage ? (
-                    <img src={titleImage} alt={title} style={{ width: '430px', height: '87px' }} className="mb-6 object-contain object-left" />
-                ) : (
-                    <h1 className="text-white mb-6 text-4xl font-light text-left tracking-tight leading-tight md:text-6xl lg:text-7xl">
-                        {title}
-                    </h1>
-                )}
-                
-                {/* Subtitle */}
-                {subtitleImage ? (
-                    <img src={subtitleImage} alt={subtitle} style={{ width: '424px', height: '27px' }} className="mb-6 object-contain object-left" />
-                ) : (
-                    <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-left max-w-xl">
-                        {subtitle}
-                    </p>
-                )}
-                
-                {/* Buttons */}
-                <div className="flex flex-col" style={{ marginTop: '62px', gap: '50px' }}>
-                    <motion.button
-                        onClick={onWhatIsStorylines}
-                        className="cursor-pointer relative z-[95]"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[240px]">
-                            <span>What is Storylines</span>
-                        </div>
-                    </motion.button>
+                            {/* Decorative line */}
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-12 h-px bg-white/40" />
+                                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                                <div className="w-12 h-px bg-white/40" />
+                            </div>
 
-                    <motion.button
-                        onClick={onExplore}
-                        className="cursor-pointer relative z-[95]"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[240px]">
-                            <span>Explore the Stories</span>
-                            <ChevronDown className="w-5 h-5" />
-                        </div>
-                    </motion.button>
-                </div>
-            </motion.div>
+                            {/* Title */}
+                            {titleImage ? (
+                                <img src={titleImage} alt={title} style={{ width: '430px', height: '87px' }} className="mb-6 object-contain" />
+                            ) : (
+                                <h1 className="text-white mb-6 text-4xl font-light text-center tracking-tight leading-tight md:text-6xl lg:text-7xl">
+                                    {title}
+                                </h1>
+                            )}
+
+                            {/* Subtitle */}
+                            {subtitleImage ? (
+                                <img src={subtitleImage} alt={subtitle} style={{ width: '424px', height: '27px' }} className="mb-6 object-contain" />
+                            ) : (
+                                <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-center max-w-xl">
+                                    {subtitle}
+                                </p>
+                            )}
+
+                            {/* Buttons */}
+                            <div className="flex flex-col items-center" style={{ marginTop: '62px', gap: '50px' }}>
+                                <motion.button
+                                    onClick={onWhatIsStorylines}
+                                    className="cursor-pointer relative z-[95]"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 1, delay: 3 }}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[240px]">
+                                        <span>What is Storylines</span>
+                                    </div>
+                                </motion.button>
+
+                                <motion.button
+                                    onClick={onExplore}
+                                    className="cursor-pointer relative z-[95]"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 1, delay: 6 }}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <div className="flex items-center justify-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow w-[240px]">
+                                        <span>Explore the Stories</span>
+                                        <ChevronDown className="w-5 h-5" />
+                                    </div>
+                                </motion.button>
+                            </div>
+                        </motion.div>
             )}
         </div>);
 
