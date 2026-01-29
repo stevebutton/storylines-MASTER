@@ -47,35 +47,62 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/5 z-[1]" />
             
             {mediaLoaded && (
-                <motion.div
-                        className="relative z-[95] px-6 pointer-events-auto flex flex-col items-center"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1, delay: 0.3 }}>
+                <div className="relative z-[95] px-6 pointer-events-auto flex flex-col items-center">
 
                             {/* Decorative line */}
-                            <div className="flex items-center gap-4 mb-8">
+                            <motion.div 
+                                className="flex items-center gap-4 mb-8"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 1, delay: 5 }}
+                            >
                                 <div className="w-12 h-px bg-white/40" />
                                 <div className="w-2 h-2 rounded-full bg-amber-500" />
                                 <div className="w-12 h-px bg-white/40" />
-                            </div>
+                            </motion.div>
 
                             {/* Title */}
                             {titleImage ? (
-                                <img src={titleImage} alt={title} style={{ width: '430px', height: '87px' }} className="mb-6 object-contain" />
+                                <motion.img 
+                                    src={titleImage} 
+                                    alt={title} 
+                                    style={{ width: '430px', height: '87px' }} 
+                                    className="mb-6 object-contain"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 1, delay: 2 }}
+                                />
                             ) : (
-                                <h1 className="text-white mb-6 text-4xl font-light text-center tracking-tight leading-tight md:text-6xl lg:text-7xl">
+                                <motion.h1 
+                                    className="text-white mb-6 text-4xl font-light text-center tracking-tight leading-tight md:text-6xl lg:text-7xl"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 1, delay: 2 }}
+                                >
                                     {title}
-                                </h1>
+                                </motion.h1>
                             )}
 
                             {/* Subtitle */}
                             {subtitleImage ? (
-                                <img src={subtitleImage} alt={subtitle} style={{ width: '424px', height: '27px' }} className="mb-6 object-contain" />
+                                <motion.img 
+                                    src={subtitleImage} 
+                                    alt={subtitle} 
+                                    style={{ width: '424px', height: '27px' }} 
+                                    className="mb-6 object-contain"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 1, delay: 4 }}
+                                />
                             ) : (
-                                <p className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-center max-w-xl">
+                                <motion.p 
+                                    className="text-white/80 mx-auto my-1 px-1 text-2xl font-light text-center max-w-xl"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 1, delay: 4 }}
+                                >
                                     {subtitle}
-                                </p>
+                                </motion.p>
                             )}
 
                             {/* Buttons */}
