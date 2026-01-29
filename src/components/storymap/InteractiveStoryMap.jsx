@@ -379,8 +379,12 @@ export default function InteractiveStoryMap({
       <AnimatePresence>
         {showCategories && (
           <motion.h2
-            className="fixed top-[120px] left-1/2 z-[130] text-white text-[32px]"
-            style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800 }}
+            className="fixed bottom-[25%] left-1/2 z-[130] text-white text-[36px]"
+            style={{ 
+              fontFamily: 'Montserrat, sans-serif', 
+              fontWeight: 800,
+              textShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}
             initial={{ y: -100, opacity: 0, x: "-50%" }}
             animate={{ y: 0, opacity: 1, x: "-50%" }}
             exit={{ y: -100, opacity: 0, x: "-50%" }}
