@@ -12,7 +12,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center relative">
+    <div className="min-h-screen w-full flex items-center justify-center relative">
             {/* Hero Video or Image or Gradient Background */}
             {heroType === 'video' && heroVideo ?
       <motion.video
@@ -48,7 +48,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             
             {mediaLoaded && (
                 <motion.div
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[95] px-6 max-w-3xl pointer-events-auto flex flex-col items-center"
+                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[95] px-6 pointer-events-auto flex flex-col items-center"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 1, delay: 0.3 }}>
