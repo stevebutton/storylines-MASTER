@@ -377,25 +377,6 @@ export default function InteractiveStoryMap({
       <div ref={mapContainer} className="h-[80vh] w-full" />
 
       <AnimatePresence>
-        {showCategories && (
-          <motion.h2
-            className="fixed bottom-[calc(25%-15px)] left-1/2 z-[130] text-white text-[40px]"
-            style={{ 
-              fontFamily: 'Montserrat, sans-serif', 
-              fontWeight: 800,
-              textShadow: '0 4px 6px rgba(0, 0, 0, 0.15)'
-            }}
-            initial={{ y: -100, opacity: 0, x: "-50%" }}
-            animate={{ y: 0, opacity: 1, x: "-50%" }}
-            exit={{ y: -100, opacity: 0, x: "-50%" }}
-            transition={{ duration: 2, ease: "easeOut", delay: 1 }}
-          >
-            Explore the Stories
-          </motion.h2>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
         {categories.length > 0 && showCategories && (
           <motion.div 
             className="fixed bottom-[15%] left-1/2 z-[130]"
