@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, FileEdit, Upload, FileText, Map, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import InterviewModePanel from './InterviewModePanel';
 
 export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
+    const [isInterviewModeOpen, setIsInterviewModeOpen] = useState(false);
 
     const handleStartFromScratch = () => {
         navigate(createPageUrl('StoryEditor'));
@@ -51,8 +53,8 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
             title: 'Interview Mode',
             description: 'Let AI guide you through building your story',
             icon: MessageSquare,
-            isActive: false,
-            onClick: null
+            isActive: true,
+            onClick: () => setIsInterviewModeOpen(true)
         }
     ];
 
@@ -152,6 +154,15 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                     </motion.div>
                 </>
             )}
+            
+            {/* Interview Mode Panel */}
+            <InterviewModePanel
+                isOpen={isInterviewModeOpen}
+                onClose={() => {
+                    setIsInterviewModeOpen(false);
+                    onClose();
+                }}
+            />
         </AnimatePresence>
     );
 }
