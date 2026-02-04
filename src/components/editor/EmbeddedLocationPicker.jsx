@@ -75,8 +75,27 @@ export default function EmbeddedLocationPicker({ location, onLocationChange }) {
         };
     }, []);
 
-    // Don't auto-fly when location prop changes externally, only on user interaction
-    // This prevents conflicts when the component mounts or parent updates
+    useEffect(() => {
+        if (mapRef.current && location.lat && location.lng) {
+            // Update marker position
+            if (markerRef.current) {
+                markerRef.current.setLngLat([location.lng, location.lat]);
+            } else {
+                markerRef.current = new mapboxgl.Marker({ color: '#d97706' })
+                    .setLngLat([location.lng, location.lat])
+                    .addTo(mapRef.current);
+            }
+            
+            // Fly to new location
+            mapRef.current.flyTo({
+                center: [location.lng, location.lat],
+                zoom: location.zoom || 12,
+                bearing: location.bearing || 0,
+                pitch: location.pitch || 0,
+                duration: 1000
+            });
+        }
+    }, [location.lat, location.lng, location.zoom, location.bearing, location.pitch]);
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;

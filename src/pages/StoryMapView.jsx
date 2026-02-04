@@ -124,6 +124,11 @@ export default function StoryMapView() {
                         title: s.title,
                         description: s.description,
                         location: s.location,
+                        coordinates: s.coordinates,
+                        zoom: s.zoom,
+                        bearing: s.bearing,
+                        pitch: s.pitch,
+                        fly_duration: s.fly_duration,
                         pdf_url: s.pdf_url,
                         video_url: s.video_url,
                         video_thumbnail_url: s.video_thumbnail_url
