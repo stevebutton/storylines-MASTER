@@ -187,7 +187,7 @@ export default function HelpPanel({ isOpen, onClose }) {
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                        className="fixed right-0 top-0 h-full w-1/2 bg-white shadow-2xl z-[70] flex flex-col"
+                        className="fixed left-80 right-0 top-0 h-full bg-white shadow-2xl z-[70] flex flex-col"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b">
@@ -215,7 +215,9 @@ export default function HelpPanel({ isOpen, onClose }) {
                                             onClick={() => setActiveTopic(topic.id)}
                                             className={cn(
                                                 "justify-start w-full",
-                                                activeTopic === topic.id
+                                                topic.id === 'chapters'
+                                                    ? "bg-slate-900 text-white hover:bg-slate-800 hover:text-white"
+                                                    : activeTopic === topic.id
                                                     ? "bg-slate-900 text-white hover:bg-slate-800 hover:text-white"
                                                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                                             )}
