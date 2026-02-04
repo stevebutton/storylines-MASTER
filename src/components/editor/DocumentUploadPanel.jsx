@@ -238,9 +238,9 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                                                     How It Works
                                                 </h3>
                                                 <p className="text-slate-700 leading-relaxed">
-                                                    Upload a structured document containing your story outline, and our AI will automatically 
-                                                    transform it into chapters and slides. Your document should follow a clear format with 
-                                                    a title, chapter headings, and scene descriptions.
+                                                    Upload a structured document containing your project outline or report. We'll help transform 
+                                                    it into an interactive narrative with chapters and visual content sections. Your document should 
+                                                    follow a clear format with a title, section headings, and descriptive content for each location or milestone.
                                                 </p>
                                             </div>
                                             <Button
@@ -352,7 +352,7 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                                                     Ready to Upload?
                                                 </h3>
                                                 <p className="text-sm text-slate-600 mb-4">
-                                                    Select your prepared outline document
+                                                    We'll process your document and structure it into an interactive format. Select your prepared outline to begin.
                                                 </p>
                                                 <input
                                                     type="file"
@@ -404,10 +404,10 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <Loader2 className="w-16 h-16 animate-spin text-purple-600 mb-4" />
                                     <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                                        Analyzing Your Document...
+                                        Processing Your Document...
                                     </h3>
                                     <p className="text-sm text-slate-600">
-                                        Extracting chapters, slides, and creating your story structure
+                                        We're extracting the structure, organizing chapters, and preparing your narrative framework
                                     </p>
                                 </div>
                             )}
@@ -417,10 +417,10 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <CheckCircle2 className="w-16 h-16 text-green-600 mb-4" />
                                     <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                                        Story Created Successfully!
+                                        Narrative Structure Created Successfully
                                     </h3>
                                     <p className="text-sm text-slate-600">
-                                        Redirecting to the editor...
+                                        Taking you to the editor...
                                     </p>
                                 </div>
                             )}
@@ -433,7 +433,7 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                                         Processing Failed
                                     </h3>
                                     <p className="text-sm text-slate-600 mb-6">
-                                        We couldn't extract the story structure from your document. Please check the format and try again.
+                                        We encountered difficulty extracting the structure from your document. Please verify the format matches the template guidelines and try again.
                                     </p>
                                     <Button
                                         onClick={() => {

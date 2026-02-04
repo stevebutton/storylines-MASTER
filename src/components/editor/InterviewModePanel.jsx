@@ -10,7 +10,7 @@ import { createPageUrl } from '@/utils';
 export default function InterviewModePanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: "Hello! I'm excited to help you create your story. Let's start with the basics: What's your story about? Give me a theme, location, or concept." }
+        { role: 'assistant', content: "Welcome to Interview Mode. We'll help you structure your project narrative through a series of focused questions. Let's begin: What is the central theme or focus of your project? Provide a location, concept, or key area of work." }
     ]);
     const [userInput, setUserInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -19,10 +19,10 @@ export default function InterviewModePanel({ isOpen, onClose }) {
     const messagesEndRef = useRef(null);
 
     const interviewSteps = [
-        { key: 'theme', prompt: "What's your story about? Give me a theme, location, or concept." },
-        { key: 'chapters', prompt: "Great! How many chapters or main locations should this story cover? (e.g., 3-5)" },
-        { key: 'style', prompt: "What tone should the story have? (e.g., adventurous, educational, inspirational, mysterious)" },
-        { key: 'details', prompt: "Any specific details you'd like to include? Locations, historical context, or special moments?" }
+        { key: 'theme', prompt: "What is the central theme or focus of your project? Provide a location, concept, or key area of work." },
+        { key: 'chapters', prompt: "Excellent. How many key sections or geographic areas should this narrative cover? (e.g., 3-5)" },
+        { key: 'style', prompt: "What approach should the narrative take? (e.g., analytical, educational, impact-focused, observational)" },
+        { key: 'details', prompt: "Please provide any specific details to include: key locations, stakeholder perspectives, contextual background, or critical milestones." }
     ];
 
     useEffect(() => {
@@ -68,7 +68,7 @@ export default function InterviewModePanel({ isOpen, onClose }) {
     const generateStory = async (data) => {
         setMessages(prev => [...prev, { 
             role: 'assistant', 
-            content: '✨ Perfect! Let me generate your story outline...' 
+            content: '✓ Thank you. We\'ll now generate your project narrative outline...' 
         }]);
 
         try {
@@ -120,7 +120,7 @@ Create a detailed story outline with title, subtitle, and chapters with location
 
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
-                content: `🎉 Story created: "${response.title}"! Creating your story now...` 
+                content: `✓ Narrative structure created: "${response.title}". Building your project now...` 
             }]);
 
             // Create the story
@@ -164,7 +164,7 @@ Create a detailed story outline with title, subtitle, and chapters with location
             console.error('Failed to generate story:', error);
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
-                content: 'Sorry, something went wrong. Please try again.' 
+                content: 'An error occurred during processing. Please try again.' 
             }]);
             setIsProcessing(false);
         }
@@ -203,7 +203,7 @@ Create a detailed story outline with title, subtitle, and chapters with location
                                 <Sparkles className="w-8 h-8 text-amber-600" />
                                 <div>
                                     <h2 className="text-4xl font-bold text-slate-800">Interview Mode</h2>
-                                    <p className="text-sm text-slate-600 mt-1">Let's build your story together</p>
+                                    <p className="text-sm text-slate-600 mt-1">Structured guidance for developing your project narrative</p>
                                 </div>
                             </div>
                             <Button variant="ghost" size="icon" onClick={onClose}>

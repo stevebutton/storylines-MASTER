@@ -174,7 +174,7 @@ Return a structured story outline.`,
                                 <MapPin className="w-8 h-8 text-blue-600" />
                                 <div>
                                     <h2 className="text-4xl font-bold text-slate-800">Import from Map Data</h2>
-                                    <p className="text-sm text-slate-600 mt-1">Upload geotagged photos to create your story</p>
+                                    <p className="text-sm text-slate-600 mt-1">Generate narratives from field documentation and geotagged media</p>
                                 </div>
                             </div>
                             <Button variant="ghost" size="icon" onClick={onClose}>
@@ -190,10 +190,10 @@ Return a structured story outline.`,
                                     <div className="border-2 border-dashed border-slate-300 rounded-lg p-12 text-center">
                                         <Upload className="w-16 h-16 text-slate-400 mx-auto mb-4" />
                                         <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                                            Upload Your Photos
+                                            Upload Field Documentation
                                         </h3>
                                         <p className="text-sm text-slate-600 mb-6">
-                                            Upload geotagged images or photos with location information
+                                            We'll analyze location-tagged images and help structure them into a cohesive geographic narrative. Upload photos containing location metadata or recognizable landmarks.
                                         </p>
                                         <input
                                             type="file"
@@ -243,10 +243,10 @@ Return a structured story outline.`,
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <Loader2 className="w-16 h-16 animate-spin text-blue-600 mb-4" />
                                     <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                                        Analyzing Your Photos...
+                                        Processing Field Documentation...
                                     </h3>
                                     <p className="text-sm text-slate-600">
-                                        Extracting locations and creating story chapters
+                                        We're extracting location data and organizing content into chapters
                                     </p>
                                 </div>
                             )}
@@ -314,10 +314,10 @@ Return a structured story outline.`,
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <CheckCircle className="w-16 h-16 text-green-600 mb-4" />
                                     <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                                        Creating Your Story...
+                                        Building Your Narrative...
                                     </h3>
                                     <p className="text-sm text-slate-600">
-                                        Setting up chapters and importing images
+                                        We're organizing chapters and integrating your documentation
                                     </p>
                                 </div>
                             )}
