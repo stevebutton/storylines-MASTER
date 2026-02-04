@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsPanel';
 
 export default function Stories() {
   const [stories, setStories] = useState([]);
@@ -26,6 +27,7 @@ export default function Stories() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryName, setCategoryName] = useState('');
   const [categoryColor, setCategoryColor] = useState('bg-slate-100 text-slate-800');
+  const [isStoryCreationPanelOpen, setIsStoryCreationPanelOpen] = useState(false);
 
   useEffect(() => {
     loadStories();
@@ -238,11 +240,12 @@ export default function Stories() {
                                     <Map className="w-4 h-4 mr-2" /> View Map
                                 </Button>
                             </Link>
-                            <Link to={createPageUrl('StoryEditor')}>
-                                <Button className="bg-amber-600 hover:bg-amber-700">
-                                    <Plus className="w-4 h-4 mr-2" /> New Story
-                                </Button>
-                            </Link>
+                            <Button 
+                                className="bg-amber-600 hover:bg-amber-700"
+                                onClick={() => setIsStoryCreationPanelOpen(true)}
+                            >
+                                <Plus className="w-4 h-4 mr-2" /> New Story
+                            </Button>
                         </div>
                     </div>
 
@@ -329,11 +332,12 @@ export default function Stories() {
                             <Map className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-slate-700 mb-2">No stories yet</h3>
                             <p className="text-slate-500 mb-6">Create your first interactive story map</p>
-                            <Link to={createPageUrl('StoryEditor')}>
-                                <Button className="bg-amber-600 hover:bg-amber-700">
-                                    <Plus className="w-4 h-4 mr-2" /> Create Story
-                                </Button>
-                            </Link>
+                            <Button 
+                                className="bg-amber-600 hover:bg-amber-700"
+                                onClick={() => setIsStoryCreationPanelOpen(true)}
+                            >
+                                <Plus className="w-4 h-4 mr-2" /> Create Story
+                            </Button>
                         </CardContent>
                     </Card> :
         filteredAndSortedStories.length === 0 ?
@@ -517,6 +521,12 @@ export default function Stories() {
                     </div>
         }
             </div>
+
+            {/* Story Creation Options Panel */}
+            <StoryCreationOptionsPanel
+                isOpen={isStoryCreationPanelOpen}
+                onClose={() => setIsStoryCreationPanelOpen(false)}
+            />
 
             {/* Category Manager Dialog */}
             <Dialog open={isCategoryManagerOpen} onOpenChange={setIsCategoryManagerOpen}>
