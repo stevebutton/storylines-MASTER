@@ -109,13 +109,13 @@ export default function StoryMapBanner({
                         />
                     )}
 
-                    {/* Edit Stories */}
+                    {/* Edit Story */}
                     <Link
-                        to={createPageUrl('Stories')}
+                        to={`${createPageUrl('StoryEditor')}?id=${storyId}`}
                         className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
                     >
                         <List className="w-5 h-5" />
-                        <span>Edit Stories</span>
+                        <span>Edit Story</span>
                     </Link>
 
                     {/* Auth Button */}
