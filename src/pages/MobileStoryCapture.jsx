@@ -1,18 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
     Mic, Camera, MapPin, ChevronRight, ChevronLeft, 
-    Check, FileText, Image as ImageIcon, MapPinned, Sparkles
+    Check, FileText, Image as ImageIcon, MapPinned, Sparkles, Upload, Loader2, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MobileStoryCapture() {
+    const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [transcript, setTranscript] = useState('');
     const [photos, setPhotos] = useState([]);
     const [locations, setLocations] = useState([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const fileInputRef = useRef(null);
+    const recognitionRef = useRef(null);
 
     const steps = [
         { id: 'welcome', title: 'Welcome', icon: Sparkles },
@@ -22,35 +30,201 @@ export default function MobileStoryCapture() {
         { id: 'review', title: 'Review', icon: Check }
     ];
 
-    const mockTranscript = "We began our field visit at the community water project site in northern Kenya. The local team has made remarkable progress over the past six months. Three new wells have been installed, each serving approximately 250 families. The impact on daily routines has been significant, with water collection time reduced from 3 hours to just 15 minutes per day.";
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
+            recognitionRef.current.lang = 'en-US';
 
-    const mockPhotos = [
-        { id: 1, name: 'Well Installation Site' },
-        { id: 2, name: 'Community Meeting' },
-        { id: 3, name: 'Water Collection Point' },
-        { id: 4, name: 'Local Team Members' }
-    ];
+            recognitionRef.current.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    }
+                }
+                if (finalTranscript) {
+                    setTranscript(prev => prev + finalTranscript);
+                }
+            };
 
-    const mockLocations = [
-        { id: 1, name: 'Project Site - Northern Kenya', coords: '2.1234, 37.5678' },
-        { id: 2, name: 'Community Center', coords: '2.1567, 37.5892' },
-        { id: 3, name: 'Water Collection Point', coords: '2.1445, 37.5734' }
-    ];
+            recognitionRef.current.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                setIsRecording(false);
+            };
+
+            recognitionRef.current.onend = () => {
+                setIsRecording(false);
+            };
+        }
+
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+        };
+    }, []);
 
     const handleStartRecording = () => {
+        if (!recognitionRef.current) {
+            alert('Speech recognition is not supported in this browser. Please use Chrome or Safari on mobile.');
+            return;
+        }
         setIsRecording(true);
-        setTimeout(() => {
-            setTranscript(mockTranscript);
-            setIsRecording(false);
-        }, 2000);
+        recognitionRef.current.start();
     };
 
-    const handleAddPhotos = () => {
-        setPhotos(mockPhotos);
+    const handleStopRecording = () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+        setIsRecording(false);
     };
 
-    const handleCaptureLocation = () => {
-        setLocations([...locations, mockLocations[locations.length] || mockLocations[0]]);
+    const handleTakePhoto = async () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileSelect = async (event) => {
+        const files = Array.from(event.target.files);
+        if (files.length === 0) return;
+
+        setIsUploading(true);
+        try {
+            for (const file of files) {
+                let locationData = null;
+                
+                if (navigator.geolocation) {
+                    try {
+                        const position = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                enableHighAccuracy: true,
+                                timeout: 5000
+                            });
+                        });
+                        locationData = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        };
+                    } catch (error) {
+                        console.log('Location access denied or unavailable');
+                    }
+                }
+
+                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+                setPhotos(prev => [...prev, {
+                    id: Date.now() + Math.random(),
+                    name: file.name,
+                    url: file_url,
+                    location: locationData
+                }]);
+
+                if (locationData && !locations.some(loc => 
+                    Math.abs(loc.lat - locationData.lat) < 0.0001 && 
+                    Math.abs(loc.lng - locationData.lng) < 0.0001
+                )) {
+                    setLocations(prev => [...prev, {
+                        id: Date.now() + Math.random(),
+                        name: `Photo location ${prev.length + 1}`,
+                        lat: locationData.lat,
+                        lng: locationData.lng,
+                        coords: `${locationData.lat.toFixed(6)}, ${locationData.lng.toFixed(6)}`
+                    }]);
+                }
+            }
+        } catch (error) {
+            console.error('Error uploading photos:', error);
+            alert('Failed to upload photos. Please try again.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleCaptureLocation = async () => {
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser');
+            return;
+        }
+
+        try {
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000
+                });
+            });
+
+            const newLocation = {
+                id: Date.now(),
+                name: `Location ${locations.length + 1}`,
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                coords: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`,
+                accuracy: position.coords.accuracy
+            };
+
+            setLocations(prev => [...prev, newLocation]);
+        } catch (error) {
+            console.error('Error getting location:', error);
+            alert('Unable to get your location. Please check permissions.');
+        }
+    };
+
+    const handleRemovePhoto = (photoId) => {
+        setPhotos(prev => prev.filter(p => p.id !== photoId));
+    };
+
+    const handleSaveDraft = async () => {
+        setIsSaving(true);
+        try {
+            const user = await base44.auth.me();
+            
+            const storyData = {
+                title: `Field Story ${new Date().toLocaleDateString()}`,
+                subtitle: 'Draft from mobile capture',
+                author: user.full_name || user.email,
+                is_published: false
+            };
+
+            const story = await base44.entities.Story.create(storyData);
+
+            if (locations.length > 0) {
+                const chapter = await base44.entities.Chapter.create({
+                    story_id: story.id,
+                    order: 0,
+                    coordinates: [locations[0].lat, locations[0].lng],
+                    zoom: 12,
+                    map_style: 'light',
+                    alignment: 'left'
+                });
+
+                for (let i = 0; i < photos.length; i++) {
+                    const photo = photos[i];
+                    await base44.entities.Slide.create({
+                        chapter_id: chapter.id,
+                        order: i,
+                        title: photo.name.replace(/\.[^/.]+$/, ''),
+                        description: i === 0 && transcript ? transcript : '',
+                        image: photo.url,
+                        coordinates: photo.location ? [photo.location.lat, photo.location.lng] : undefined,
+                        location: photo.location ? `${photo.location.lat.toFixed(4)}, ${photo.location.lng.toFixed(4)}` : undefined
+                    });
+                }
+            }
+
+            navigate(`${createPageUrl('StoryEditor')}?id=${story.id}`);
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            alert('Failed to save draft. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -94,10 +268,13 @@ export default function MobileStoryCapture() {
                                     <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Sparkles className="w-10 h-10 text-amber-600" />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-3">
-                                        New Field Story
+                                    <h2 className="text-4xl font-bold text-slate-800 mb-2">
+                                        Storyboarder
                                     </h2>
-                                    <p className="text-slate-600 leading-relaxed">
+                                    <p className="text-amber-600 font-medium mb-4">
+                                        Remote story capture from Storylines
+                                    </p>
+                                    <p className="text-slate-600 leading-relaxed text-sm">
                                         Quickly capture your story elements on the go. Dictate your narrative, 
                                         add photos, and capture locations to build a draft story for later 
                                         refinement on your desktop.
@@ -160,24 +337,25 @@ export default function MobileStoryCapture() {
 
                                 <div className="flex flex-col items-center py-8">
                                     <button
-                                        onClick={handleStartRecording}
-                                        disabled={isRecording || transcript}
+                                        onClick={isRecording ? handleStopRecording : handleStartRecording}
                                         className={`w-32 h-32 rounded-full flex items-center justify-center transition-all ${
                                             isRecording 
                                                 ? 'bg-red-500 animate-pulse' 
                                                 : transcript 
                                                     ? 'bg-green-500' 
                                                     : 'bg-amber-600 hover:bg-amber-700'
-                                        } shadow-lg`}
+                                        } shadow-lg disabled:opacity-50`}
                                     >
-                                        {transcript ? (
+                                        {isRecording ? (
+                                            <div className="w-8 h-8 bg-white rounded"></div>
+                                        ) : transcript ? (
                                             <Check className="w-16 h-16 text-white" />
                                         ) : (
                                             <Mic className="w-16 h-16 text-white" />
                                         )}
                                     </button>
                                     <p className="mt-4 text-sm text-slate-600 font-medium">
-                                        {isRecording ? 'Recording...' : transcript ? 'Recording Complete' : 'Tap to Start Recording'}
+                                        {isRecording ? 'Tap to Stop Recording' : transcript ? 'Recording Complete' : 'Tap to Start Recording'}
                                     </p>
                                 </div>
 
@@ -223,25 +401,43 @@ export default function MobileStoryCapture() {
                                     </p>
                                 </div>
 
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    capture="environment"
+                                    onChange={handleFileSelect}
+                                    className="hidden"
+                                />
+
                                 <div className="flex flex-col items-center py-8">
                                     <button
-                                        onClick={handleAddPhotos}
-                                        disabled={photos.length > 0}
-                                        className={`w-32 h-32 rounded-full flex items-center justify-center transition-all ${
-                                            photos.length > 0 
-                                                ? 'bg-green-500' 
-                                                : 'bg-amber-600 hover:bg-amber-700'
-                                        } shadow-lg`}
+                                        onClick={handleTakePhoto}
+                                        disabled={isUploading}
+                                        className="w-32 h-32 rounded-full flex items-center justify-center transition-all bg-amber-600 hover:bg-amber-700 shadow-lg disabled:opacity-50"
                                     >
-                                        {photos.length > 0 ? (
-                                            <Check className="w-16 h-16 text-white" />
+                                        {isUploading ? (
+                                            <Loader2 className="w-16 h-16 text-white animate-spin" />
                                         ) : (
                                             <Camera className="w-16 h-16 text-white" />
                                         )}
                                     </button>
                                     <p className="mt-4 text-sm text-slate-600 font-medium">
-                                        {photos.length > 0 ? `${photos.length} Photos Added` : 'Tap to Select Photos'}
+                                        {isUploading ? 'Uploading...' : photos.length > 0 ? `${photos.length} Photos Added` : 'Tap to Capture or Upload'}
                                     </p>
+                                    {photos.length > 0 && (
+                                        <Button
+                                            onClick={handleTakePhoto}
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-4"
+                                            disabled={isUploading}
+                                        >
+                                            <Upload className="w-4 h-4 mr-2" />
+                                            Add More Photos
+                                        </Button>
+                                    )}
                                 </div>
 
                                 {photos.length > 0 && (
@@ -253,11 +449,23 @@ export default function MobileStoryCapture() {
                                         <Label className="text-sm font-semibold text-slate-700">Selected Photos:</Label>
                                         <div className="grid grid-cols-2 gap-3">
                                             {photos.map((photo) => (
-                                                <div key={photo.id} className="bg-slate-100 rounded-lg p-3 border border-slate-200">
-                                                    <div className="aspect-video bg-slate-200 rounded flex items-center justify-center mb-2">
-                                                        <ImageIcon className="w-8 h-8 text-slate-400" />
+                                                <div key={photo.id} className="bg-slate-100 rounded-lg p-2 border border-slate-200 relative">
+                                                    <button
+                                                        onClick={() => handleRemovePhoto(photo.id)}
+                                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 z-10"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                    <div className="aspect-video bg-slate-200 rounded flex items-center justify-center mb-2 overflow-hidden">
+                                                        <img src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
                                                     </div>
                                                     <p className="text-xs text-slate-600 truncate">{photo.name}</p>
+                                                    {photo.location && (
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            <MapPin className="w-3 h-3 text-green-600" />
+                                                            <span className="text-xs text-green-600">GPS</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
@@ -390,15 +598,31 @@ export default function MobileStoryCapture() {
                                 <div className="space-y-3">
                                     <Button 
                                         className="w-full bg-green-600 hover:bg-green-700 h-12"
-                                        onClick={() => alert('Draft saved! In a real implementation, this would save to the database and redirect to the desktop editor.')}
+                                        onClick={handleSaveDraft}
+                                        disabled={isSaving}
                                     >
-                                        <Check className="w-5 h-5 mr-2" />
-                                        Save Draft & Finish
+                                        {isSaving ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                                Saving Draft...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Check className="w-5 h-5 mr-2" />
+                                                Save Draft & Open Editor
+                                            </>
+                                        )}
                                     </Button>
                                     <Button 
                                         variant="outline"
                                         className="w-full"
-                                        onClick={() => setCurrentStep(0)}
+                                        onClick={() => {
+                                            setCurrentStep(0);
+                                            setTranscript('');
+                                            setPhotos([]);
+                                            setLocations([]);
+                                        }}
+                                        disabled={isSaving}
                                     >
                                         Start Over
                                     </Button>
