@@ -23,7 +23,7 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
         {
             id: 'scratch',
             title: 'Start from Scratch',
-            description: 'Create a new story with a blank canvas',
+            description: 'Build your project narrative from the ground up with complete creative control',
             icon: FileEdit,
             isActive: true,
             onClick: handleStartFromScratch
@@ -31,7 +31,7 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
         {
             id: 'upload',
             title: 'Upload an Outline Document',
-            description: 'Import your existing outline from a document',
+            description: 'Transform existing project documentation or reports into an interactive narrative',
             icon: Upload,
             isActive: true,
             onClick: () => setIsDocumentUploadOpen(true)
@@ -39,7 +39,7 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
         {
             id: 'template',
             title: 'Start from a Template',
-            description: 'Choose from pre-built story templates',
+            description: 'Leverage pre-structured frameworks designed for impact reporting and case studies',
             icon: FileText,
             isActive: false,
             onClick: null
@@ -47,7 +47,7 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
         {
             id: 'map',
             title: 'Import from Map Data',
-            description: 'Build a story from geotagged photos or locations',
+            description: 'Generate location-based narratives from field documentation and geotagged media',
             icon: Map,
             isActive: true,
             onClick: () => setIsMapDataImportOpen(true)
@@ -55,7 +55,7 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
         {
             id: 'interview',
             title: 'Interview Mode',
-            description: 'Let AI guide you through building your story',
+            description: 'Use AI-guided prompts to structure your project story systematically',
             icon: MessageSquare,
             isActive: true,
             onClick: () => setIsInterviewModeOpen(true)
@@ -99,7 +99,7 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6">
                             <p className="text-sm text-slate-600 mb-6">
-                                Choose how you'd like to start creating your story. Each option offers a different path to bring your narrative to life—whether you're starting fresh, importing existing content, or letting AI guide your creative process.
+                                Select your preferred approach to creating an interactive project narrative. Each method is designed to accommodate different workflows—from developing new content to leveraging existing documentation and field data.
                             </p>
 
                             <div className="space-y-4">
