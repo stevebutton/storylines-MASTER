@@ -202,35 +202,38 @@ export default function HelpPanel({ isOpen, onClose }) {
                             </Button>
                         </div>
 
-                        {/* Horizontal Menu */}
-                        <div className="border-b bg-slate-50 px-6 py-3 overflow-x-auto">
-                            <div className="flex gap-2">
-                                {helpTopics.map(topic => (
-                                    <Button
-                                        key={topic.id}
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setActiveTopic(topic.id)}
-                                        className={cn(
-                                            "whitespace-nowrap",
-                                            activeTopic === topic.id
-                                                ? "bg-white text-amber-600 hover:bg-white hover:text-amber-700 shadow-sm"
-                                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                                        )}
-                                    >
-                                        {topic.title}
-                                    </Button>
-                                ))}
+                        {/* Main Layout */}
+                        <div className="flex flex-1 overflow-hidden">
+                            {/* Vertical Menu */}
+                            <div className="w-56 border-r bg-slate-50 overflow-y-auto">
+                                <div className="flex flex-col p-3 gap-1">
+                                    {helpTopics.map(topic => (
+                                        <Button
+                                            key={topic.id}
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setActiveTopic(topic.id)}
+                                            className={cn(
+                                                "justify-start w-full",
+                                                activeTopic === topic.id
+                                                    ? "bg-slate-900 text-white hover:bg-slate-800 hover:text-white"
+                                                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                                            )}
+                                        >
+                                            {topic.title}
+                                        </Button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <div className="prose prose-slate max-w-none">
-                                <h3 className="text-lg font-semibold text-slate-900 mb-4">
-                                    {activeContent?.title}
-                                </h3>
-                                {activeContent?.content}
+                            {/* Content */}
+                            <div className="flex-1 overflow-y-auto p-6">
+                                <div className="prose prose-slate max-w-none">
+                                    <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                                        {activeContent?.title}
+                                    </h3>
+                                    {activeContent?.content}
+                                </div>
                             </div>
                         </div>
                     </motion.div>
