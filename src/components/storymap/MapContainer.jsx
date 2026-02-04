@@ -32,7 +32,8 @@ export default function MapBackground({
             style: MAPBOX_STYLE,
             center: center ? [center[1], center[0]] : [-74.006, 40.7128],
             zoom: zoom || 12,
-            bearing: bearing,
+            bearing: bearing || 0,
+            pitch: pitch || 0,
             interactive: true,
             dragRotate: true,
             pitchWithRotate: true

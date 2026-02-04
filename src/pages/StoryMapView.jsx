@@ -334,12 +334,12 @@ export default function StoryMapView() {
                                     !isNaN(slide.coordinates[1])) {
                                     setMapConfig({
                                         center: slide.coordinates,
-                                        zoom: slide.zoom || chapter.zoom || 12,
-                                        bearing: slide.bearing || 0,
-                                        pitch: slide.pitch || 0,
+                                        zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
+                                        bearing: slide.bearing !== undefined ? slide.bearing : 0,
+                                        pitch: slide.pitch !== undefined ? slide.pitch : 0,
                                         mapStyle: chapter.map_style || 'light',
                                         shouldRotate: false,
-                                        flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : chapter.fly_duration || 12
+                                        flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 12)
                                     });
                                 }
                             }}
