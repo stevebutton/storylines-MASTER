@@ -6,11 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import InterviewModePanel from './InterviewModePanel';
 import MapDataImportPanel from './MapDataImportPanel';
+import DocumentUploadPanel from './DocumentUploadPanel';
 
 export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [isInterviewModeOpen, setIsInterviewModeOpen] = useState(false);
     const [isMapDataImportOpen, setIsMapDataImportOpen] = useState(false);
+    const [isDocumentUploadOpen, setIsDocumentUploadOpen] = useState(false);
 
     const handleStartFromScratch = () => {
         navigate(createPageUrl('StoryEditor'));
@@ -31,8 +33,8 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
             title: 'Upload an Outline Document',
             description: 'Import your existing outline from a document',
             icon: Upload,
-            isActive: false,
-            onClick: null
+            isActive: true,
+            onClick: () => setIsDocumentUploadOpen(true)
         },
         {
             id: 'template',
@@ -171,6 +173,15 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                 isOpen={isMapDataImportOpen}
                 onClose={() => {
                     setIsMapDataImportOpen(false);
+                    onClose();
+                }}
+            />
+
+            {/* Document Upload Panel */}
+            <DocumentUploadPanel
+                isOpen={isDocumentUploadOpen}
+                onClose={() => {
+                    setIsDocumentUploadOpen(false);
                     onClose();
                 }}
             />
