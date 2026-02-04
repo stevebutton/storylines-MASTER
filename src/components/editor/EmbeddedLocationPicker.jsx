@@ -54,19 +54,6 @@ export default function EmbeddedLocationPicker({ location, onLocationChange }) {
             onLocationChange({ lat, lng, zoom, bearing, pitch });
         });
 
-        mapRef.current.on('moveend', () => {
-            if (markerRef.current) {
-                const markerLngLat = markerRef.current.getLngLat();
-                onLocationChange({
-                    lat: markerLngLat.lat,
-                    lng: markerLngLat.lng,
-                    zoom: mapRef.current.getZoom(),
-                    bearing: mapRef.current.getBearing(),
-                    pitch: mapRef.current.getPitch()
-                });
-            }
-        });
-
         return () => {
             if (mapRef.current) {
                 mapRef.current.remove();
