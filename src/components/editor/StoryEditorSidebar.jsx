@@ -51,7 +51,7 @@ export default function StoryEditorSidebar({
 
     return (
         <div className="w-80 border-r bg-white h-screen overflow-y-auto flex flex-col">
-            {/* Story Header */}
+            {/* Story Settings Button */}
             <div 
                 onClick={onSelectStory}
                 className={cn(
@@ -59,15 +59,10 @@ export default function StoryEditorSidebar({
                     isStorySelected && "bg-amber-50 border-l-4 border-l-amber-600"
                 )}
             >
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2">
                     <Book className="w-5 h-5 text-amber-600" />
-                    <h2 className="font-semibold text-slate-800">
-                        {story.title || 'Untitled Story'}
-                    </h2>
+                    <span className="text-sm font-medium text-slate-700">Story Settings</span>
                 </div>
-                <p className="text-xs text-slate-500 ml-7">
-                    {chapters.length} chapters · {slides.length} slides
-                </p>
             </div>
 
             {/* Chapters List */}
