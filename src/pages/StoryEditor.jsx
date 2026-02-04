@@ -193,30 +193,19 @@ export default function StoryEditor() {
             <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
-                <div className="px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link to={createPageUrl('Stories')}>
-                            <Button variant="ghost" size="icon">
-                                <ArrowLeft className="w-5 h-5" />
-                            </Button>
-                        </Link>
+                <div className="px-4 py-3">
+                    <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
+                            <Link to={createPageUrl('Stories')}>
+                                <Button variant="ghost" size="icon">
+                                    <ArrowLeft className="w-5 h-5" />
+                                </Button>
+                            </Link>
                             <h1 className="text-2xl font-bold text-slate-900">
                                 {story.title || 'Untitled Story'}
                             </h1>
-                            <div className="flex gap-3">
-                                <div className="bg-amber-50 rounded-lg px-3 py-1.5">
-                                    <p className="text-xs text-amber-600">Chapters</p>
-                                    <p className="text-lg font-bold text-amber-700">{chapters.length}</p>
-                                </div>
-                                <div className="bg-blue-50 rounded-lg px-3 py-1.5">
-                                    <p className="text-xs text-blue-600">Slides</p>
-                                    <p className="text-lg font-bold text-blue-700">{slides.length}</p>
-                                </div>
-                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                         <Button
                             variant="outline"
                             size="sm"
@@ -248,6 +237,19 @@ export default function StoryEditor() {
                             )}
                             Save
                         </Button>
+                        </div>
+                    </div>
+                    
+                    {/* Stats */}
+                    <div className="flex gap-4">
+                        <div className="bg-amber-50 rounded-lg p-4">
+                            <p className="text-sm text-amber-600">Chapters</p>
+                            <p className="text-2xl font-bold text-amber-700">{chapters.length}</p>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-4">
+                            <p className="text-sm text-blue-600">Slides</p>
+                            <p className="text-2xl font-bold text-blue-700">{slides.length}</p>
+                        </div>
                     </div>
                 </div>
             </div>
