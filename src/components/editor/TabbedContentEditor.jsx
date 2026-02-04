@@ -8,9 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
 
 export default function TabbedContentEditor({ 
     itemType, 
@@ -216,54 +215,25 @@ export default function TabbedContentEditor({
                 <TabsContent value="location" className="space-y-4 mt-4">
                     <Card>
                         <CardContent className="pt-6 space-y-4">
-                            <div>
-                                <Label>Map Coordinates</Label>
-                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                    <Input 
-                                        placeholder="Latitude" 
-                                        value={item.coordinates?.[0] || ''} 
-                                        onChange={(e) => onUpdate({ ...item, coordinates: [parseFloat(e.target.value) || 0, item.coordinates?.[1] || 0] })}
-                                    />
-                                    <Input 
-                                        placeholder="Longitude" 
-                                        value={item.coordinates?.[1] || ''} 
-                                        onChange={(e) => onUpdate({ ...item, coordinates: [item.coordinates?.[0] || 0, parseFloat(e.target.value) || 0] })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Zoom</Label>
-                                    <Input 
-                                        type="number" 
-                                        value={item.zoom || 12} 
-                                        onChange={(e) => onUpdate({ ...item, zoom: parseFloat(e.target.value) })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Bearing</Label>
-                                    <Input 
-                                        type="number" 
-                                        value={item.bearing || 0} 
-                                        onChange={(e) => onUpdate({ ...item, bearing: parseFloat(e.target.value) })}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <Label>Pitch</Label>
-                                <Input 
-                                    type="number" 
-                                    value={item.pitch || 0} 
-                                    onChange={(e) => onUpdate({ ...item, pitch: parseFloat(e.target.value) })}
-                                />
-                            </div>
-                            <Link 
-                                to={`${createPageUrl('LocationPickerPage')}?returnUrl=${encodeURIComponent(`${createPageUrl('StoryEditor')}?id=${storyId}&chapterId=${item.id}`)}`}
-                            >
-                                <Button variant="outline" className="w-full">
-                                    <MapPin className="w-4 h-4 mr-2" /> Pick Location on Map
-                                </Button>
-                            </Link>
+                            <EmbeddedLocationPicker
+                                location={{
+                                    lat: item.coordinates?.[0] || 0,
+                                    lng: item.coordinates?.[1] || 0,
+                                    zoom: item.zoom || 12,
+                                    bearing: item.bearing || 0,
+                                    pitch: item.pitch || 0,
+                                    name: item.location
+                                }}
+                                onLocationChange={(newLocation) => {
+                                    onUpdate({
+                                        ...item,
+                                        coordinates: [newLocation.lat, newLocation.lng],
+                                        zoom: newLocation.zoom,
+                                        bearing: newLocation.bearing,
+                                        pitch: newLocation.pitch
+                                    });
+                                }}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -412,54 +382,26 @@ export default function TabbedContentEditor({
                 <TabsContent value="location" className="space-y-4 mt-4">
                     <Card>
                         <CardContent className="pt-6 space-y-4">
-                            <div>
-                                <Label>Map Coordinates</Label>
-                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                    <Input 
-                                        placeholder="Latitude" 
-                                        value={item.coordinates?.[0] || ''} 
-                                        onChange={(e) => onUpdate({ ...item, coordinates: [parseFloat(e.target.value) || 0, item.coordinates?.[1] || 0] })}
-                                    />
-                                    <Input 
-                                        placeholder="Longitude" 
-                                        value={item.coordinates?.[1] || ''} 
-                                        onChange={(e) => onUpdate({ ...item, coordinates: [item.coordinates?.[0] || 0, parseFloat(e.target.value) || 0] })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                                <div>
-                                    <Label>Zoom</Label>
-                                    <Input 
-                                        type="number" 
-                                        value={item.zoom || ''} 
-                                        onChange={(e) => onUpdate({ ...item, zoom: parseFloat(e.target.value) || undefined })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Bearing</Label>
-                                    <Input 
-                                        type="number" 
-                                        value={item.bearing || ''} 
-                                        onChange={(e) => onUpdate({ ...item, bearing: parseFloat(e.target.value) || undefined })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Pitch</Label>
-                                    <Input 
-                                        type="number" 
-                                        value={item.pitch || ''} 
-                                        onChange={(e) => onUpdate({ ...item, pitch: parseFloat(e.target.value) || undefined })}
-                                    />
-                                </div>
-                            </div>
-                            <Link 
-                                to={`${createPageUrl('LocationPickerPage')}?returnUrl=${encodeURIComponent(`${createPageUrl('StoryEditor')}?id=${storyId}&slideId=${item.id}`)}`}
-                            >
-                                <Button variant="outline" className="w-full">
-                                    <MapPin className="w-4 h-4 mr-2" /> Pick Location on Map
-                                </Button>
-                            </Link>
+                            <EmbeddedLocationPicker
+                                location={{
+                                    lat: item.coordinates?.[0] || 0,
+                                    lng: item.coordinates?.[1] || 0,
+                                    zoom: item.zoom || 12,
+                                    bearing: item.bearing || 0,
+                                    pitch: item.pitch || 0,
+                                    name: item.location
+                                }}
+                                onLocationChange={(newLocation) => {
+                                    onUpdate({
+                                        ...item,
+                                        coordinates: [newLocation.lat, newLocation.lng],
+                                        zoom: newLocation.zoom,
+                                        bearing: newLocation.bearing,
+                                        pitch: newLocation.pitch,
+                                        location: newLocation.name || item.location
+                                    });
+                                }}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>
