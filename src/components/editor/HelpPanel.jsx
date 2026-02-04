@@ -215,9 +215,7 @@ export default function HelpPanel({ isOpen, onClose }) {
                                             onClick={() => setActiveTopic(topic.id)}
                                             className={cn(
                                                 "justify-start w-full",
-                                                topic.id === 'chapters'
-                                                    ? "bg-slate-900 text-white hover:bg-slate-800 hover:text-white"
-                                                    : activeTopic === topic.id
+                                                activeTopic === topic.id
                                                     ? "bg-slate-900 text-white hover:bg-slate-800 hover:text-white"
                                                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                                             )}

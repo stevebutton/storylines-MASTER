@@ -84,8 +84,8 @@ export default function StoryEditorSidebar({
                                     {/* Chapter Item */}
                                     <div
                                         className={cn(
-                                            "group flex items-center gap-2 px-4 py-2 hover:bg-slate-50 cursor-pointer transition-colors",
-                                            selected && "bg-amber-50 border-l-4 border-l-amber-600"
+                                            "group flex items-center gap-2 px-4 py-2 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors",
+                                            selected ? "bg-amber-50 border-l-4 border-l-amber-600" : "bg-slate-900 text-white"
                                         )}
                                     >
                                         <button
@@ -93,12 +93,12 @@ export default function StoryEditorSidebar({
                                                 e.stopPropagation();
                                                 toggleChapter(chapter.id);
                                             }}
-                                            className="p-0.5 hover:bg-slate-200 rounded"
+                                            className="p-0.5 hover:bg-slate-700 rounded"
                                         >
                                             {isExpanded ? (
-                                                <ChevronDown className="w-4 h-4 text-slate-600" />
+                                                <ChevronDown className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
                                             ) : (
-                                                <ChevronRight className="w-4 h-4 text-slate-600" />
+                                                <ChevronRight className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
                                             )}
                                         </button>
                                         
@@ -106,17 +106,17 @@ export default function StoryEditorSidebar({
                                             onClick={() => onSelectChapter(chapter)}
                                             className="flex-1 flex items-center gap-2"
                                         >
-                                            <span className="text-xs font-medium text-slate-500 min-w-[20px]">
+                                            <span className={cn("text-xs font-medium min-w-[20px]", selected ? "text-slate-500" : "text-slate-300")}>
                                                 {index + 1}
                                             </span>
-                                            <span className="text-sm font-medium text-slate-700 flex-1 truncate">
+                                            <span className={cn("text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
                                                 Chapter {index + 1}
                                             </span>
                                             <div className="flex items-center gap-1">
                                                 {chapter.coordinates && (
-                                                    <MapPin className="w-3 h-3 text-amber-600" />
+                                                    <MapPin className={cn("w-3 h-3", selected ? "text-amber-600" : "text-amber-400")} />
                                                 )}
-                                                <span className="text-xs text-slate-400">
+                                                <span className={cn("text-xs", selected ? "text-slate-400" : "text-slate-300")}>
                                                     {chapterSlides.length}
                                                 </span>
                                             </div>
