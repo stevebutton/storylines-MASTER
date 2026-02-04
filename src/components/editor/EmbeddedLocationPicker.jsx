@@ -39,9 +39,6 @@ export default function EmbeddedLocationPicker({ location, onLocationChange }) {
 
         mapRef.current.on('click', (e) => {
             const { lng, lat } = e.lngLat;
-            const zoom = mapRef.current.getZoom();
-            const bearing = mapRef.current.getBearing();
-            const pitch = mapRef.current.getPitch();
             
             if (markerRef.current) {
                 markerRef.current.setLngLat([lng, lat]);
@@ -50,8 +47,6 @@ export default function EmbeddedLocationPicker({ location, onLocationChange }) {
                     .setLngLat([lng, lat])
                     .addTo(mapRef.current);
             }
-            
-            onLocationChange({ lat, lng, zoom, bearing, pitch });
         });
 
         return () => {
@@ -116,12 +111,26 @@ export default function EmbeddedLocationPicker({ location, onLocationChange }) {
             }
         }
         
+        setSearchResults([]);
+        setSearchQuery(result.place_name);
+    };
+
+    const captureCurrentView = () => {
+        if (!mapRef.current) return;
+        
+        const center = mapRef.current.getCenter();
         const zoom = mapRef.current.getZoom();
         const bearing = mapRef.current.getBearing();
         const pitch = mapRef.current.getPitch();
-        onLocationChange({ lat, lng, name: result.place_name, zoom, bearing, pitch });
-        setSearchResults([]);
-        setSearchQuery(result.place_name);
+        
+        onLocationChange({
+            lat: center.lat,
+            lng: center.lng,
+            zoom,
+            bearing,
+            pitch,
+            name: location.name
+        });
     };
 
     return (
@@ -164,6 +173,14 @@ export default function EmbeddedLocationPicker({ location, onLocationChange }) {
             {/* Map */}
             <div className="relative w-full h-96 rounded-lg overflow-hidden border">
                 <div ref={mapContainerRef} className="absolute inset-0" />
+                
+                {/* Capture View Button */}
+                <div className="absolute top-2 left-2 z-10">
+                    <Button onClick={captureCurrentView} size="sm" className="bg-amber-600 hover:bg-amber-700 shadow-lg">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        Capture Current View
+                    </Button>
+                </div>
                 
                 {/* Selected location info */}
                 {location.lat && location.lng && (
