@@ -200,10 +200,20 @@ export default function StoryEditor() {
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>
                         </Link>
-                        <div>
+                        <div className="flex items-center gap-4">
                             <h1 className="text-2xl font-bold text-slate-900">
                                 {story.title || 'Untitled Story'}
                             </h1>
+                            <div className="flex gap-3">
+                                <div className="bg-amber-50 rounded-lg px-3 py-1.5">
+                                    <p className="text-xs text-amber-600">Chapters</p>
+                                    <p className="text-lg font-bold text-amber-700">{chapters.length}</p>
+                                </div>
+                                <div className="bg-blue-50 rounded-lg px-3 py-1.5">
+                                    <p className="text-xs text-blue-600">Slides</p>
+                                    <p className="text-lg font-bold text-blue-700">{slides.length}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
