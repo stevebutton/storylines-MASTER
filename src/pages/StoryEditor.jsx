@@ -238,7 +238,7 @@ export default function StoryEditor() {
                                 onClick={() => setIsAIAssistantOpen(true)}
                                 className="border-amber-300 text-amber-700 hover:bg-amber-50"
                             >
-                                <Sparkles className="w-4 h-4 mr-2" /> AI Assistant
+                                <Sparkles className="w-4 h-4 mr-2" /> Story Helper
                             </Button>
                             {storyId && (
                                 <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
