@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import InterviewModePanel from './InterviewModePanel';
+import MapDataImportPanel from './MapDataImportPanel';
 
 export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [isInterviewModeOpen, setIsInterviewModeOpen] = useState(false);
+    const [isMapDataImportOpen, setIsMapDataImportOpen] = useState(false);
 
     const handleStartFromScratch = () => {
         navigate(createPageUrl('StoryEditor'));
@@ -45,8 +47,8 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
             title: 'Import from Map Data',
             description: 'Build a story from geotagged photos or locations',
             icon: Map,
-            isActive: false,
-            onClick: null
+            isActive: true,
+            onClick: () => setIsMapDataImportOpen(true)
         },
         {
             id: 'interview',
@@ -160,6 +162,15 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                 isOpen={isInterviewModeOpen}
                 onClose={() => {
                     setIsInterviewModeOpen(false);
+                    onClose();
+                }}
+            />
+
+            {/* Map Data Import Panel */}
+            <MapDataImportPanel
+                isOpen={isMapDataImportOpen}
+                onClose={() => {
+                    setIsMapDataImportOpen(false);
                     onClose();
                 }}
             />
