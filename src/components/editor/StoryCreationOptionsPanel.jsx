@@ -162,28 +162,19 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
             {/* Interview Mode Panel */}
             <InterviewModePanel
                 isOpen={isInterviewModeOpen}
-                onClose={() => {
-                    setIsInterviewModeOpen(false);
-                    onClose();
-                }}
+                onClose={() => setIsInterviewModeOpen(false)}
             />
 
             {/* Map Data Import Panel */}
             <MapDataImportPanel
                 isOpen={isMapDataImportOpen}
-                onClose={() => {
-                    setIsMapDataImportOpen(false);
-                    onClose();
-                }}
+                onClose={() => setIsMapDataImportOpen(false)}
             />
 
             {/* Document Upload Panel */}
             <DocumentUploadPanel
                 isOpen={isDocumentUploadOpen}
-                onClose={() => {
-                    setIsDocumentUploadOpen(false);
-                    onClose();
-                }}
+                onClose={() => setIsDocumentUploadOpen(false)}
             />
         </AnimatePresence>
     );
