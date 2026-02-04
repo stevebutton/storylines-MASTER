@@ -5,6 +5,14 @@ import { ChevronDown } from 'lucide-react';
 export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines, onHeroLoaded }) {
   const [mediaLoaded, setMediaLoaded] = useState(false);
 
+  // Call onHeroLoaded immediately if no hero media
+  React.useEffect(() => {
+    if (!heroImage && !heroVideo && onHeroLoaded) {
+      setMediaLoaded(true);
+      onHeroLoaded();
+    }
+  }, []);
+
   const handleMediaLoad = () => {
     setMediaLoaded(true);
     if (onHeroLoaded) {
