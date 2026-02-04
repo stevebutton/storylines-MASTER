@@ -194,61 +194,67 @@ export default function StoryEditor() {
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
                 <div className="px-4 py-3">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                            <Link to={createPageUrl('Stories')}>
-                                <Button variant="ghost" size="icon">
-                                    <ArrowLeft className="w-5 h-5" />
-                                </Button>
-                            </Link>
-                            <h1 className="text-2xl font-bold text-slate-900">
-                                {story.title || 'Untitled Story'}
-                            </h1>
-                        </div>
-                        <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsHelpPanelOpen(true)}
-                            className="border-slate-300 text-slate-700 hover:bg-slate-50"
-                        >
-                            <HelpCircle className="w-4 h-4 mr-2" /> Help
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsAIAssistantOpen(true)}
-                            className="border-amber-300 text-amber-700 hover:bg-amber-50"
-                        >
-                            <Sparkles className="w-4 h-4 mr-2" /> AI Assistant
-                        </Button>
-                        {storyId && (
-                            <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
-                                <Button variant="outline" size="sm">
-                                    <Eye className="w-4 h-4 mr-2" /> Preview
-                                </Button>
-                            </Link>
-                        )}
-                        <Button onClick={handleSave} disabled={isSaving} className="bg-amber-600 hover:bg-amber-700">
-                            {isSaving ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <Save className="w-4 h-4 mr-2" />
-                            )}
-                            Save
-                        </Button>
-                        </div>
+                    <div className="flex items-center gap-4 mb-4">
+                        <Link to={createPageUrl('Stories')}>
+                            <Button variant="ghost" size="icon">
+                                <ArrowLeft className="w-5 h-5" />
+                            </Button>
+                        </Link>
+                        <h1 className="text-2xl font-bold text-slate-900 flex-1">
+                            {story.title || 'Untitled Story'}
+                        </h1>
                     </div>
                     
-                    {/* Stats */}
-                    <div className="flex gap-4">
-                        <div className="bg-amber-50 rounded-lg p-4">
-                            <p className="text-sm text-amber-600">Chapters</p>
-                            <p className="text-2xl font-bold text-amber-700">{chapters.length}</p>
+                    {/* Stats and Actions */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex gap-4">
+                            <div className="bg-amber-50 rounded-lg p-4">
+                                <p className="text-sm text-amber-600">Chapters</p>
+                                <p className="text-2xl font-bold text-amber-700">{chapters.length}</p>
+                            </div>
+                            <div className="bg-blue-50 rounded-lg p-4">
+                                <p className="text-sm text-blue-600">Slides</p>
+                                <p className="text-2xl font-bold text-blue-700">{slides.length}</p>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-4">
+                                <p className="text-sm text-green-600">Media</p>
+                                <p className="text-2xl font-bold text-green-700">
+                                    {slides.filter(s => s.image || s.video_url || s.pdf_url).length}
+                                </p>
+                            </div>
                         </div>
-                        <div className="bg-blue-50 rounded-lg p-4">
-                            <p className="text-sm text-blue-600">Slides</p>
-                            <p className="text-2xl font-bold text-blue-700">{slides.length}</p>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsHelpPanelOpen(true)}
+                                className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                            >
+                                <HelpCircle className="w-4 h-4 mr-2" /> Help
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsAIAssistantOpen(true)}
+                                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                            >
+                                <Sparkles className="w-4 h-4 mr-2" /> AI Assistant
+                            </Button>
+                            {storyId && (
+                                <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
+                                    <Button variant="outline" size="sm">
+                                        <Eye className="w-4 h-4 mr-2" /> Preview
+                                    </Button>
+                                </Link>
+                            )}
+                            <Button onClick={handleSave} disabled={isSaving} className="bg-amber-600 hover:bg-amber-700">
+                                {isSaving ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Save className="w-4 h-4 mr-2" />
+                                )}
+                                Save
+                            </Button>
                         </div>
                     </div>
                 </div>
