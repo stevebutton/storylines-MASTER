@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -188,7 +189,8 @@ export default function StoryEditor() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="min-h-screen bg-white p-[50px]">
+            <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
                 <div className="px-4 py-3 flex items-center justify-between">
@@ -202,10 +204,13 @@ export default function StoryEditor() {
                             <h1 className="text-2xl font-bold text-slate-900">
                                 {story.title || 'Untitled Story'}
                             </h1>
-                            <div className="flex items-center gap-3 mt-1">
-                                <span className="text-xs text-slate-500">
-                                    {chapters.length} chapters · {slides.length} slides
-                                </span>
+                            <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                    {chapters.length} chapters
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                    {slides.length} slides
+                                </Badge>
                                 {story.category && (
                                     <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">
                                         {story.category}
