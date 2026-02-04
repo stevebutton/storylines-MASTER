@@ -384,6 +384,7 @@ export default function StoryEditor() {
                     setIsAIAssistantOpen(false);
                 }}
             />
+            </div>
         </div>
     );
 }
