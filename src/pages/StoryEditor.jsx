@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Eye, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
 import TabbedContentEditor from '@/components/editor/TabbedContentEditor';
 import AIAssistant from '@/components/editor/AIAssistant';
+import HelpPanel from '@/components/editor/HelpPanel';
 
 export default function StoryEditor() {
     const location = useLocation();
@@ -20,6 +21,7 @@ export default function StoryEditor() {
     const [isSaving, setIsSaving] = useState(false);
     const [selectedItem, setSelectedItem] = useState({ type: 'story', id: null });
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+    const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -216,6 +218,14 @@ export default function StoryEditor() {
                         <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => setIsHelpPanelOpen(true)}
+                            className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                        >
+                            <HelpCircle className="w-4 h-4 mr-2" /> Help
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => setIsAIAssistantOpen(true)}
                             className="border-amber-300 text-amber-700 hover:bg-amber-50"
                         >
@@ -276,6 +286,12 @@ export default function StoryEditor() {
                     </div>
                 </div>
             </div>
+
+            {/* Help Panel */}
+            <HelpPanel
+                isOpen={isHelpPanelOpen}
+                onClose={() => setIsHelpPanelOpen(false)}
+            />
 
             {/* AI Assistant Panel */}
             <AIAssistant
