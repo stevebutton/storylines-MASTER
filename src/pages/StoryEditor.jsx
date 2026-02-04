@@ -204,19 +204,6 @@ export default function StoryEditor() {
                             <h1 className="text-2xl font-bold text-slate-900">
                                 {story.title || 'Untitled Story'}
                             </h1>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className="text-xs">
-                                    {chapters.length} chapters
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                    {slides.length} slides
-                                </Badge>
-                                {story.category && (
-                                    <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded">
-                                        {story.category}
-                                    </span>
-                                )}
-                            </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
