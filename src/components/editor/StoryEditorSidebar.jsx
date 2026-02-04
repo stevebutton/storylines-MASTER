@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Book } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Book, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function StoryEditorSidebar({ 
@@ -14,6 +14,7 @@ export default function StoryEditorSidebar({
     const [expandedChapters, setExpandedChapters] = useState(
         chapters.map(c => c.id)
     );
+    const [isHelpExpanded, setIsHelpExpanded] = useState(false);
 
     const toggleChapter = (chapterId) => {
         setExpandedChapters(prev => 
@@ -51,6 +52,61 @@ export default function StoryEditorSidebar({
 
     return (
         <div className="w-80 border-r bg-white h-screen overflow-y-auto flex flex-col">
+            {/* Story Content Header */}
+            <div className="p-4 border-b bg-slate-50">
+                <h2 className="text-sm font-semibold text-slate-800">Story Content</h2>
+            </div>
+
+            {/* Help Section */}
+            <div className="border-b">
+                <button
+                    onClick={() => setIsHelpExpanded(!isHelpExpanded)}
+                    className="w-full p-3 flex items-center gap-2 hover:bg-slate-50 transition-colors"
+                >
+                    {isHelpExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-slate-600" />
+                    ) : (
+                        <ChevronRight className="w-4 h-4 text-slate-600" />
+                    )}
+                    <HelpCircle className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-slate-700">How to Use</span>
+                </button>
+                
+                {isHelpExpanded && (
+                    <div className="px-4 pb-4 text-xs text-slate-600 space-y-3 bg-slate-50">
+                        <div>
+                            <p className="font-medium text-slate-800 mb-1">1. Story Content</p>
+                            <p>On the left, you'll see your Story Settings, followed by a list of your Chapters and their Slides. The main area on the right is where you'll edit the details. Above, you'll find the story title, counts, and save/preview buttons.</p>
+                        </div>
+                        
+                        <div>
+                            <p className="font-medium text-slate-800 mb-1">2. Edit Story Settings</p>
+                            <p>Click on "Story Settings" below. Add a Title, Subtitle, Author, Category, and upload a Hero Image or Video. Mark your story as Published or allow Social Media Sharing.</p>
+                        </div>
+                        
+                        <div>
+                            <p className="font-medium text-slate-800 mb-1">3. Manage Chapters</p>
+                            <p>To add a new Chapter, click the "Add Chapter" button under Story Settings. To view or edit a Chapter, click its name. Use the arrow to expand/collapse its slides.</p>
+                        </div>
+                        
+                        <div>
+                            <p className="font-medium text-slate-800 mb-1">4. Manage Slides</p>
+                            <p>To add a Slide to a Chapter, first click on that Chapter, then click "Add Slide to Chapter" in the main editor. To view or edit a Slide, click its name.</p>
+                        </div>
+                        
+                        <div>
+                            <p className="font-medium text-slate-800 mb-1">5. Edit Content</p>
+                            <p>Once you've selected a Chapter or Slide, the main editor shows different tabs: Content (edit text), Location (set map view and click "Capture Current View"), Media (upload images/videos/PDFs), and Settings (adjust map style).</p>
+                        </div>
+                        
+                        <div>
+                            <p className="font-medium text-slate-800 mb-1">6. Save & Preview</p>
+                            <p>Always click the "Save" button in the top right to save your changes. Click "Preview" (next to Save) to see how your story looks to readers.</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Story Settings Button */}
             <div 
                 onClick={onSelectStory}
