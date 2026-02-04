@@ -2,15 +2,87 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, FileText, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Upload, FileText, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+
+const TEMPLATE_CONTENT = `# Project Chronicle: [Insert Project Name]
+Subtitle: [Brief, Professional Overview of Project]
+
+## Chapter 1: Project Inception and Objectives
+Location: [Project Planning Location, e.g., Headquarters, Department Name]
+Description: Detail the initial concept, core objectives, and strategic alignment of the project.
+
+*   Slide: Initial Stakeholder Briefing
+    Description: Overview of the project's foundational goals and preliminary scope presented to key stakeholders.
+    Location: Executive Boardroom
+    Image Idea: Professional meeting setting, presentation slides.
+
+*   Slide: Resource Allocation and Team Formation
+    Description: Documentation of the approved budget, allocated resources, and the formation of the core project team.
+    Location: Project Management Office
+    Image Idea: Organizational chart, team members collaborating.
+
+## Chapter 2: Development and Implementation Phase
+Location: [Development Site/Facility, e.g., Research Lab, Production Floor]
+Description: Document the key stages of development, implementation, and any significant milestones achieved.
+
+*   Slide: Prototype Development and Testing
+    Description: Presentation of the initial prototype, including its design, functionality, and results from preliminary testing.
+    Location: R&D Laboratory
+    Image Idea: Technical drawings, testing equipment, data readouts.
+
+*   Slide: System Integration and Verification
+    Description: Description of the integration process for various system components and the verification protocols employed.
+    Location: Integration Facility
+    Image Idea: Interconnected systems, diagnostic tools.
+
+## Chapter 3: Deployment and Impact Analysis
+Location: [Deployment Location, e.g., Client Site, Market Region]
+Description: Summarize the deployment process, initial performance metrics, and an analysis of the project's impact.
+
+*   Slide: Rollout Strategy and Execution
+    Description: Outline of the phased deployment strategy and a summary of its execution in target environments.
+    Location: Operations Center
+    Image Idea: Deployment dashboard, operational team.
+
+*   Slide: Post-Deployment Performance Review
+    Description: Evaluation of the project's performance against established KPIs and early feedback from end-users or beneficiaries.
+    Location: Data Analysis Hub
+    Image Idea: Performance graphs, user satisfaction metrics.
+
+## Chapter 4: Future Outlook and Recommendations
+Location: [Strategic Planning Area, e.g., Future Initiatives Workshop]
+Description: Discuss potential future enhancements, long-term sustainability plans, and strategic recommendations.
+
+*   Slide: Scalability and Future Enhancements
+    Description: Projection of the project's scalability and proposed enhancements for future iterations.
+    Location: Innovation Meeting
+    Image Idea: Brainstorming session, conceptual designs.
+
+*   Slide: Lessons Learned and Best Practices
+    Description: Compilation of key lessons learned during the project lifecycle and identification of best practices for future endeavors.
+    Location: Knowledge Sharing Session
+    Image Idea: Team debrief, documented procedures.
+`;
 
 export default function DocumentUploadPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [file, setFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [step, setStep] = useState('instructions'); // instructions, processing, success, error
+
+    const downloadTemplate = () => {
+        const blob = new Blob([TEMPLATE_CONTENT], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'story-outline-template.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 
     const handleFileSelect = (e) => {
         const selectedFile = e.target.files[0];
@@ -160,14 +232,27 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                                 <div className="space-y-8">
                                     {/* Overview */}
                                     <div className="bg-purple-50 border-l-4 border-purple-600 p-6 rounded-r-lg">
-                                        <h3 className="text-lg font-semibold text-purple-900 mb-2">
-                                            How It Works
-                                        </h3>
-                                        <p className="text-slate-700 leading-relaxed">
-                                            Upload a structured document containing your story outline, and our AI will automatically 
-                                            transform it into chapters and slides. Your document should follow a clear format with 
-                                            a title, chapter headings, and scene descriptions.
-                                        </p>
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <h3 className="text-lg font-semibold text-purple-900 mb-2">
+                                                    How It Works
+                                                </h3>
+                                                <p className="text-slate-700 leading-relaxed">
+                                                    Upload a structured document containing your story outline, and our AI will automatically 
+                                                    transform it into chapters and slides. Your document should follow a clear format with 
+                                                    a title, chapter headings, and scene descriptions.
+                                                </p>
+                                            </div>
+                                            <Button
+                                                onClick={downloadTemplate}
+                                                variant="outline"
+                                                size="sm"
+                                                className="ml-4 border-purple-300 text-purple-700 hover:bg-purple-100 flex-shrink-0"
+                                            >
+                                                <Download className="w-4 h-4 mr-2" />
+                                                Download Template
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     {/* Step-by-Step Instructions */}
