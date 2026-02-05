@@ -42,7 +42,31 @@ export default function MobileStoryCapture() {
     const recordingForRef = useRef(null);
 
     useEffect(() => {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        return () => {
+            if (recognitionRef.current) {
+                try {
+                    recognitionRef.current.stop();
+                } catch (e) {
+                    // Ignore errors on cleanup
+                }
+            }
+        };
+    }, []);
+
+    const handleStartRecording = (field) => {
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            alert('Speech recognition is not supported in this browser. Please use Safari on iOS.');
+            return;
+        }
+        
+        try {
+            if (isRecording && recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+            
+            console.log('Starting recording for:', field);
+            recordingForRef.current = field;
+            
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const recognition = new SpeechRecognition();
             recognition.continuous = false;
@@ -51,17 +75,17 @@ export default function MobileStoryCapture() {
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                const field = recordingForRef.current;
+                const currentField = recordingForRef.current;
                 
-                console.log('Speech result:', transcript, 'for field:', field);
+                console.log('Speech result:', transcript, 'for field:', currentField);
                 
-                if (field === 'story-title') {
+                if (currentField === 'story-title') {
                     setStoryTitle(transcript.trim());
-                } else if (field === 'chapter-title') {
+                } else if (currentField === 'chapter-title') {
                     setCurrentChapterTitle(transcript.trim());
-                } else if (field === 'slide-title') {
+                } else if (currentField === 'slide-title') {
                     setCurrentSlideTitle(transcript.trim());
-                } else if (field === 'slide-description') {
+                } else if (currentField === 'slide-description') {
                     setCurrentSlideDescription(transcript.trim());
                 }
             };
@@ -80,36 +104,8 @@ export default function MobileStoryCapture() {
             };
 
             recognitionRef.current = recognition;
-        } else {
-            console.error('Speech recognition not supported');
-        }
-
-        return () => {
-            if (recognitionRef.current) {
-                try {
-                    recognitionRef.current.stop();
-                } catch (e) {
-                    // Ignore errors on cleanup
-                }
-            }
-        };
-    }, []);
-
-    const handleStartRecording = (field) => {
-        if (!recognitionRef.current) {
-            alert('Speech recognition is not supported in this browser. Please use Safari on iOS.');
-            return;
-        }
-        
-        try {
-            if (isRecording) {
-                recognitionRef.current.stop();
-            }
-            
-            console.log('Starting recording for:', field);
-            recordingForRef.current = field;
             setIsRecording(true);
-            recognitionRef.current.start();
+            recognition.start();
         } catch (error) {
             console.error('Error starting recognition:', error);
             alert(`Failed to start recording: ${error.message}`);
