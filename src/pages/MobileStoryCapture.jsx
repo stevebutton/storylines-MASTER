@@ -40,6 +40,7 @@ export default function MobileStoryCapture() {
     const fileInputRef = useRef(null);
     const heroImageInputRef = useRef(null);
     const recognitionRef = useRef(null);
+    const recordingForRef = useRef(null);
 
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -68,6 +69,10 @@ export default function MobileStoryCapture() {
     }, []);
 
     useEffect(() => {
+        recordingForRef.current = recordingFor;
+    }, [recordingFor]);
+
+    useEffect(() => {
         if (recognitionRef.current) {
             recognitionRef.current.onresult = (event) => {
                 let finalTranscript = '';
@@ -78,19 +83,20 @@ export default function MobileStoryCapture() {
                 }
                 if (finalTranscript) {
                     const cleanTranscript = finalTranscript.trim();
-                    if (recordingFor === 'story-title') {
-                        setStoryTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'chapter-title') {
-                        setCurrentChapterTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'slide-title') {
-                        setCurrentSlideTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'slide-description') {
-                        setCurrentSlideDescription(prev => prev + ' ' + cleanTranscript);
+                    const currentField = recordingForRef.current;
+                    if (currentField === 'story-title') {
+                        setStoryTitle(prev => (prev + ' ' + cleanTranscript).trim());
+                    } else if (currentField === 'chapter-title') {
+                        setCurrentChapterTitle(prev => (prev + ' ' + cleanTranscript).trim());
+                    } else if (currentField === 'slide-title') {
+                        setCurrentSlideTitle(prev => (prev + ' ' + cleanTranscript).trim());
+                    } else if (currentField === 'slide-description') {
+                        setCurrentSlideDescription(prev => (prev + ' ' + cleanTranscript).trim());
                     }
                 }
             };
         }
-    }, [recordingFor]);
+    }, []);
 
     const handleStartRecording = (field) => {
         if (!recognitionRef.current) {
