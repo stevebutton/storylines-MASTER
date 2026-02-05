@@ -1,75 +1,90 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, Square } from 'lucide-react';
+import { Mic, Square, Undo2 } from 'lucide-react';
 
 export default function AudioRecorder() {
     const [isRecording, setIsRecording] = useState(false);
-    const [transcription, setTranscription] = useState('');
+    const [segments, setSegments] = useState([]);
     const [status, setStatus] = useState('Ready');
     const [error, setError] = useState('');
     const recognitionRef = useRef(null);
-    const finalTranscriptRef = useRef('');
+    const segmentCounter = useRef(0);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
+
         if (!SpeechRecognition) {
-            setError('Speech recognition is not supported in this browser');
+            setError('Speech recognition is not supported in this browser.');
             setStatus('Not Supported');
             return;
         }
 
-        try {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
 
-            recognition.onstart = () => {
-                setIsRecording(true);
-                setStatus('Listening...');
-                setError('');
-                finalTranscriptRef.current = '';
-            };
+        recognition.onstart = () => {
+            setIsRecording(true);
+            setStatus('Listening...');
+            setError('');
+        };
 
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscriptRef.current += event.results[i][0].transcript + ' ';
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
                 }
-                setTranscription(finalTranscriptRef.current + interimTranscript);
-            };
+            }
 
-            recognition.onerror = (event) => {
-                setIsRecording(false);
-                setStatus('Ready');
-                
-                if (event.error === 'not-allowed') {
-                    setError('Microphone access denied. Please enable microphone permissions.');
-                } else if (event.error === 'no-speech' && !finalTranscriptRef.current) {
-                    setError('No speech detected. Please try again.');
-                } else if (event.error === 'network') {
-                    setError('Network error. Please check your connection.');
-                } else if (event.error !== 'aborted') {
-                    setError(`Error: ${event.error}`);
-                }
-            };
+            if (finalTranscript) {
+                setSegments(prevSegments => [
+                    ...prevSegments,
+                    { id: segmentCounter.current++, text: finalTranscript, isFinal: true }
+                ]);
+            }
 
-            recognition.onend = () => {
-                setIsRecording(false);
-                setStatus('Ready');
-            };
+            if (interimTranscript) {
+                setSegments(prevSegments => {
+                    const withoutInterim = prevSegments.filter(s => s.isFinal);
+                    return [
+                        ...withoutInterim,
+                        { id: 'interim', text: interimTranscript, isFinal: false }
+                    ];
+                });
+            }
+        };
 
-            recognitionRef.current = recognition;
+        recognition.onerror = (event) => {
+            setIsRecording(false);
             setStatus('Ready');
-        } catch (err) {
-            setError(`Failed to initialize: ${err.message}`);
-            setStatus('Error');
-        }
+            if (event.error === 'not-allowed' || event.error === 'permission-denied') {
+                setError('Microphone access denied. Please enable microphone permissions in your browser settings.');
+            } else if (event.error === 'no-speech') {
+                setError('No speech detected. Please speak clearly.');
+            } else if (event.error === 'audio-capture') {
+                setError('Microphone is not available. Please check your microphone connection.');
+            } else if (event.error === 'network') {
+                setError('Network error during speech recognition. Please check your internet connection.');
+            } else if (event.error !== 'aborted') {
+                setError(`Speech recognition error: ${event.error}`);
+            }
+            console.error('Speech recognition error:', event.error);
+        };
+
+        recognition.onend = () => {
+            setIsRecording(false);
+            setStatus('Ready');
+            setSegments(prevSegments => prevSegments.filter(s => s.isFinal));
+        };
+
+        recognitionRef.current = recognition;
 
         return () => {
             if (recognitionRef.current) {
@@ -78,50 +93,80 @@ export default function AudioRecorder() {
         };
     }, []);
 
-    const handleToggleRecording = () => {
-        if (!recognitionRef.current) return;
-
-        if (isRecording) {
-            recognitionRef.current.stop();
-        } else {
-            setTranscription('');
-            setError('');
-            finalTranscriptRef.current = '';
+    const startRecording = () => {
+        if (recognitionRef.current && !isRecording) {
             recognitionRef.current.start();
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 p-6 flex flex-col items-center justify-center">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-                <h1 className="text-3xl font-bold text-slate-800 mb-2 text-center">
-                    Voice Transcription
-                </h1>
-                <p className="text-sm text-slate-500 mb-8 text-center">
-                    Tap to record and transcribe your voice
-                </p>
+    const stopRecording = () => {
+        if (recognitionRef.current && isRecording) {
+            recognitionRef.current.stop();
+        }
+    };
 
-                {/* Status Indicator */}
-                <div className="mb-6 text-center">
-                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-                        isRecording 
-                            ? 'bg-red-100 text-red-700' 
-                            : 'bg-slate-100 text-slate-700'
+    const clearSegments = () => {
+        setSegments([]);
+        segmentCounter.current = 0;
+        setError('');
+    };
+
+    const undoLastSegment = () => {
+        setSegments(prevSegments => {
+            const finalSegments = prevSegments.filter(s => s.isFinal);
+            return finalSegments.slice(0, -1);
+        });
+    };
+
+    const displayTranscription = segments.map(s => s.text).join(' ');
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex flex-col items-center justify-center">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-4">
+                <h1 className="text-3xl font-bold text-gray-800 text-center">Voice Recorder</h1>
+                <p className="text-sm text-gray-600 text-center">Tap to record, transcribe, and edit your speech.</p>
+
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                        {error}
+                    </div>
+                )}
+
+                <div className="flex justify-between items-center mt-6 mb-4">
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        isRecording ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
                     }`}>
-                        {isRecording && <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />}
                         {status}
+                    </div>
+                    <div className="flex space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={undoLastSegment}
+                            disabled={isRecording || segments.filter(s => s.isFinal).length === 0}
+                        >
+                            <Undo2 className="h-4 w-4 mr-1" />
+                            Undo
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={clearSegments}
+                            disabled={isRecording || segments.length === 0}
+                        >
+                            Clear
+                        </Button>
                     </div>
                 </div>
 
-                {/* Record Button */}
-                <div className="flex flex-col items-center gap-4 mb-8">
+                <div className="flex justify-center my-6">
                     <Button
-                        onClick={handleToggleRecording}
+                        onClick={isRecording ? stopRecording : startRecording}
                         disabled={!recognitionRef.current}
-                        className={`w-32 h-32 rounded-full shadow-lg transition-all ${
+                        className={`w-32 h-32 rounded-full shadow-lg transition-all duration-300 ${
                             isRecording 
-                                ? 'bg-slate-800 hover:bg-slate-900 animate-pulse' 
-                                : 'bg-red-500 hover:bg-red-600'
+                                ? 'bg-blue-500 hover:bg-blue-600 animate-pulse' 
+                                : 'bg-gray-700 hover:bg-gray-800'
                         }`}
                         size="icon"
                     >
@@ -131,34 +176,19 @@ export default function AudioRecorder() {
                             <Mic className="w-12 h-12 text-white" />
                         )}
                     </Button>
-                    <p className="text-sm font-medium text-slate-600">
-                        {isRecording ? 'Tap to stop recording' : 'Tap to start recording'}
-                    </p>
                 </div>
 
-                {/* Error Display */}
-                {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-sm text-red-800">{error}</p>
-                    </div>
-                )}
-
-                {/* Transcription Display */}
-                {transcription && (
-                    <div>
-                        <h2 className="text-lg font-semibold text-slate-800 mb-3">Transcription:</h2>
-                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                            <p className="text-slate-700 leading-relaxed">{transcription}</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Browser Support Warning */}
-                {!recognitionRef.current && !error && (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-sm text-amber-800">
-                            Initializing speech recognition...
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-32 overflow-y-auto text-gray-800 text-sm leading-relaxed">
+                    {displayTranscription || (
+                        <p className="italic text-gray-500 text-center">
+                            {isRecording ? 'Speak now...' : 'Your transcription will appear here.'}
                         </p>
+                    )}
+                </div>
+
+                {isIOS && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+                        Note: For optimal performance on iOS, ensure "Enable Dictation" is turned on in your device settings.
                     </div>
                 )}
             </div>

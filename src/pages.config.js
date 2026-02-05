@@ -49,6 +49,7 @@
  */
 import AboutContentThatMoves from './pages/AboutContentThatMoves';
 import AboutStorylines from './pages/AboutStorylines';
+import AudioRecorder from './pages/AudioRecorder';
 import AudioTest from './pages/AudioTest';
 import ChapterPreview from './pages/ChapterPreview';
 import DocumentManager from './pages/DocumentManager';
@@ -65,13 +66,13 @@ import StoriesMap from './pages/StoriesMap';
 import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
-import AudioRecorder from './pages/AudioRecorder';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AboutContentThatMoves": AboutContentThatMoves,
     "AboutStorylines": AboutStorylines,
+    "AudioRecorder": AudioRecorder,
     "AudioTest": AudioTest,
     "ChapterPreview": ChapterPreview,
     "DocumentManager": DocumentManager,
@@ -88,7 +89,6 @@ export const PAGES = {
     "StoryEditor": StoryEditor,
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
-    "AudioRecorder": AudioRecorder,
 }
 
 export const pagesConfig = {
