@@ -1,124 +1,211 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Mic, Square, Undo2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function AudioRecorder() {
-    const [isRecording, setIsRecording] = useState(false);
-    const [segments, setSegments] = useState([]);
-    const [status, setStatus] = useState('Ready');
-    const [error, setError] = useState('');
-    const recognitionRef = useRef(null);
-    const segmentCounter = useRef(0);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const [error, setError] = useState('');
+  const [isSupported, setIsSupported] = useState(true);
+  const [debugInfo, setDebugInfo] = useState('');
+  const [eventLog, setEventLog] = useState([]);
+  const recognitionRef = useRef(null);
 
-    useEffect(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const addLog = (message) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setEventLog(prev => [...prev.slice(-4), `${timestamp}: ${message}`]);
+    console.log(message);
+  };
 
-        if (!SpeechRecognition) {
-            setError('Speech recognition is not supported in this browser.');
-            setStatus('Not Supported');
-            return;
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      setError('Speech recognition is not supported in this browser.');
+      setIsSupported(false);
+      setDebugInfo('Not supported');
+      addLog('SpeechRecognition API not found');
+    } else {
+      setDebugInfo('Ready');
+      addLog('App loaded and ready');
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {
+          console.log('Cleanup error:', e);
         }
+      }
+    };
+  }, []);
 
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
+  const createRecognition = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognitionInstance = new SpeechRecognition();
+    
+    recognitionInstance.continuous = true;
+    recognitionInstance.interimResults = true;
+    recognitionInstance.lang = 'en-US';
+    recognitionInstance.maxAlternatives = 1;
 
-        recognition.onstart = () => {
-            setIsRecording(true);
-            setStatus('Listening...');
-            setError('');
-        };
+    recognitionInstance.onstart = () => {
+      addLog('✓ onstart fired');
+      setDebugInfo('🎙️ LISTENING');
+    };
 
-        recognition.onresult = (event) => {
-            let interimTranscript = '';
-            let finalTranscript = '';
+    recognitionInstance.onaudiostart = () => {
+      addLog('✓ onaudiostart - mic active');
+      setDebugInfo('🎙️ MIC ACTIVE');
+    };
 
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
-                }
-            }
+    recognitionInstance.onsoundstart = () => {
+      addLog('✓ onsoundstart - sound detected');
+      setDebugInfo('🔊 SOUND DETECTED');
+    };
 
-            if (finalTranscript) {
-                setSegments(prevSegments => [
-                    ...prevSegments,
-                    { id: segmentCounter.current++, text: finalTranscript, isFinal: true }
-                ]);
-            }
+    recognitionInstance.onspeechstart = () => {
+      addLog('✓ onspeechstart - speech detected!');
+      setDebugInfo('🗣️ SPEECH DETECTED');
+    };
 
-            if (interimTranscript) {
-                setSegments(prevSegments => {
-                    const withoutInterim = prevSegments.filter(s => s.isFinal);
-                    return [
-                        ...withoutInterim,
-                        { id: 'interim', text: interimTranscript, isFinal: false }
-                    ];
-                });
-            }
-        };
-
-        recognition.onerror = (event) => {
-            setIsRecording(false);
-            setStatus('Ready');
-            if (event.error === 'not-allowed' || event.error === 'permission-denied') {
-                setError('Microphone access denied. Please enable microphone permissions in your browser settings.');
-            } else if (event.error === 'no-speech') {
-                setError('No speech detected. Please speak clearly.');
-            } else if (event.error === 'audio-capture') {
-                setError('Microphone is not available. Please check your microphone connection.');
-            } else if (event.error === 'network') {
-                setError('Network error during speech recognition. Please check your internet connection.');
-            } else if (event.error !== 'aborted') {
-                setError(`Speech recognition error: ${event.error}`);
-            }
-            console.error('Speech recognition error:', event.error);
-        };
-
-        recognition.onend = () => {
-            setIsRecording(false);
-            setStatus('Ready');
-            setSegments(prevSegments => prevSegments.filter(s => s.isFinal));
-        };
-
-        recognitionRef.current = recognition;
-
-        return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.abort();
-            }
-        };
-    }, []);
-
-    const startRecording = () => {
-        if (recognitionRef.current && !isRecording) {
-            recognitionRef.current.start();
+    recognitionInstance.onresult = (event) => {
+      addLog(`✓ onresult fired! (${event.results.length} results)`);
+      
+      let interimText = '';
+      let finalText = '';
+      
+      for (let i = 0; i < event.results.length; i++) {
+        const resultTranscript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalText += resultTranscript + ' ';
+          addLog(`FINAL: "${resultTranscript}"`);
+        } else {
+          interimText += resultTranscript;
+          addLog(`interim: "${resultTranscript}"`);
         }
+      }
+      
+      if (finalText) {
+        setTranscript(prev => prev + finalText);
+        setDebugInfo('✅ GOT TRANSCRIPTION');
+      }
+      if (interimText) {
+        setInterimTranscript(interimText);
+        setDebugInfo('📝 Hearing you...');
+      }
+      
+      setError('');
     };
 
-    const stopRecording = () => {
-        if (recognitionRef.current && isRecording) {
-            recognitionRef.current.stop();
+    recognitionInstance.onspeechend = () => {
+      addLog('onspeechend - speech stopped');
+      setDebugInfo('🤫 Silence detected');
+    };
+
+    recognitionInstance.onsoundend = () => {
+      addLog('onsoundend - sound stopped');
+    };
+
+    recognitionInstance.onaudioend = () => {
+      addLog('onaudioend - mic stopped');
+    };
+
+    recognitionInstance.onend = () => {
+      addLog('onend - recognition ended');
+      setIsRecording(false);
+      setInterimTranscript('');
+      setDebugInfo('Ready');
+      recognitionRef.current = null;
+    };
+
+    recognitionInstance.onerror = (event) => {
+      addLog(`❌ ERROR: ${event.error}`);
+      setIsRecording(false);
+      recognitionRef.current = null;
+      
+      switch(event.error) {
+        case 'not-allowed':
+          setError('❌ Microphone permission denied');
+          setDebugInfo('Permission denied');
+          break;
+        case 'no-speech':
+          setError('No speech detected - speak louder?');
+          setDebugInfo('No speech heard');
+          break;
+        case 'aborted':
+          setError('');
+          setDebugInfo('Stopped');
+          break;
+        case 'audio-capture':
+          setError('❌ Cannot access microphone');
+          setDebugInfo('Mic unavailable');
+          break;
+        case 'network':
+          setError('❌ Network error - check WiFi/cellular');
+          setDebugInfo('Network error');
+          break;
+        case 'service-not-allowed':
+          setError('❌ Speech service not available');
+          setDebugInfo('Service blocked');
+          break;
+        default:
+          setError(`Error: ${event.error}`);
+          setDebugInfo(`Error: ${event.error}`);
+      }
+    };
+
+    return recognitionInstance;
+  };
+
+  const toggleRecording = () => {
+    if (!isSupported) {
+      setError('Speech recognition not supported.');
+      return;
+    }
+
+    if (isRecording) {
+      addLog('User clicked stop');
+      setDebugInfo('Stopping...');
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.error('Error stopping:', e);
+          setIsRecording(false);
         }
-    };
-
-    const clearSegments = () => {
-        setSegments([]);
-        segmentCounter.current = 0;
-        setError('');
-    };
-
-    const undoLastSegment = () => {
-        setSegments(prevSegments => {
-            const finalSegments = prevSegments.filter(s => s.isFinal);
-            return finalSegments.slice(0, -1);
-        });
-    };
-
-    const displayTranscription = segments.map(s => s.text).join(' ');
+      }
+    } else {
+      setError('');
+      setInterimTranscript('');
+      addLog('User clicked start');
+      setDebugInfo('Starting...');
+      
+      try {
+        if (recognitionRef.current) {
+          addLog('Cleaning up old instance');
+          try {
+            recognitionRef.current.abort();
+          } catch (e) {
+            console.log('Abort error:', e);
+          }
+          recognitionRef.current = null;
+        }
+        
+        addLog('Creating new recognition');
+        recognitionRef.current = createRecognition();
+        addLog('Calling start()...');
+        recognitionRef.current.start();
+        setIsRecording(true);
+        
+      } catch (err) {
+        addLog(`Start failed: ${err.message}`);
+        setError('Failed to start. Try again.');
+        setDebugInfo('Failed');
+        setIsRecording(false);
+      }
+    }
+  };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex flex-col items-center justify-center">
