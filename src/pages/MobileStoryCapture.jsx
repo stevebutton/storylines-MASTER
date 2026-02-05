@@ -51,9 +51,8 @@ export default function MobileStoryCapture() {
             recognitionRef.current.lang = 'en-US';
 
             recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
+                console.error('Speech recognition error:', event.error, 'Field:', recordingForRef.current);
                 setIsRecording(false);
-                setRecordingFor(null);
             };
 
             recognitionRef.current.onend = () => {
@@ -75,6 +74,7 @@ export default function MobileStoryCapture() {
     useEffect(() => {
         if (recognitionRef.current) {
             recognitionRef.current.onresult = (event) => {
+                console.log('Speech recognition onresult fired, event:', event);
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
@@ -84,8 +84,14 @@ export default function MobileStoryCapture() {
                 if (finalTranscript) {
                     const cleanTranscript = finalTranscript.trim();
                     const currentField = recordingForRef.current;
+                    console.log('Transcript received:', cleanTranscript, 'for field:', currentField);
                     if (currentField === 'story-title') {
-                        setStoryTitle(prev => (prev + ' ' + cleanTranscript).trim());
+                        console.log('Setting story title');
+                        setStoryTitle(prev => {
+                            const newValue = (prev + ' ' + cleanTranscript).trim();
+                            console.log('Story title updated from', prev, 'to', newValue);
+                            return newValue;
+                        });
                     } else if (currentField === 'chapter-title') {
                         setCurrentChapterTitle(prev => (prev + ' ' + cleanTranscript).trim());
                     } else if (currentField === 'slide-title') {
@@ -93,6 +99,8 @@ export default function MobileStoryCapture() {
                     } else if (currentField === 'slide-description') {
                         setCurrentSlideDescription(prev => (prev + ' ' + cleanTranscript).trim());
                     }
+                } else {
+                    console.log('No final transcript received');
                 }
             };
         }
@@ -103,12 +111,19 @@ export default function MobileStoryCapture() {
             alert('Speech recognition is not supported in this browser. Please use Safari on iOS.');
             return;
         }
+        console.log('Starting recording for field:', field);
         setIsRecording(true);
         setRecordingFor(field);
-        recognitionRef.current.start();
+        try {
+            recognitionRef.current.start();
+        } catch (error) {
+            console.error('Error starting recognition:', error);
+            setIsRecording(false);
+        }
     };
 
     const handleStopRecording = () => {
+        console.log('Stopping recording for field:', recordingForRef.current);
         if (recognitionRef.current) {
             recognitionRef.current.stop();
         }
