@@ -57,7 +57,6 @@ export default function MobileStoryCapture() {
 
             recognitionRef.current.onend = () => {
                 setIsRecording(false);
-                setRecordingFor(null);
             };
         }
 
