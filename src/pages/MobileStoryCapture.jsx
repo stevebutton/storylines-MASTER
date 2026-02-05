@@ -31,15 +31,15 @@ export default function MobileStoryCapture() {
     const [currentSlideLocation, setCurrentSlideLocation] = useState(null);
     
     // UI state
-    const [currentScreen, setCurrentScreen] = useState('welcome'); // 'welcome', 'story-setup', 'chapter-setup', 'slide-creation', 'slide-choice'
+    const [currentScreen, setCurrentScreen] = useState('welcome');
     const [isRecording, setIsRecording] = useState(false);
-    const [recordingFor, setRecordingFor] = useState(null); // 'story-title', 'chapter-title', 'slide-title', 'slide-description'
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     
     const fileInputRef = useRef(null);
     const heroImageInputRef = useRef(null);
     const recognitionRef = useRef(null);
+    const recordingForRef = useRef(null);
 
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -51,24 +51,28 @@ export default function MobileStoryCapture() {
 
             recognitionRef.current.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                if (recordingFor === 'story-title') {
-                    setStoryTitle(prev => (prev ? prev + ' ' + transcript : transcript).trim());
-                } else if (recordingFor === 'chapter-title') {
-                    setCurrentChapterTitle(prev => (prev ? prev + ' ' + transcript : transcript).trim());
-                } else if (recordingFor === 'slide-title') {
-                    setCurrentSlideTitle(prev => (prev ? prev + ' ' + transcript : transcript).trim());
-                } else if (recordingFor === 'slide-description') {
-                    setCurrentSlideDescription(prev => (prev ? prev + ' ' + transcript : transcript).trim());
+                const field = recordingForRef.current;
+                
+                if (field === 'story-title') {
+                    setStoryTitle(transcript.trim());
+                } else if (field === 'chapter-title') {
+                    setCurrentChapterTitle(transcript.trim());
+                } else if (field === 'slide-title') {
+                    setCurrentSlideTitle(transcript.trim());
+                } else if (field === 'slide-description') {
+                    setCurrentSlideDescription(transcript.trim());
                 }
             };
 
             recognitionRef.current.onend = () => {
                 setIsRecording(false);
+                recordingForRef.current = null;
             };
 
             recognitionRef.current.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
                 setIsRecording(false);
+                recordingForRef.current = null;
             };
         }
 
@@ -77,14 +81,17 @@ export default function MobileStoryCapture() {
                 recognitionRef.current.stop();
             }
         };
-    }, [recordingFor]);
+    }, []);
 
     const handleStartRecording = (field) => {
         if (!recognitionRef.current) {
             alert('Speech recognition is not supported in this browser. Please use Safari on iOS.');
             return;
         }
-        setRecordingFor(field);
+        if (isRecording) {
+            recognitionRef.current.stop();
+        }
+        recordingForRef.current = field;
         setIsRecording(true);
         recognitionRef.current.start();
     };
@@ -92,6 +99,8 @@ export default function MobileStoryCapture() {
     const handleStopRecording = () => {
         if (recognitionRef.current && isRecording) {
             recognitionRef.current.stop();
+            setIsRecording(false);
+            recordingForRef.current = null;
         }
     };
 
@@ -350,14 +359,14 @@ export default function MobileStoryCapture() {
                                     )}
                                     <div className="flex flex-col items-center py-3 space-y-2">
                                         <button
-                                            onClick={() => isRecording && recordingFor === 'story-title' ? handleStopRecording() : handleStartRecording('story-title')}
+                                            onClick={() => isRecording && recordingForRef.current === 'story-title' ? handleStopRecording() : handleStartRecording('story-title')}
                                             className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
-                                                isRecording && recordingFor === 'story-title'
+                                                isRecording && recordingForRef.current === 'story-title'
                                                     ? 'bg-red-500 animate-pulse' 
                                                     : 'bg-amber-600 hover:bg-amber-700'
                                             }`}
                                         >
-                                            {isRecording && recordingFor === 'story-title' ? (
+                                            {isRecording && recordingForRef.current === 'story-title' ? (
                                                 <Square className="w-10 h-10 text-white" />
                                             ) : (
                                                 <Mic className="w-12 h-12 text-white" />
@@ -365,7 +374,7 @@ export default function MobileStoryCapture() {
                                         </button>
                                         <p className="text-lg font-bold text-slate-800">Story Title</p>
                                         <p className="text-sm font-medium text-slate-600">
-                                            {isRecording && recordingFor === 'story-title' ? 'Tap to Stop' : 'Tap to Record'}
+                                            {isRecording && recordingForRef.current === 'story-title' ? 'Tap to Stop' : 'Tap to Record'}
                                         </p>
                                     </div>
                                 </div>
@@ -470,14 +479,14 @@ export default function MobileStoryCapture() {
                                     )}
                                     <div className="flex flex-col items-center py-3 space-y-2">
                                         <button
-                                            onClick={() => isRecording && recordingFor === 'chapter-title' ? handleStopRecording() : handleStartRecording('chapter-title')}
+                                            onClick={() => isRecording && recordingForRef.current === 'chapter-title' ? handleStopRecording() : handleStartRecording('chapter-title')}
                                             className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
-                                                isRecording && recordingFor === 'chapter-title'
+                                                isRecording && recordingForRef.current === 'chapter-title'
                                                     ? 'bg-red-500 animate-pulse' 
                                                     : 'bg-amber-600 hover:bg-amber-700'
                                             }`}
                                         >
-                                            {isRecording && recordingFor === 'chapter-title' ? (
+                                            {isRecording && recordingForRef.current === 'chapter-title' ? (
                                                 <Square className="w-10 h-10 text-white" />
                                             ) : (
                                                 <Mic className="w-12 h-12 text-white" />
@@ -485,7 +494,7 @@ export default function MobileStoryCapture() {
                                         </button>
                                         <p className="text-lg font-bold text-slate-800">Chapter Title</p>
                                         <p className="text-sm font-medium text-slate-600">
-                                            {isRecording && recordingFor === 'chapter-title' ? 'Tap to Stop' : 'Tap to Record'}
+                                            {isRecording && recordingForRef.current === 'chapter-title' ? 'Tap to Stop' : 'Tap to Record'}
                                         </p>
                                     </div>
                                 </div>
@@ -549,14 +558,14 @@ export default function MobileStoryCapture() {
                                     )}
                                     <div className="flex flex-col items-center py-3 space-y-2">
                                         <button
-                                            onClick={() => isRecording && recordingFor === 'slide-title' ? handleStopRecording() : handleStartRecording('slide-title')}
+                                            onClick={() => isRecording && recordingForRef.current === 'slide-title' ? handleStopRecording() : handleStartRecording('slide-title')}
                                             className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
-                                                isRecording && recordingFor === 'slide-title'
+                                                isRecording && recordingForRef.current === 'slide-title'
                                                     ? 'bg-red-500 animate-pulse' 
                                                     : 'bg-amber-600 hover:bg-amber-700'
                                             }`}
                                         >
-                                            {isRecording && recordingFor === 'slide-title' ? (
+                                            {isRecording && recordingForRef.current === 'slide-title' ? (
                                                 <Square className="w-10 h-10 text-white" />
                                             ) : (
                                                 <Mic className="w-12 h-12 text-white" />
@@ -564,7 +573,7 @@ export default function MobileStoryCapture() {
                                         </button>
                                         <p className="text-lg font-bold text-slate-800">Slide Title</p>
                                         <p className="text-sm font-medium text-slate-600">
-                                            {isRecording && recordingFor === 'slide-title' ? 'Tap to Stop' : 'Tap to Record'}
+                                            {isRecording && recordingForRef.current === 'slide-title' ? 'Tap to Stop' : 'Tap to Record'}
                                         </p>
                                     </div>
                                 </div>
@@ -578,14 +587,14 @@ export default function MobileStoryCapture() {
                                     )}
                                     <div className="flex flex-col items-center py-3 space-y-2">
                                         <button
-                                            onClick={() => isRecording && recordingFor === 'slide-description' ? handleStopRecording() : handleStartRecording('slide-description')}
+                                            onClick={() => isRecording && recordingForRef.current === 'slide-description' ? handleStopRecording() : handleStartRecording('slide-description')}
                                             className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
-                                                isRecording && recordingFor === 'slide-description'
+                                                isRecording && recordingForRef.current === 'slide-description'
                                                     ? 'bg-red-500 animate-pulse' 
                                                     : 'bg-purple-600 hover:bg-purple-700'
                                             }`}
                                         >
-                                            {isRecording && recordingFor === 'slide-description' ? (
+                                            {isRecording && recordingForRef.current === 'slide-description' ? (
                                                 <Square className="w-10 h-10 text-white" />
                                             ) : (
                                                 <Mic className="w-12 h-12 text-white" />
@@ -593,7 +602,7 @@ export default function MobileStoryCapture() {
                                         </button>
                                         <p className="text-lg font-bold text-slate-800">Description</p>
                                         <p className="text-sm font-medium text-slate-600">
-                                            {isRecording && recordingFor === 'slide-description' ? 'Tap to Stop' : 'Tap to Record'}
+                                            {isRecording && recordingForRef.current === 'slide-description' ? 'Tap to Stop' : 'Tap to Record'}
                                         </p>
                                     </div>
                                 </div>
