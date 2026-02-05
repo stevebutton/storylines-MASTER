@@ -290,17 +290,16 @@ export default function MobileStoryCapture() {
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
             {/* Header */}
             <div className="bg-amber-600 text-white px-6 py-6 shadow-lg">
-                <div className="max-w-4xl mx-auto">
-                    <h1 className="text-3xl font-bold mb-2">Storyboarder</h1>
-                    <p className="text-amber-100 text-sm">Remote story capture from Storylines</p>
+                <div className="max-w-4xl mx-auto text-center">
+                    <h1 className="text-lg font-medium mb-3">Storyboarder</h1>
                     {currentScreen === 'story-setup' && (
-                        <p className="text-white text-lg font-semibold mt-3">Start a New Story</p>
+                        <p className="text-white text-2xl font-bold">Start a New Story</p>
                     )}
                     {currentScreen === 'chapter-setup' && (
-                        <p className="text-white text-lg font-semibold mt-3">Create a Chapter</p>
+                        <p className="text-white text-2xl font-bold">Create a Chapter</p>
                     )}
                     {currentScreen === 'slide-creation' && (
-                        <p className="text-white text-lg font-semibold mt-3">Create a Slide</p>
+                        <p className="text-white text-2xl font-bold">Create a Slide</p>
                     )}
                 </div>
             </div>
