@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, Square, Check } from 'lucide-react';
 
-export default function VoiceNarrationRecorder({ onTranscriptChange, initialTranscript = '' }) {
+export default function VoiceNarrationRecorder({ onTranscriptChange, initialTranscript = '', showDebug = false }) {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState(initialTranscript);
   const [interimTranscript, setInterimTranscript] = useState('');
@@ -244,24 +244,28 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
           {isRecording ? 'RECORDING - Click to stop' : 'Click to start'}
         </p>
         
-        <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-          <p className="text-xs font-semibold text-blue-700 mb-1">STATUS:</p>
-          <p className="text-blue-900 text-base font-bold">{debugInfo}</p>
-        </div>
+        {showDebug && (
+          <>
+            <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+              <p className="text-xs font-semibold text-blue-700 mb-1">STATUS:</p>
+              <p className="text-blue-900 text-base font-bold">{debugInfo}</p>
+            </div>
 
-        <div className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 max-h-32 overflow-y-auto mt-4">
-          <p className="text-xs font-semibold text-gray-700 mb-1">EVENT LOG:</p>
-          {eventLog.length === 0 ? (
-            <p className="text-xs text-gray-500">No events yet</p>
-          ) : (
-            eventLog.map((log, i) => (
-              <p key={i} className="text-xs text-gray-700 font-mono">{log}</p>
-            ))
-          )}
-        </div>
+            <div className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 max-h-32 overflow-y-auto mt-4">
+              <p className="text-xs font-semibold text-gray-700 mb-1">EVENT LOG:</p>
+              {eventLog.length === 0 ? (
+                <p className="text-xs text-gray-500">No events yet</p>
+              ) : (
+                eventLog.map((log, i) => (
+                  <p key={i} className="text-xs text-gray-700 font-mono">{log}</p>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
 
-      {interimTranscript && (
+{showDebug && interimTranscript && (
         <div className="w-full bg-yellow-50 border border-yellow-300 rounded-lg p-3">
           <p className="text-xs font-semibold text-yellow-700 mb-1">INTERIM:</p>
           <p className="text-gray-700 text-sm italic">{interimTranscript}</p>
