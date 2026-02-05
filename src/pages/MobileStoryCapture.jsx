@@ -40,7 +40,6 @@ export default function MobileStoryCapture() {
     const fileInputRef = useRef(null);
     const heroImageInputRef = useRef(null);
     const recognitionRef = useRef(null);
-    const recordingForRef = useRef(null);
 
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -51,8 +50,9 @@ export default function MobileStoryCapture() {
             recognitionRef.current.lang = 'en-US';
 
             recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error:', event.error, 'Field:', recordingForRef.current);
+                console.error('Speech recognition error:', event.error);
                 setIsRecording(false);
+                setRecordingFor(null);
             };
 
             recognitionRef.current.onend = () => {
@@ -68,13 +68,8 @@ export default function MobileStoryCapture() {
     }, []);
 
     useEffect(() => {
-        recordingForRef.current = recordingFor;
-    }, [recordingFor]);
-
-    useEffect(() => {
         if (recognitionRef.current) {
             recognitionRef.current.onresult = (event) => {
-                console.log('Speech recognition onresult fired, event:', event);
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
@@ -83,47 +78,31 @@ export default function MobileStoryCapture() {
                 }
                 if (finalTranscript) {
                     const cleanTranscript = finalTranscript.trim();
-                    const currentField = recordingForRef.current;
-                    console.log('Transcript received:', cleanTranscript, 'for field:', currentField);
-                    if (currentField === 'story-title') {
-                        console.log('Setting story title');
-                        setStoryTitle(prev => {
-                            const newValue = (prev + ' ' + cleanTranscript).trim();
-                            console.log('Story title updated from', prev, 'to', newValue);
-                            return newValue;
-                        });
-                    } else if (currentField === 'chapter-title') {
-                        setCurrentChapterTitle(prev => (prev + ' ' + cleanTranscript).trim());
-                    } else if (currentField === 'slide-title') {
-                        setCurrentSlideTitle(prev => (prev + ' ' + cleanTranscript).trim());
-                    } else if (currentField === 'slide-description') {
-                        setCurrentSlideDescription(prev => (prev + ' ' + cleanTranscript).trim());
+                    if (recordingFor === 'story-title') {
+                        setStoryTitle(prev => prev + ' ' + cleanTranscript);
+                    } else if (recordingFor === 'chapter-title') {
+                        setCurrentChapterTitle(prev => prev + ' ' + cleanTranscript);
+                    } else if (recordingFor === 'slide-title') {
+                        setCurrentSlideTitle(prev => prev + ' ' + cleanTranscript);
+                    } else if (recordingFor === 'slide-description') {
+                        setCurrentSlideDescription(prev => prev + ' ' + cleanTranscript);
                     }
-                } else {
-                    console.log('No final transcript received');
                 }
             };
         }
-    }, []);
+    }, [recordingFor]);
 
     const handleStartRecording = (field) => {
         if (!recognitionRef.current) {
             alert('Speech recognition is not supported in this browser. Please use Safari on iOS.');
             return;
         }
-        console.log('Starting recording for field:', field);
         setIsRecording(true);
         setRecordingFor(field);
-        try {
-            recognitionRef.current.start();
-        } catch (error) {
-            console.error('Error starting recognition:', error);
-            setIsRecording(false);
-        }
+        recognitionRef.current.start();
     };
 
     const handleStopRecording = () => {
-        console.log('Stopping recording for field:', recordingForRef.current);
         if (recognitionRef.current) {
             recognitionRef.current.stop();
         }
