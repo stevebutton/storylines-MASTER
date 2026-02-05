@@ -25,7 +25,7 @@ export default function AudioTest() {
             });
 
             const mediaRecorder = new MediaRecorder(stream, {
-                mimeType: 'audio/mp4'
+                mimeType: 'audio/webm'
             });
             
             mediaRecorderRef.current = mediaRecorder;
@@ -38,7 +38,7 @@ export default function AudioTest() {
             };
 
             mediaRecorder.onstop = async () => {
-                const blob = new Blob(chunksRef.current, { type: 'audio/mp4' });
+                const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
                 stream.getTracks().forEach(track => track.stop());
                 await transcribeAudio(blob);
             };
@@ -61,7 +61,7 @@ export default function AudioTest() {
     const transcribeAudio = async (blob) => {
         setIsProcessing(true);
         try {
-            const file = new File([blob], 'recording.mp4', { type: 'audio/mp4' });
+            const file = new File([blob], 'recording.webm', { type: 'audio/webm' });
             
             const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
