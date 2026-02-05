@@ -55,7 +55,6 @@ import Home from './pages/Home';
 import HomeTest from './pages/HomeTest';
 import LocationPickerPage from './pages/LocationPickerPage';
 import MediaLibrary from './pages/MediaLibrary';
-import MobileStoryCapture from './pages/MobileStoryCapture';
 import PageEditor from './pages/PageEditor';
 import PageTest from './pages/PageTest';
 import ProjectInterface from './pages/ProjectInterface';
@@ -64,6 +63,7 @@ import StoriesMap from './pages/StoriesMap';
 import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
+import MobileStoryCapture from './pages/MobileStoryCapture';
 import __Layout from './Layout.jsx';
 
 
@@ -76,7 +76,6 @@ export const PAGES = {
     "HomeTest": HomeTest,
     "LocationPickerPage": LocationPickerPage,
     "MediaLibrary": MediaLibrary,
-    "MobileStoryCapture": MobileStoryCapture,
     "PageEditor": PageEditor,
     "PageTest": PageTest,
     "ProjectInterface": ProjectInterface,
@@ -85,6 +84,7 @@ export const PAGES = {
     "StoryEditor": StoryEditor,
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
+    "MobileStoryCapture": MobileStoryCapture,
 }
 
 export const pagesConfig = {

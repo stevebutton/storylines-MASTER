@@ -299,8 +299,8 @@ export default function MobileStoryCapture() {
             {/* Content Area */}
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <AnimatePresence mode="wait">
-                        {/* Story Setup Screen */}
-                        {currentScreen === 'story-setup' && (
+                    {/* Story Setup Screen */}
+                    {currentScreen === 'story-setup' && (
                             <motion.div
                                 key="story-setup"
                                 initial={{ opacity: 0, x: 50 }}
@@ -420,10 +420,10 @@ export default function MobileStoryCapture() {
                                     <ChevronRight className="w-4 h-4 ml-2" />
                                 </Button>
                             </motion.div>
-                        )}
+                    )}
 
-                        {/* Chapter Setup Screen */}
-                        {currentScreen === 'chapter-setup' && (
+                    {/* Chapter Setup Screen */}
+                    {currentScreen === 'chapter-setup' && (
                             <motion.div
                                 key="chapter-setup"
                                 initial={{ opacity: 0, x: 50 }}
@@ -501,10 +501,10 @@ export default function MobileStoryCapture() {
                                     <ChevronRight className="w-4 h-4 ml-2" />
                                 </Button>
                             </motion.div>
-                        )}
+                    )}
 
-                        {/* Slide Creation Screen */}
-                        {currentScreen === 'slide-creation' && (
+                    {/* Slide Creation Screen */}
+                    {currentScreen === 'slide-creation' && (
                             <motion.div
                                 key="slide-creation"
                                 initial={{ opacity: 0, x: 50 }}
@@ -655,10 +655,10 @@ export default function MobileStoryCapture() {
                                     Save Slide
                                 </Button>
                             </motion.div>
-                        )}
+                    )}
 
-                        {/* Slide Choice Screen */}
-                        {currentScreen === 'slide-choice' && (
+                    {/* Slide Choice Screen */}
+                    {currentScreen === 'slide-choice' && (
                             <motion.div
                                 key="slide-choice"
                                 initial={{ opacity: 0, x: 50 }}
@@ -728,10 +728,9 @@ export default function MobileStoryCapture() {
                                     </Button>
                                 </div>
                             </motion.div>
-                        )}
-
-                    </AnimatePresence>
-                </div>
+                    )}
+                </AnimatePresence>
+            </div>
             </div>
         </div>
     );
