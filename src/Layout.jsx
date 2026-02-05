@@ -13,6 +13,7 @@ export default function Layout({ children, currentPageName }) {
                 const currentUser = await base44.auth.me();
                 setUser(currentUser);
             } catch (error) {
+                console.log('Auth check skipped:', error.message);
                 setUser(null);
             } finally {
                 setIsLoading(false);

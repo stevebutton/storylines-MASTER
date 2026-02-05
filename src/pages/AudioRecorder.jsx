@@ -14,49 +14,54 @@ export default function AudioRecorder() {
         
         if (!SpeechRecognition) {
             setError('Speech recognition is not supported in this browser');
+            setStatus('Not Supported');
             return;
         }
 
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
+        try {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
 
-        recognition.onstart = () => {
-            setIsRecording(true);
-            setStatus('Listening...');
-            setError('');
-        };
+            recognition.onstart = () => {
+                setIsRecording(true);
+                setStatus('Listening...');
+                setError('');
+            };
 
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            setTranscription(transcript);
-            setStatus('Ready');
-        };
-
-        recognition.onerror = (event) => {
-            setIsRecording(false);
-            setStatus('Ready');
-            
-            if (event.error === 'not-allowed') {
-                setError('Microphone access denied. Please enable microphone permissions.');
-            } else if (event.error === 'no-speech') {
-                setError('No speech detected. Please try again.');
-            } else if (event.error === 'network') {
-                setError('Network error. Please check your connection.');
-            } else {
-                setError(`Error: ${event.error}`);
-            }
-        };
-
-        recognition.onend = () => {
-            setIsRecording(false);
-            if (status === 'Listening...') {
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                setTranscription(transcript);
                 setStatus('Ready');
-            }
-        };
+            };
 
-        recognitionRef.current = recognition;
+            recognition.onerror = (event) => {
+                setIsRecording(false);
+                setStatus('Ready');
+                
+                if (event.error === 'not-allowed') {
+                    setError('Microphone access denied. Please enable microphone permissions.');
+                } else if (event.error === 'no-speech') {
+                    setError('No speech detected. Please try again.');
+                } else if (event.error === 'network') {
+                    setError('Network error. Please check your connection.');
+                } else {
+                    setError(`Error: ${event.error}`);
+                }
+            };
+
+            recognition.onend = () => {
+                setIsRecording(false);
+                setStatus('Ready');
+            };
+
+            recognitionRef.current = recognition;
+            setStatus('Ready');
+        } catch (err) {
+            setError(`Failed to initialize: ${err.message}`);
+            setStatus('Error');
+        }
 
         return () => {
             if (recognitionRef.current) {
