@@ -9,18 +9,17 @@ import {
     Check, FileText, Image as ImageIcon, MapPinned, Sparkles, Upload, Loader2, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import VoiceNarrationRecorder from '@/components/mobile/VoiceNarrationRecorder';
 
 export default function MobileStoryCapture() {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(0);
-    const [isRecording, setIsRecording] = useState(false);
     const [transcript, setTranscript] = useState('');
     const [photos, setPhotos] = useState([]);
     const [locations, setLocations] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const fileInputRef = useRef(null);
-    const recognitionRef = useRef(null);
 
     const steps = [
         { id: 'welcome', title: 'Welcome', icon: Sparkles },
@@ -29,59 +28,6 @@ export default function MobileStoryCapture() {
         { id: 'locations', title: 'Locations', icon: MapPin },
         { id: 'review', title: 'Review', icon: Check }
     ];
-
-    useEffect(() => {
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = true;
-            recognitionRef.current.interimResults = true;
-            recognitionRef.current.lang = 'en-US';
-
-            recognitionRef.current.onresult = (event) => {
-                let finalTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript + ' ';
-                    }
-                }
-                if (finalTranscript) {
-                    setTranscript(prev => prev + finalTranscript);
-                }
-            };
-
-            recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                setIsRecording(false);
-            };
-
-            recognitionRef.current.onend = () => {
-                setIsRecording(false);
-            };
-        }
-
-        return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
-        };
-    }, []);
-
-    const handleStartRecording = () => {
-        if (!recognitionRef.current) {
-            alert('Speech recognition is not supported in this browser. Please use Chrome or Safari on mobile.');
-            return;
-        }
-        setIsRecording(true);
-        recognitionRef.current.start();
-    };
-
-    const handleStopRecording = () => {
-        if (recognitionRef.current) {
-            recognitionRef.current.stop();
-        }
-        setIsRecording(false);
-    };
 
     const handleTakePhoto = async () => {
         if (fileInputRef.current) {
@@ -335,40 +281,16 @@ export default function MobileStoryCapture() {
                                     </p>
                                 </div>
 
-                                <div className="flex flex-col items-center py-8">
-                                    <button
-                                        onClick={isRecording ? handleStopRecording : handleStartRecording}
-                                        className={`w-32 h-32 rounded-full flex items-center justify-center transition-all ${
-                                            isRecording 
-                                                ? 'bg-red-500 animate-pulse' 
-                                                : transcript 
-                                                    ? 'bg-green-500' 
-                                                    : 'bg-amber-600 hover:bg-amber-700'
-                                        } shadow-lg disabled:opacity-50`}
-                                    >
-                                        {isRecording ? (
-                                            <div className="w-8 h-8 bg-white rounded"></div>
-                                        ) : transcript ? (
-                                            <Check className="w-16 h-16 text-white" />
-                                        ) : (
-                                            <Mic className="w-16 h-16 text-white" />
-                                        )}
-                                    </button>
-                                    <p className="mt-4 text-sm text-slate-600 font-medium">
-                                        {isRecording ? 'Tap to Stop Recording' : transcript ? 'Recording Complete' : 'Tap to Start Recording'}
-                                    </p>
-                                </div>
+                                <VoiceNarrationRecorder 
+                                    onTranscriptChange={setTranscript}
+                                    initialTranscript={transcript}
+                                />
 
                                 {transcript && (
                                     <motion.div
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="space-y-3"
                                     >
-                                        <Label className="text-sm font-semibold text-slate-700">Transcribed Text:</Label>
-                                        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                                            <p className="text-sm text-slate-700 leading-relaxed">{transcript}</p>
-                                        </div>
                                         <Button 
                                             onClick={() => setCurrentStep(2)}
                                             className="w-full bg-amber-600 hover:bg-amber-700"
