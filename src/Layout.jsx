@@ -1,34 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
-import { LogIn, LogOut, User } from 'lucide-react';
+import React from 'react';
 
 export default function Layout({ children, currentPageName }) {
-    const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const currentUser = await base44.auth.me();
-                setUser(currentUser);
-            } catch (error) {
-                console.log('Auth check skipped:', error.message);
-                setUser(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        checkAuth();
-    }, []);
-
-    const handleLogin = () => {
-        base44.auth.redirectToLogin();
-    };
-
-    const handleLogout = () => {
-        base44.auth.logout();
-    };
 
     return (
         <div>
