@@ -27,6 +27,17 @@ export default function TabbedContentEditor({
     const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
     const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
 
+    // Handle missing item
+    if (!item) {
+        return (
+            <Card>
+                <CardContent className="pt-6">
+                    <p className="text-slate-500 text-center">Loading...</p>
+                </CardContent>
+            </Card>
+        );
+    }
+
     // Story Editor
     if (itemType === 'story') {
         const handleHeroImageUpload = async (e) => {
