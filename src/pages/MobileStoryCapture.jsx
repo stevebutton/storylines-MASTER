@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { 
     Mic, Camera, MapPin, ChevronRight, Plus,
-    Check, Loader2, X, Square, Edit3
+    Check, Loader2, X, Square, Edit3, Home
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -290,17 +290,29 @@ export default function MobileStoryCapture() {
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
             {/* Header */}
             <div className="bg-amber-600 text-white px-6 py-4 shadow-lg">
-                <div className="max-w-4xl mx-auto text-center">
-                    <h1 className="text-lg font-medium mb-3">Storyboarder</h1>
-                    {currentScreen === 'story-setup' && (
-                        <p className="text-white text-2xl font-bold">Start a New Story</p>
-                    )}
-                    {currentScreen === 'chapter-setup' && (
-                        <p className="text-white text-2xl font-bold">Create a Chapter</p>
-                    )}
-                    {currentScreen === 'slide-creation' && (
-                        <p className="text-white text-2xl font-bold">Create a Slide</p>
-                    )}
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex items-center justify-center relative mb-3">
+                        {currentScreen !== 'welcome' && (
+                            <button
+                                onClick={() => setCurrentScreen('welcome')}
+                                className="absolute left-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                            >
+                                <Home className="w-4 h-4 text-white" />
+                            </button>
+                        )}
+                        <h1 className="text-lg font-medium">Storyboarder</h1>
+                    </div>
+                    <div className="text-center">
+                        {currentScreen === 'story-setup' && (
+                            <p className="text-white text-2xl font-bold">Start a New Story</p>
+                        )}
+                        {currentScreen === 'chapter-setup' && (
+                            <p className="text-white text-2xl font-bold">Create a Chapter</p>
+                        )}
+                        {currentScreen === 'slide-creation' && (
+                            <p className="text-white text-2xl font-bold">Create a Slide</p>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -336,9 +348,9 @@ export default function MobileStoryCapture() {
                         {currentScreen === 'story-setup' && (
                             <motion.div
                                 key="story-setup"
-                                initial={{ opacity: 0, x: 50 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -50 }}
+                                initial={{ opacity: 0, y: 50 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -50 }}
                                 className="bg-white rounded-lg shadow-md p-6 space-y-6"
                             >
                                 {/* Story Title */}
