@@ -289,7 +289,7 @@ export default function MobileStoryCapture() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
             {/* Header */}
-            <div className="bg-amber-600 text-white px-6 py-6 shadow-lg">
+            <div className="bg-amber-600 text-white px-6 py-4 shadow-lg">
                 <div className="max-w-4xl mx-auto text-center">
                     <h1 className="text-lg font-medium mb-3">Storyboarder</h1>
                     {currentScreen === 'story-setup' && (
@@ -305,7 +305,7 @@ export default function MobileStoryCapture() {
             </div>
 
             {/* Content Area */}
-            <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto px-4 py-4">
                 <AnimatePresence mode="wait">
                         {/* Story Setup Screen */}
                         {currentScreen === 'story-setup' && (
@@ -317,28 +317,28 @@ export default function MobileStoryCapture() {
                                 className="bg-white rounded-lg shadow-md p-6 space-y-6"
                             >
                                 {/* Story Title */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     {storyTitle && (
-                                        <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-200">
+                                        <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-200">
                                             <p className="text-slate-800 text-center">{storyTitle}</p>
                                         </div>
                                     )}
-                                    <div className="flex flex-col items-center py-6 space-y-4">
+                                    <div className="flex flex-col items-center py-3 space-y-2">
                                         <button
                                             onClick={() => isRecording && recordingFor === 'story-title' ? handleStopRecording() : handleStartRecording('story-title')}
-                                            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                                            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
                                                 isRecording && recordingFor === 'story-title'
                                                     ? 'bg-red-500 animate-pulse' 
                                                     : 'bg-amber-600 hover:bg-amber-700'
                                             }`}
                                         >
                                             {isRecording && recordingFor === 'story-title' ? (
-                                                <Square className="w-12 h-12 text-white" />
+                                                <Square className="w-10 h-10 text-white" />
                                             ) : (
-                                                <Mic className="w-16 h-16 text-white" />
+                                                <Mic className="w-12 h-12 text-white" />
                                             )}
                                         </button>
-                                        <p className="text-2xl font-bold text-slate-800">Story Title</p>
+                                        <p className="text-lg font-bold text-slate-800">Story Title</p>
                                         <p className="text-sm font-medium text-slate-600">
                                             {isRecording && recordingFor === 'story-title' ? 'Tap to Stop' : 'Tap to Record'}
                                         </p>
@@ -346,7 +346,7 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Hero Image */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     <input
                                         ref={heroImageInputRef}
                                         type="file"
@@ -357,28 +357,28 @@ export default function MobileStoryCapture() {
                                     />
                                     {heroImage ? (
                                         <div className="relative">
-                                            <img src={heroImage} alt="Hero" className="w-full h-56 object-cover rounded-xl border-4 border-slate-200" />
+                                            <img src={heroImage} alt="Hero" className="w-full h-40 object-cover rounded-xl border-4 border-slate-200" />
                                             <button
                                                 onClick={() => setHeroImage(null)}
-                                                className="absolute top-3 right-3 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 shadow-lg"
+                                                className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 shadow-lg"
                                             >
-                                                <X className="w-6 h-6" />
+                                                <X className="w-5 h-5" />
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center py-6 space-y-4">
+                                        <div className="flex flex-col items-center py-3 space-y-2">
                                             <button
                                                 onClick={() => heroImageInputRef.current?.click()}
                                                 disabled={isUploading}
-                                                className="w-32 h-32 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all shadow-xl disabled:opacity-50"
+                                                className="w-20 h-20 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all shadow-xl disabled:opacity-50"
                                             >
                                                 {isUploading ? (
-                                                    <Loader2 className="w-16 h-16 text-white animate-spin" />
+                                                    <Loader2 className="w-12 h-12 text-white animate-spin" />
                                                 ) : (
-                                                    <Camera className="w-16 h-16 text-white" />
+                                                    <Camera className="w-12 h-12 text-white" />
                                                 )}
                                             </button>
-                                            <p className="text-2xl font-bold text-slate-800">Hero Image</p>
+                                            <p className="text-lg font-bold text-slate-800">Hero Image</p>
                                             <p className="text-sm font-medium text-slate-600">
                                                 {isUploading ? 'Uploading...' : 'Tap to Capture'}
                                             </p>
@@ -387,9 +387,9 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Starting Location */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     {storyLocation ? (
-                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-3">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex-1">
                                                     <p className="font-semibold text-green-800">Location Captured</p>
@@ -397,21 +397,21 @@ export default function MobileStoryCapture() {
                                                 </div>
                                                 <button
                                                     onClick={() => setStoryLocation(null)}
-                                                    className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+                                                    className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
                                                 >
-                                                    <X className="w-5 h-5" />
+                                                    <X className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center py-6 space-y-4">
+                                        <div className="flex flex-col items-center py-3 space-y-2">
                                             <button
                                                 onClick={() => handleCaptureLocation('story')}
-                                                className="w-32 h-32 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
+                                                className="w-20 h-20 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
                                             >
-                                                <MapPin className="w-16 h-16 text-white" />
+                                                <MapPin className="w-12 h-12 text-white" />
                                             </button>
-                                            <p className="text-2xl font-bold text-slate-800">Starting Location</p>
+                                            <p className="text-lg font-bold text-slate-800">Starting Location</p>
                                             <p className="text-sm font-medium text-slate-600">Tap to Capture</p>
                                         </div>
                                     )}
@@ -437,28 +437,28 @@ export default function MobileStoryCapture() {
                                 className="bg-white rounded-lg shadow-md p-6 space-y-6"
                             >
                                 {/* Chapter Title */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     {currentChapterTitle && (
-                                        <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-200">
+                                        <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-200">
                                             <p className="text-slate-800 text-center">{currentChapterTitle}</p>
                                         </div>
                                     )}
-                                    <div className="flex flex-col items-center py-6 space-y-4">
+                                    <div className="flex flex-col items-center py-3 space-y-2">
                                         <button
                                             onClick={() => isRecording && recordingFor === 'chapter-title' ? handleStopRecording() : handleStartRecording('chapter-title')}
-                                            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                                            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
                                                 isRecording && recordingFor === 'chapter-title'
                                                     ? 'bg-red-500 animate-pulse' 
                                                     : 'bg-amber-600 hover:bg-amber-700'
                                             }`}
                                         >
                                             {isRecording && recordingFor === 'chapter-title' ? (
-                                                <Square className="w-12 h-12 text-white" />
+                                                <Square className="w-10 h-10 text-white" />
                                             ) : (
-                                                <Mic className="w-16 h-16 text-white" />
+                                                <Mic className="w-12 h-12 text-white" />
                                             )}
                                         </button>
-                                        <p className="text-2xl font-bold text-slate-800">Chapter Title</p>
+                                        <p className="text-lg font-bold text-slate-800">Chapter Title</p>
                                         <p className="text-sm font-medium text-slate-600">
                                             {isRecording && recordingFor === 'chapter-title' ? 'Tap to Stop' : 'Tap to Record'}
                                         </p>
@@ -466,9 +466,9 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Chapter Location */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     {currentChapterLocation ? (
-                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-3">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex-1">
                                                     <p className="font-semibold text-green-800">Location Captured</p>
@@ -476,21 +476,21 @@ export default function MobileStoryCapture() {
                                                 </div>
                                                 <button
                                                     onClick={() => setCurrentChapterLocation(null)}
-                                                    className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+                                                    className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
                                                 >
-                                                    <X className="w-5 h-5" />
+                                                    <X className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center py-6 space-y-4">
+                                        <div className="flex flex-col items-center py-3 space-y-2">
                                             <button
                                                 onClick={() => handleCaptureLocation('chapter')}
-                                                className="w-32 h-32 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
+                                                className="w-20 h-20 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
                                             >
-                                                <MapPin className="w-16 h-16 text-white" />
+                                                <MapPin className="w-12 h-12 text-white" />
                                             </button>
-                                            <p className="text-2xl font-bold text-slate-800">Chapter Location</p>
+                                            <p className="text-lg font-bold text-slate-800">Chapter Location</p>
                                             <p className="text-sm font-medium text-slate-600">Tap to Capture</p>
                                         </div>
                                     )}
@@ -516,28 +516,28 @@ export default function MobileStoryCapture() {
                                 className="bg-white rounded-lg shadow-md p-6 space-y-6"
                             >
                                 {/* Slide Title */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     {currentSlideTitle && (
-                                        <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-200">
+                                        <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-200">
                                             <p className="text-slate-800 text-center">{currentSlideTitle}</p>
                                         </div>
                                     )}
-                                    <div className="flex flex-col items-center py-6 space-y-4">
+                                    <div className="flex flex-col items-center py-3 space-y-2">
                                         <button
                                             onClick={() => isRecording && recordingFor === 'slide-title' ? handleStopRecording() : handleStartRecording('slide-title')}
-                                            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                                            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
                                                 isRecording && recordingFor === 'slide-title'
                                                     ? 'bg-red-500 animate-pulse' 
                                                     : 'bg-amber-600 hover:bg-amber-700'
                                             }`}
                                         >
                                             {isRecording && recordingFor === 'slide-title' ? (
-                                                <Square className="w-12 h-12 text-white" />
+                                                <Square className="w-10 h-10 text-white" />
                                             ) : (
-                                                <Mic className="w-16 h-16 text-white" />
+                                                <Mic className="w-12 h-12 text-white" />
                                             )}
                                         </button>
-                                        <p className="text-2xl font-bold text-slate-800">Slide Title</p>
+                                        <p className="text-lg font-bold text-slate-800">Slide Title</p>
                                         <p className="text-sm font-medium text-slate-600">
                                             {isRecording && recordingFor === 'slide-title' ? 'Tap to Stop' : 'Tap to Record'}
                                         </p>
@@ -545,28 +545,28 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Slide Description */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     {currentSlideDescription && (
-                                        <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-200 max-h-40 overflow-y-auto">
+                                        <div className="bg-slate-50 rounded-lg p-3 border-2 border-slate-200 max-h-32 overflow-y-auto">
                                             <p className="text-slate-800">{currentSlideDescription}</p>
                                         </div>
                                     )}
-                                    <div className="flex flex-col items-center py-6 space-y-4">
+                                    <div className="flex flex-col items-center py-3 space-y-2">
                                         <button
                                             onClick={() => isRecording && recordingFor === 'slide-description' ? handleStopRecording() : handleStartRecording('slide-description')}
-                                            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                                            className={`w-20 h-20 rounded-full flex items-center justify-center transition-all shadow-xl ${
                                                 isRecording && recordingFor === 'slide-description'
                                                     ? 'bg-red-500 animate-pulse' 
                                                     : 'bg-purple-600 hover:bg-purple-700'
                                             }`}
                                         >
                                             {isRecording && recordingFor === 'slide-description' ? (
-                                                <Square className="w-12 h-12 text-white" />
+                                                <Square className="w-10 h-10 text-white" />
                                             ) : (
-                                                <Mic className="w-16 h-16 text-white" />
+                                                <Mic className="w-12 h-12 text-white" />
                                             )}
                                         </button>
-                                        <p className="text-2xl font-bold text-slate-800">Description</p>
+                                        <p className="text-lg font-bold text-slate-800">Description</p>
                                         <p className="text-sm font-medium text-slate-600">
                                             {isRecording && recordingFor === 'slide-description' ? 'Tap to Stop' : 'Tap to Record'}
                                         </p>
@@ -574,7 +574,7 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Slide Image */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -585,28 +585,28 @@ export default function MobileStoryCapture() {
                                     />
                                     {currentSlideImage ? (
                                         <div className="relative">
-                                            <img src={currentSlideImage} alt="Slide" className="w-full h-56 object-cover rounded-xl border-4 border-slate-200" />
+                                            <img src={currentSlideImage} alt="Slide" className="w-full h-40 object-cover rounded-xl border-4 border-slate-200" />
                                             <button
                                                 onClick={() => setCurrentSlideImage(null)}
-                                                className="absolute top-3 right-3 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 shadow-lg"
+                                                className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 shadow-lg"
                                             >
-                                                <X className="w-6 h-6" />
+                                                <X className="w-5 h-5" />
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center py-6 space-y-4">
+                                        <div className="flex flex-col items-center py-3 space-y-2">
                                             <button
                                                 onClick={() => fileInputRef.current?.click()}
                                                 disabled={isUploading}
-                                                className="w-32 h-32 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all shadow-xl disabled:opacity-50"
+                                                className="w-20 h-20 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all shadow-xl disabled:opacity-50"
                                             >
                                                 {isUploading ? (
-                                                    <Loader2 className="w-16 h-16 text-white animate-spin" />
+                                                    <Loader2 className="w-12 h-12 text-white animate-spin" />
                                                 ) : (
-                                                    <Camera className="w-16 h-16 text-white" />
+                                                    <Camera className="w-12 h-12 text-white" />
                                                 )}
                                             </button>
-                                            <p className="text-2xl font-bold text-slate-800">Image (Optional)</p>
+                                            <p className="text-lg font-bold text-slate-800">Image (Optional)</p>
                                             <p className="text-sm font-medium text-slate-600">
                                                 {isUploading ? 'Uploading...' : 'Tap to Capture'}
                                             </p>
@@ -615,9 +615,9 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Slide Location */}
-                                <div className="space-y-6">
+                                <div className="space-y-3">
                                     {currentSlideLocation ? (
-                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-3">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex-1">
                                                     <p className="font-semibold text-green-800">Location Captured</p>
@@ -625,21 +625,21 @@ export default function MobileStoryCapture() {
                                                 </div>
                                                 <button
                                                     onClick={() => setCurrentSlideLocation(null)}
-                                                    className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
+                                                    className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
                                                 >
-                                                    <X className="w-5 h-5" />
+                                                    <X className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center py-6 space-y-4">
+                                        <div className="flex flex-col items-center py-3 space-y-2">
                                             <button
                                                 onClick={() => handleCaptureLocation('slide')}
-                                                className="w-32 h-32 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
+                                                className="w-20 h-20 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
                                             >
-                                                <MapPin className="w-16 h-16 text-white" />
+                                                <MapPin className="w-12 h-12 text-white" />
                                             </button>
-                                            <p className="text-2xl font-bold text-slate-800">Location (Optional)</p>
+                                            <p className="text-lg font-bold text-slate-800">Location (Optional)</p>
                                             <p className="text-sm font-medium text-slate-600">Tap to Capture</p>
                                         </div>
                                     )}
