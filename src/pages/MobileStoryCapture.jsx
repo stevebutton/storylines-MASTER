@@ -31,7 +31,7 @@ export default function MobileStoryCapture() {
     const [currentSlideLocation, setCurrentSlideLocation] = useState(null);
     
     // UI state
-    const [currentScreen, setCurrentScreen] = useState('story-setup'); // 'story-setup', 'chapter-setup', 'slide-creation', 'slide-choice'
+    const [currentScreen, setCurrentScreen] = useState('welcome'); // 'welcome', 'story-setup', 'chapter-setup', 'slide-creation', 'slide-choice'
     const [isRecording, setIsRecording] = useState(false);
     const [recordingFor, setRecordingFor] = useState(null); // 'story-title', 'chapter-title', 'slide-title', 'slide-description'
     const [isUploading, setIsUploading] = useState(false);
@@ -307,6 +307,31 @@ export default function MobileStoryCapture() {
             {/* Content Area */}
             <div className="max-w-4xl mx-auto px-4 py-4">
                 <AnimatePresence mode="wait">
+                        {/* Welcome Screen */}
+                        {currentScreen === 'welcome' && (
+                            <motion.div
+                                key="welcome"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="bg-white rounded-lg shadow-md p-6 space-y-6"
+                            >
+                                <div className="text-center space-y-4">
+                                    <h2 className="text-2xl font-bold text-slate-800">Welcome to Storyboarder</h2>
+                                    <p className="text-base text-slate-600 leading-relaxed">
+                                        Storyboarder is your companion for building stories in the field that integrate with the Storylines platform. Utilize intuitive voice, image, and location capture tools to build compelling narratives on the go. Your stories are structured into chapters and slides, ready for refinement and further editing within the Storylines desktop editor. Start building impactful narratives with Storyboarder today.
+                                    </p>
+                                </div>
+
+                                <Button
+                                    onClick={() => setCurrentScreen('story-setup')}
+                                    className="w-full bg-amber-600 hover:bg-amber-700 h-12 text-base"
+                                >
+                                    Start a Story
+                                </Button>
+                            </motion.div>
+                        )}
+
                         {/* Story Setup Screen */}
                         {currentScreen === 'story-setup' && (
                             <motion.div
