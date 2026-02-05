@@ -8,6 +8,7 @@ export default function AudioRecorder() {
     const [status, setStatus] = useState('Ready');
     const [error, setError] = useState('');
     const recognitionRef = useRef(null);
+    const finalTranscriptRef = useRef('');
 
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -20,20 +21,27 @@ export default function AudioRecorder() {
 
         try {
             const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true;
+            recognition.interimResults = true;
             recognition.lang = 'en-US';
 
             recognition.onstart = () => {
                 setIsRecording(true);
                 setStatus('Listening...');
                 setError('');
+                finalTranscriptRef.current = '';
             };
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                setTranscription(transcript);
-                setStatus('Ready');
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscriptRef.current += event.results[i][0].transcript + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                setTranscription(finalTranscriptRef.current + interimTranscript);
             };
 
             recognition.onerror = (event) => {
@@ -42,11 +50,11 @@ export default function AudioRecorder() {
                 
                 if (event.error === 'not-allowed') {
                     setError('Microphone access denied. Please enable microphone permissions.');
-                } else if (event.error === 'no-speech') {
+                } else if (event.error === 'no-speech' && !finalTranscriptRef.current) {
                     setError('No speech detected. Please try again.');
                 } else if (event.error === 'network') {
                     setError('Network error. Please check your connection.');
-                } else {
+                } else if (event.error !== 'aborted') {
                     setError(`Error: ${event.error}`);
                 }
             };
@@ -78,6 +86,7 @@ export default function AudioRecorder() {
         } else {
             setTranscription('');
             setError('');
+            finalTranscriptRef.current = '';
             recognitionRef.current.start();
         }
     };
