@@ -49,6 +49,27 @@ export default function MobileStoryCapture() {
             recognitionRef.current.interimResults = true;
             recognitionRef.current.lang = 'en-US';
 
+            recognitionRef.current.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                setIsRecording(false);
+                setRecordingFor(null);
+            };
+
+            recognitionRef.current.onend = () => {
+                setIsRecording(false);
+                setRecordingFor(null);
+            };
+        }
+
+        return () => {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (recognitionRef.current) {
             recognitionRef.current.onresult = (event) => {
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -69,24 +90,7 @@ export default function MobileStoryCapture() {
                     }
                 }
             };
-
-            recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                setIsRecording(false);
-                setRecordingFor(null);
-            };
-
-            recognitionRef.current.onend = () => {
-                setIsRecording(false);
-                setRecordingFor(null);
-            };
         }
-
-        return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
-        };
     }, [recordingFor]);
 
     const handleStartRecording = (field) => {
