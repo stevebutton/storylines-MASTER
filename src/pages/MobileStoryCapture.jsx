@@ -316,32 +316,37 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Story Title */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Story Title</label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={storyTitle}
-                                            onChange={(e) => setStoryTitle(e.target.value)}
-                                            placeholder="Enter title or use voice..."
-                                            className="flex-1"
-                                        />
-                                        <Button
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Story Title</label>
+                                    {storyTitle && (
+                                        <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-200">
+                                            <p className="text-slate-800 text-center">{storyTitle}</p>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col items-center py-6">
+                                        <button
                                             onClick={() => isRecording && recordingFor === 'story-title' ? handleStopRecording() : handleStartRecording('story-title')}
-                                            variant={isRecording && recordingFor === 'story-title' ? 'destructive' : 'outline'}
-                                            size="icon"
+                                            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                                                isRecording && recordingFor === 'story-title'
+                                                    ? 'bg-red-500 animate-pulse' 
+                                                    : 'bg-amber-600 hover:bg-amber-700'
+                                            }`}
                                         >
                                             {isRecording && recordingFor === 'story-title' ? (
-                                                <Square className="w-4 h-4" />
+                                                <Square className="w-12 h-12 text-white" />
                                             ) : (
-                                                <Mic className="w-4 h-4" />
+                                                <Mic className="w-16 h-16 text-white" />
                                             )}
-                                        </Button>
+                                        </button>
+                                        <p className="mt-4 text-sm font-medium text-slate-600">
+                                            {isRecording && recordingFor === 'story-title' ? 'Tap to Stop' : 'Tap to Record Title'}
+                                        </p>
                                     </div>
                                 </div>
 
                                 {/* Hero Image */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Hero Image</label>
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Hero Image</label>
                                     <input
                                         ref={heroImageInputRef}
                                         type="file"
@@ -352,63 +357,62 @@ export default function MobileStoryCapture() {
                                     />
                                     {heroImage ? (
                                         <div className="relative">
-                                            <img src={heroImage} alt="Hero" className="w-full h-48 object-cover rounded-lg" />
-                                            <Button
+                                            <img src={heroImage} alt="Hero" className="w-full h-56 object-cover rounded-xl border-4 border-slate-200" />
+                                            <button
                                                 onClick={() => setHeroImage(null)}
-                                                variant="destructive"
-                                                size="sm"
-                                                className="absolute top-2 right-2"
+                                                className="absolute top-3 right-3 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 shadow-lg"
                                             >
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                                                <X className="w-6 h-6" />
+                                            </button>
                                         </div>
                                     ) : (
-                                        <Button
-                                            onClick={() => heroImageInputRef.current?.click()}
-                                            variant="outline"
-                                            className="w-full h-32"
-                                            disabled={isUploading}
-                                        >
-                                            {isUploading ? (
-                                                <Loader2 className="w-6 h-6 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <Camera className="w-6 h-6 mr-2" />
-                                                    Capture Hero Image
-                                                </>
-                                            )}
-                                        </Button>
+                                        <div className="flex flex-col items-center py-6">
+                                            <button
+                                                onClick={() => heroImageInputRef.current?.click()}
+                                                disabled={isUploading}
+                                                className="w-32 h-32 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all shadow-xl disabled:opacity-50"
+                                            >
+                                                {isUploading ? (
+                                                    <Loader2 className="w-16 h-16 text-white animate-spin" />
+                                                ) : (
+                                                    <Camera className="w-16 h-16 text-white" />
+                                                )}
+                                            </button>
+                                            <p className="mt-4 text-sm font-medium text-slate-600">
+                                                {isUploading ? 'Uploading...' : 'Tap to Capture'}
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
 
                                 {/* Starting Location */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Starting Location</label>
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Starting Location</label>
                                     {storyLocation ? (
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
                                             <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-800">Location Captured</p>
-                                                    <p className="text-xs text-slate-600">{storyLocation.coords}</p>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-green-800">Location Captured</p>
+                                                    <p className="text-sm text-green-700">{storyLocation.coords}</p>
                                                 </div>
-                                                <Button
+                                                <button
                                                     onClick={() => setStoryLocation(null)}
-                                                    variant="ghost"
-                                                    size="sm"
+                                                    className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
                                                 >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
+                                                    <X className="w-5 h-5" />
+                                                </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <Button
-                                            onClick={() => handleCaptureLocation('story')}
-                                            variant="outline"
-                                            className="w-full"
-                                        >
-                                            <MapPin className="w-4 h-4 mr-2" />
-                                            Capture Location
-                                        </Button>
+                                        <div className="flex flex-col items-center py-6">
+                                            <button
+                                                onClick={() => handleCaptureLocation('story')}
+                                                className="w-32 h-32 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
+                                            >
+                                                <MapPin className="w-16 h-16 text-white" />
+                                            </button>
+                                            <p className="mt-4 text-sm font-medium text-slate-600">Tap to Capture</p>
+                                        </div>
                                     )}
                                 </div>
 
@@ -439,57 +443,62 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Chapter Title */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Chapter Title</label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={currentChapterTitle}
-                                            onChange={(e) => setCurrentChapterTitle(e.target.value)}
-                                            placeholder="Enter chapter title or use voice..."
-                                            className="flex-1"
-                                        />
-                                        <Button
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Chapter Title</label>
+                                    {currentChapterTitle && (
+                                        <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-200">
+                                            <p className="text-slate-800 text-center">{currentChapterTitle}</p>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col items-center py-6">
+                                        <button
                                             onClick={() => isRecording && recordingFor === 'chapter-title' ? handleStopRecording() : handleStartRecording('chapter-title')}
-                                            variant={isRecording && recordingFor === 'chapter-title' ? 'destructive' : 'outline'}
-                                            size="icon"
+                                            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                                                isRecording && recordingFor === 'chapter-title'
+                                                    ? 'bg-red-500 animate-pulse' 
+                                                    : 'bg-amber-600 hover:bg-amber-700'
+                                            }`}
                                         >
                                             {isRecording && recordingFor === 'chapter-title' ? (
-                                                <Square className="w-4 h-4" />
+                                                <Square className="w-12 h-12 text-white" />
                                             ) : (
-                                                <Mic className="w-4 h-4" />
+                                                <Mic className="w-16 h-16 text-white" />
                                             )}
-                                        </Button>
+                                        </button>
+                                        <p className="mt-4 text-sm font-medium text-slate-600">
+                                            {isRecording && recordingFor === 'chapter-title' ? 'Tap to Stop' : 'Tap to Record Title'}
+                                        </p>
                                     </div>
                                 </div>
 
                                 {/* Chapter Location */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Chapter Location</label>
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Chapter Location</label>
                                     {currentChapterLocation ? (
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
                                             <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-800">Location Captured</p>
-                                                    <p className="text-xs text-slate-600">{currentChapterLocation.coords}</p>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-green-800">Location Captured</p>
+                                                    <p className="text-sm text-green-700">{currentChapterLocation.coords}</p>
                                                 </div>
-                                                <Button
+                                                <button
                                                     onClick={() => setCurrentChapterLocation(null)}
-                                                    variant="ghost"
-                                                    size="sm"
+                                                    className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
                                                 >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
+                                                    <X className="w-5 h-5" />
+                                                </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <Button
-                                            onClick={() => handleCaptureLocation('chapter')}
-                                            variant="outline"
-                                            className="w-full"
-                                        >
-                                            <MapPin className="w-4 h-4 mr-2" />
-                                            Capture Location
-                                        </Button>
+                                        <div className="flex flex-col items-center py-6">
+                                            <button
+                                                onClick={() => handleCaptureLocation('chapter')}
+                                                className="w-32 h-32 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
+                                            >
+                                                <MapPin className="w-16 h-16 text-white" />
+                                            </button>
+                                            <p className="mt-4 text-sm font-medium text-slate-600">Tap to Capture</p>
+                                        </div>
                                     )}
                                 </div>
 
@@ -520,63 +529,66 @@ export default function MobileStoryCapture() {
                                 </div>
 
                                 {/* Slide Title */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Slide Title</label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={currentSlideTitle}
-                                            onChange={(e) => setCurrentSlideTitle(e.target.value)}
-                                            placeholder="Enter slide title or use voice..."
-                                            className="flex-1"
-                                        />
-                                        <Button
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Slide Title</label>
+                                    {currentSlideTitle && (
+                                        <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-200">
+                                            <p className="text-slate-800 text-center">{currentSlideTitle}</p>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col items-center py-6">
+                                        <button
                                             onClick={() => isRecording && recordingFor === 'slide-title' ? handleStopRecording() : handleStartRecording('slide-title')}
-                                            variant={isRecording && recordingFor === 'slide-title' ? 'destructive' : 'outline'}
-                                            size="icon"
+                                            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                                                isRecording && recordingFor === 'slide-title'
+                                                    ? 'bg-red-500 animate-pulse' 
+                                                    : 'bg-amber-600 hover:bg-amber-700'
+                                            }`}
                                         >
                                             {isRecording && recordingFor === 'slide-title' ? (
-                                                <Square className="w-4 h-4" />
+                                                <Square className="w-12 h-12 text-white" />
                                             ) : (
-                                                <Mic className="w-4 h-4" />
+                                                <Mic className="w-16 h-16 text-white" />
                                             )}
-                                        </Button>
+                                        </button>
+                                        <p className="mt-4 text-sm font-medium text-slate-600">
+                                            {isRecording && recordingFor === 'slide-title' ? 'Tap to Stop' : 'Tap to Record Title'}
+                                        </p>
                                     </div>
                                 </div>
 
                                 {/* Slide Description */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Description</label>
-                                    <div className="space-y-2">
-                                        <Textarea
-                                            value={currentSlideDescription}
-                                            onChange={(e) => setCurrentSlideDescription(e.target.value)}
-                                            placeholder="Enter description or use voice..."
-                                            rows={4}
-                                        />
-                                        <Button
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Description</label>
+                                    {currentSlideDescription && (
+                                        <div className="bg-slate-50 rounded-lg p-4 border-2 border-slate-200 max-h-40 overflow-y-auto">
+                                            <p className="text-slate-800">{currentSlideDescription}</p>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col items-center py-6">
+                                        <button
                                             onClick={() => isRecording && recordingFor === 'slide-description' ? handleStopRecording() : handleStartRecording('slide-description')}
-                                            variant={isRecording && recordingFor === 'slide-description' ? 'destructive' : 'outline'}
-                                            size="sm"
-                                            className="w-full"
+                                            className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl ${
+                                                isRecording && recordingFor === 'slide-description'
+                                                    ? 'bg-red-500 animate-pulse' 
+                                                    : 'bg-purple-600 hover:bg-purple-700'
+                                            }`}
                                         >
                                             {isRecording && recordingFor === 'slide-description' ? (
-                                                <>
-                                                    <Square className="w-4 h-4 mr-2" />
-                                                    Stop Recording
-                                                </>
+                                                <Square className="w-12 h-12 text-white" />
                                             ) : (
-                                                <>
-                                                    <Mic className="w-4 h-4 mr-2" />
-                                                    Record Description
-                                                </>
+                                                <Mic className="w-16 h-16 text-white" />
                                             )}
-                                        </Button>
+                                        </button>
+                                        <p className="mt-4 text-sm font-medium text-slate-600">
+                                            {isRecording && recordingFor === 'slide-description' ? 'Tap to Stop' : 'Tap to Record Description'}
+                                        </p>
                                     </div>
                                 </div>
 
                                 {/* Slide Image */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Image (Optional)</label>
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Image (Optional)</label>
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -587,63 +599,62 @@ export default function MobileStoryCapture() {
                                     />
                                     {currentSlideImage ? (
                                         <div className="relative">
-                                            <img src={currentSlideImage} alt="Slide" className="w-full h-48 object-cover rounded-lg" />
-                                            <Button
+                                            <img src={currentSlideImage} alt="Slide" className="w-full h-56 object-cover rounded-xl border-4 border-slate-200" />
+                                            <button
                                                 onClick={() => setCurrentSlideImage(null)}
-                                                variant="destructive"
-                                                size="sm"
-                                                className="absolute top-2 right-2"
+                                                className="absolute top-3 right-3 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 shadow-lg"
                                             >
-                                                <X className="w-4 h-4" />
-                                            </Button>
+                                                <X className="w-6 h-6" />
+                                            </button>
                                         </div>
                                     ) : (
-                                        <Button
-                                            onClick={() => fileInputRef.current?.click()}
-                                            variant="outline"
-                                            className="w-full"
-                                            disabled={isUploading}
-                                        >
-                                            {isUploading ? (
-                                                <Loader2 className="w-6 h-6 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <Camera className="w-4 h-4 mr-2" />
-                                                    Add Image
-                                                </>
-                                            )}
-                                        </Button>
+                                        <div className="flex flex-col items-center py-6">
+                                            <button
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={isUploading}
+                                                className="w-32 h-32 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all shadow-xl disabled:opacity-50"
+                                            >
+                                                {isUploading ? (
+                                                    <Loader2 className="w-16 h-16 text-white animate-spin" />
+                                                ) : (
+                                                    <Camera className="w-16 h-16 text-white" />
+                                                )}
+                                            </button>
+                                            <p className="mt-4 text-sm font-medium text-slate-600">
+                                                {isUploading ? 'Uploading...' : 'Tap to Capture'}
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
 
                                 {/* Slide Location */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Location (Optional)</label>
+                                <div className="space-y-4">
+                                    <label className="block text-lg font-bold text-slate-800 text-center">Location (Optional)</label>
                                     {currentSlideLocation ? (
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                        <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
                                             <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-800">Location Captured</p>
-                                                    <p className="text-xs text-slate-600">{currentSlideLocation.coords}</p>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-green-800">Location Captured</p>
+                                                    <p className="text-sm text-green-700">{currentSlideLocation.coords}</p>
                                                 </div>
-                                                <Button
+                                                <button
                                                     onClick={() => setCurrentSlideLocation(null)}
-                                                    variant="ghost"
-                                                    size="sm"
+                                                    className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
                                                 >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
+                                                    <X className="w-5 h-5" />
+                                                </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <Button
-                                            onClick={() => handleCaptureLocation('slide')}
-                                            variant="outline"
-                                            className="w-full"
-                                        >
-                                            <MapPin className="w-4 h-4 mr-2" />
-                                            Capture Location
-                                        </Button>
+                                        <div className="flex flex-col items-center py-6">
+                                            <button
+                                                onClick={() => handleCaptureLocation('slide')}
+                                                className="w-32 h-32 rounded-full bg-green-600 hover:bg-green-700 flex items-center justify-center transition-all shadow-xl"
+                                            >
+                                                <MapPin className="w-16 h-16 text-white" />
+                                            </button>
+                                            <p className="mt-4 text-sm font-medium text-slate-600">Tap to Capture</p>
+                                        </div>
                                     )}
                                 </div>
 
