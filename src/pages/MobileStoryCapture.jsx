@@ -107,64 +107,33 @@ export default function MobileStoryCapture() {
         setRecordingFor(null);
     };
 
-    const handleTakePhoto = async () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
-
-    const handleFileSelect = async (event) => {
-        const files = Array.from(event.target.files);
-        if (files.length === 0) return;
+    const handleHeroImageSelect = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
 
         setIsUploading(true);
         try {
-            for (const file of files) {
-                let locationData = null;
-                
-                if (navigator.geolocation) {
-                    try {
-                        const position = await new Promise((resolve, reject) => {
-                            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                                enableHighAccuracy: true,
-                                timeout: 5000
-                            });
-                        });
-                        locationData = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                            accuracy: position.coords.accuracy
-                        };
-                    } catch (error) {
-                        console.log('Location access denied or unavailable');
-                    }
-                }
-
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
-                setPhotos(prev => [...prev, {
-                    id: Date.now() + Math.random(),
-                    name: file.name,
-                    url: file_url,
-                    location: locationData
-                }]);
-
-                if (locationData && !locations.some(loc => 
-                    Math.abs(loc.lat - locationData.lat) < 0.0001 && 
-                    Math.abs(loc.lng - locationData.lng) < 0.0001
-                )) {
-                    setLocations(prev => [...prev, {
-                        id: Date.now() + Math.random(),
-                        name: `Photo location ${prev.length + 1}`,
-                        lat: locationData.lat,
-                        lng: locationData.lng,
-                        coords: `${locationData.lat.toFixed(6)}, ${locationData.lng.toFixed(6)}`
-                    }]);
-                }
-            }
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            setHeroImage(file_url);
         } catch (error) {
-            console.error('Error uploading photos:', error);
-            alert('Failed to upload photos. Please try again.');
+            console.error('Error uploading hero image:', error);
+            alert('Failed to upload image. Please try again.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleSlideImageSelect = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            setCurrentSlideImage(file_url);
+        } catch (error) {
+            console.error('Error uploading slide image:', error);
+            alert('Failed to upload image. Please try again.');
         } finally {
             setIsUploading(false);
         }
@@ -204,9 +173,7 @@ export default function MobileStoryCapture() {
         }
     };
 
-    const handleRemovePhoto = (photoId) => {
-        setPhotos(prev => prev.filter(p => p.id !== photoId));
-    };
+
 
     const handleCompleteStorySetup = () => {
         if (!storyTitle.trim()) {
