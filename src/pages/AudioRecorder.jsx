@@ -139,43 +139,40 @@ export default function AudioRecorder() {
                         {status}
                     </div>
                     <div className="flex space-x-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
+                        <button
                             onClick={undoLastSegment}
                             disabled={isRecording || segments.filter(s => s.isFinal).length === 0}
+                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                         >
                             <Undo2 className="h-4 w-4 mr-1" />
                             Undo
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            size="sm"
+                        </button>
+                        <button
                             onClick={clearSegments}
                             disabled={isRecording || segments.length === 0}
+                            className="px-3 py-1.5 text-sm bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Clear
-                        </Button>
+                        </button>
                     </div>
                 </div>
 
                 <div className="flex justify-center my-6">
-                    <Button
+                    <button
                         onClick={isRecording ? stopRecording : startRecording}
                         disabled={!recognitionRef.current}
-                        className={`w-32 h-32 rounded-full shadow-lg transition-all duration-300 ${
+                        className={`w-32 h-32 rounded-full shadow-lg transition-all duration-300 disabled:opacity-50 ${
                             isRecording 
                                 ? 'bg-blue-500 hover:bg-blue-600 animate-pulse' 
                                 : 'bg-gray-700 hover:bg-gray-800'
                         }`}
-                        size="icon"
                     >
                         {isRecording ? (
                             <Square className="w-12 h-12 text-white" />
                         ) : (
                             <Mic className="w-12 h-12 text-white" />
                         )}
-                    </Button>
+                    </button>
                 </div>
 
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-32 overflow-y-auto text-gray-800 text-sm leading-relaxed">
