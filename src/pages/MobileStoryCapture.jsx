@@ -729,9 +729,7 @@ export default function MobileStoryCapture() {
                                 </div>
                             </motion.div>
                         )}
-
-                    </AnimatePresence>
-                </div>
+                </AnimatePresence>
             </div>
         </div>
     );
