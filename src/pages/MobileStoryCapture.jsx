@@ -45,17 +45,29 @@ export default function MobileStoryCapture() {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = true;
-            recognitionRef.current.interimResults = true;
+            recognitionRef.current.continuous = false;
+            recognitionRef.current.interimResults = false;
             recognitionRef.current.lang = 'en-US';
 
-            recognitionRef.current.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                setIsRecording(false);
-                setRecordingFor(null);
+            recognitionRef.current.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (recordingFor === 'story-title') {
+                    setStoryTitle(prev => (prev ? prev + ' ' + transcript : transcript).trim());
+                } else if (recordingFor === 'chapter-title') {
+                    setCurrentChapterTitle(prev => (prev ? prev + ' ' + transcript : transcript).trim());
+                } else if (recordingFor === 'slide-title') {
+                    setCurrentSlideTitle(prev => (prev ? prev + ' ' + transcript : transcript).trim());
+                } else if (recordingFor === 'slide-description') {
+                    setCurrentSlideDescription(prev => (prev ? prev + ' ' + transcript : transcript).trim());
+                }
             };
 
             recognitionRef.current.onend = () => {
+                setIsRecording(false);
+            };
+
+            recognitionRef.current.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
                 setIsRecording(false);
             };
         }
@@ -65,31 +77,6 @@ export default function MobileStoryCapture() {
                 recognitionRef.current.stop();
             }
         };
-    }, []);
-
-    useEffect(() => {
-        if (recognitionRef.current) {
-            recognitionRef.current.onresult = (event) => {
-                let finalTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript + ' ';
-                    }
-                }
-                if (finalTranscript) {
-                    const cleanTranscript = finalTranscript.trim();
-                    if (recordingFor === 'story-title') {
-                        setStoryTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'chapter-title') {
-                        setCurrentChapterTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'slide-title') {
-                        setCurrentSlideTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'slide-description') {
-                        setCurrentSlideDescription(prev => prev + ' ' + cleanTranscript);
-                    }
-                }
-            };
-        }
     }, [recordingFor]);
 
     const handleStartRecording = (field) => {
@@ -97,17 +84,15 @@ export default function MobileStoryCapture() {
             alert('Speech recognition is not supported in this browser. Please use Safari on iOS.');
             return;
         }
-        setIsRecording(true);
         setRecordingFor(field);
+        setIsRecording(true);
         recognitionRef.current.start();
     };
 
     const handleStopRecording = () => {
-        if (recognitionRef.current) {
+        if (recognitionRef.current && isRecording) {
             recognitionRef.current.stop();
         }
-        setIsRecording(false);
-        setRecordingFor(null);
     };
 
     const handleHeroImageSelect = async (event) => {
