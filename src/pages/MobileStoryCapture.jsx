@@ -3,43 +3,32 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { 
-    Mic, Camera, MapPin, ChevronRight, Plus,
-    Check, Loader2, X, Square, Edit3
+    Mic, Camera, MapPin, ChevronRight, ChevronLeft, 
+    Check, FileText, Image as ImageIcon, MapPinned, Sparkles, Upload, Loader2, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MobileStoryCapture() {
     const navigate = useNavigate();
-    
-    // Story data
-    const [storyTitle, setStoryTitle] = useState('');
-    const [heroImage, setHeroImage] = useState(null);
-    const [storyLocation, setStoryLocation] = useState(null);
-    
-    // Chapter data
-    const [chapters, setChapters] = useState([]);
-    const [currentChapterTitle, setCurrentChapterTitle] = useState('');
-    const [currentChapterLocation, setCurrentChapterLocation] = useState(null);
-    
-    // Slide data
-    const [currentSlideTitle, setCurrentSlideTitle] = useState('');
-    const [currentSlideDescription, setCurrentSlideDescription] = useState('');
-    const [currentSlideImage, setCurrentSlideImage] = useState(null);
-    const [currentSlideLocation, setCurrentSlideLocation] = useState(null);
-    
-    // UI state
-    const [currentScreen, setCurrentScreen] = useState('story-setup'); // 'story-setup', 'chapter-setup', 'slide-creation', 'slide-choice'
+    const [currentStep, setCurrentStep] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
-    const [recordingFor, setRecordingFor] = useState(null); // 'story-title', 'chapter-title', 'slide-title', 'slide-description'
+    const [transcript, setTranscript] = useState('');
+    const [photos, setPhotos] = useState([]);
+    const [locations, setLocations] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    
     const fileInputRef = useRef(null);
-    const heroImageInputRef = useRef(null);
     const recognitionRef = useRef(null);
+
+    const steps = [
+        { id: 'welcome', title: 'Welcome', icon: Sparkles },
+        { id: 'narrate', title: 'Narrate', icon: Mic },
+        { id: 'photos', title: 'Photos', icon: Camera },
+        { id: 'locations', title: 'Locations', icon: MapPin },
+        { id: 'review', title: 'Review', icon: Check }
+    ];
 
     useEffect(() => {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -57,28 +46,17 @@ export default function MobileStoryCapture() {
                     }
                 }
                 if (finalTranscript) {
-                    const cleanTranscript = finalTranscript.trim();
-                    if (recordingFor === 'story-title') {
-                        setStoryTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'chapter-title') {
-                        setCurrentChapterTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'slide-title') {
-                        setCurrentSlideTitle(prev => prev + ' ' + cleanTranscript);
-                    } else if (recordingFor === 'slide-description') {
-                        setCurrentSlideDescription(prev => prev + ' ' + cleanTranscript);
-                    }
+                    setTranscript(prev => prev + finalTranscript);
                 }
             };
 
             recognitionRef.current.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
                 setIsRecording(false);
-                setRecordingFor(null);
             };
 
             recognitionRef.current.onend = () => {
                 setIsRecording(false);
-                setRecordingFor(null);
             };
         }
 
@@ -87,15 +65,14 @@ export default function MobileStoryCapture() {
                 recognitionRef.current.stop();
             }
         };
-    }, [recordingFor]);
+    }, []);
 
-    const handleStartRecording = (field) => {
+    const handleStartRecording = () => {
         if (!recognitionRef.current) {
-            alert('Speech recognition is not supported in this browser. Please use Safari on iOS.');
+            alert('Speech recognition is not supported in this browser. Please use Chrome or Safari on mobile.');
             return;
         }
         setIsRecording(true);
-        setRecordingFor(field);
         recognitionRef.current.start();
     };
 
@@ -104,42 +81,72 @@ export default function MobileStoryCapture() {
             recognitionRef.current.stop();
         }
         setIsRecording(false);
-        setRecordingFor(null);
     };
 
-    const handleHeroImageSelect = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+    const handleTakePhoto = async () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileSelect = async (event) => {
+        const files = Array.from(event.target.files);
+        if (files.length === 0) return;
 
         setIsUploading(true);
         try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            setHeroImage(file_url);
+            for (const file of files) {
+                let locationData = null;
+                
+                if (navigator.geolocation) {
+                    try {
+                        const position = await new Promise((resolve, reject) => {
+                            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                                enableHighAccuracy: true,
+                                timeout: 5000
+                            });
+                        });
+                        locationData = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            accuracy: position.coords.accuracy
+                        };
+                    } catch (error) {
+                        console.log('Location access denied or unavailable');
+                    }
+                }
+
+                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+                setPhotos(prev => [...prev, {
+                    id: Date.now() + Math.random(),
+                    name: file.name,
+                    url: file_url,
+                    location: locationData
+                }]);
+
+                if (locationData && !locations.some(loc => 
+                    Math.abs(loc.lat - locationData.lat) < 0.0001 && 
+                    Math.abs(loc.lng - locationData.lng) < 0.0001
+                )) {
+                    setLocations(prev => [...prev, {
+                        id: Date.now() + Math.random(),
+                        name: `Photo location ${prev.length + 1}`,
+                        lat: locationData.lat,
+                        lng: locationData.lng,
+                        coords: `${locationData.lat.toFixed(6)}, ${locationData.lng.toFixed(6)}`
+                    }]);
+                }
+            }
         } catch (error) {
-            console.error('Error uploading hero image:', error);
-            alert('Failed to upload image. Please try again.');
+            console.error('Error uploading photos:', error);
+            alert('Failed to upload photos. Please try again.');
         } finally {
             setIsUploading(false);
         }
     };
 
-    const handleSlideImageSelect = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        setIsUploading(true);
-        try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            setCurrentSlideImage(file_url);
-        } catch (error) {
-            console.error('Error uploading slide image:', error);
-            alert('Failed to upload image. Please try again.');
-        } finally {
-            setIsUploading(false);
-        }
-    };
-
-    const handleCaptureLocation = async (locationType) => {
+    const handleCaptureLocation = async () => {
         if (!navigator.geolocation) {
             alert('Geolocation is not supported by your browser');
             return;
@@ -153,584 +160,509 @@ export default function MobileStoryCapture() {
                 });
             });
 
-            const locationData = {
+            const newLocation = {
+                id: Date.now(),
+                name: `Location ${locations.length + 1}`,
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
                 coords: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`,
                 accuracy: position.coords.accuracy
             };
 
-            if (locationType === 'story') {
-                setStoryLocation(locationData);
-            } else if (locationType === 'chapter') {
-                setCurrentChapterLocation(locationData);
-            } else if (locationType === 'slide') {
-                setCurrentSlideLocation(locationData);
-            }
+            setLocations(prev => [...prev, newLocation]);
         } catch (error) {
             console.error('Error getting location:', error);
             alert('Unable to get your location. Please check permissions.');
         }
     };
 
-
-
-    const handleCompleteStorySetup = () => {
-        if (!storyTitle.trim()) {
-            alert('Please enter a story title');
-            return;
-        }
-        setCurrentScreen('chapter-setup');
+    const handleRemovePhoto = (photoId) => {
+        setPhotos(prev => prev.filter(p => p.id !== photoId));
     };
 
-    const handleCompleteChapterSetup = () => {
-        if (!currentChapterTitle.trim()) {
-            alert('Please enter a chapter title');
-            return;
-        }
-        setCurrentScreen('slide-creation');
-    };
-
-    const handleSaveSlide = () => {
-        if (!currentSlideTitle.trim()) {
-            alert('Please enter a slide title');
-            return;
-        }
-
-        const newSlide = {
-            id: `temp-${Date.now()}`,
-            title: currentSlideTitle,
-            description: currentSlideDescription,
-            image: currentSlideImage,
-            location: currentSlideLocation
-        };
-
-        const currentChapterIndex = chapters.length;
-        if (chapters[currentChapterIndex]) {
-            chapters[currentChapterIndex].slides.push(newSlide);
-            setChapters([...chapters]);
-        } else {
-            setChapters([...chapters, {
-                title: currentChapterTitle,
-                location: currentChapterLocation,
-                slides: [newSlide]
-            }]);
-        }
-
-        // Reset slide form
-        setCurrentSlideTitle('');
-        setCurrentSlideDescription('');
-        setCurrentSlideImage(null);
-        setCurrentSlideLocation(null);
-
-        setCurrentScreen('slide-choice');
-    };
-
-    const handleNewSlide = () => {
-        setCurrentScreen('slide-creation');
-    };
-
-    const handleNewChapter = () => {
-        setCurrentChapterTitle('');
-        setCurrentChapterLocation(null);
-        setCurrentScreen('chapter-setup');
-    };
-
-    const handleFinishStory = async () => {
+    const handleSaveDraft = async () => {
         setIsSaving(true);
         try {
             const user = await base44.auth.me();
             
             const storyData = {
-                title: storyTitle,
-                subtitle: 'Created via Storyboarder',
+                title: `Field Story ${new Date().toLocaleDateString()}`,
+                subtitle: 'Draft from mobile capture',
                 author: user.full_name || user.email,
-                hero_image: heroImage,
                 is_published: false
             };
 
             const story = await base44.entities.Story.create(storyData);
 
-            for (let chapterIndex = 0; chapterIndex < chapters.length; chapterIndex++) {
-                const chapterData = chapters[chapterIndex];
+            if (locations.length > 0) {
                 const chapter = await base44.entities.Chapter.create({
                     story_id: story.id,
-                    order: chapterIndex,
-                    coordinates: chapterData.location ? [chapterData.location.lat, chapterData.location.lng] : 
-                                 (storyLocation ? [storyLocation.lat, storyLocation.lng] : [0, 0]),
+                    order: 0,
+                    coordinates: [locations[0].lat, locations[0].lng],
                     zoom: 12,
                     map_style: 'light',
                     alignment: 'left'
                 });
 
-                for (let slideIndex = 0; slideIndex < chapterData.slides.length; slideIndex++) {
-                    const slideData = chapterData.slides[slideIndex];
+                for (let i = 0; i < photos.length; i++) {
+                    const photo = photos[i];
                     await base44.entities.Slide.create({
                         chapter_id: chapter.id,
-                        order: slideIndex,
-                        title: slideData.title,
-                        description: slideData.description,
-                        image: slideData.image,
-                        coordinates: slideData.location ? [slideData.location.lat, slideData.location.lng] : undefined,
-                        location: slideData.location ? slideData.location.coords : undefined
+                        order: i,
+                        title: photo.name.replace(/\.[^/.]+$/, ''),
+                        description: i === 0 && transcript ? transcript : '',
+                        image: photo.url,
+                        coordinates: photo.location ? [photo.location.lat, photo.location.lng] : undefined,
+                        location: photo.location ? `${photo.location.lat.toFixed(4)}, ${photo.location.lng.toFixed(4)}` : undefined
                     });
                 }
             }
 
             navigate(`${createPageUrl('StoryEditor')}?id=${story.id}`);
         } catch (error) {
-            console.error('Error saving story:', error);
-            alert('Failed to save story. Please try again.');
+            console.error('Error saving draft:', error);
+            alert('Failed to save draft. Please try again.');
         } finally {
             setIsSaving(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-            {/* Header */}
-            <div className="bg-amber-600 text-white px-6 py-6 shadow-lg">
-                <div className="max-w-4xl mx-auto">
-                    <h1 className="text-3xl font-bold mb-2">Storyboarder</h1>
-                    <p className="text-amber-100 text-sm">Remote story capture from Storylines</p>
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-4">
+            {/* Mobile Device Frame */}
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-8 border-slate-800">
+                {/* Status Bar */}
+                <div className="bg-slate-800 text-white px-6 py-2 flex items-center justify-between text-xs">
+                    <span>9:41</span>
+                    <div className="flex gap-1">
+                        <div className="w-4 h-3 border border-white rounded-sm"></div>
+                        <div className="w-4 h-3 border border-white rounded-sm"></div>
+                        <div className="w-4 h-3 border border-white rounded-sm"></div>
+                    </div>
                 </div>
-            </div>
 
-            {/* Content Area */}
-            <div className="max-w-4xl mx-auto px-4 py-8">
-                <AnimatePresence mode="wait">
-                    {/* Story Setup Screen */}
-                    {currentScreen === 'story-setup' && (
+                {/* Header */}
+                <div className="bg-amber-600 text-white px-6 py-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <button className="text-white">
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        <h1 className="text-xl font-bold">Field Story Capture</h1>
+                        <div className="w-6"></div>
+                    </div>
+                </div>
+
+                {/* Content Area */}
+                <div className="h-[600px] overflow-y-auto">
+                    <AnimatePresence mode="wait">
+                        {/* Welcome Step */}
+                        {currentStep === 0 && (
                             <motion.div
-                                key="story-setup"
+                                key="welcome"
                                 initial={{ opacity: 0, x: 50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -50 }}
-                                className="bg-white rounded-lg shadow-md p-6 space-y-6"
+                                className="p-6 space-y-6"
                             >
-                                <div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Start a New Story</h2>
-                                    <p className="text-sm text-slate-600">
-                                        Enter the basic information for your project story.
+                                <div className="text-center py-8">
+                                    <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Sparkles className="w-10 h-10 text-amber-600" />
+                                    </div>
+                                    <h2 className="text-4xl font-bold text-slate-800 mb-2">
+                                        Storyboarder
+                                    </h2>
+                                    <p className="text-amber-600 font-medium mb-4">
+                                        Remote story capture from Storylines
+                                    </p>
+                                    <p className="text-slate-600 leading-relaxed text-sm">
+                                        Quickly capture your story elements on the go. Dictate your narrative, 
+                                        add photos, and capture locations to build a draft story for later 
+                                        refinement on your desktop.
                                     </p>
                                 </div>
 
-                                {/* Story Title */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Story Title</label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={storyTitle}
-                                            onChange={(e) => setStoryTitle(e.target.value)}
-                                            placeholder="Enter title or use voice..."
-                                            className="flex-1"
-                                        />
-                                        <Button
-                                            onClick={() => isRecording && recordingFor === 'story-title' ? handleStopRecording() : handleStartRecording('story-title')}
-                                            variant={isRecording && recordingFor === 'story-title' ? 'destructive' : 'outline'}
-                                            size="icon"
-                                        >
-                                            {isRecording && recordingFor === 'story-title' ? (
-                                                <Square className="w-4 h-4" />
-                                            ) : (
-                                                <Mic className="w-4 h-4" />
-                                            )}
-                                        </Button>
+                                <div className="space-y-3">
+                                    <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg">
+                                        <Mic className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <h3 className="font-semibold text-slate-800 text-sm">Voice Narration</h3>
+                                            <p className="text-xs text-slate-600">Dictate your outline hands-free</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg">
+                                        <Camera className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <h3 className="font-semibold text-slate-800 text-sm">Photo Documentation</h3>
+                                            <p className="text-xs text-slate-600">Capture visuals directly from your device</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-lg">
+                                        <MapPin className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                            <h3 className="font-semibold text-slate-800 text-sm">GPS Coordinates</h3>
+                                            <p className="text-xs text-slate-600">Automatic location capture</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Hero Image */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Hero Image</label>
-                                    <input
-                                        ref={heroImageInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        capture="environment"
-                                        onChange={handleHeroImageSelect}
-                                        className="hidden"
-                                    />
-                                    {heroImage ? (
-                                        <div className="relative">
-                                            <img src={heroImage} alt="Hero" className="w-full h-48 object-cover rounded-lg" />
-                                            <Button
-                                                onClick={() => setHeroImage(null)}
-                                                variant="destructive"
-                                                size="sm"
-                                                className="absolute top-2 right-2"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <Button
-                                            onClick={() => heroImageInputRef.current?.click()}
-                                            variant="outline"
-                                            className="w-full h-32"
-                                            disabled={isUploading}
-                                        >
-                                            {isUploading ? (
-                                                <Loader2 className="w-6 h-6 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <Camera className="w-6 h-6 mr-2" />
-                                                    Capture Hero Image
-                                                </>
-                                            )}
-                                        </Button>
-                                    )}
-                                </div>
-
-                                {/* Starting Location */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Starting Location</label>
-                                    {storyLocation ? (
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-800">Location Captured</p>
-                                                    <p className="text-xs text-slate-600">{storyLocation.coords}</p>
-                                                </div>
-                                                <Button
-                                                    onClick={() => setStoryLocation(null)}
-                                                    variant="ghost"
-                                                    size="sm"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <Button
-                                            onClick={() => handleCaptureLocation('story')}
-                                            variant="outline"
-                                            className="w-full"
-                                        >
-                                            <MapPin className="w-4 h-4 mr-2" />
-                                            Capture Location
-                                        </Button>
-                                    )}
-                                </div>
-
-                                <Button
-                                    onClick={handleCompleteStorySetup}
-                                    className="w-full bg-amber-600 hover:bg-amber-700"
+                                <Button 
+                                    onClick={() => setCurrentStep(1)}
+                                    className="w-full bg-amber-600 hover:bg-amber-700 h-12 text-base"
                                 >
-                                    Continue to Chapter
-                                    <ChevronRight className="w-4 h-4 ml-2" />
+                                    Start New Story
+                                    <ChevronRight className="w-5 h-5 ml-2" />
                                 </Button>
                             </motion.div>
-                    )}
+                        )}
 
-                    {/* Chapter Setup Screen */}
-                    {currentScreen === 'chapter-setup' && (
+                        {/* Narrate Step */}
+                        {currentStep === 1 && (
                             <motion.div
-                                key="chapter-setup"
+                                key="narrate"
                                 initial={{ opacity: 0, x: 50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -50 }}
-                                className="bg-white rounded-lg shadow-md p-6 space-y-6"
+                                className="p-6 space-y-6"
                             >
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Create a Chapter</h2>
+                                    <Badge className="bg-amber-100 text-amber-700 mb-2">Step 1 of 4</Badge>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Narrate Your Outline
+                                    </h2>
                                     <p className="text-sm text-slate-600">
-                                        Set up a new chapter for this section of your story.
+                                        Press the microphone to dictate your story's main points. We'll transcribe 
+                                        it into chapter and slide ideas.
                                     </p>
                                 </div>
 
-                                {/* Chapter Title */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Chapter Title</label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={currentChapterTitle}
-                                            onChange={(e) => setCurrentChapterTitle(e.target.value)}
-                                            placeholder="Enter chapter title or use voice..."
-                                            className="flex-1"
-                                        />
-                                        <Button
-                                            onClick={() => isRecording && recordingFor === 'chapter-title' ? handleStopRecording() : handleStartRecording('chapter-title')}
-                                            variant={isRecording && recordingFor === 'chapter-title' ? 'destructive' : 'outline'}
-                                            size="icon"
-                                        >
-                                            {isRecording && recordingFor === 'chapter-title' ? (
-                                                <Square className="w-4 h-4" />
-                                            ) : (
-                                                <Mic className="w-4 h-4" />
-                                            )}
-                                        </Button>
-                                    </div>
+                                <div className="flex flex-col items-center py-8">
+                                    <button
+                                        onClick={isRecording ? handleStopRecording : handleStartRecording}
+                                        className={`w-32 h-32 rounded-full flex items-center justify-center transition-all ${
+                                            isRecording 
+                                                ? 'bg-red-500 animate-pulse' 
+                                                : transcript 
+                                                    ? 'bg-green-500' 
+                                                    : 'bg-amber-600 hover:bg-amber-700'
+                                        } shadow-lg disabled:opacity-50`}
+                                    >
+                                        {isRecording ? (
+                                            <div className="w-8 h-8 bg-white rounded"></div>
+                                        ) : transcript ? (
+                                            <Check className="w-16 h-16 text-white" />
+                                        ) : (
+                                            <Mic className="w-16 h-16 text-white" />
+                                        )}
+                                    </button>
+                                    <p className="mt-4 text-sm text-slate-600 font-medium">
+                                        {isRecording ? 'Tap to Stop Recording' : transcript ? 'Recording Complete' : 'Tap to Start Recording'}
+                                    </p>
                                 </div>
 
-                                {/* Chapter Location */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Chapter Location</label>
-                                    {currentChapterLocation ? (
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-800">Location Captured</p>
-                                                    <p className="text-xs text-slate-600">{currentChapterLocation.coords}</p>
-                                                </div>
-                                                <Button
-                                                    onClick={() => setCurrentChapterLocation(null)}
-                                                    variant="ghost"
-                                                    size="sm"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
+                                {transcript && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="space-y-3"
+                                    >
+                                        <Label className="text-sm font-semibold text-slate-700">Transcribed Text:</Label>
+                                        <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                            <p className="text-sm text-slate-700 leading-relaxed">{transcript}</p>
                                         </div>
-                                    ) : (
-                                        <Button
-                                            onClick={() => handleCaptureLocation('chapter')}
-                                            variant="outline"
-                                            className="w-full"
+                                        <Button 
+                                            onClick={() => setCurrentStep(2)}
+                                            className="w-full bg-amber-600 hover:bg-amber-700"
                                         >
-                                            <MapPin className="w-4 h-4 mr-2" />
-                                            Capture Location
+                                            Next: Add Photos
+                                            <ChevronRight className="w-4 h-4 ml-2" />
                                         </Button>
-                                    )}
-                                </div>
-
-                                <Button
-                                    onClick={handleCompleteChapterSetup}
-                                    className="w-full bg-amber-600 hover:bg-amber-700"
-                                >
-                                    Create First Slide
-                                    <ChevronRight className="w-4 h-4 ml-2" />
-                                </Button>
+                                    </motion.div>
+                                )}
                             </motion.div>
-                    )}
+                        )}
 
-                    {/* Slide Creation Screen */}
-                    {currentScreen === 'slide-creation' && (
+                        {/* Photos Step */}
+                        {currentStep === 2 && (
                             <motion.div
-                                key="slide-creation"
+                                key="photos"
                                 initial={{ opacity: 0, x: 50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -50 }}
-                                className="bg-white rounded-lg shadow-md p-6 space-y-6"
+                                className="p-6 space-y-6"
                             >
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Create a Slide</h2>
+                                    <Badge className="bg-amber-100 text-amber-700 mb-2">Step 2 of 4</Badge>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Add Supporting Visuals
+                                    </h2>
                                     <p className="text-sm text-slate-600">
-                                        Add content for this slide in your chapter.
+                                        Upload images from your gallery or take new photos to illustrate 
+                                        your chapters and slides.
                                     </p>
                                 </div>
 
-                                {/* Slide Title */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Slide Title</label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={currentSlideTitle}
-                                            onChange={(e) => setCurrentSlideTitle(e.target.value)}
-                                            placeholder="Enter slide title or use voice..."
-                                            className="flex-1"
-                                        />
-                                        <Button
-                                            onClick={() => isRecording && recordingFor === 'slide-title' ? handleStopRecording() : handleStartRecording('slide-title')}
-                                            variant={isRecording && recordingFor === 'slide-title' ? 'destructive' : 'outline'}
-                                            size="icon"
-                                        >
-                                            {isRecording && recordingFor === 'slide-title' ? (
-                                                <Square className="w-4 h-4" />
-                                            ) : (
-                                                <Mic className="w-4 h-4" />
-                                            )}
-                                        </Button>
-                                    </div>
-                                </div>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    capture="environment"
+                                    onChange={handleFileSelect}
+                                    className="hidden"
+                                />
 
-                                {/* Slide Description */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Description</label>
-                                    <div className="space-y-2">
-                                        <Textarea
-                                            value={currentSlideDescription}
-                                            onChange={(e) => setCurrentSlideDescription(e.target.value)}
-                                            placeholder="Enter description or use voice..."
-                                            rows={4}
-                                        />
+                                <div className="flex flex-col items-center py-8">
+                                    <button
+                                        onClick={handleTakePhoto}
+                                        disabled={isUploading}
+                                        className="w-32 h-32 rounded-full flex items-center justify-center transition-all bg-amber-600 hover:bg-amber-700 shadow-lg disabled:opacity-50"
+                                    >
+                                        {isUploading ? (
+                                            <Loader2 className="w-16 h-16 text-white animate-spin" />
+                                        ) : (
+                                            <Camera className="w-16 h-16 text-white" />
+                                        )}
+                                    </button>
+                                    <p className="mt-4 text-sm text-slate-600 font-medium">
+                                        {isUploading ? 'Uploading...' : photos.length > 0 ? `${photos.length} Photos Added` : 'Tap to Capture or Upload'}
+                                    </p>
+                                    {photos.length > 0 && (
                                         <Button
-                                            onClick={() => isRecording && recordingFor === 'slide-description' ? handleStopRecording() : handleStartRecording('slide-description')}
-                                            variant={isRecording && recordingFor === 'slide-description' ? 'destructive' : 'outline'}
+                                            onClick={handleTakePhoto}
+                                            variant="outline"
                                             size="sm"
-                                            className="w-full"
-                                        >
-                                            {isRecording && recordingFor === 'slide-description' ? (
-                                                <>
-                                                    <Square className="w-4 h-4 mr-2" />
-                                                    Stop Recording
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Mic className="w-4 h-4 mr-2" />
-                                                    Record Description
-                                                </>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {/* Slide Image */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Image (Optional)</label>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/*"
-                                        capture="environment"
-                                        onChange={handleSlideImageSelect}
-                                        className="hidden"
-                                    />
-                                    {currentSlideImage ? (
-                                        <div className="relative">
-                                            <img src={currentSlideImage} alt="Slide" className="w-full h-48 object-cover rounded-lg" />
-                                            <Button
-                                                onClick={() => setCurrentSlideImage(null)}
-                                                variant="destructive"
-                                                size="sm"
-                                                className="absolute top-2 right-2"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <Button
-                                            onClick={() => fileInputRef.current?.click()}
-                                            variant="outline"
-                                            className="w-full"
+                                            className="mt-4"
                                             disabled={isUploading}
                                         >
-                                            {isUploading ? (
-                                                <Loader2 className="w-6 h-6 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <Camera className="w-4 h-4 mr-2" />
-                                                    Add Image
-                                                </>
-                                            )}
+                                            <Upload className="w-4 h-4 mr-2" />
+                                            Add More Photos
                                         </Button>
                                     )}
                                 </div>
 
-                                {/* Slide Location */}
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-semibold text-slate-700">Location (Optional)</label>
-                                    {currentSlideLocation ? (
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm font-medium text-slate-800">Location Captured</p>
-                                                    <p className="text-xs text-slate-600">{currentSlideLocation.coords}</p>
+                                {photos.length > 0 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="space-y-3"
+                                    >
+                                        <Label className="text-sm font-semibold text-slate-700">Selected Photos:</Label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {photos.map((photo) => (
+                                                <div key={photo.id} className="bg-slate-100 rounded-lg p-2 border border-slate-200 relative">
+                                                    <button
+                                                        onClick={() => handleRemovePhoto(photo.id)}
+                                                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 z-10"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                    <div className="aspect-video bg-slate-200 rounded flex items-center justify-center mb-2 overflow-hidden">
+                                                        <img src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <p className="text-xs text-slate-600 truncate">{photo.name}</p>
+                                                    {photo.location && (
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            <MapPin className="w-3 h-3 text-green-600" />
+                                                            <span className="text-xs text-green-600">GPS</span>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <Button
-                                                    onClick={() => setCurrentSlideLocation(null)}
-                                                    variant="ghost"
-                                                    size="sm"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-                                            </div>
+                                            ))}
                                         </div>
-                                    ) : (
-                                        <Button
-                                            onClick={() => handleCaptureLocation('slide')}
-                                            variant="outline"
-                                            className="w-full"
+                                        <Button 
+                                            onClick={() => setCurrentStep(3)}
+                                            className="w-full bg-amber-600 hover:bg-amber-700"
                                         >
-                                            <MapPin className="w-4 h-4 mr-2" />
-                                            Capture Location
+                                            Next: Pinpoint Locations
+                                            <ChevronRight className="w-4 h-4 ml-2" />
                                         </Button>
-                                    )}
-                                </div>
-
-                                <Button
-                                    onClick={handleSaveSlide}
-                                    className="w-full bg-green-600 hover:bg-green-700"
-                                >
-                                    <Check className="w-4 h-4 mr-2" />
-                                    Save Slide
-                                </Button>
+                                    </motion.div>
+                                )}
                             </motion.div>
-                    )}
+                        )}
 
-                    {/* Slide Choice Screen */}
-                    {currentScreen === 'slide-choice' && (
+                        {/* Locations Step */}
+                        {currentStep === 3 && (
                             <motion.div
-                                key="slide-choice"
+                                key="locations"
                                 initial={{ opacity: 0, x: 50 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -50 }}
-                                className="bg-white rounded-lg shadow-md p-6 space-y-6"
+                                className="p-6 space-y-6"
                             >
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Check className="w-8 h-8 text-green-600" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Slide Saved!</h2>
+                                <div>
+                                    <Badge className="bg-amber-100 text-amber-700 mb-2">Step 3 of 4</Badge>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Pinpoint Locations
+                                    </h2>
                                     <p className="text-sm text-slate-600">
-                                        What would you like to do next?
+                                        Automatically capture your current GPS location for each story segment.
                                     </p>
                                 </div>
 
-                                {/* Summary */}
-                                <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-slate-600">Chapters:</span>
-                                        <span className="font-semibold text-slate-800">{chapters.length}</span>
+                                <div className="flex flex-col items-center py-8">
+                                    <button
+                                        onClick={handleCaptureLocation}
+                                        className="w-32 h-32 rounded-full bg-amber-600 hover:bg-amber-700 flex items-center justify-center transition-all shadow-lg"
+                                    >
+                                        <MapPinned className="w-16 h-16 text-white" />
+                                    </button>
+                                    <p className="mt-4 text-sm text-slate-600 font-medium">
+                                        Tap to Capture Current Location
+                                    </p>
+                                </div>
+
+                                {locations.length > 0 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="space-y-3"
+                                    >
+                                        <Label className="text-sm font-semibold text-slate-700">
+                                            Captured Locations ({locations.length}):
+                                        </Label>
+                                        <div className="space-y-2">
+                                            {locations.map((location) => (
+                                                <div key={location.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                                                    <div className="flex items-start gap-2">
+                                                        <MapPin className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-medium text-slate-800">{location.name}</p>
+                                                            <p className="text-xs text-slate-500">{location.coords}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <Button 
+                                            onClick={() => setCurrentStep(4)}
+                                            className="w-full bg-amber-600 hover:bg-amber-700"
+                                        >
+                                            Next: Review Draft
+                                            <ChevronRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    </motion.div>
+                                )}
+                            </motion.div>
+                        )}
+
+                        {/* Review Step */}
+                        {currentStep === 4 && (
+                            <motion.div
+                                key="review"
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -50 }}
+                                className="p-6 space-y-6"
+                            >
+                                <div>
+                                    <Badge className="bg-green-100 text-green-700 mb-2">Step 4 of 4</Badge>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Review Story Draft
+                                    </h2>
+                                    <p className="text-sm text-slate-600">
+                                        Your mobile story draft is complete. Save it now to refine the details 
+                                        on your desktop.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {/* Outline Summary */}
+                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <FileText className="w-5 h-5 text-amber-600" />
+                                            <h3 className="font-semibold text-slate-800">Narrated Outline</h3>
+                                        </div>
+                                        <p className="text-xs text-slate-600 line-clamp-3">{transcript}</p>
                                     </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-slate-600">Total Slides:</span>
-                                        <span className="font-semibold text-slate-800">
-                                            {chapters.reduce((sum, ch) => sum + ch.slides.length, 0)}
-                                        </span>
+
+                                    {/* Photos Summary */}
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <ImageIcon className="w-5 h-5 text-blue-600" />
+                                            <h3 className="font-semibold text-slate-800">Photos</h3>
+                                        </div>
+                                        <p className="text-xs text-slate-600">{photos.length} images captured</p>
+                                    </div>
+
+                                    {/* Locations Summary */}
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <MapPin className="w-5 h-5 text-green-600" />
+                                            <h3 className="font-semibold text-slate-800">Locations</h3>
+                                        </div>
+                                        <p className="text-xs text-slate-600">{locations.length} GPS coordinates captured</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <Button
-                                        onClick={handleNewSlide}
-                                        variant="outline"
-                                        className="w-full h-16 border-2 border-amber-300"
-                                    >
-                                        <Plus className="w-5 h-5 mr-2" />
-                                        Add Another Slide
-                                    </Button>
-
-                                    <Button
-                                        onClick={handleNewChapter}
-                                        variant="outline"
-                                        className="w-full h-16 border-2 border-blue-300"
-                                    >
-                                        <Plus className="w-5 h-5 mr-2" />
-                                        Start New Chapter
-                                    </Button>
-
-                                    <Button
-                                        onClick={handleFinishStory}
-                                        className="w-full h-16 bg-green-600 hover:bg-green-700"
+                                    <Button 
+                                        className="w-full bg-green-600 hover:bg-green-700 h-12"
+                                        onClick={handleSaveDraft}
                                         disabled={isSaving}
                                     >
                                         {isSaving ? (
                                             <>
                                                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                                Saving Story...
+                                                Saving Draft...
                                             </>
                                         ) : (
                                             <>
                                                 <Check className="w-5 h-5 mr-2" />
-                                                Finish & Open in Editor
+                                                Save Draft & Open Editor
                                             </>
                                         )}
                                     </Button>
+                                    <Button 
+                                        variant="outline"
+                                        className="w-full"
+                                        onClick={() => {
+                                            setCurrentStep(0);
+                                            setTranscript('');
+                                            setPhotos([]);
+                                            setLocations([]);
+                                        }}
+                                        disabled={isSaving}
+                                    >
+                                        Start Over
+                                    </Button>
                                 </div>
                             </motion.div>
-                    )}
-                </AnimatePresence>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                {/* Progress Indicator */}
+                <div className="bg-white border-t border-slate-200 px-6 py-4">
+                    <div className="flex items-center justify-between mb-2">
+                        {steps.map((step, idx) => {
+                            const Icon = step.icon;
+                            return (
+                                <div key={step.id} className="flex flex-col items-center flex-1">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                                        currentStep === idx 
+                                            ? 'bg-amber-600 text-white' 
+                                            : currentStep > idx 
+                                                ? 'bg-green-500 text-white' 
+                                                : 'bg-slate-200 text-slate-400'
+                                    }`}>
+                                        <Icon className="w-5 h-5" />
+                                    </div>
+                                    <span className={`text-xs mt-1 ${
+                                        currentStep === idx ? 'text-amber-600 font-semibold' : 'text-slate-500'
+                                    }`}>
+                                        {step.title}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
         </div>
     );
+}
+
+function Label({ children, className = '' }) {
+    return <label className={`block font-medium ${className}`}>{children}</label>;
 }
