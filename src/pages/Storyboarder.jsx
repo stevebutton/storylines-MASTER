@@ -265,7 +265,7 @@ export default function Storyboarder() {
 
     const handleExitStory = async () => {
         await handleSaveCurrentSlide();
-        navigate(`${createPageUrl('ExitStory')}?storyId=${storyId}`);
+        navigate(`${createPageUrl('ExitStory')}?id=${storyId}`);
     };
 
     useEffect(() => {

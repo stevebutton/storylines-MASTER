@@ -222,6 +222,27 @@ export default function StoryEditor() {
                                     {slides.filter(s => s.image || s.video_url || s.pdf_url).length}
                                 </p>
                             </div>
+                            <button
+                                onClick={async () => {
+                                    const updatedStory = { ...story, is_published: !story.is_published };
+                                    setStory(updatedStory);
+                                    if (storyId) {
+                                        await base44.entities.Story.update(storyId, { is_published: updatedStory.is_published });
+                                    }
+                                }}
+                                className={`rounded-lg p-4 cursor-pointer transition-colors ${
+                                    story.is_published 
+                                        ? 'bg-green-50 hover:bg-green-100' 
+                                        : 'bg-slate-50 hover:bg-slate-100'
+                                }`}
+                            >
+                                <p className={`text-sm ${story.is_published ? 'text-green-600' : 'text-slate-600'}`}>
+                                    Status
+                                </p>
+                                <p className={`text-2xl font-bold ${story.is_published ? 'text-green-700' : 'text-slate-700'}`}>
+                                    {story.is_published ? 'Published' : 'Draft'}
+                                </p>
+                            </button>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button

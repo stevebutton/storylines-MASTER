@@ -9,7 +9,7 @@ export default function ExitStory() {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    const storyId = queryParams.get('storyId');
+    const storyId = queryParams.get('id');
 
 
 
@@ -34,7 +34,7 @@ export default function ExitStory() {
                 <div className="pt-4 space-y-3">
                     {storyId && (
                         <Button
-                            onClick={() => navigate(`${createPageUrl('StoryMapView')}?storyId=${storyId}`)}
+                            onClick={() => navigate(`${createPageUrl('StoryMapView')}?id=${storyId}`)}
                             className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg"
                         >
                             View Story in Storylines
