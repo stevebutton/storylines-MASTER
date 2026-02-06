@@ -188,9 +188,9 @@ export default function Storyboarder() {
                                     <Button
                                         onClick={() => setCurrentStep(10)}
                                         variant="outline"
-                                        className="w-full h-40 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
                                     >
-                                        <Mic className="w-32 h-32 mr-4 text-amber-600 flex-shrink-0" />
+                                        <Mic className="w-16 h-16 mr-4 text-amber-600 flex-shrink-0" />
                                         <div className="flex-1">
                                             <p className="font-semibold text-slate-800 text-base">Story Title</p>
                                             <p className="text-xs text-slate-500 mt-1">Record your story's main title</p>
@@ -210,13 +210,13 @@ export default function Storyboarder() {
                                     <Button
                                         onClick={handleTakePhoto}
                                         variant="outline"
-                                        className="w-full h-40 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
                                         disabled={isUploading}
                                     >
                                         {isUploading ? (
-                                            <Loader2 className="w-32 h-32 mr-4 text-amber-600 flex-shrink-0 animate-spin" />
+                                            <Loader2 className="w-16 h-16 mr-4 text-amber-600 flex-shrink-0 animate-spin" />
                                         ) : (
-                                            <Camera className="w-32 h-32 mr-4 text-amber-600 flex-shrink-0" />
+                                            <Camera className="w-16 h-16 mr-4 text-amber-600 flex-shrink-0" />
                                         )}
                                         <div className="flex-1">
                                             <p className="font-semibold text-slate-800 text-base">Take a Cover Photo</p>
@@ -229,9 +229,9 @@ export default function Storyboarder() {
                                     <Button
                                         onClick={handleCaptureLocation}
                                         variant="outline"
-                                        className="w-full h-40 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
                                     >
-                                        <MapPin className="w-32 h-32 mr-4 text-amber-600 flex-shrink-0" />
+                                        <MapPin className="w-16 h-16 mr-4 text-amber-600 flex-shrink-0" />
                                         <div className="flex-1">
                                             <p className="font-semibold text-slate-800 text-base">Capture Location</p>
                                             <p className="text-xs text-slate-500 mt-1">Set the story's starting GPS point</p>
@@ -243,9 +243,9 @@ export default function Storyboarder() {
                                     <Button
                                         onClick={() => setCurrentStep(2)}
                                         variant="outline"
-                                        className="w-full h-40 justify-start text-left border-2 hover:border-blue-600 hover:bg-blue-50 mt-6"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-blue-600 hover:bg-blue-50 mt-6"
                                     >
-                                        <FileText className="w-32 h-32 mr-4 text-blue-600 flex-shrink-0" />
+                                        <FileText className="w-16 h-16 mr-4 text-blue-600 flex-shrink-0" />
                                         <div className="flex-1">
                                             <p className="font-semibold text-slate-800 text-base">Review Story</p>
                                             <p className="text-xs text-slate-500 mt-1">Confirm details before creating</p>
