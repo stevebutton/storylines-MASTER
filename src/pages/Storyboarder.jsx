@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VoiceNarrationRecorder from '@/components/mobile/VoiceNarrationRecorder';
+import { resizeImage } from '@/components/mobile/ImageResizer';
 
 export default function Storyboarder() {
     const navigate = useNavigate();
@@ -132,7 +133,10 @@ export default function Storyboarder() {
 
         setIsUploading(true);
         try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            // Resize image before upload
+            const resizedFile = await resizeImage(file, 800);
+            
+            const { file_url } = await base44.integrations.Core.UploadFile({ file: resizedFile });
             
             // Capture location when image is uploaded
             if (navigator.geolocation) {
@@ -627,6 +631,21 @@ export default function Storyboarder() {
                                 exit={{ opacity: 0, x: -50 }}
                                 className="p-6 space-y-6"
                             >
+                                {/* Upload Overlay */}
+                                {isUploading && (
+                                    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+                                        <div className="bg-white rounded-lg p-8 max-w-sm mx-4 text-center">
+                                            <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-blue-600" />
+                                            <h3 className="text-xl font-bold text-slate-800 mb-2">
+                                                Uploading Image
+                                            </h3>
+                                            <p className="text-sm text-slate-600">
+                                                Please wait while your image is being processed and uploaded...
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="mb-6">
                                     <Badge className="bg-blue-100 text-blue-700 mb-2">
                                         {currentSlideId ? 'Edit Slide' : 'New Slide'}
@@ -645,6 +664,7 @@ export default function Storyboarder() {
                                         onClick={() => setCurrentStep(11)}
                                         variant="outline"
                                         className="w-full h-24 justify-start text-left border-2 hover:border-blue-600 hover:bg-blue-50"
+                                        disabled={isUploading}
                                     >
                                         <Mic className="w-16 h-16 mr-4 text-blue-600 flex-shrink-0" />
                                         <div className="flex-1">
@@ -699,6 +719,7 @@ export default function Storyboarder() {
                                         onClick={() => setCurrentStep(12)}
                                         variant="outline"
                                         className="w-full h-24 justify-start text-left border-2 hover:border-blue-600 hover:bg-blue-50"
+                                        disabled={isUploading}
                                     >
                                         <Mic className="w-16 h-16 mr-4 text-blue-600 flex-shrink-0" />
                                         <div className="flex-1">
@@ -713,7 +734,7 @@ export default function Storyboarder() {
                                         <Button
                                             onClick={saveSlide}
                                             className="flex-1 bg-green-600 hover:bg-green-700 h-12"
-                                            disabled={isSaving || !slideTitle}
+                                            disabled={isSaving || !slideTitle || isUploading}
                                         >
                                             {isSaving ? (
                                                 <>
@@ -733,6 +754,7 @@ export default function Storyboarder() {
                                         onClick={() => setCurrentStep(5)}
                                         variant="outline"
                                         className="w-full h-12"
+                                        disabled={isUploading}
                                     >
                                         <FileText className="w-5 h-5 mr-2" />
                                         Review Slides ({slides.length})
