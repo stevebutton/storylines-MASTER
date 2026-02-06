@@ -16,6 +16,7 @@ export default function Stories() {
   const [stories, setStories] = useState([]);
   const [storyThumbnails, setStoryThumbnails] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -37,7 +38,9 @@ export default function Stories() {
   const loadStories = async () => {
     setIsLoading(true);
     try {
-      const data = await base44.entities.Story.list('-created_date');
+      const user = await base44.auth.me();
+      setCurrentUser(user);
+      const data = await base44.entities.Story.filter({ created_by: user.email }, '-created_date');
       setStories(data);
 
       // Load thumbnails for each story
@@ -224,7 +227,9 @@ export default function Stories() {
                 <div className="bg-slate-100 mx-auto px-4 py-6 max-w-6xl">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h1 className="text-slate-800 text-4xl font-bold">Story Dashboard</h1>
+                            <h1 className="text-slate-800 text-4xl font-bold">
+                                Storylines Dashboard: {currentUser?.full_name || currentUser?.email || 'User'}
+                            </h1>
                             <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
                         </div>
                         <div className="flex gap-2">
