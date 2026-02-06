@@ -189,7 +189,7 @@ export default function StoryEditor() {
     }
 
     return (
-        <div className="min-h-screen bg-white p-[50px]">
+        <div className="min-h-screen bg-white p-0 md:p-[50px]">
             <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
@@ -206,19 +206,19 @@ export default function StoryEditor() {
                     </div>
                     
                     {/* Stats and Actions */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex gap-4">
-                            <div className="bg-amber-50 rounded-lg p-4">
-                                <p className="text-sm text-amber-600">Chapters</p>
-                                <p className="text-2xl font-bold text-amber-700">{chapters.length}</p>
+                    <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap md:flex-nowrap gap-2 md:gap-4">
+                            <div className="bg-amber-50 rounded-lg p-2 md:p-4">
+                                <p className="text-xs md:text-sm text-amber-600">Chapters</p>
+                                <p className="text-lg md:text-2xl font-bold text-amber-700">{chapters.length}</p>
                             </div>
-                            <div className="bg-blue-50 rounded-lg p-4">
-                                <p className="text-sm text-blue-600">Slides</p>
-                                <p className="text-2xl font-bold text-blue-700">{slides.length}</p>
+                            <div className="bg-blue-50 rounded-lg p-2 md:p-4">
+                                <p className="text-xs md:text-sm text-blue-600">Slides</p>
+                                <p className="text-lg md:text-2xl font-bold text-blue-700">{slides.length}</p>
                             </div>
-                            <div className="bg-green-50 rounded-lg p-4">
-                                <p className="text-sm text-green-600">Media</p>
-                                <p className="text-2xl font-bold text-green-700">
+                            <div className="bg-green-50 rounded-lg p-2 md:p-4">
+                                <p className="text-xs md:text-sm text-green-600">Media</p>
+                                <p className="text-lg md:text-2xl font-bold text-green-700">
                                     {slides.filter(s => s.image || s.video_url || s.pdf_url).length}
                                 </p>
                             </div>
@@ -230,21 +230,21 @@ export default function StoryEditor() {
                                         await base44.entities.Story.update(storyId, { is_published: updatedStory.is_published });
                                     }
                                 }}
-                                className={`rounded-lg p-4 cursor-pointer transition-colors ${
+                                className={`rounded-lg p-2 md:p-4 cursor-pointer transition-colors ${
                                     story.is_published 
                                         ? 'bg-green-50 hover:bg-green-100' 
                                         : 'bg-slate-50 hover:bg-slate-100'
                                 }`}
                             >
-                                <p className={`text-sm ${story.is_published ? 'text-green-600' : 'text-slate-600'}`}>
+                                <p className={`text-xs md:text-sm ${story.is_published ? 'text-green-600' : 'text-slate-600'}`}>
                                     Status
                                 </p>
-                                <p className={`text-2xl font-bold ${story.is_published ? 'text-green-700' : 'text-slate-700'}`}>
+                                <p className={`text-lg md:text-2xl font-bold ${story.is_published ? 'text-green-700' : 'text-slate-700'}`}>
                                     {story.is_published ? 'Published' : 'Draft'}
                                 </p>
                             </button>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap md:flex-nowrap items-center gap-2">
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -284,18 +284,20 @@ export default function StoryEditor() {
             {/* Main Content */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar */}
-                <StoryEditorSidebar
-                    story={story}
-                    chapters={chapters}
-                    slides={slides}
-                    selectedItem={selectedItem}
-                    onSelectStory={() => setSelectedItem({ type: 'story', id: null })}
-                    onSelectChapter={(chapter) => setSelectedItem({ type: 'chapter', id: chapter.id })}
-                    onSelectSlide={(slide) => setSelectedItem({ type: 'slide', id: slide.id })}
-                />
+                <div className="w-[30vw] md:w-auto">
+                    <StoryEditorSidebar
+                        story={story}
+                        chapters={chapters}
+                        slides={slides}
+                        selectedItem={selectedItem}
+                        onSelectStory={() => setSelectedItem({ type: 'story', id: null })}
+                        onSelectChapter={(chapter) => setSelectedItem({ type: 'chapter', id: chapter.id })}
+                        onSelectSlide={(slide) => setSelectedItem({ type: 'slide', id: slide.id })}
+                    />
+                </div>
 
                 {/* Content Editor */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="w-[70vw] md:flex-1 overflow-y-auto p-3 md:p-6">
                     <div className="max-w-4xl mx-auto">
                         <TabbedContentEditor
                             itemType={selectedItem.type}
