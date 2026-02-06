@@ -231,6 +231,43 @@ export default function Storyboarder() {
         setCurrentStep(4);
     };
 
+    const handleSaveCurrentSlide = async () => {
+        if (!slideTitle) {
+            return false;
+        }
+        await saveSlide();
+        return true;
+    };
+
+    const handleSaveAndAddAnotherSlide = async () => {
+        await handleSaveCurrentSlide();
+    };
+
+    const handleSaveAndReviewSlides = async () => {
+        await handleSaveCurrentSlide();
+        setCurrentStep(5);
+    };
+
+    const handleSaveAndAddNewChapter = async () => {
+        const saved = await handleSaveCurrentSlide();
+        if (saved) {
+            setChapterId(null);
+            setChapterTitle('');
+            setSlides([]);
+            setSlideTitle('');
+            setSlideDescription('');
+            setSlideImage(null);
+            setSlideLocation(null);
+            setCurrentSlideId(null);
+            setCurrentStep(3);
+        }
+    };
+
+    const handleExitStory = async () => {
+        await handleSaveCurrentSlide();
+        navigate(`${createPageUrl('ExitStory')}?storyId=${storyId}`);
+    };
+
     useEffect(() => {
         if (currentStep === 4 && chapterId) {
             loadSlides();
@@ -548,18 +585,10 @@ export default function Storyboarder() {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="flex gap-3 mt-6">
-                                    <Button
-                                        onClick={() => setCurrentStep(1)}
-                                        variant="outline"
-                                        className="flex-1 h-12"
-                                    >
-                                        <ChevronLeft className="w-5 h-5 mr-2" />
-                                        Make Changes
-                                    </Button>
+                                <div className="flex flex-col gap-3 mt-6">
                                     <Button
                                         onClick={handleCreateStory}
-                                        className="flex-1 bg-green-600 hover:bg-green-700 h-12"
+                                        className="w-full bg-green-600 hover:bg-green-700 h-12"
                                         disabled={isSaving}
                                     >
                                         {isSaving ? (
@@ -569,10 +598,18 @@ export default function Storyboarder() {
                                             </>
                                         ) : (
                                             <>
-                                                All good? Let's Create a Chapter
+                                                All Good? Let's Create a Chapter
                                                 <ChevronRight className="w-5 h-5 ml-2" />
                                             </>
                                         )}
+                                    </Button>
+                                    <Button
+                                        onClick={() => setCurrentStep(1)}
+                                        variant="outline"
+                                        className="w-full h-12"
+                                    >
+                                        <ChevronLeft className="w-5 h-5 mr-2" />
+                                        Make Changes
                                     </Button>
                                 </div>
                             </motion.div>
@@ -730,10 +767,10 @@ export default function Storyboarder() {
                                     </Button>
 
                                     {/* Action Buttons */}
-                                    <div className="flex gap-2 pt-4">
+                                    <div className="flex flex-col gap-2 pt-4">
                                         <Button
-                                            onClick={saveSlide}
-                                            className="flex-1 bg-green-600 hover:bg-green-700 h-12"
+                                            onClick={handleSaveAndAddAnotherSlide}
+                                            className="w-full bg-green-600 hover:bg-green-700 h-12"
                                             disabled={isSaving || !slideTitle || isUploading}
                                         >
                                             {isSaving ? (
@@ -743,22 +780,39 @@ export default function Storyboarder() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    {currentSlideId ? 'Update Slide' : 'Add Another Slide'}
+                                                    Add Another Slide
                                                     <ChevronRight className="w-4 h-4 ml-2" />
                                                 </>
                                             )}
                                         </Button>
+                                        <Button
+                                            onClick={handleSaveAndReviewSlides}
+                                            variant="outline"
+                                            className="w-full h-12"
+                                            disabled={isUploading}
+                                        >
+                                            <FileText className="w-5 h-5 mr-2" />
+                                            Review Slides ({slides.length + (slideTitle && !currentSlideId ? 1 : 0)})
+                                        </Button>
+                                        <Button
+                                            onClick={handleSaveAndAddNewChapter}
+                                            variant="outline"
+                                            className="w-full h-12"
+                                            disabled={isUploading}
+                                        >
+                                            <ChevronRight className="w-5 h-5 mr-2" />
+                                            Add New Chapter
+                                        </Button>
+                                        <Button
+                                            onClick={handleExitStory}
+                                            variant="outline"
+                                            className="w-full h-12"
+                                            disabled={isUploading}
+                                        >
+                                            <X className="w-5 h-5 mr-2" />
+                                            Exit Story
+                                        </Button>
                                     </div>
-
-                                    <Button
-                                        onClick={() => setCurrentStep(5)}
-                                        variant="outline"
-                                        className="w-full h-12"
-                                        disabled={isUploading}
-                                    >
-                                        <FileText className="w-5 h-5 mr-2" />
-                                        Review Slides ({slides.length})
-                                    </Button>
                                 </div>
                             </motion.div>
                         )}
