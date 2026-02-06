@@ -188,14 +188,14 @@ export default function Storyboarder() {
                                     <Button
                                         onClick={() => setCurrentStep(10)}
                                         variant="outline"
-                                        className="w-full h-20 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
                                     >
-                                        <Mic className="w-6 h-6 mr-4 text-amber-600 flex-shrink-0" />
+                                        <Mic className="w-16 h-16 mr-4 text-amber-600 flex-shrink-0" />
                                         <div className="flex-1">
                                             <p className="font-semibold text-slate-800 text-base">Story Title</p>
                                             <p className="text-xs text-slate-500 mt-1">Record your story's main title</p>
                                         </div>
-                                        {storyTitle && <Check className="w-5 h-5 text-green-600 ml-2 flex-shrink-0" />}
+                                        {storyTitle && <Check className="w-7 h-7 text-green-600 ml-2 flex-shrink-0" />}
                                     </Button>
 
                                     {/* Cover Photo Button */}
@@ -210,42 +210,47 @@ export default function Storyboarder() {
                                     <Button
                                         onClick={handleTakePhoto}
                                         variant="outline"
-                                        className="w-full h-20 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
                                         disabled={isUploading}
                                     >
                                         {isUploading ? (
-                                            <Loader2 className="w-6 h-6 mr-4 text-amber-600 flex-shrink-0 animate-spin" />
+                                            <Loader2 className="w-16 h-16 mr-4 text-amber-600 flex-shrink-0 animate-spin" />
                                         ) : (
-                                            <Camera className="w-6 h-6 mr-4 text-amber-600 flex-shrink-0" />
+                                            <Camera className="w-16 h-16 mr-4 text-amber-600 flex-shrink-0" />
                                         )}
                                         <div className="flex-1">
                                             <p className="font-semibold text-slate-800 text-base">Take a Cover Photo</p>
                                             <p className="text-xs text-slate-500 mt-1">Optional hero image for your story</p>
                                         </div>
-                                        {coverPhoto && <Check className="w-5 h-5 text-green-600 ml-2 flex-shrink-0" />}
+                                        {coverPhoto && <Check className="w-7 h-7 text-green-600 ml-2 flex-shrink-0" />}
                                     </Button>
 
                                     {/* Capture Location Button */}
                                     <Button
                                         onClick={handleCaptureLocation}
                                         variant="outline"
-                                        className="w-full h-20 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-amber-600 hover:bg-amber-50"
                                     >
-                                        <MapPin className="w-6 h-6 mr-4 text-amber-600 flex-shrink-0" />
+                                        <MapPin className="w-16 h-16 mr-4 text-amber-600 flex-shrink-0" />
                                         <div className="flex-1">
                                             <p className="font-semibold text-slate-800 text-base">Capture Location</p>
                                             <p className="text-xs text-slate-500 mt-1">Set the story's starting GPS point</p>
                                         </div>
-                                        {startingLocation && <Check className="w-5 h-5 text-green-600 ml-2 flex-shrink-0" />}
+                                        {startingLocation && <Check className="w-7 h-7 text-green-600 ml-2 flex-shrink-0" />}
                                     </Button>
 
                                     {/* Review Button */}
                                     <Button
                                         onClick={() => setCurrentStep(2)}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 h-14 text-base mt-6"
+                                        variant="outline"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-blue-600 hover:bg-blue-50 mt-6"
                                     >
-                                        Review Story
-                                        <ChevronRight className="w-5 h-5 ml-2" />
+                                        <FileText className="w-16 h-16 mr-4 text-blue-600 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-slate-800 text-base">Review Story</p>
+                                            <p className="text-xs text-slate-500 mt-1">Confirm details before creating</p>
+                                        </div>
+                                        <ChevronRight className="w-6 h-6 text-slate-400 ml-2 flex-shrink-0" />
                                     </Button>
                                 </div>
                             </motion.div>
