@@ -74,6 +74,7 @@ export default function TabbedContentEditor({
                                 value={item.title || ''} 
                                 onChange={(e) => onUpdate({ ...item, title: e.target.value })}
                                 placeholder="A Journey Through Time"
+                                style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                             />
                         </div>
                         <div>
@@ -83,6 +84,7 @@ export default function TabbedContentEditor({
                                 onChange={(e) => onUpdate({ ...item, subtitle: e.target.value })}
                                 placeholder="Exploring the world's most iconic landmarks..."
                                 className="h-20"
+                                style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -92,6 +94,7 @@ export default function TabbedContentEditor({
                                     value={item.author || ''} 
                                     onChange={(e) => onUpdate({ ...item, author: e.target.value })}
                                     placeholder="Your name"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                 />
                             </div>
                             <div>
@@ -351,15 +354,6 @@ export default function TabbedContentEditor({
                         <CardContent className="pt-6 space-y-4">
                             <div className="flex items-center justify-between pb-2 border-b">
                                 <h3 className="font-semibold text-slate-800">Slide Content</h3>
-                                {onDelete && (
-                                    <Button 
-                                        variant="destructive" 
-                                        size="sm" 
-                                        onClick={() => onDelete(item.id)}
-                                    >
-                                        <Trash2 className="w-4 h-4 mr-2" /> Delete Slide
-                                    </Button>
-                                )}
                             </div>
                             <div>
                                 <Label>Title</Label>
@@ -367,6 +361,7 @@ export default function TabbedContentEditor({
                                     value={item.title || ''} 
                                     onChange={(e) => onUpdate({ ...item, title: e.target.value })}
                                     placeholder="Slide title"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                 />
                             </div>
                             <div>
@@ -376,6 +371,7 @@ export default function TabbedContentEditor({
                                     onChange={(e) => onUpdate({ ...item, description: e.target.value })}
                                     placeholder="Slide description"
                                     className="h-32"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                 />
                             </div>
                             <div>
@@ -384,8 +380,19 @@ export default function TabbedContentEditor({
                                     value={item.location || ''} 
                                     onChange={(e) => onUpdate({ ...item, location: e.target.value })}
                                     placeholder="e.g., Paris, France"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                 />
                             </div>
+                            {onDelete && (
+                                <Button 
+                                    variant="destructive" 
+                                    size="sm" 
+                                    onClick={() => onDelete(item.id)}
+                                    className="w-full"
+                                >
+                                    <Trash2 className="w-4 h-4 mr-2" /> Delete Slide
+                                </Button>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
