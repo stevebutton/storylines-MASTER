@@ -19,6 +19,8 @@ export default function Storyboarder() {
     const [startingLocation, setStartingLocation] = useState(null);
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [storyId, setStoryId] = useState(null);
+    const [chapterTitle, setChapterTitle] = useState('');
     const fileInputRef = useRef(null);
 
     const handleTakePhoto = async () => {
@@ -91,22 +93,67 @@ export default function Storyboarder() {
             };
 
             const story = await base44.entities.Story.create(storyData);
-
-            if (startingLocation) {
-                await base44.entities.Chapter.create({
-                    story_id: story.id,
-                    order: 0,
-                    coordinates: [startingLocation.lat, startingLocation.lng],
-                    zoom: 12,
-                    map_style: 'light',
-                    alignment: 'left'
-                });
-            }
-
+            setStoryId(story.id);
             setCurrentStep(3);
         } catch (error) {
             console.error('Error creating story:', error);
             alert('Failed to create story. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleMakeSlides = async () => {
+        if (!chapterTitle) {
+            alert('Please record a chapter title first.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            // Capture current location
+            let currentLocation = null;
+            if (navigator.geolocation) {
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000
+                        });
+                    });
+                    currentLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                } catch (error) {
+                    console.error('Error getting location:', error);
+                }
+            }
+
+            // Get current chapter count
+            const existingChapters = await base44.entities.Chapter.filter({ story_id: storyId });
+            const chapterOrder = existingChapters.length;
+
+            // Create chapter with location if available
+            const chapterData = {
+                story_id: storyId,
+                order: chapterOrder,
+                zoom: 12,
+                map_style: 'light',
+                alignment: 'left'
+            };
+
+            if (currentLocation) {
+                chapterData.coordinates = [currentLocation.lat, currentLocation.lng];
+            }
+
+            await base44.entities.Chapter.create(chapterData);
+
+            // Move to slide creation screen
+            setCurrentStep(4);
+        } catch (error) {
+            console.error('Error creating chapter:', error);
+            alert('Failed to create chapter. Please try again.');
         } finally {
             setIsSaving(false);
         }
@@ -396,7 +443,7 @@ export default function Storyboarder() {
                             </motion.div>
                         )}
 
-                        {/* Placeholder for future chapter creation screen */}
+                        {/* Chapter Title Recording Screen */}
                         {currentStep === 3 && (
                             <motion.div
                                 key="create-chapter"
@@ -405,12 +452,56 @@ export default function Storyboarder() {
                                 exit={{ opacity: 0, x: -50 }}
                                 className="p-6 space-y-6"
                             >
+                                <div>
+                                    <Badge className="bg-green-100 text-green-700 mb-2">Chapter Title</Badge>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Record Chapter Title
+                                    </h2>
+                                    <p className="text-sm text-slate-600">
+                                        Dictate the title for this chapter. The first slide will provide location and visual content.
+                                    </p>
+                                </div>
+
+                                <VoiceNarrationRecorder
+                                    onTranscriptChange={setChapterTitle}
+                                    initialTranscript={chapterTitle}
+                                />
+
+                                <Button
+                                    onClick={handleMakeSlides}
+                                    className="w-full bg-green-600 hover:bg-green-700 h-14 text-lg"
+                                    disabled={isSaving || !chapterTitle}
+                                >
+                                    {isSaving ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                            Creating Chapter...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Make Slides
+                                            <ChevronRight className="w-5 h-5 ml-2" />
+                                        </>
+                                    )}
+                                </Button>
+                            </motion.div>
+                        )}
+
+                        {/* Placeholder for slide creation screen */}
+                        {currentStep === 4 && (
+                            <motion.div
+                                key="create-slide"
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -50 }}
+                                className="p-6 space-y-6"
+                            >
                                 <div className="text-center py-12">
                                     <h2 className="text-2xl font-bold text-slate-800 mb-4">
-                                        Chapter Creation
+                                        Slide Creation
                                     </h2>
                                     <p className="text-slate-600">
-                                        This screen will be implemented in the next phase.
+                                        This screen will be implemented next.
                                     </p>
                                 </div>
                             </motion.div>
