@@ -42,19 +42,18 @@ export default function StoryMapBanner({
     return (
         <>
             {/* Logo - Fixed position, always visible when banner is active, hidden on mobile */}
-            <Link 
-                to={createPageUrl('ProjectInterface')}
-                className={cn(
-                    "hidden md:block fixed left-[65px] top-[40px] z-[130] transition-all duration-700",
-                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
-                )}
-            >
-                <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/f1188d1fa_storylines-frame.png" 
-                    alt="Storylines" 
-                    className="h-auto hover:opacity-80 transition-opacity cursor-pointer"
-                />
-            </Link>
+            {isVisible && (
+                <Link 
+                    to={createPageUrl('ProjectInterface')}
+                    className="hidden md:block fixed left-[65px] top-[40px] z-[130] transition-all duration-700 opacity-100 translate-y-0"
+                >
+                    <img 
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/f1188d1fa_storylines-frame.png" 
+                        alt="Storylines" 
+                        className="h-auto hover:opacity-80 transition-opacity cursor-pointer"
+                    />
+                </Link>
+            )}
 
             {/* Banner Background */}
             <div 

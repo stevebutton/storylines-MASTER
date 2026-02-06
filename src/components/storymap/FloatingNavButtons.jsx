@@ -15,12 +15,12 @@ export default function FloatingNavButtons({
     return (
         <div 
             className={cn(
-                "fixed top-0 left-0 right-0 z-[120] h-[100px] transition-all duration-700 flex items-center justify-between px-6",
+                "fixed top-0 left-0 right-0 z-[120] h-[100px] transition-all duration-700 flex items-center justify-center px-6",
                 "bg-transparent",
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
-            <div className="flex items-center absolute left-1/2" style={{ gap: '30px', marginTop: '58px' }}>
+            <div className="flex items-center" style={{ gap: '30px', marginTop: '58px' }}>
                 {/* Chapters Toggle */}
                 {hasChapters && (
                     <button
