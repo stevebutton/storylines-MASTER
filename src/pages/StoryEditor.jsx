@@ -284,7 +284,7 @@ export default function StoryEditor() {
             {/* Main Content */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar */}
-                <div className="w-[30vw] md:w-auto">
+                <div className="w-[25vw] md:w-auto">
                     <StoryEditorSidebar
                         story={story}
                         chapters={chapters}
@@ -297,7 +297,7 @@ export default function StoryEditor() {
                 </div>
 
                 {/* Content Editor */}
-                <div className="w-[70vw] md:flex-1 overflow-y-auto p-3 md:p-6">
+                <div className="w-[75vw] md:flex-1 overflow-y-auto p-3 md:p-6">
                     <div className="max-w-4xl mx-auto">
                         <TabbedContentEditor
                             itemType={selectedItem.type}
