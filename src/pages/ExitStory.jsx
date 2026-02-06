@@ -11,13 +11,7 @@ export default function ExitStory() {
     const queryParams = new URLSearchParams(location.search);
     const storyId = queryParams.get('storyId');
 
-    const handleContinueEditing = () => {
-        if (storyId) {
-            navigate(`${createPageUrl('StoryEditor')}?storyId=${storyId}`);
-        } else {
-            navigate(createPageUrl('Home'));
-        }
-    };
+
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex items-center justify-center p-6">
@@ -33,17 +27,17 @@ export default function ExitStory() {
                 </h2>
                 
                 <p className="text-lg text-slate-700 leading-relaxed">
-                    Your field story has been saved. You can continue working on it 
-                    from your desktop in the Storylines editor.
+                    Your field story has been saved. You can view it in the Storylines preview 
+                    or create another story from the field.
                 </p>
 
                 <div className="pt-4 space-y-3">
                     {storyId && (
                         <Button
-                            onClick={handleContinueEditing}
+                            onClick={() => navigate(`${createPageUrl('StoryMapView')}?storyId=${storyId}`)}
                             className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg"
                         >
-                            Continue Editing in Storylines
+                            View Story in Storylines
                             <ChevronRight className="w-5 h-5 ml-2" />
                         </Button>
                     )}

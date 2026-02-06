@@ -587,6 +587,14 @@ export default function Storyboarder() {
                                 {/* Action Buttons */}
                                 <div className="flex flex-col gap-3 mt-6">
                                     <Button
+                                        onClick={() => setCurrentStep(1)}
+                                        variant="outline"
+                                        className="w-full h-12"
+                                    >
+                                        <ChevronLeft className="w-5 h-5 mr-2" />
+                                        Make Changes
+                                    </Button>
+                                    <Button
                                         onClick={handleCreateStory}
                                         className="w-full bg-green-600 hover:bg-green-700 h-12"
                                         disabled={isSaving}
@@ -602,14 +610,6 @@ export default function Storyboarder() {
                                                 <ChevronRight className="w-5 h-5 ml-2" />
                                             </>
                                         )}
-                                    </Button>
-                                    <Button
-                                        onClick={() => setCurrentStep(1)}
-                                        variant="outline"
-                                        className="w-full h-12"
-                                    >
-                                        <ChevronLeft className="w-5 h-5 mr-2" />
-                                        Make Changes
                                     </Button>
                                 </div>
                             </motion.div>
@@ -639,23 +639,33 @@ export default function Storyboarder() {
                                     initialTranscript={chapterTitle}
                                 />
 
-                                <Button
-                                    onClick={handleMakeSlides}
-                                    className="w-full bg-green-600 hover:bg-green-700 h-14 text-lg"
-                                    disabled={isSaving || !chapterTitle}
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                            Creating Chapter...
-                                        </>
-                                    ) : (
-                                        <>
-                                            Make Slides
-                                            <ChevronRight className="w-5 h-5 ml-2" />
-                                        </>
-                                    )}
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => setCurrentStep(4)}
+                                        variant="outline"
+                                        className="flex-1 h-14"
+                                    >
+                                        <ChevronLeft className="w-5 h-5 mr-2" />
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={handleMakeSlides}
+                                        className="flex-1 bg-green-600 hover:bg-green-700 h-14 text-lg"
+                                        disabled={isSaving || !chapterTitle}
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                                Creating...
+                                            </>
+                                        ) : (
+                                            <>
+                                                Make Slides
+                                                <ChevronRight className="w-5 h-5 ml-2" />
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </motion.div>
                         )}
 

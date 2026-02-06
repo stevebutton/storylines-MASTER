@@ -53,6 +53,7 @@ import AudioRecorder from './pages/AudioRecorder';
 import AudioTest from './pages/AudioTest';
 import ChapterPreview from './pages/ChapterPreview';
 import DocumentManager from './pages/DocumentManager';
+import ExitStory from './pages/ExitStory';
 import Home from './pages/Home';
 import HomeTest from './pages/HomeTest';
 import LocationPickerPage from './pages/LocationPickerPage';
@@ -67,7 +68,6 @@ import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
 import Storyboarder from './pages/Storyboarder';
-import ExitStory from './pages/ExitStory';
 import __Layout from './Layout.jsx';
 
 
@@ -78,6 +78,7 @@ export const PAGES = {
     "AudioTest": AudioTest,
     "ChapterPreview": ChapterPreview,
     "DocumentManager": DocumentManager,
+    "ExitStory": ExitStory,
     "Home": Home,
     "HomeTest": HomeTest,
     "LocationPickerPage": LocationPickerPage,
@@ -92,7 +93,6 @@ export const PAGES = {
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
     "Storyboarder": Storyboarder,
-    "ExitStory": ExitStory,
 }
 
 export const pagesConfig = {
