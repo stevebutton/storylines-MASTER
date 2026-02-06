@@ -360,7 +360,7 @@ export default function Stories() {
                                 <CardContent className="p-0">
                                     {/* Thumbnail */}
                                     {storyThumbnails[story.id] ?
-              <div className="h-32 w-full overflow-hidden">
+              <div className="h-24 md:h-32 w-full overflow-hidden">
                                             <img
                   src={storyThumbnails[story.id]}
                   alt={story.title}
@@ -368,8 +368,8 @@ export default function Stories() {
 
                                         </div> :
 
-              <div className="h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                                            <Map className="w-8 h-8 text-slate-300" />
+              <div className="h-24 md:h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                            <Map className="w-6 h-6 md:w-8 md:h-8 text-slate-300" />
                                         </div>
               }
 
@@ -422,10 +422,10 @@ export default function Stories() {
                                                                                             </div>
                                                                                         </div>
 
-                                    <div className="p-5">
+                                    <div className="p-3 md:p-5">
                                         <div className="flex items-start justify-between mb-2">
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-slate-800 text-xl font-semibold truncate">
+                                                <h3 className="text-slate-800 text-lg md:text-xl font-semibold truncate">
                                                     {story.title || 'Untitled Story'}
                                                 </h3>
                                                 {story.author &&
@@ -490,12 +490,12 @@ export default function Stories() {
                                         </div>
                                         
                                         {story.subtitle &&
-                <p className="text-sm text-slate-600 line-clamp-2 mb-4">
+                <p className="text-xs md:text-sm text-slate-600 line-clamp-2 mb-3 md:mb-4">
                                                 {story.subtitle}
                                             </p>
                 }
 
-                                        <p className="text-xs text-slate-400 mb-4">
+                                        <p className="text-xs text-slate-400 mb-3 md:mb-4">
                                             Created {new Date(story.created_date).toLocaleDateString()}
                                         </p>
 
