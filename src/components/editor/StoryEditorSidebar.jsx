@@ -61,7 +61,7 @@ export default function StoryEditorSidebar({
             >
                 <div className="flex items-center gap-2">
                     <Book className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
-                    <span className="text-xs md:text-sm font-medium text-slate-700 truncate">Story Settings</span>
+                    <span className="text-xs md:text-sm font-medium text-slate-700 truncate"><span className="md:hidden">Story</span><span className="hidden md:inline">Story Settings</span></span>
                 </div>
             </div>
 
@@ -106,10 +106,10 @@ export default function StoryEditorSidebar({
                                             onClick={() => onSelectChapter(chapter)}
                                             className="flex-1 flex items-center gap-1 md:gap-2 min-w-0"
                                         >
-                                            <span className={cn("text-[10px] md:text-xs font-medium min-w-[15px] md:min-w-[20px]", selected ? "text-slate-500" : "text-slate-300")}>
+                                            <span className={cn("text-xl md:text-xs font-bold md:font-medium min-w-[20px] md:min-w-[20px]", selected ? "text-slate-700 md:text-slate-500" : "text-white md:text-slate-300")}>
                                                 {index + 1}
                                             </span>
-                                            <span className={cn("text-xs md:text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
+                                            <span className={cn("hidden md:inline text-xs md:text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
                                                 Chapter {index + 1}
                                             </span>
                                             <div className="flex items-center gap-0.5 md:gap-1">
@@ -135,11 +135,9 @@ export default function StoryEditorSidebar({
                                                         isSlideSelected(slide.id) && "bg-amber-100 border-l-4 border-l-amber-600"
                                                     )}
                                                 >
-                                                    <span className="text-[10px] md:text-xs font-medium text-slate-400 min-w-[15px] md:min-w-[20px]">
-                                                        {slideIndex + 1}
-                                                    </span>
                                                     <span className="text-xs md:text-sm text-slate-600 flex-1 truncate">
-                                                        {slide.title || `Slide ${slideIndex + 1}`}
+                                                        <span className="md:hidden">#{slideIndex + 1}</span>
+                                                        <span className="hidden md:inline">{slide.title || `Slide ${slideIndex + 1}`}</span>
                                                     </span>
                                                     <div className="flex items-center gap-0.5 md:gap-1">
                                                         {getSlideIndicators(slide)}

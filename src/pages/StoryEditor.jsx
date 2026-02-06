@@ -200,7 +200,7 @@ export default function StoryEditor() {
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>
                         </Link>
-                        <h1 className="text-2xl font-bold text-slate-900 flex-1">
+                        <h1 className="text-2xl md:text-2xl font-bold text-slate-900 flex-1 leading-tight" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>
                             {story.title || 'Untitled Story'}
                         </h1>
                     </div>
@@ -249,7 +249,7 @@ export default function StoryEditor() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setIsHelpPanelOpen(true)}
-                                className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                                className="hidden md:flex border-slate-300 text-slate-700 hover:bg-slate-50"
                             >
                                 <HelpCircle className="w-4 h-4 mr-2" /> Help
                             </Button>
@@ -257,13 +257,13 @@ export default function StoryEditor() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setIsAIAssistantOpen(true)}
-                                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                                className="hidden md:flex border-amber-300 text-amber-700 hover:bg-amber-50"
                             >
                                 <Sparkles className="w-4 h-4 mr-2" /> Story Helper
                             </Button>
                             {storyId && (
                                 <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
-                                    <Button variant="outline" size="sm">
+                                    <Button variant="outline" size="sm" className="hidden md:flex">
                                         <Eye className="w-4 h-4 mr-2" /> Preview
                                     </Button>
                                 </Link>
