@@ -354,13 +354,13 @@ export default function Stories() {
                         </CardContent>
                     </Card> :
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {filteredAndSortedStories.map((story) =>
           <Card key={story.id} className="group hover:shadow-lg transition-shadow overflow-hidden">
                                 <CardContent className="p-0">
                                     {/* Thumbnail */}
                                     {storyThumbnails[story.id] ?
-              <div className="h-24 md:h-32 w-full overflow-hidden">
+              <div className="h-20 md:h-32 w-full overflow-hidden">
                                             <img
                   src={storyThumbnails[story.id]}
                   alt={story.title}
@@ -368,30 +368,30 @@ export default function Stories() {
 
                                         </div> :
 
-              <div className="h-24 md:h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                                            <Map className="w-6 h-6 md:w-8 md:h-8 text-slate-300" />
+              <div className="h-20 md:h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                            <Map className="w-5 h-5 md:w-8 md:h-8 text-slate-300" />
                                         </div>
               }
 
                                     {/* Status bar */}
-                                    <div className={`px-4 py-2 flex items-center justify-between ${story.is_main_story ? 'bg-purple-50' : story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                    <div className={`px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between ${story.is_main_story ? 'bg-purple-50' : story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
                                                                                             <div className="flex items-center gap-2">
                                                                                                 {story.is_main_story &&
                   <>
-                                                                                                        <Star className="w-3.5 h-3.5 text-purple-600 fill-purple-600" />
-                                                                                                        <span className="text-xs font-medium text-purple-700">Main Story</span>
+                                                                                                        <Star className="w-3 h-3 md:w-3.5 md:h-3.5 text-purple-600 fill-purple-600" />
+                                                                                                        <span className="text-[10px] md:text-xs font-medium text-purple-700">Main Story</span>
                                                                                                     </>
                   }
                                                                                                 {!story.is_main_story && story.is_published &&
                   <>
-                                                                                                        <Globe className="w-3.5 h-3.5 text-green-600" />
-                                                                                                        <span className="text-xs font-medium text-green-700">Published</span>
+                                                                                                        <Globe className="w-3 h-3 md:w-3.5 md:h-3.5 text-green-600" />
+                                                                                                        <span className="text-[10px] md:text-xs font-medium text-green-700">Published</span>
                                                                                                     </>
                   }
                                                                                                 {!story.is_main_story && !story.is_published &&
                   <>
-                                                                                                        <FileEdit className="w-3.5 h-3.5 text-amber-600" />
-                                                                                                        <span className="text-xs font-medium text-amber-700">Draft</span>
+                                                                                                        <FileEdit className="w-3 h-3 md:w-3.5 md:h-3.5 text-amber-600" />
+                                                                                                        <span className="text-[10px] md:text-xs font-medium text-amber-700">Draft</span>
                                                                                                     </>
                   }
                                                                                             </div>
@@ -422,19 +422,19 @@ export default function Stories() {
                                                                                             </div>
                                                                                         </div>
 
-                                    <div className="p-3 md:p-5">
-                                        <div className="flex items-start justify-between mb-2">
+                                    <div className="p-2.5 md:p-5">
+                                        <div className="flex items-start justify-between mb-1.5 md:mb-2">
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-slate-800 text-lg md:text-xl font-semibold truncate">
+                                                <h3 className="text-slate-800 text-base md:text-xl font-semibold truncate">
                                                     {story.title || 'Untitled Story'}
                                                 </h3>
                                                 {story.author &&
-                    <p className="text-sm text-slate-500">by {story.author}</p>
+                    <p className="text-xs md:text-sm text-slate-500">by {story.author}</p>
                     }
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2 mb-3">
+                                        <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
                                             {story.category &&
                 <Badge className={getCategoryColor(story.category)}>
                                                     {story.category}
@@ -490,16 +490,16 @@ export default function Stories() {
                                         </div>
                                         
                                         {story.subtitle &&
-                <p className="text-xs md:text-sm text-slate-600 line-clamp-2 mb-3 md:mb-4">
+                <p className="text-[11px] md:text-sm text-slate-600 line-clamp-2 mb-2 md:mb-4">
                                                 {story.subtitle}
                                             </p>
                 }
 
-                                        <p className="text-xs text-slate-400 mb-3 md:mb-4">
+                                        <p className="text-[10px] md:text-xs text-slate-400 mb-2 md:mb-4">
                                             Created {new Date(story.created_date).toLocaleDateString()}
                                         </p>
 
-                                        <div className="flex items-center gap-2 pt-3 border-t">
+                                        <div className="flex items-center gap-1.5 md:gap-2 pt-2 md:pt-3 border-t">
                                             <Link to={`${createPageUrl('StoryEditor')}?id=${story.id}`} className="flex-1">
                                                 <Button variant="outline" size="sm" className="w-full">
                                                     <Edit2 className="w-3.5 h-3.5 mr-1.5" /> Edit
