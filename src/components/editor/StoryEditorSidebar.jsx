@@ -50,18 +50,18 @@ export default function StoryEditorSidebar({
         selectedItem?.type === 'slide' && selectedItem?.id === slideId;
 
     return (
-        <div className="w-80 border-r bg-white h-screen overflow-y-auto flex flex-col">
+        <div className="w-full md:w-80 border-r bg-white h-screen overflow-y-auto flex flex-col">
             {/* Story Settings Button */}
             <div 
                 onClick={onSelectStory}
                 className={cn(
-                    "p-4 border-b cursor-pointer hover:bg-slate-50 transition-colors",
+                    "p-2 md:p-4 border-b cursor-pointer hover:bg-slate-50 transition-colors",
                     isStorySelected && "bg-amber-50 border-l-4 border-l-amber-600"
                 )}
             >
                 <div className="flex items-center gap-2">
-                    <Book className="w-5 h-5 text-amber-600" />
-                    <span className="text-sm font-medium text-slate-700">Story Settings</span>
+                    <Book className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
+                    <span className="text-xs md:text-sm font-medium text-slate-700 truncate">Story Settings</span>
                 </div>
             </div>
 
@@ -84,7 +84,7 @@ export default function StoryEditorSidebar({
                                     {/* Chapter Item */}
                                     <div
                                         className={cn(
-                                            "group flex items-center gap-2 px-4 py-2 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors",
+                                            "group flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors",
                                             selected ? "bg-amber-50 border-l-4 border-l-amber-600" : "bg-slate-900 text-white"
                                         )}
                                     >
@@ -104,19 +104,19 @@ export default function StoryEditorSidebar({
                                         
                                         <div 
                                             onClick={() => onSelectChapter(chapter)}
-                                            className="flex-1 flex items-center gap-2"
+                                            className="flex-1 flex items-center gap-1 md:gap-2 min-w-0"
                                         >
-                                            <span className={cn("text-xs font-medium min-w-[20px]", selected ? "text-slate-500" : "text-slate-300")}>
+                                            <span className={cn("text-[10px] md:text-xs font-medium min-w-[15px] md:min-w-[20px]", selected ? "text-slate-500" : "text-slate-300")}>
                                                 {index + 1}
                                             </span>
-                                            <span className={cn("text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
+                                            <span className={cn("text-xs md:text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
                                                 Chapter {index + 1}
                                             </span>
-                                            <div className="flex items-center gap-1">
+                                            <div className="flex items-center gap-0.5 md:gap-1">
                                                 {chapter.coordinates && (
-                                                    <MapPin className={cn("w-3 h-3", selected ? "text-amber-600" : "text-amber-400")} />
+                                                    <MapPin className={cn("w-2.5 h-2.5 md:w-3 md:h-3", selected ? "text-amber-600" : "text-amber-400")} />
                                                 )}
-                                                <span className={cn("text-xs", selected ? "text-slate-400" : "text-slate-300")}>
+                                                <span className={cn("text-[10px] md:text-xs", selected ? "text-slate-400" : "text-slate-300")}>
                                                     {chapterSlides.length}
                                                 </span>
                                             </div>
@@ -131,17 +131,17 @@ export default function StoryEditorSidebar({
                                                     key={slide.id}
                                                     onClick={() => onSelectSlide(slide)}
                                                     className={cn(
-                                                        "flex items-center gap-2 pl-12 pr-4 py-2 hover:bg-slate-100 cursor-pointer transition-colors",
+                                                        "flex items-center gap-1 md:gap-2 pl-6 md:pl-12 pr-2 md:pr-4 py-2 hover:bg-slate-100 cursor-pointer transition-colors",
                                                         isSlideSelected(slide.id) && "bg-amber-100 border-l-4 border-l-amber-600"
                                                     )}
                                                 >
-                                                    <span className="text-xs font-medium text-slate-400 min-w-[20px]">
+                                                    <span className="text-[10px] md:text-xs font-medium text-slate-400 min-w-[15px] md:min-w-[20px]">
                                                         {slideIndex + 1}
                                                     </span>
-                                                    <span className="text-sm text-slate-600 flex-1 truncate">
+                                                    <span className="text-xs md:text-sm text-slate-600 flex-1 truncate">
                                                         {slide.title || `Slide ${slideIndex + 1}`}
                                                     </span>
-                                                    <div className="flex items-center gap-1">
+                                                    <div className="flex items-center gap-0.5 md:gap-1">
                                                         {getSlideIndicators(slide)}
                                                     </div>
                                                 </div>
@@ -156,21 +156,21 @@ export default function StoryEditorSidebar({
             </div>
 
             {/* Stats Footer */}
-            <div className="border-t p-3 bg-slate-50">
-                <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="border-t p-2 md:p-3 bg-slate-50">
+                <div className="grid grid-cols-3 gap-1 md:gap-2 text-center">
                     <div>
-                        <div className="text-lg font-semibold text-amber-600">{chapters.length}</div>
-                        <div className="text-xs text-slate-500">Chapters</div>
+                        <div className="text-base md:text-lg font-semibold text-amber-600">{chapters.length}</div>
+                        <div className="text-[10px] md:text-xs text-slate-500">Chapters</div>
                     </div>
                     <div>
-                        <div className="text-lg font-semibold text-blue-600">{slides.length}</div>
-                        <div className="text-xs text-slate-500">Slides</div>
+                        <div className="text-base md:text-lg font-semibold text-blue-600">{slides.length}</div>
+                        <div className="text-[10px] md:text-xs text-slate-500">Slides</div>
                     </div>
                     <div>
-                        <div className="text-lg font-semibold text-green-600">
+                        <div className="text-base md:text-lg font-semibold text-green-600">
                             {slides.filter(s => s.image || s.video_url).length}
                         </div>
-                        <div className="text-xs text-slate-500">Media</div>
+                        <div className="text-[10px] md:text-xs text-slate-500">Media</div>
                     </div>
                 </div>
             </div>
