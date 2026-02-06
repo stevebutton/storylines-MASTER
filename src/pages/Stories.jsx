@@ -21,6 +21,8 @@ export default function Stories() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [userFilter, setUserFilter] = useState('all');
+  const [allUsers, setAllUsers] = useState([]);
   const [editingStory, setEditingStory] = useState(null);
   const [newCategory, setNewCategory] = useState('');
   const [categories, setCategories] = useState([]);
@@ -40,8 +42,18 @@ export default function Stories() {
     try {
       const user = await base44.auth.me();
       setCurrentUser(user);
-      const data = await base44.entities.Story.filter({ created_by: user.email }, '-created_date');
+      
+      // Load all stories if admin, otherwise just user's stories
+      const data = user.role === 'admin' 
+        ? await base44.entities.Story.list('-created_date')
+        : await base44.entities.Story.filter({ created_by: user.email }, '-created_date');
       setStories(data);
+      
+      // Load all users if admin
+      if (user.role === 'admin') {
+        const users = await base44.entities.User.list('full_name');
+        setAllUsers(users);
+      }
 
       // Load thumbnails for each story
       const thumbnails = {};
@@ -96,6 +108,11 @@ export default function Stories() {
       );
     }
 
+    // User filter (admin only)
+    if (userFilter !== 'all') {
+      result = result.filter((story) => story.created_by === userFilter);
+    }
+
     // Sorting
     result.sort((a, b) => {
       switch (sortBy) {
@@ -113,7 +130,7 @@ export default function Stories() {
     });
 
     return result;
-  }, [stories, searchQuery, categoryFilter, statusFilter, sortBy]);
+  }, [stories, searchQuery, categoryFilter, statusFilter, sortBy, userFilter]);
 
   const togglePublishStatus = async (story) => {
     try {
@@ -325,6 +342,21 @@ export default function Stories() {
                                 <SelectItem value="author">Author A-Z</SelectItem>
                             </SelectContent>
                         </Select>
+                        {currentUser?.role === 'admin' && allUsers.length > 0 && (
+                            <Select value={userFilter} onValueChange={setUserFilter}>
+                                <SelectTrigger className="w-[150px]">
+                                    <SelectValue placeholder="User" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Users</SelectItem>
+                                    {allUsers.map(user => (
+                                        <SelectItem key={user.id} value={user.email}>
+                                            {user.full_name || user.email}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
                 </div>
             </div>
