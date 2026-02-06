@@ -20,8 +20,17 @@ export default function Storyboarder() {
     const [isUploading, setIsUploading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [storyId, setStoryId] = useState(null);
+    const [chapterId, setChapterId] = useState(null);
     const [chapterTitle, setChapterTitle] = useState('');
+    const [currentSlideId, setCurrentSlideId] = useState(null);
+    const [slideTitle, setSlideTitle] = useState('');
+    const [slideDescription, setSlideDescription] = useState('');
+    const [slideImage, setSlideImage] = useState(null);
+    const [slideLocation, setSlideLocation] = useState(null);
+    const [slides, setSlides] = useState([]);
+    const [isLoadingSlides, setIsLoadingSlides] = useState(false);
     const fileInputRef = useRef(null);
+    const slideImageInputRef = useRef(null);
 
     const handleTakePhoto = async () => {
         if (fileInputRef.current) {
@@ -103,6 +112,127 @@ export default function Storyboarder() {
         }
     };
 
+    const loadSlides = async () => {
+        if (!chapterId) return;
+        setIsLoadingSlides(true);
+        try {
+            const chapterSlides = await base44.entities.Slide.filter({ chapter_id: chapterId });
+            chapterSlides.sort((a, b) => a.order - b.order);
+            setSlides(chapterSlides);
+        } catch (error) {
+            console.error('Error loading slides:', error);
+        } finally {
+            setIsLoadingSlides(false);
+        }
+    };
+
+    const handleSlideImageUpload = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            
+            // Capture location when image is uploaded
+            if (navigator.geolocation) {
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000
+                        });
+                    });
+                    setSlideLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        coords: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
+                    });
+                } catch (error) {
+                    console.error('Error getting location:', error);
+                }
+            }
+            
+            setSlideImage({
+                id: Date.now(),
+                name: file.name,
+                url: file_url
+            });
+        } catch (error) {
+            console.error('Error uploading slide image:', error);
+            alert('Failed to upload image. Please try again.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const saveSlide = async () => {
+        if (!slideTitle) {
+            alert('Please add a title for the slide.');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const slideData = {
+                chapter_id: chapterId,
+                title: slideTitle,
+                description: slideDescription || undefined,
+                image: slideImage?.url || undefined,
+                order: slides.length
+            };
+
+            if (slideLocation) {
+                slideData.coordinates = [slideLocation.lat, slideLocation.lng];
+                slideData.zoom = 15;
+            }
+
+            if (currentSlideId) {
+                await base44.entities.Slide.update(currentSlideId, slideData);
+            } else {
+                await base44.entities.Slide.create(slideData);
+            }
+
+            // Clear form
+            setSlideTitle('');
+            setSlideDescription('');
+            setSlideImage(null);
+            setSlideLocation(null);
+            setCurrentSlideId(null);
+
+            // Reload slides
+            await loadSlides();
+        } catch (error) {
+            console.error('Error saving slide:', error);
+            alert('Failed to save slide. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const loadSlideForEdit = (slide) => {
+        setCurrentSlideId(slide.id);
+        setSlideTitle(slide.title || '');
+        setSlideDescription(slide.description || '');
+        if (slide.image) {
+            setSlideImage({ url: slide.image });
+        }
+        if (slide.coordinates) {
+            setSlideLocation({
+                lat: slide.coordinates[0],
+                lng: slide.coordinates[1],
+                coords: `${slide.coordinates[0].toFixed(6)}, ${slide.coordinates[1].toFixed(6)}`
+            });
+        }
+        setCurrentStep(4);
+    };
+
+    useEffect(() => {
+        if (currentStep === 4 && chapterId) {
+            loadSlides();
+        }
+    }, [currentStep, chapterId]);
+
     const handleMakeSlides = async () => {
         if (!chapterTitle) {
             alert('Please record a chapter title first.');
@@ -147,7 +277,8 @@ export default function Storyboarder() {
                 chapterData.coordinates = [currentLocation.lat, currentLocation.lng];
             }
 
-            await base44.entities.Chapter.create(chapterData);
+            const chapter = await base44.entities.Chapter.create(chapterData);
+            setChapterId(chapter.id);
 
             // Move to slide creation screen
             setCurrentStep(4);
@@ -487,7 +618,7 @@ export default function Storyboarder() {
                             </motion.div>
                         )}
 
-                        {/* Placeholder for slide creation screen */}
+                        {/* Slide Creation Screen */}
                         {currentStep === 4 && (
                             <motion.div
                                 key="create-slide"
@@ -496,13 +627,295 @@ export default function Storyboarder() {
                                 exit={{ opacity: 0, x: -50 }}
                                 className="p-6 space-y-6"
                             >
-                                <div className="text-center py-12">
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-4">
-                                        Slide Creation
+                                <div className="mb-6">
+                                    <Badge className="bg-blue-100 text-blue-700 mb-2">
+                                        {currentSlideId ? 'Edit Slide' : 'New Slide'}
+                                    </Badge>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        {currentSlideId ? 'Edit Slide' : 'Create a Slide'}
                                     </h2>
-                                    <p className="text-slate-600">
-                                        This screen will be implemented next.
+                                    <p className="text-sm text-slate-600">
+                                        Add content for this slide: title, image with location, and description.
                                     </p>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {/* Slide Title Button */}
+                                    <Button
+                                        onClick={() => setCurrentStep(11)}
+                                        variant="outline"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-blue-600 hover:bg-blue-50"
+                                    >
+                                        <Mic className="w-16 h-16 mr-4 text-blue-600 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-slate-800 text-base">Slide Title</p>
+                                            <p className="text-xs text-slate-500 mt-1">Record the slide's title</p>
+                                        </div>
+                                        {slideTitle && <Check className="w-7 h-7 text-green-600 ml-2 flex-shrink-0" />}
+                                    </Button>
+
+                                    {/* Slide Image Button */}
+                                    <input
+                                        ref={slideImageInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        onChange={handleSlideImageUpload}
+                                        className="hidden"
+                                    />
+                                    <Button
+                                        onClick={() => slideImageInputRef.current?.click()}
+                                        variant="outline"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-blue-600 hover:bg-blue-50"
+                                        disabled={isUploading}
+                                    >
+                                        {isUploading ? (
+                                            <Loader2 className="w-16 h-16 mr-4 text-blue-600 flex-shrink-0 animate-spin" />
+                                        ) : (
+                                            <Camera className="w-16 h-16 mr-4 text-blue-600 flex-shrink-0" />
+                                        )}
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-slate-800 text-base">Take Photo</p>
+                                            <p className="text-xs text-slate-500 mt-1">Image with location data</p>
+                                        </div>
+                                        {slideImage && <Check className="w-7 h-7 text-green-600 ml-2 flex-shrink-0" />}
+                                    </Button>
+
+                                    {/* Preview Image */}
+                                    {slideImage && (
+                                        <div className="relative w-full h-40 rounded-lg overflow-hidden border-2 border-slate-200">
+                                            <img src={slideImage.url} alt="Slide" className="w-full h-full object-cover" />
+                                            {slideLocation && (
+                                                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                                                    <MapPin className="w-3 h-3" />
+                                                    {slideLocation.coords}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Slide Description Button */}
+                                    <Button
+                                        onClick={() => setCurrentStep(12)}
+                                        variant="outline"
+                                        className="w-full h-24 justify-start text-left border-2 hover:border-blue-600 hover:bg-blue-50"
+                                    >
+                                        <Mic className="w-16 h-16 mr-4 text-blue-600 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-slate-800 text-base">Description</p>
+                                            <p className="text-xs text-slate-500 mt-1">Record a short paragraph</p>
+                                        </div>
+                                        {slideDescription && <Check className="w-7 h-7 text-green-600 ml-2 flex-shrink-0" />}
+                                    </Button>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-2 pt-4">
+                                        <Button
+                                            onClick={saveSlide}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 h-12"
+                                            disabled={isSaving || !slideTitle}
+                                        >
+                                            {isSaving ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                    Saving...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {currentSlideId ? 'Update Slide' : 'Add Another Slide'}
+                                                    <ChevronRight className="w-4 h-4 ml-2" />
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+
+                                    <Button
+                                        onClick={() => setCurrentStep(5)}
+                                        variant="outline"
+                                        className="w-full h-12"
+                                    >
+                                        <FileText className="w-5 h-5 mr-2" />
+                                        Review Slides ({slides.length})
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Slide Title Recording Screen */}
+                        {currentStep === 11 && (
+                            <motion.div
+                                key="slide-title-recording"
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -50 }}
+                                className="p-6 space-y-6"
+                            >
+                                <div>
+                                    <Badge className="bg-blue-100 text-blue-700 mb-2">Slide Title</Badge>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Dictate Slide Title
+                                    </h2>
+                                    <p className="text-sm text-slate-600">
+                                        Record the title for this slide.
+                                    </p>
+                                </div>
+
+                                <VoiceNarrationRecorder
+                                    onTranscriptChange={setSlideTitle}
+                                    initialTranscript={slideTitle}
+                                />
+
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => setCurrentStep(4)}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        <ChevronLeft className="w-4 h-4 mr-2" />
+                                        Back
+                                    </Button>
+                                    {slideTitle && (
+                                        <Button
+                                            onClick={() => setCurrentStep(4)}
+                                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                        >
+                                            Done
+                                            <Check className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Slide Description Recording Screen */}
+                        {currentStep === 12 && (
+                            <motion.div
+                                key="slide-description-recording"
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -50 }}
+                                className="p-6 space-y-6"
+                            >
+                                <div>
+                                    <Badge className="bg-blue-100 text-blue-700 mb-2">Slide Description</Badge>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Dictate Description
+                                    </h2>
+                                    <p className="text-sm text-slate-600">
+                                        Record a short paragraph describing this slide.
+                                    </p>
+                                </div>
+
+                                <VoiceNarrationRecorder
+                                    onTranscriptChange={setSlideDescription}
+                                    initialTranscript={slideDescription}
+                                />
+
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => setCurrentStep(4)}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        <ChevronLeft className="w-4 h-4 mr-2" />
+                                        Back
+                                    </Button>
+                                    <Button
+                                        onClick={() => setCurrentStep(4)}
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        Done
+                                        <Check className="w-4 h-4 ml-2" />
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Review Slides Screen */}
+                        {currentStep === 5 && (
+                            <motion.div
+                                key="review-slides"
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -50 }}
+                                className="p-6 space-y-6"
+                            >
+                                <div>
+                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                                        Review Slides
+                                    </h2>
+                                    <p className="text-sm text-slate-600">
+                                        {slides.length} slide{slides.length !== 1 ? 's' : ''} created for this chapter.
+                                    </p>
+                                </div>
+
+                                {isLoadingSlides ? (
+                                    <div className="text-center py-12">
+                                        <Loader2 className="w-8 h-8 mx-auto animate-spin text-slate-400" />
+                                    </div>
+                                ) : slides.length === 0 ? (
+                                    <div className="text-center py-12 text-slate-500">
+                                        <p>No slides yet. Create your first slide!</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {slides.map((slide, index) => (
+                                            <button
+                                                key={slide.id}
+                                                onClick={() => loadSlideForEdit(slide)}
+                                                className="w-full bg-slate-50 border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 rounded-lg p-4 text-left transition-colors"
+                                            >
+                                                <div className="flex gap-3">
+                                                    {slide.image && (
+                                                        <img 
+                                                            src={slide.image} 
+                                                            alt={slide.title}
+                                                            className="w-20 h-20 object-cover rounded flex-shrink-0"
+                                                        />
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                Slide {index + 1}
+                                                            </Badge>
+                                                            {slide.coordinates && (
+                                                                <MapPin className="w-3 h-3 text-green-600" />
+                                                            )}
+                                                        </div>
+                                                        <h3 className="font-semibold text-slate-800 mb-1 truncate">
+                                                            {slide.title}
+                                                        </h3>
+                                                        {slide.description && (
+                                                            <p className="text-xs text-slate-600 line-clamp-2">
+                                                                {slide.description}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0 self-center" />
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div className="flex gap-2 pt-4">
+                                    <Button
+                                        onClick={() => setCurrentStep(4)}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        <ChevronLeft className="w-4 h-4 mr-2" />
+                                        Back to Slide Entry
+                                    </Button>
+                                    <Button
+                                        onClick={() => {
+                                            alert('Chapter complete! Navigate to desktop editor to finalize.');
+                                        }}
+                                        className="flex-1 bg-green-600 hover:bg-green-700"
+                                    >
+                                        Done
+                                        <Check className="w-4 h-4 ml-2" />
+                                    </Button>
                                 </div>
                             </motion.div>
                         )}
