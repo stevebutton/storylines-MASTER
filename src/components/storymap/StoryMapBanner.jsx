@@ -41,11 +41,11 @@ export default function StoryMapBanner({
     };
     return (
         <>
-            {/* Logo - Fixed position, always visible when banner is active */}
+            {/* Logo - Fixed position, always visible when banner is active, hidden on mobile */}
             <Link 
                 to={createPageUrl('ProjectInterface')}
                 className={cn(
-                    "fixed left-[65px] top-[40px] z-[130] transition-all duration-700",
+                    "hidden md:block fixed left-[65px] top-[40px] z-[130] transition-all duration-700",
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
                 )}
             >
@@ -67,11 +67,9 @@ export default function StoryMapBanner({
                 {/* Story Title */}
                 {storyTitle && (
                     <motion.div 
-                        className="absolute text-slate-800"
+                        className="absolute text-slate-800 left-0 right-0 md:left-[342px] md:right-auto text-xl md:text-[32px] text-center md:text-left px-4 md:px-0"
                         style={{ 
-                            left: '342px', 
                             top: '28px', 
-                            fontSize: '32px',
                             fontFamily: 'Montserrat, sans-serif',
                             fontWeight: '800'
                         }}
@@ -92,11 +90,11 @@ export default function StoryMapBanner({
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full pointer-events-none"
                 )}
             >
-                {/* CTM Logo */}
+                {/* CTM Logo - hidden on mobile */}
                 <img 
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/8b6a9082b_CTM.png"
                     alt="Content That Moves"
-                    className="h-[60px] ml-[60px]"
+                    className="hidden md:block h-[60px] ml-[60px]"
                 />
 
                 {/* Buttons - Right Side */}

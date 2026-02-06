@@ -36,14 +36,14 @@ export default function FloatingNavButtons({
                     </button>
                 )}
 
-                {/* Document Library */}
+                {/* Document Library - hidden on mobile */}
                 {onOpenLibrary && (
                     <button
                         onClick={() => {
                             console.log('FloatingNavButtons: "Library" button clicked');
                             onOpenLibrary();
                         }}
-                        className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
+                        className="hidden md:flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
                     >
                         <FileText className="w-5 h-5" />
                         <span>Library</span>
