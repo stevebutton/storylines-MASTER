@@ -37,7 +37,7 @@ export default function StoryChapter({
     if (cardStyle === 'full_background') {
         return (
             <div 
-                className="flex items-center py-24 px-4 md:px-8 pr-24 justify-end"
+                className="flex items-center py-24 px-4 md:px-8 pr-24 justify-end pointer-events-none"
                 style={{ minHeight: '75vh', paddingTop: '140px' }}
             >
                 <motion.div
@@ -45,10 +45,10 @@ export default function StoryChapter({
                     whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
                     transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
                     viewport={{ once: false, amount: 0.5 }}
-                    className="relative w-1/2 min-w-[300px] pointer-events-auto"
+                    className="relative w-1/2 min-w-[300px]"
                 >
                     {/* Full Background Card */}
-                    <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ minHeight: '500px' }}>
+                    <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
                         {/* Background Image */}
                         {currentSlide?.background_image && (
                             <div 
@@ -199,7 +199,7 @@ export default function StoryChapter({
     // Default Style
     return (
         <div 
-            className="flex items-center py-24 px-4 md:px-8 pr-24 justify-end"
+            className="flex items-center py-24 px-4 md:px-8 pr-24 justify-end pointer-events-none"
             style={{ minHeight: '75vh', paddingTop: '140px' }}
         >
             <motion.div
@@ -207,11 +207,11 @@ export default function StoryChapter({
                 whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
                 transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
                 viewport={{ once: false, amount: 0.5 }}
-                className="relative w-1/2 min-w-[300px] pointer-events-auto"
+                className="relative w-1/2 min-w-[300px]"
             >
                 {/* Card */}
                 <div className={cn(
-                    "backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl",
+                    "backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl pointer-events-auto",
                     "bg-white/90 dark:bg-slate-900/90",
                     "border border-white/20"
                 )}>

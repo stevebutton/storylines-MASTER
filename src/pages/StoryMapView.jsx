@@ -346,7 +346,7 @@ export default function StoryMapView() {
                     <div 
                         key={chapter.id}
                         ref={el => chapterRefs.current[index] = el}
-                        className="pointer-events-auto"
+                        className="pointer-events-none"
                         data-name={`chapter-wrapper-${index}`}
                     >
                         <StoryChapter
