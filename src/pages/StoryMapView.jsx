@@ -341,6 +341,7 @@ export default function StoryMapView() {
                     coordinates: coord,
                     type: 'route-point'
                 }))}
+                onMapLoad={(mapInstance) => { mapRef.current = mapInstance; }}
             />
             
             {/* Story Content */}
