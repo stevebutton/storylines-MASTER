@@ -268,6 +268,7 @@ export default function StoryMapView() {
             </AnimatePresence>
 
             {/* Top Banner */}
+            <div className="pointer-events-auto">
             <StoryMapBanner
                 isVisible={isBannerVisible}
                 storyTitle={story.title}
@@ -275,8 +276,10 @@ export default function StoryMapView() {
                 storyId={storyId}
                 isShareable={story.is_shareable}
             />
+            </div>
 
             {/* Floating Navigation Buttons */}
+            <div className="pointer-events-auto">
             <FloatingNavButtons
                 isChapterMenuOpen={isChapterMenuOpen}
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
@@ -285,6 +288,7 @@ export default function StoryMapView() {
                 onViewOtherStories={() => setIsStorySlideshowOpen(true)}
                 onOpenLibrary={() => setShowLibraryModal(true)}
             />
+            </div>
 
             {/* Map Background */}
             <MapBackground
@@ -300,8 +304,9 @@ export default function StoryMapView() {
             />
             
             {/* Story Content */}
-            <div className="relative z-[60]">
+            <div className="relative z-[60] pointer-events-none">
                 {/* Header */}
+                <div className="pointer-events-auto">
                 <StoryHeader
                     title={story.title}
                     subtitle={story.subtitle}
@@ -333,12 +338,14 @@ export default function StoryMapView() {
                         setTimeout(() => setShowBlackOverlay(false), 6000);
                     }}
                 />
+                </div>
                 
                 {/* Chapters */}
                 {chapters.map((chapter, index) => (
                     <div 
                         key={chapter.id}
                         ref={el => chapterRefs.current[index] = el}
+                        className="pointer-events-auto"
                     >
                         <StoryChapter
                             chapter={chapter}
@@ -380,10 +387,13 @@ export default function StoryMapView() {
                 ))}
                 
                 {/* Footer */}
+                <div className="pointer-events-auto">
                 <StoryFooter onRestart={scrollToTop} />
+                </div>
             </div>
             
             {/* Chapter Navigation */}
+            <div className="pointer-events-auto">
             <ChapterNavigation
                 chapters={chapters}
                 activeIndex={activeChapter}
@@ -393,22 +403,27 @@ export default function StoryMapView() {
                     setIsChapterMenuOpen(false);
                 }}
             />
+            </div>
 
             {/* Chapter Progress Indicator */}
             {isBannerVisible && chapters.length > 0 && (
+                <div className="pointer-events-auto">
                 <ChapterProgress
                     totalChapters={chapters.length}
                     activeIndex={activeChapter}
                     onNavigate={navigateToChapter}
                 />
+                </div>
             )}
 
             {/* Floating Story Slideshow */}
+            <div className="pointer-events-auto">
             <FloatingStorySlideshow
                 isOpen={isStorySlideshowOpen}
                 onClose={() => setIsStorySlideshowOpen(false)}
                 currentStoryId={storyId}
             />
+            </div>
 
             {/* Document Library Modal */}
             <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
