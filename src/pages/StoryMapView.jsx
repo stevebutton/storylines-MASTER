@@ -259,7 +259,7 @@ export default function StoryMapView() {
             <AnimatePresence>
                 {showBlackOverlay && (
                     <motion.div
-                        className="fixed inset-0 bg-black z-[50]"
+                        className="fixed inset-0 bg-black z-[50] pointer-events-none"
                         initial={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
