@@ -195,9 +195,29 @@ export default function StoryMapView() {
                             }
                             setRouteCoordinates(initialRoute);
                             
-                            // Use the slide coordinates directly - they are pre-positioned to account for card placement
+                            // Calculate adjusted center to keep pin off-center based on alignment
+                            let adjustedCenter = firstSlide?.coordinates || chapter.coordinates || [0, 0];
+                            if (mapRef.current && chapter.alignment && chapter.alignment !== 'center' && 
+                                adjustedCenter.length === 2 && !isNaN(adjustedCenter[0]) && !isNaN(adjustedCenter[1])) {
+                                const mapCanvas = mapRef.current.getCanvas();
+                                const canvasWidth = mapCanvas.width;
+                                
+                                const projected = mapRef.current.project([adjustedCenter[1], adjustedCenter[0]]);
+                                let offsetX = 0;
+                                
+                                if (chapter.alignment === 'left') {
+                                    offsetX = -canvasWidth / 4;
+                                } else if (chapter.alignment === 'right') {
+                                    offsetX = canvasWidth / 4;
+                                }
+                                
+                                const newScreenCenter = [projected.x + offsetX, projected.y];
+                                const newGeoCenter = mapRef.current.unproject(newScreenCenter);
+                                adjustedCenter = [newGeoCenter.lat, newGeoCenter.lng];
+                            }
+                            
                             setMapConfig({
-                                center: firstSlide?.coordinates || chapter.coordinates || [0, 0],
+                                center: adjustedCenter,
                                 zoom: firstSlide?.zoom !== undefined ? firstSlide.zoom : (chapter.zoom || 12),
                                 bearing: chapter.bearing || 0,
                                 pitch: chapter.pitch || 0,
