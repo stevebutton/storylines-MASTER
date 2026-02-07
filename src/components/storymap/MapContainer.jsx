@@ -49,6 +49,11 @@ export default function MapBackground({
             visualizePitch: true
         }), 'top-left');
 
+        // Pass map instance to parent
+        if (onMapLoad) {
+            onMapLoad(map.current);
+        }
+
         return () => {
             if (map.current) {
                 map.current.remove();
