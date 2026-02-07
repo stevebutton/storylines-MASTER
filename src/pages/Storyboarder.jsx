@@ -406,20 +406,15 @@ export default function Storyboarder() {
                                     {/* Story Title Button */}
                                     <Button
                                         onClick={() => setCurrentStep(10)}
-                                        variant="outline"
-                                        className="w-full h-28 justify-start text-left border-3 hover:border-amber-600 hover:bg-amber-50 shadow-md"
+                                        className={`w-full h-28 justify-between border-0 shadow-lg ${
+                                            storyTitle 
+                                                ? 'bg-green-500 hover:bg-green-600' 
+                                                : 'bg-purple-500 hover:bg-purple-600'
+                                        }`}
                                     >
-                                        <Mic className="w-20 h-20 mr-4 text-amber-600 flex-shrink-0" />
-                                        <div className="flex-1">
-                                            <p className="font-bold text-slate-800 text-lg">Story Title</p>
-                                            <p className="text-sm text-slate-600 mt-1">Record your story's main title</p>
-                                        </div>
-                                        {storyTitle && (
-                                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                                                <Check className="w-10 h-10 text-green-600" strokeWidth={3} />
-                                                <span className="text-green-700 font-bold text-base">Done</span>
-                                            </div>
-                                        )}
+                                        <Mic className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
+                                        <p className="font-black text-white text-2xl flex-1 text-center">STORY TITLE</p>
+                                        {storyTitle && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
                                     {/* Cover Photo Button */}
@@ -433,58 +428,44 @@ export default function Storyboarder() {
                                     />
                                     <Button
                                         onClick={handleTakePhoto}
-                                        variant="outline"
-                                        className="w-full h-28 justify-start text-left border-3 hover:border-amber-600 hover:bg-amber-50 shadow-md"
+                                        className={`w-full h-28 justify-between border-0 shadow-lg ${
+                                            coverPhoto 
+                                                ? 'bg-green-500 hover:bg-green-600' 
+                                                : 'bg-blue-500 hover:bg-blue-600'
+                                        }`}
                                         disabled={isUploading}
                                     >
                                         {isUploading ? (
-                                            <Loader2 className="w-20 h-20 mr-4 text-amber-600 flex-shrink-0 animate-spin" />
+                                            <Loader2 className="w-24 h-24 text-white flex-shrink-0 animate-spin" strokeWidth={2.5} />
                                         ) : (
-                                            <Camera className="w-20 h-20 mr-4 text-amber-600 flex-shrink-0" />
+                                            <Camera className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
                                         )}
-                                        <div className="flex-1">
-                                            <p className="font-bold text-slate-800 text-lg">Take a Cover Photo</p>
-                                            <p className="text-sm text-slate-600 mt-1">Optional hero image for your story</p>
-                                        </div>
-                                        {coverPhoto && (
-                                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                                                <Check className="w-10 h-10 text-green-600" strokeWidth={3} />
-                                                <span className="text-green-700 font-bold text-base">Done</span>
-                                            </div>
-                                        )}
+                                        <p className="font-black text-white text-2xl flex-1 text-center">COVER PHOTO</p>
+                                        {coverPhoto && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
                                     {/* Capture Location Button */}
                                     <Button
                                         onClick={handleCaptureLocation}
-                                        variant="outline"
-                                        className="w-full h-28 justify-start text-left border-3 hover:border-amber-600 hover:bg-amber-50 shadow-md"
+                                        className={`w-full h-28 justify-between border-0 shadow-lg ${
+                                            startingLocation 
+                                                ? 'bg-green-500 hover:bg-green-600' 
+                                                : 'bg-orange-500 hover:bg-orange-600'
+                                        }`}
                                     >
-                                        <MapPin className="w-20 h-20 mr-4 text-amber-600 flex-shrink-0" />
-                                        <div className="flex-1">
-                                            <p className="font-bold text-slate-800 text-lg">Capture Location</p>
-                                            <p className="text-sm text-slate-600 mt-1">Set the story's starting GPS point</p>
-                                        </div>
-                                        {startingLocation && (
-                                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                                                <Check className="w-10 h-10 text-green-600" strokeWidth={3} />
-                                                <span className="text-green-700 font-bold text-base">Done</span>
-                                            </div>
-                                        )}
+                                        <MapPin className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
+                                        <p className="font-black text-white text-2xl flex-1 text-center">LOCATION</p>
+                                        {startingLocation && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
                                     {/* Review Button */}
                                     <Button
                                         onClick={() => setCurrentStep(2)}
-                                        variant="outline"
-                                        className="w-full h-28 justify-start text-left border-3 hover:border-blue-600 hover:bg-blue-50 mt-6 shadow-md"
+                                        className="w-full h-28 justify-between bg-slate-700 hover:bg-slate-800 border-0 mt-6 shadow-lg"
                                     >
-                                        <FileText className="w-20 h-20 mr-4 text-blue-600 flex-shrink-0" />
-                                        <div className="flex-1">
-                                            <p className="font-bold text-slate-800 text-lg">Review Story</p>
-                                            <p className="text-sm text-slate-600 mt-1">Confirm details before creating</p>
-                                        </div>
-                                        <ChevronRight className="w-8 h-8 text-slate-400 ml-2 flex-shrink-0" />
+                                        <FileText className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
+                                        <p className="font-black text-white text-2xl flex-1 text-center">REVIEW STORY</p>
+                                        <ChevronRight className="w-16 h-16 text-white flex-shrink-0" strokeWidth={3} />
                                     </Button>
                                 </div>
                             </motion.div>
@@ -724,21 +705,16 @@ export default function Storyboarder() {
                                     {/* Slide Title Button */}
                                     <Button
                                         onClick={() => setCurrentStep(11)}
-                                        variant="outline"
-                                        className="w-full h-28 justify-start text-left border-3 hover:border-blue-600 hover:bg-blue-50 shadow-md"
+                                        className={`w-full h-28 justify-between border-0 shadow-lg ${
+                                            slideTitle 
+                                                ? 'bg-green-500 hover:bg-green-600' 
+                                                : 'bg-indigo-500 hover:bg-indigo-600'
+                                        }`}
                                         disabled={isUploading}
                                     >
-                                        <Mic className="w-20 h-20 mr-4 text-blue-600 flex-shrink-0" />
-                                        <div className="flex-1">
-                                            <p className="font-bold text-slate-800 text-lg">Slide Title</p>
-                                            <p className="text-sm text-slate-600 mt-1">Record the slide's title</p>
-                                        </div>
-                                        {slideTitle && (
-                                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                                                <Check className="w-10 h-10 text-green-600" strokeWidth={3} />
-                                                <span className="text-green-700 font-bold text-base">Done</span>
-                                            </div>
-                                        )}
+                                        <Mic className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
+                                        <p className="font-black text-white text-2xl flex-1 text-center">SLIDE TITLE</p>
+                                        {slideTitle && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
                                     {/* Slide Image Button */}
@@ -752,25 +728,20 @@ export default function Storyboarder() {
                                     />
                                     <Button
                                         onClick={() => slideImageInputRef.current?.click()}
-                                        variant="outline"
-                                        className="w-full h-28 justify-start text-left border-3 hover:border-blue-600 hover:bg-blue-50 shadow-md"
+                                        className={`w-full h-28 justify-between border-0 shadow-lg ${
+                                            slideImage 
+                                                ? 'bg-green-500 hover:bg-green-600' 
+                                                : 'bg-cyan-500 hover:bg-cyan-600'
+                                        }`}
                                         disabled={isUploading}
                                     >
                                         {isUploading ? (
-                                            <Loader2 className="w-20 h-20 mr-4 text-blue-600 flex-shrink-0 animate-spin" />
+                                            <Loader2 className="w-24 h-24 text-white flex-shrink-0 animate-spin" strokeWidth={2.5} />
                                         ) : (
-                                            <Camera className="w-20 h-20 mr-4 text-blue-600 flex-shrink-0" />
+                                            <Camera className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
                                         )}
-                                        <div className="flex-1">
-                                            <p className="font-bold text-slate-800 text-lg">Take Photo</p>
-                                            <p className="text-sm text-slate-600 mt-1">Image with location data</p>
-                                        </div>
-                                        {slideImage && (
-                                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                                                <Check className="w-10 h-10 text-green-600" strokeWidth={3} />
-                                                <span className="text-green-700 font-bold text-base">Done</span>
-                                            </div>
-                                        )}
+                                        <p className="font-black text-white text-2xl flex-1 text-center">TAKE PHOTO</p>
+                                        {slideImage && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
                                     {/* Preview Image */}
@@ -789,21 +760,16 @@ export default function Storyboarder() {
                                     {/* Slide Description Button */}
                                     <Button
                                         onClick={() => setCurrentStep(12)}
-                                        variant="outline"
-                                        className="w-full h-28 justify-start text-left border-3 hover:border-blue-600 hover:bg-blue-50 shadow-md"
+                                        className={`w-full h-28 justify-between border-0 shadow-lg ${
+                                            slideDescription 
+                                                ? 'bg-green-500 hover:bg-green-600' 
+                                                : 'bg-pink-500 hover:bg-pink-600'
+                                        }`}
                                         disabled={isUploading}
                                     >
-                                        <Mic className="w-20 h-20 mr-4 text-blue-600 flex-shrink-0" />
-                                        <div className="flex-1">
-                                            <p className="font-bold text-slate-800 text-lg">Description</p>
-                                            <p className="text-sm text-slate-600 mt-1">Record a short paragraph</p>
-                                        </div>
-                                        {slideDescription && (
-                                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                                                <Check className="w-10 h-10 text-green-600" strokeWidth={3} />
-                                                <span className="text-green-700 font-bold text-base">Done</span>
-                                            </div>
-                                        )}
+                                        <Mic className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
+                                        <p className="font-black text-white text-2xl flex-1 text-center">DESCRIPTION</p>
+                                        {slideDescription && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
                                     {/* Action Buttons */}
