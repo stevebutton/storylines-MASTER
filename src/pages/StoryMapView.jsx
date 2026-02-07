@@ -23,8 +23,10 @@ export default function StoryMapView() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeChapter, setActiveChapter] = useState(0);
     const [mapConfig, setMapConfig] = useState({
-        center: [0, 0],
-        zoom: 2,
+        center: [20, 10],
+        zoom: 1.5,
+        bearing: 0,
+        pitch: 0,
         mapStyle: 'light',
         shouldRotate: false,
         flyDuration: 12
@@ -192,9 +194,10 @@ export default function StoryMapView() {
                             }
                             setRouteCoordinates(initialRoute);
                             
+                            // Use the slide coordinates directly - they are pre-positioned to account for card placement
                             setMapConfig({
                                 center: firstSlide?.coordinates || chapter.coordinates || [0, 0],
-                                zoom: chapter.zoom || 12,
+                                zoom: firstSlide?.zoom !== undefined ? firstSlide.zoom : (chapter.zoom || 12),
                                 bearing: chapter.bearing || 0,
                                 pitch: chapter.pitch || 0,
                                 mapStyle: chapter.map_style || 'light',
@@ -334,25 +337,10 @@ export default function StoryMapView() {
                     onExplore={() => {
                         setHasExplored(true);
                         
-                        // Delay navigation to allow initial wide view to be visible
+                        // Scroll and animate to first chapter after allowing wide view to be visible
                         setTimeout(() => {
                             navigateToChapter(0);
-                            
-                            // Animate to first chapter after delay
-                            if (chapters.length > 0) {
-                                const first = chapters[0];
-                                const firstSlide = first.slides?.[0];
-                                setMapConfig({
-                                    center: firstSlide?.coordinates || first.coordinates || [0, 0],
-                                    zoom: first.zoom || 12,
-                                    bearing: first.bearing || 0,
-                                    pitch: first.pitch || 0,
-                                    mapStyle: first.map_style || 'light',
-                                    shouldRotate: true,
-                                    flyDuration: first.fly_duration || 12
-                                });
-                            }
-                        }, 2000);
+                        }, 3000);
                     }}
                     onHeroLoaded={() => {
                         setHeroMediaLoaded(true);
