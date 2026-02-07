@@ -402,11 +402,31 @@ export default function StoryMapView() {
                                         return prev;
                                     });
                                     
+                                    // Calculate adjusted center to keep pin off-center based on alignment
+                                    let adjustedCenter = slide.coordinates;
+                                    if (mapRef.current && chapter.alignment && chapter.alignment !== 'center') {
+                                        const mapCanvas = mapRef.current.getCanvas();
+                                        const canvasWidth = mapCanvas.width;
+                                        
+                                        const projected = mapRef.current.project([slide.coordinates[1], slide.coordinates[0]]);
+                                        let offsetX = 0;
+                                        
+                                        if (chapter.alignment === 'left') {
+                                            offsetX = -canvasWidth / 4;
+                                        } else if (chapter.alignment === 'right') {
+                                            offsetX = canvasWidth / 4;
+                                        }
+                                        
+                                        const newScreenCenter = [projected.x + offsetX, projected.y];
+                                        const newGeoCenter = mapRef.current.unproject(newScreenCenter);
+                                        adjustedCenter = [newGeoCenter.lat, newGeoCenter.lng];
+                                    }
+                                    
                                     setMapConfig({
-                                        center: slide.coordinates,
+                                        center: adjustedCenter,
                                         zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
-                                        bearing: slide.bearing !== undefined ? slide.bearing : 0,
-                                        pitch: slide.pitch !== undefined ? slide.pitch : 0,
+                                        bearing: slide.bearing !== undefined ? slide.bearing : (chapter.bearing || 0),
+                                        pitch: slide.pitch !== undefined ? slide.pitch : (chapter.pitch || 0),
                                         mapStyle: chapter.map_style || 'light',
                                         shouldRotate: false,
                                         flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 12)
