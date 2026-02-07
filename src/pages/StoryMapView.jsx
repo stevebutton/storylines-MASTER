@@ -176,13 +176,24 @@ export default function StoryMapView() {
                             setActiveChapter(index);
                             const chapter = chapters[index];
                             
-                            // Initialize route with chapter coordinates
-                            if (chapter.coordinates) {
-                                setRouteCoordinates([chapter.coordinates]);
+                            // Initialize route with chapter coordinates AND first slide coordinates
+                            const initialRoute = [];
+                            if (chapter.coordinates && Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2) {
+                                initialRoute.push(chapter.coordinates);
                             }
+                            // Add first slide's coordinates if they exist and are different
+                            const firstSlide = chapter.slides?.[0];
+                            if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2) {
+                                if (initialRoute.length === 0 ||
+                                    (initialRoute[initialRoute.length - 1][0] !== firstSlide.coordinates[0] ||
+                                     initialRoute[initialRoute.length - 1][1] !== firstSlide.coordinates[1])) {
+                                    initialRoute.push(firstSlide.coordinates);
+                                }
+                            }
+                            setRouteCoordinates(initialRoute);
                             
                             setMapConfig({
-                                center: chapter.coordinates || [0, 0],
+                                center: firstSlide?.coordinates || chapter.coordinates || [0, 0],
                                 zoom: chapter.zoom || 12,
                                 bearing: chapter.bearing || 0,
                                 pitch: chapter.pitch || 0,

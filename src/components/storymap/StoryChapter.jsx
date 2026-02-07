@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ChapterCarousel from './ChapterCarousel';
@@ -22,6 +22,14 @@ export default function StoryChapter({
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
     
     console.log("Current Slide for debugging:", currentSlide);
+
+    // Notify parent of initial slide when chapter or isActive changes
+    useEffect(() => {
+        if (isActive && chapter.slides && chapter.slides.length > 0 && onSlideChange) {
+            const firstSlide = chapter.slides[0];
+            onSlideChange(firstSlide);
+        }
+    }, [isActive, chapter.id]);
 
     const handleSlideChange = (slideIndex) => {
         setActiveSlideIndex(slideIndex);
