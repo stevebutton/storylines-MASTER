@@ -254,7 +254,7 @@ export default function StoryMapView() {
     }
 
     return (
-        <div ref={containerRef} className="relative pointer-events-none">
+        <div ref={containerRef} className="relative">
             {/* Black Overlay - Fades out when hero loads */}
             <AnimatePresence>
                 {showBlackOverlay && (
