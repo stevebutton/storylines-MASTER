@@ -16,12 +16,15 @@ export default function MapBackground({
     activeMarkerIndex = -1,
     onMarkerClick,
     shouldRotate = false,
-    flyDuration = 12
+    flyDuration = 12,
+    routeCoordinates = [],
+    clearRoute = false
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markersRef = useRef([]);
     const rotationRef = useRef(null);
+    const routeSourceAdded = useRef(false);
 
     // Initialize map
     useEffect(() => {
@@ -82,6 +85,69 @@ export default function MapBackground({
             }
         };
     }, [center, zoom, bearing, pitch, shouldRotate, flyDuration]);
+
+    // Update route line
+    useEffect(() => {
+        if (!map.current || !map.current.isStyleLoaded()) return;
+
+        // Clear route if requested
+        if (clearRoute) {
+            if (map.current.getLayer('route-line')) {
+                map.current.removeLayer('route-line');
+            }
+            if (map.current.getSource('route')) {
+                map.current.removeSource('route');
+            }
+            routeSourceAdded.current = false;
+            return;
+        }
+
+        // Add or update route
+        if (routeCoordinates.length >= 2) {
+            const geojson = {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: routeCoordinates.map(coord => [coord[1], coord[0]])
+                }
+            };
+
+            if (!routeSourceAdded.current) {
+                // Add source and layer for the first time
+                if (!map.current.getSource('route')) {
+                    map.current.addSource('route', {
+                        type: 'geojson',
+                        data: geojson
+                    });
+                }
+
+                if (!map.current.getLayer('route-line')) {
+                    map.current.addLayer({
+                        id: 'route-line',
+                        type: 'line',
+                        source: 'route',
+                        layout: {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                        paint: {
+                            'line-color': '#d97706',
+                            'line-width': 3,
+                            'line-opacity': 0.8
+                        }
+                    });
+                }
+                routeSourceAdded.current = true;
+            } else {
+                // Update existing source
+                const source = map.current.getSource('route');
+                if (source) {
+                    source.setData(geojson);
+                }
+            }
+        }
+    }, [routeCoordinates, clearRoute]);
 
     // Update markers
     useEffect(() => {

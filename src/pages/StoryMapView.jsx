@@ -29,6 +29,9 @@ export default function StoryMapView() {
         shouldRotate: false,
         flyDuration: 12
     });
+    const [routeCoordinates, setRouteCoordinates] = useState([]);
+    const [clearRoute, setClearRoute] = useState(false);
+    const previousChapterRef = useRef(-1);
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
@@ -161,8 +164,23 @@ export default function StoryMapView() {
                     
                     if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
                         if (activeChapter !== index) {
+                            // Check if we're moving to a new chapter
+                            if (previousChapterRef.current !== -1 && previousChapterRef.current !== index) {
+                                // Clear route when moving to a new chapter
+                                setClearRoute(true);
+                                setRouteCoordinates([]);
+                                setTimeout(() => setClearRoute(false), 100);
+                            }
+                            
+                            previousChapterRef.current = index;
                             setActiveChapter(index);
                             const chapter = chapters[index];
+                            
+                            // Initialize route with chapter coordinates
+                            if (chapter.coordinates) {
+                                setRouteCoordinates([chapter.coordinates]);
+                            }
+                            
                             setMapConfig({
                                 center: chapter.coordinates || [0, 0],
                                 zoom: chapter.zoom || 12,
@@ -277,6 +295,8 @@ export default function StoryMapView() {
                 mapStyle={mapConfig.mapStyle}
                 shouldRotate={mapConfig.shouldRotate}
                 flyDuration={mapConfig.flyDuration}
+                routeCoordinates={routeCoordinates}
+                clearRoute={clearRoute}
             />
             
             {/* Story Content */}
@@ -332,6 +352,18 @@ export default function StoryMapView() {
                                     slide.coordinates.length === 2 &&
                                     !isNaN(slide.coordinates[0]) && 
                                     !isNaN(slide.coordinates[1])) {
+                                    // Add slide coordinates to route
+                                    setRouteCoordinates(prev => {
+                                        const lastCoord = prev[prev.length - 1];
+                                        // Only add if it's different from the last coordinate
+                                        if (!lastCoord || 
+                                            lastCoord[0] !== slide.coordinates[0] || 
+                                            lastCoord[1] !== slide.coordinates[1]) {
+                                            return [...prev, slide.coordinates];
+                                        }
+                                        return prev;
+                                    });
+                                    
                                     setMapConfig({
                                         center: slide.coordinates,
                                         zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
