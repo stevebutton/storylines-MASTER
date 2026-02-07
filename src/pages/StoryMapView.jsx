@@ -44,6 +44,7 @@ export default function StoryMapView() {
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
+    const mapRef = useRef(null);
 
     useEffect(() => {
         loadStory();
