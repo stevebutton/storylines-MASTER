@@ -254,11 +254,12 @@ export default function StoryMapView() {
     }
 
     return (
-        <div ref={containerRef} className="relative">
+        <div ref={containerRef} className="relative" data-name="main-container">
             {/* Black Overlay - Fades out when hero loads */}
             <AnimatePresence>
                 {showBlackOverlay && (
                     <motion.div
+                        data-name="black-overlay"
                         className="fixed inset-0 bg-black z-[50] pointer-events-none"
                         initial={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -268,7 +269,7 @@ export default function StoryMapView() {
             </AnimatePresence>
 
             {/* Top Banner */}
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto" data-name="banner-wrapper">
             <StoryMapBanner
                 isVisible={isBannerVisible}
                 storyTitle={story.title}
@@ -279,7 +280,7 @@ export default function StoryMapView() {
             </div>
 
             {/* Floating Navigation Buttons */}
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto" data-name="floating-nav-wrapper">
             <FloatingNavButtons
                 isChapterMenuOpen={isChapterMenuOpen}
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
@@ -304,9 +305,9 @@ export default function StoryMapView() {
             />
             
             {/* Story Content */}
-            <div className="relative z-[60] pointer-events-none">
+            <div className="relative z-[60] pointer-events-none" data-name="story-content-container">
                 {/* Header */}
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto" data-name="header-wrapper">
                 <StoryHeader
                     title={story.title}
                     subtitle={story.subtitle}
@@ -346,6 +347,7 @@ export default function StoryMapView() {
                         key={chapter.id}
                         ref={el => chapterRefs.current[index] = el}
                         className="pointer-events-auto"
+                        data-name={`chapter-wrapper-${index}`}
                     >
                         <StoryChapter
                             chapter={chapter}
@@ -387,13 +389,13 @@ export default function StoryMapView() {
                 ))}
                 
                 {/* Footer */}
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto" data-name="footer-wrapper">
                 <StoryFooter onRestart={scrollToTop} />
                 </div>
             </div>
             
             {/* Chapter Navigation */}
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto" data-name="chapter-nav-wrapper">
             <ChapterNavigation
                 chapters={chapters}
                 activeIndex={activeChapter}
@@ -407,7 +409,7 @@ export default function StoryMapView() {
 
             {/* Chapter Progress Indicator */}
             {isBannerVisible && chapters.length > 0 && (
-                <div className="pointer-events-auto">
+                <div className="pointer-events-auto" data-name="chapter-progress-wrapper">
                 <ChapterProgress
                     totalChapters={chapters.length}
                     activeIndex={activeChapter}
@@ -417,7 +419,7 @@ export default function StoryMapView() {
             )}
 
             {/* Floating Story Slideshow */}
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto" data-name="slideshow-wrapper">
             <FloatingStorySlideshow
                 isOpen={isStorySlideshowOpen}
                 onClose={() => setIsStorySlideshowOpen(false)}
