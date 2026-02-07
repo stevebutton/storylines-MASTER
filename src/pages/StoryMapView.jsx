@@ -313,6 +313,10 @@ export default function StoryMapView() {
                 flyDuration={mapConfig.flyDuration}
                 routeCoordinates={routeCoordinates}
                 clearRoute={clearRoute}
+                markers={routeCoordinates.map(coord => ({
+                    coordinates: coord,
+                    type: 'route-point'
+                }))}
             />
             
             {/* Story Content */}
@@ -329,21 +333,26 @@ export default function StoryMapView() {
                     heroVideoLoop={story.hero_video_loop}
                     onExplore={() => {
                         setHasExplored(true);
-                        navigateToChapter(0);
                         
-                        // Animate to first chapter
-                        if (chapters.length > 0) {
-                            const first = chapters[0];
-                            setMapConfig({
-                                center: first.coordinates || [0, 0],
-                                zoom: first.zoom || 12,
-                                bearing: first.bearing || 0,
-                                pitch: first.pitch || 0,
-                                mapStyle: first.map_style || 'light',
-                                shouldRotate: true,
-                                flyDuration: first.fly_duration || 12
-                            });
-                        }
+                        // Delay navigation to allow initial wide view to be visible
+                        setTimeout(() => {
+                            navigateToChapter(0);
+                            
+                            // Animate to first chapter after delay
+                            if (chapters.length > 0) {
+                                const first = chapters[0];
+                                const firstSlide = first.slides?.[0];
+                                setMapConfig({
+                                    center: firstSlide?.coordinates || first.coordinates || [0, 0],
+                                    zoom: first.zoom || 12,
+                                    bearing: first.bearing || 0,
+                                    pitch: first.pitch || 0,
+                                    mapStyle: first.map_style || 'light',
+                                    shouldRotate: true,
+                                    flyDuration: first.fly_duration || 12
+                                });
+                            }
+                        }, 2000);
                     }}
                     onHeroLoaded={() => {
                         setHeroMediaLoaded(true);

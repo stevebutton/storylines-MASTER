@@ -25,6 +25,7 @@ export default function MapBackground({
     const markersRef = useRef([]);
     const rotationRef = useRef(null);
     const routeSourceAdded = useRef(false);
+    const animationRef = useRef(null);
 
     // Initialize map
     useEffect(() => {
@@ -86,12 +87,16 @@ export default function MapBackground({
         };
     }, [center, zoom, bearing, pitch, shouldRotate, flyDuration]);
 
-    // Update route line
+    // Update route line with animation
     useEffect(() => {
         if (!map.current || !map.current.isStyleLoaded()) return;
 
         // Clear route if requested
         if (clearRoute) {
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+                animationRef.current = null;
+            }
             if (map.current.getLayer('route-line')) {
                 map.current.removeLayer('route-line');
             }
@@ -134,7 +139,8 @@ export default function MapBackground({
                         paint: {
                             'line-color': '#d97706',
                             'line-width': 3,
-                            'line-opacity': 0.8
+                            'line-opacity': 0.8,
+                            'line-dasharray': [0, 1000]
                         }
                     });
                 }
@@ -146,8 +152,45 @@ export default function MapBackground({
                     source.setData(geojson);
                 }
             }
+
+            // Animate the line drawing
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+            }
+
+            const duration = (flyDuration || 12) * 1000;
+            const startTime = Date.now();
+            
+            const animateLine = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                if (map.current && map.current.getLayer('route-line')) {
+                    // Animate from invisible to visible
+                    const dashProgress = progress * 1000;
+                    map.current.setPaintProperty('route-line', 'line-dasharray', [dashProgress, 1000]);
+                }
+                
+                if (progress < 1) {
+                    animationRef.current = requestAnimationFrame(animateLine);
+                } else {
+                    // Ensure line is fully visible at the end
+                    if (map.current && map.current.getLayer('route-line')) {
+                        map.current.setPaintProperty('route-line', 'line-dasharray', [1000, 0]);
+                    }
+                }
+            };
+            
+            animateLine();
         }
-    }, [routeCoordinates, clearRoute]);
+
+        return () => {
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+                animationRef.current = null;
+            }
+        };
+    }, [routeCoordinates, clearRoute, flyDuration]);
 
     // Update markers
     useEffect(() => {
@@ -159,47 +202,66 @@ export default function MapBackground({
 
         // Add new markers
         markers.forEach((markerData, index) => {
+            const isRoutePoint = markerData.type === 'route-point';
+            
             const el = document.createElement('div');
             el.className = 'mapbox-marker';
-            el.style.cssText = `
-                width: 24px;
-                height: 24px;
-                border-radius: 50%;
-                background: ${index === activeMarkerIndex ? '#d97706' : '#475569'};
-                border: 3px solid white;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                cursor: pointer;
-                transition: all 0.3s ease;
-            `;
+            
+            if (isRoutePoint) {
+                // Route point markers - simple pins
+                el.style.cssText = `
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: #d97706;
+                    border: 3px solid white;
+                    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
+                    transition: all 0.3s ease;
+                `;
+            } else {
+                // Regular markers with popups
+                el.style.cssText = `
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    background: ${index === activeMarkerIndex ? '#d97706' : '#475569'};
+                    border: 3px solid white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                `;
 
-            if (index === activeMarkerIndex) {
-                el.style.width = '32px';
-                el.style.height = '32px';
-                el.style.zIndex = '10';
+                if (index === activeMarkerIndex) {
+                    el.style.width = '32px';
+                    el.style.height = '32px';
+                    el.style.zIndex = '10';
+                }
             }
 
             const marker = new mapboxgl.Marker(el)
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
                 .addTo(map.current);
 
-            // Add popup
-            const popupContent = `
-                <div style="min-width: 200px; font-family: system-ui, sans-serif;">
-                    ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;" />` : ''}
-                    <h3 style="font-weight: 600; color: #1e293b; margin: 0 0 4px 0;">${markerData.title}</h3>
-                    ${markerData.location ? `<p style="font-size: 12px; color: #64748b; margin: 0;">${markerData.location}</p>` : ''}
-                    ${markerData.description ? `<p style="font-size: 14px; color: #475569; margin: 8px 0 0 0; line-height: 1.4;">${markerData.description.substring(0, 100)}${markerData.description.length > 100 ? '...' : ''}</p>` : ''}
-                </div>
-            `;
+            // Add popup only for non-route-point markers
+            if (!isRoutePoint && (markerData.title || markerData.image)) {
+                const popupContent = `
+                    <div style="min-width: 200px; font-family: system-ui, sans-serif;">
+                        ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;" />` : ''}
+                        <h3 style="font-weight: 600; color: #1e293b; margin: 0 0 4px 0;">${markerData.title}</h3>
+                        ${markerData.location ? `<p style="font-size: 12px; color: #64748b; margin: 0;">${markerData.location}</p>` : ''}
+                        ${markerData.description ? `<p style="font-size: 14px; color: #475569; margin: 8px 0 0 0; line-height: 1.4;">${markerData.description.substring(0, 100)}${markerData.description.length > 100 ? '...' : ''}</p>` : ''}
+                    </div>
+                `;
 
-            const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
-                .setHTML(popupContent);
+                const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
+                    .setHTML(popupContent);
 
-            marker.setPopup(popup);
+                marker.setPopup(popup);
 
-            el.addEventListener('click', () => {
-                if (onMarkerClick) onMarkerClick(index);
-            });
+                el.addEventListener('click', () => {
+                    if (onMarkerClick) onMarkerClick(index);
+                });
+            }
 
             markersRef.current.push(marker);
         });
