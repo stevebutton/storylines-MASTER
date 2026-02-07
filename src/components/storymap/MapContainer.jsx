@@ -18,7 +18,8 @@ export default function MapBackground({
     shouldRotate = false,
     flyDuration = 12,
     routeCoordinates = [],
-    clearRoute = false
+    clearRoute = false,
+    onMapLoad
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
