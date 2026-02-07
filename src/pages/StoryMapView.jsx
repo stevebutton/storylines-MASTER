@@ -23,10 +23,8 @@ export default function StoryMapView() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeChapter, setActiveChapter] = useState(0);
     const [mapConfig, setMapConfig] = useState({
-        center: [20, 10],
-        zoom: 1.5,
-        bearing: 0,
-        pitch: 0,
+        center: [0, 0],
+        zoom: 2,
         mapStyle: 'light',
         shouldRotate: false,
         flyDuration: 12
@@ -44,7 +42,6 @@ export default function StoryMapView() {
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
-    const mapRef = useRef(null);
 
     useEffect(() => {
         loadStory();
@@ -195,30 +192,9 @@ export default function StoryMapView() {
                             }
                             setRouteCoordinates(initialRoute);
                             
-                            // Calculate adjusted center to keep pin off-center based on alignment
-                            let adjustedCenter = firstSlide?.coordinates || chapter.coordinates || [0, 0];
-                            if (mapRef.current && chapter.alignment && chapter.alignment !== 'center' && 
-                                adjustedCenter.length === 2 && !isNaN(adjustedCenter[0]) && !isNaN(adjustedCenter[1])) {
-                                const mapCanvas = mapRef.current.getCanvas();
-                                const canvasWidth = mapCanvas.width;
-                                
-                                const projected = mapRef.current.project([adjustedCenter[1], adjustedCenter[0]]);
-                                let offsetX = 0;
-                                
-                                if (chapter.alignment === 'left') {
-                                    offsetX = -canvasWidth / 4;
-                                } else if (chapter.alignment === 'right') {
-                                    offsetX = canvasWidth / 4;
-                                }
-                                
-                                const newScreenCenter = [projected.x + offsetX, projected.y];
-                                const newGeoCenter = mapRef.current.unproject(newScreenCenter);
-                                adjustedCenter = [newGeoCenter.lat, newGeoCenter.lng];
-                            }
-                            
                             setMapConfig({
-                                center: adjustedCenter,
-                                zoom: firstSlide?.zoom !== undefined ? firstSlide.zoom : (chapter.zoom || 12),
+                                center: firstSlide?.coordinates || chapter.coordinates || [0, 0],
+                                zoom: chapter.zoom || 12,
                                 bearing: chapter.bearing || 0,
                                 pitch: chapter.pitch || 0,
                                 mapStyle: chapter.map_style || 'light',
@@ -337,11 +313,6 @@ export default function StoryMapView() {
                 flyDuration={mapConfig.flyDuration}
                 routeCoordinates={routeCoordinates}
                 clearRoute={clearRoute}
-                markers={routeCoordinates.map(coord => ({
-                    coordinates: coord,
-                    type: 'route-point'
-                }))}
-                onMapLoad={(mapInstance) => { mapRef.current = mapInstance; }}
             />
             
             {/* Story Content */}
@@ -358,11 +329,21 @@ export default function StoryMapView() {
                     heroVideoLoop={story.hero_video_loop}
                     onExplore={() => {
                         setHasExplored(true);
+                        navigateToChapter(0);
                         
-                        // Scroll and animate to first chapter after allowing wide view to be visible
-                        setTimeout(() => {
-                            navigateToChapter(0);
-                        }, 3000);
+                        // Animate to first chapter
+                        if (chapters.length > 0) {
+                            const first = chapters[0];
+                            setMapConfig({
+                                center: first.coordinates || [0, 0],
+                                zoom: first.zoom || 12,
+                                bearing: first.bearing || 0,
+                                pitch: first.pitch || 0,
+                                mapStyle: first.map_style || 'light',
+                                shouldRotate: true,
+                                flyDuration: first.fly_duration || 12
+                            });
+                        }
                     }}
                     onHeroLoaded={() => {
                         setHeroMediaLoaded(true);
@@ -403,31 +384,11 @@ export default function StoryMapView() {
                                         return prev;
                                     });
                                     
-                                    // Calculate adjusted center to keep pin off-center based on alignment
-                                    let adjustedCenter = slide.coordinates;
-                                    if (mapRef.current && chapter.alignment && chapter.alignment !== 'center') {
-                                        const mapCanvas = mapRef.current.getCanvas();
-                                        const canvasWidth = mapCanvas.width;
-                                        
-                                        const projected = mapRef.current.project([slide.coordinates[1], slide.coordinates[0]]);
-                                        let offsetX = 0;
-                                        
-                                        if (chapter.alignment === 'left') {
-                                            offsetX = -canvasWidth / 4;
-                                        } else if (chapter.alignment === 'right') {
-                                            offsetX = canvasWidth / 4;
-                                        }
-                                        
-                                        const newScreenCenter = [projected.x + offsetX, projected.y];
-                                        const newGeoCenter = mapRef.current.unproject(newScreenCenter);
-                                        adjustedCenter = [newGeoCenter.lat, newGeoCenter.lng];
-                                    }
-                                    
                                     setMapConfig({
-                                        center: adjustedCenter,
+                                        center: slide.coordinates,
                                         zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
-                                        bearing: slide.bearing !== undefined ? slide.bearing : (chapter.bearing || 0),
-                                        pitch: slide.pitch !== undefined ? slide.pitch : (chapter.pitch || 0),
+                                        bearing: slide.bearing !== undefined ? slide.bearing : 0,
+                                        pitch: slide.pitch !== undefined ? slide.pitch : 0,
                                         mapStyle: chapter.map_style || 'light',
                                         shouldRotate: false,
                                         flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 12)
