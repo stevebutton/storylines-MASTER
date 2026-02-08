@@ -178,12 +178,14 @@ export default function StoryMapView() {
                             
                             // Initialize route with chapter coordinates AND first slide coordinates
                             const initialRoute = [];
-                            if (chapter.coordinates && Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2) {
+                            if (chapter.coordinates && Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2 &&
+                                !isNaN(chapter.coordinates[0]) && !isNaN(chapter.coordinates[1])) {
                                 initialRoute.push(chapter.coordinates);
                             }
                             // Add first slide's coordinates if they exist and are different
                             const firstSlide = chapter.slides?.[0];
-                            if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2) {
+                            if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
+                                !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
                                 if (initialRoute.length === 0 ||
                                     (initialRoute[initialRoute.length - 1][0] !== firstSlide.coordinates[0] ||
                                      initialRoute[initialRoute.length - 1][1] !== firstSlide.coordinates[1])) {
@@ -192,8 +194,18 @@ export default function StoryMapView() {
                             }
                             setRouteCoordinates(initialRoute);
                             
+                            // Determine valid center coordinates
+                            let validCenter = [0, 0];
+                            if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
+                                !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                validCenter = firstSlide.coordinates;
+                            } else if (chapter.coordinates && Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2 &&
+                                       !isNaN(chapter.coordinates[0]) && !isNaN(chapter.coordinates[1])) {
+                                validCenter = chapter.coordinates;
+                            }
+                            
                             setMapConfig({
-                                center: firstSlide?.coordinates || chapter.coordinates || [0, 0],
+                                center: validCenter,
                                 zoom: chapter.zoom || 12,
                                 bearing: chapter.bearing || 0,
                                 pitch: chapter.pitch || 0,
@@ -334,8 +346,13 @@ export default function StoryMapView() {
                         // Animate to first chapter
                         if (chapters.length > 0) {
                             const first = chapters[0];
+                            let validCenter = [0, 0];
+                            if (first.coordinates && Array.isArray(first.coordinates) && first.coordinates.length === 2 &&
+                                !isNaN(first.coordinates[0]) && !isNaN(first.coordinates[1])) {
+                                validCenter = first.coordinates;
+                            }
                             setMapConfig({
-                                center: first.coordinates || [0, 0],
+                                center: validCenter,
                                 zoom: first.zoom || 12,
                                 bearing: first.bearing || 0,
                                 pitch: first.pitch || 0,
@@ -371,7 +388,9 @@ export default function StoryMapView() {
                                     Array.isArray(slide.coordinates) && 
                                     slide.coordinates.length === 2 &&
                                     !isNaN(slide.coordinates[0]) && 
-                                    !isNaN(slide.coordinates[1])) {
+                                    !isNaN(slide.coordinates[1]) &&
+                                    isFinite(slide.coordinates[0]) &&
+                                    isFinite(slide.coordinates[1])) {
                                     // Add slide coordinates to route
                                     setRouteCoordinates(prev => {
                                         const lastCoord = prev[prev.length - 1];

@@ -30,10 +30,17 @@ export default function MapBackground({
     useEffect(() => {
         if (map.current || !mapContainer.current) return;
         
+        // Validate center coordinates
+        const validCenter = (center && Array.isArray(center) && center.length === 2 && 
+                           !isNaN(center[0]) && !isNaN(center[1]) && 
+                           isFinite(center[0]) && isFinite(center[1]))
+            ? [center[1], center[0]]
+            : [-74.006, 40.7128];
+        
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
             style: MAPBOX_STYLE,
-            center: center ? [center[1], center[0]] : [-74.006, 40.7128],
+            center: validCenter,
             zoom: zoom || 12,
             bearing: bearing || 0,
             pitch: pitch || 0,
@@ -57,7 +64,14 @@ export default function MapBackground({
 
     // Update map position
     useEffect(() => {
-        if (!map.current || !center) return;
+        if (!map.current) return;
+        
+        // Validate center coordinates
+        if (!center || !Array.isArray(center) || center.length !== 2 || 
+            isNaN(center[0]) || isNaN(center[1]) || 
+            !isFinite(center[0]) || !isFinite(center[1])) {
+            return;
+        }
 
         // Cancel any ongoing rotation
         if (rotationRef.current) {
@@ -104,12 +118,21 @@ export default function MapBackground({
 
         // Add or update route
         if (routeCoordinates.length >= 2) {
+            // Validate and filter route coordinates
+            const validCoords = routeCoordinates.filter(coord => 
+                coord && Array.isArray(coord) && coord.length === 2 &&
+                !isNaN(coord[0]) && !isNaN(coord[1]) &&
+                isFinite(coord[0]) && isFinite(coord[1])
+            );
+            
+            if (validCoords.length < 2) return;
+            
             const geojson = {
                 type: 'Feature',
                 properties: {},
                 geometry: {
                     type: 'LineString',
-                    coordinates: routeCoordinates.map(coord => [coord[1], coord[0]])
+                    coordinates: validCoords.map(coord => [coord[1], coord[0]])
                 }
             };
 

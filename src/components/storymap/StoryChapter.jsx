@@ -35,6 +35,12 @@ export default function StoryChapter({
         setActiveSlideIndex(slideIndex);
         const slide = chapter.slides?.[slideIndex];
         if (slide && onSlideChange) {
+            // Validate slide has proper coordinates before passing to parent
+            if (!slide.coordinates || !Array.isArray(slide.coordinates) || slide.coordinates.length !== 2 ||
+                isNaN(slide.coordinates[0]) || isNaN(slide.coordinates[1])) {
+                // Don't trigger slide change if coordinates are invalid
+                return;
+            }
             onSlideChange(slide);
         }
     };
