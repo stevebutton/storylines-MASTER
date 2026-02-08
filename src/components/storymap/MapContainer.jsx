@@ -241,15 +241,19 @@ export default function MapBackground({
         if (clearLandingMarkers) {
             landingMarkersRef.current.forEach(marker => {
                 const el = marker.getElement();
-                el.style.transition = 'opacity 1000ms ease-out';
-                el.style.opacity = '0';
+                if (el) {
+                    el.style.transition = 'opacity 1000ms ease-out';
+                    el.style.opacity = '0';
+                }
                 setTimeout(() => marker.remove(), 1000);
             });
             landingMarkersRef.current = [];
             return;
         }
 
-        // Add new landing markers
+        // Add new landing markers - only process valid, non-null coordinates
+        if (!landingMarkers || !Array.isArray(landingMarkers)) return;
+        
         landingMarkers.forEach((coord) => {
             if (!coord || !Array.isArray(coord) || coord.length !== 2 ||
                 isNaN(coord[0]) || isNaN(coord[1]) ||
@@ -257,30 +261,34 @@ export default function MapBackground({
                 return;
             }
 
-            const el = document.createElement('div');
-            el.style.cssText = `
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                background: rgba(217, 119, 6, 0.15);
-                border: 2px solid rgba(217, 119, 6, 0.4);
-                box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
-                opacity: 0;
-                transition: opacity 1000ms ease-in;
-                pointer-events: none;
-                z-index: 5;
-            `;
+            try {
+                const el = document.createElement('div');
+                el.style.cssText = `
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    background: rgba(217, 119, 6, 0.15);
+                    border: 2px solid rgba(217, 119, 6, 0.4);
+                    box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
+                    opacity: 0;
+                    transition: opacity 1000ms ease-in;
+                    pointer-events: none;
+                    z-index: 5;
+                `;
 
-            const marker = new mapboxgl.Marker(el)
-                .setLngLat([coord[1], coord[0]])
-                .addTo(map.current);
+                const marker = new mapboxgl.Marker(el)
+                    .setLngLat([coord[1], coord[0]])
+                    .addTo(map.current);
 
-            // Trigger fade in after a short delay to sync with flyTo completion
-            setTimeout(() => {
-                el.style.opacity = '1';
-            }, (flyDuration || 12) * 1000 - 1000);
+                // Trigger fade in after a short delay to sync with flyTo completion
+                setTimeout(() => {
+                    if (el) el.style.opacity = '1';
+                }, (flyDuration || 12) * 1000 - 1000);
 
-            landingMarkersRef.current.push(marker);
+                landingMarkersRef.current.push(marker);
+            } catch (error) {
+                console.error('Error creating landing marker:', error);
+            }
         });
     }, [landingMarkers, clearLandingMarkers, flyDuration]);
 
