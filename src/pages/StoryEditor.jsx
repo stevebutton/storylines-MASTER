@@ -210,6 +210,15 @@ export default function StoryEditor() {
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>
                         </Link>
+                        <Link to={createPageUrl('ProjectInterface')}>
+                            <img 
+                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png" 
+                                alt="Storylines" 
+                                width="125"
+                                height="50"
+                                className="hover:opacity-80 transition-opacity cursor-pointer"
+                            />
+                        </Link>
                         <h1 className="text-2xl md:text-2xl font-bold text-slate-900 flex-1 leading-tight" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>
                             {story.title || 'Untitled Story'}
                         </h1>

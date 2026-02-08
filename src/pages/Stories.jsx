@@ -243,11 +243,22 @@ export default function Stories() {
             <div className="bg-white border-b">
                 <div className="bg-slate-100 mx-auto px-4 py-6 max-w-6xl">
                     <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h1 className="text-slate-800 text-4xl font-bold">
-                                Storylines Dashboard: {currentUser?.full_name || currentUser?.email || 'User'}
-                            </h1>
-                            <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
+                        <div className="flex items-center gap-4">
+                            <Link to={createPageUrl('ProjectInterface')}>
+                                <img 
+                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png" 
+                                    alt="Storylines" 
+                                    width="125"
+                                    height="50"
+                                    className="hover:opacity-80 transition-opacity cursor-pointer"
+                                />
+                            </Link>
+                            <div>
+                                <h1 className="text-slate-800 text-4xl font-bold">
+                                    Storylines Dashboard: {currentUser?.full_name || currentUser?.email || 'User'}
+                                </h1>
+                                <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
+                            </div>
                         </div>
                     </div>
 
