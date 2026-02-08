@@ -10,7 +10,7 @@ import { createPageUrl } from '@/utils';
 export default function InterviewModePanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: "Welcome to Interview Mode. We'll help you structure your project narrative through a series of focused questions. Let's begin: What is the central theme or focus of your project? Provide a location, concept, or key area of work." }
+        { role: 'assistant', content: "Welcome to Interview Mode. We'll help you structure your project narrative through a series of focused questions. Let's begin: What is the primary geographic location or region for your project? (e.g., 'Nairobi, Kenya', 'The Mekong Delta', 'Northern Tanzania')" }
     ]);
     const [userInput, setUserInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -19,8 +19,9 @@ export default function InterviewModePanel({ isOpen, onClose }) {
     const messagesEndRef = useRef(null);
 
     const interviewSteps = [
-        { key: 'theme', prompt: "What is the central theme or focus of your project? Provide a location, concept, or key area of work." },
-        { key: 'chapters', prompt: "Excellent. How many key sections or geographic areas should this narrative cover? (e.g., 3-5)" },
+        { key: 'location', prompt: "What is the primary geographic location or region for your project? (e.g., 'Nairobi, Kenya', 'The Mekong Delta', 'Northern Tanzania')" },
+        { key: 'theme', prompt: "Excellent. What is the central theme or focus of your project? Describe the concept, issue, or area of work." },
+        { key: 'chapters', prompt: "How many key sections or geographic areas should this narrative cover? (e.g., 3-5)" },
         { key: 'style', prompt: "What approach should the narrative take? (e.g., analytical, educational, impact-focused, observational)" },
         { key: 'details', prompt: "Please provide any specific details to include: key locations, stakeholder perspectives, contextual background, or critical milestones." }
     ];
@@ -72,13 +73,23 @@ export default function InterviewModePanel({ isOpen, onClose }) {
         }]);
 
         try {
-            const prompt = `Based on this interview:
+            const prompt = `Based on this interview for an NGO or consulting organization project:
+- Primary Geographic Location: ${data.location}
 - Theme/Concept: ${data.theme}
 - Number of chapters: ${data.chapters}
 - Tone/Style: ${data.style}
 - Details: ${data.details}
 
-Create a detailed story outline with title (maximum 34 characters), subtitle, and chapters with locations and slide content. Each slide should include geographic coordinates [latitude, longitude].`;
+Create a professional project narrative outline with:
+- Title (maximum 34 characters)
+- Subtitle
+- Chapters with specific geographic locations and coordinates
+- EXACTLY 2 sample slides per chapter
+- For each slide, provide a relevant Wikimedia Commons image URL that illustrates the content
+- Each slide and chapter should have distinct geographic coordinates [latitude, longitude]
+- The first chapter should be centered on the primary geographic location provided
+
+Write in a professional style appropriate for NGO and consulting organization audiences.`;
 
             const response = await base44.integrations.Core.InvokeLLM({
                 prompt: prompt,
@@ -108,6 +119,7 @@ Create a detailed story outline with title (maximum 34 characters), subtitle, an
                                             properties: {
                                                 title: { type: "string" },
                                                 description: { type: "string" },
+                                                image_url: { type: "string" },
                                                 coordinates: {
                                                     type: "array",
                                                     items: { type: "number" }
@@ -176,7 +188,8 @@ Create a detailed story outline with title (maximum 34 characters), subtitle, an
                         title: slideData.title,
                         description: slideData.description,
                         location: chapterData.location,
-                        coordinates: slideCoords
+                        coordinates: slideCoords,
+                        image: slideData.image_url || ''
                     });
                 }
             }
