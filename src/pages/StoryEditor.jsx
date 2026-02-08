@@ -123,11 +123,6 @@ export default function StoryEditor() {
             id: `temp-${Date.now()}`,
             story_id: storyId,
             order: chapters.length,
-            coordinates: [0, 0],
-            zoom: 12,
-            bearing: 0,
-            pitch: 0,
-            map_style: 'light',
             alignment: 'left'
         };
         setChapters([...chapters, newChapter]);
@@ -379,9 +374,6 @@ export default function StoryEditor() {
                             id: `temp-ai-${timestamp}-${idx}`,
                             story_id: storyId,
                             order: chapters.length + idx,
-                            coordinates: chapterData.coordinates || [0, 0],
-                            zoom: 12,
-                            map_style: 'light',
                             alignment: 'left'
                         };
                         newChapters.push(newChapter);

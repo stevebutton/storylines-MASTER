@@ -22,14 +22,7 @@ export default function StoryMapView() {
     const [chapters, setChapters] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeChapter, setActiveChapter] = useState(0);
-    const [mapConfig, setMapConfig] = useState({
-        center: [0, 0],
-        zoom: 2,
-        mapStyle: 'light',
-        shouldRotate: false,
-        flyDuration: 12,
-        offset: [-200, 0]
-    });
+    const [mapConfig, setMapConfig] = useState(null);
     const [routeCoordinates, setRouteCoordinates] = useState([]);
     const [clearRoute, setClearRoute] = useState(false);
     const previousChapterRef = useRef(-1);
@@ -49,6 +42,22 @@ export default function StoryMapView() {
     useEffect(() => {
         loadStory();
     }, [storyId]);
+
+    // Set initial map config from story opening view
+    useEffect(() => {
+        if (story && !mapConfig) {
+            setMapConfig({
+                center: story.coordinates || [0, 0],
+                zoom: story.zoom || 2,
+                mapStyle: story.map_style || 'light',
+                bearing: story.bearing || 0,
+                pitch: story.pitch || 0,
+                shouldRotate: false,
+                flyDuration: 12,
+                offset: [-200, 0]
+            });
+        }
+    }, [story, mapConfig]);
 
     // Update og:image meta tag for social media sharing
     useEffect(() => {
@@ -199,25 +208,22 @@ export default function StoryMapView() {
                             }
                             setRouteCoordinates(initialRoute);
                             
-                            // Determine valid center coordinates
+                            // Use first slide coordinates if available
                             let validCenter = [0, 0];
                             if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
                                 !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
                                 validCenter = firstSlide.coordinates;
-                            } else if (chapter.coordinates && Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2 &&
-                                       !isNaN(chapter.coordinates[0]) && !isNaN(chapter.coordinates[1])) {
-                                validCenter = chapter.coordinates;
                             }
                             
                             setMapConfig({
                                 center: validCenter,
                                 offset: [-200, 0],
-                                zoom: chapter.zoom || 12,
-                                bearing: chapter.bearing || 0,
-                                pitch: chapter.pitch || 0,
-                                mapStyle: chapter.map_style || 'light',
+                                zoom: firstSlide?.zoom || 12,
+                                bearing: firstSlide?.bearing || 0,
+                                pitch: firstSlide?.pitch || 0,
+                                mapStyle: story.map_style || 'light',
                                 shouldRotate: true,
-                                flyDuration: chapter.fly_duration || 12
+                                flyDuration: firstSlide?.fly_duration || 12
                             });
                         }
                     }
@@ -321,20 +327,22 @@ export default function StoryMapView() {
             </div>
 
             {/* Map Background */}
-            <MapBackground
-                center={mapConfig.center}
-                zoom={mapConfig.zoom}
-                bearing={mapConfig.bearing}
-                pitch={mapConfig.pitch}
-                mapStyle={mapConfig.mapStyle}
-                shouldRotate={mapConfig.shouldRotate}
-                flyDuration={mapConfig.flyDuration}
-                routeCoordinates={routeCoordinates}
-                clearRoute={clearRoute}
-                offset={mapConfig.offset}
-                landingMarkers={landingMarkers}
-                clearLandingMarkers={clearLandingMarkers}
-            />
+            {mapConfig && (
+                <MapBackground
+                    center={mapConfig.center}
+                    zoom={mapConfig.zoom}
+                    bearing={mapConfig.bearing}
+                    pitch={mapConfig.pitch}
+                    mapStyle={mapConfig.mapStyle}
+                    shouldRotate={mapConfig.shouldRotate}
+                    flyDuration={mapConfig.flyDuration}
+                    routeCoordinates={routeCoordinates}
+                    clearRoute={clearRoute}
+                    offset={mapConfig.offset}
+                    landingMarkers={landingMarkers}
+                    clearLandingMarkers={clearLandingMarkers}
+                />
+            )}
             
             {/* Story Content */}
             <div className="relative z-[60] pointer-events-none" data-name="story-content-container">
@@ -352,23 +360,23 @@ export default function StoryMapView() {
                         setHasExplored(true);
                         navigateToChapter(0);
                         
-                        // Animate to first chapter
-                        if (chapters.length > 0) {
-                            const first = chapters[0];
+                        // Animate from story opening view to first chapter
+                        if (chapters.length > 0 && chapters[0].slides?.length > 0) {
+                            const firstSlide = chapters[0].slides[0];
                             let validCenter = [0, 0];
-                            if (first.coordinates && Array.isArray(first.coordinates) && first.coordinates.length === 2 &&
-                                !isNaN(first.coordinates[0]) && !isNaN(first.coordinates[1])) {
-                                validCenter = first.coordinates;
+                            if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
+                                !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                validCenter = firstSlide.coordinates;
                             }
                             setMapConfig({
                                 center: validCenter,
                                 offset: [-200, 0],
-                                zoom: first.zoom || 12,
-                                bearing: first.bearing || 0,
-                                pitch: first.pitch || 0,
-                                mapStyle: first.map_style || 'light',
+                                zoom: firstSlide.zoom || 12,
+                                bearing: firstSlide.bearing || 0,
+                                pitch: firstSlide.pitch || 0,
+                                mapStyle: story.map_style || 'light',
                                 shouldRotate: true,
-                                flyDuration: first.fly_duration || 12
+                                flyDuration: firstSlide.fly_duration || 12
                             });
                         }
                     }}

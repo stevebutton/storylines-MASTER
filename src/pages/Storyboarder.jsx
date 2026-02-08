@@ -99,7 +99,9 @@ export default function Storyboarder() {
                 subtitle: 'Draft from mobile capture',
                 author: user.full_name || user.email,
                 is_published: false,
-                hero_image: coverPhoto?.url || undefined
+                hero_image: coverPhoto?.url || undefined,
+                coordinates: startingLocation ? [startingLocation.lat, startingLocation.lng] : undefined,
+                zoom: startingLocation ? 12 : 2
             };
 
             const story = await base44.entities.Story.create(storyData);
@@ -305,18 +307,12 @@ export default function Storyboarder() {
             const existingChapters = await base44.entities.Chapter.filter({ story_id: storyId });
             const chapterOrder = existingChapters.length;
 
-            // Create chapter with location if available
+            // Create chapter
             const chapterData = {
                 story_id: storyId,
                 order: chapterOrder,
-                zoom: 12,
-                map_style: 'light',
                 alignment: 'left'
             };
-
-            if (currentLocation) {
-                chapterData.coordinates = [currentLocation.lat, currentLocation.lng];
-            }
 
             const chapter = await base44.entities.Chapter.create(chapterData);
             setChapterId(chapter.id);
