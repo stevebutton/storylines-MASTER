@@ -29,6 +29,7 @@ export default function MapBackground({
     const rotationRef = useRef(null);
     const routeSourceAdded = useRef(false);
     const landingMarkersRef = useRef([]);
+    const lineAnimationRef = useRef(null);
 
     // Initialize map
     useEffect(() => {
@@ -105,9 +106,15 @@ export default function MapBackground({
         };
     }, [center, zoom, bearing, pitch, shouldRotate, flyDuration]);
 
-    // Update route line
+    // Update route line with animated drawing
     useEffect(() => {
         if (!map.current || !map.current.isStyleLoaded()) return;
+
+        // Cancel any ongoing animation
+        if (lineAnimationRef.current) {
+            cancelAnimationFrame(lineAnimationRef.current);
+            lineAnimationRef.current = null;
+        }
 
         // Clear route if requested
         if (clearRoute) {
@@ -132,7 +139,7 @@ export default function MapBackground({
             
             if (validCoords.length < 2) return;
             
-            const geojson = {
+            const fullGeojson = {
                 type: 'Feature',
                 properties: {},
                 geometry: {
@@ -146,7 +153,14 @@ export default function MapBackground({
                 if (!map.current.getSource('route')) {
                     map.current.addSource('route', {
                         type: 'geojson',
-                        data: geojson
+                        data: {
+                            type: 'Feature',
+                            properties: {},
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: []
+                            }
+                        }
                     });
                 }
 
@@ -167,15 +181,51 @@ export default function MapBackground({
                     });
                 }
                 routeSourceAdded.current = true;
-            } else {
-                // Update existing source
-                const source = map.current.getSource('route');
-                if (source) {
-                    source.setData(geojson);
-                }
+            }
+
+            // Animate line drawing
+            const source = map.current.getSource('route');
+            if (source) {
+                const animationDuration = (flyDuration || 12) * 1000 - 1000; // 1 second shorter than flyTo
+                const startTime = performance.now();
+                
+                const animateLine = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / animationDuration, 1);
+                    
+                    // Calculate how many coordinates to show based on progress
+                    const totalCoords = fullGeojson.geometry.coordinates.length;
+                    const coordsToShow = Math.max(2, Math.floor(totalCoords * progress));
+                    
+                    const partialGeojson = {
+                        type: 'Feature',
+                        properties: {},
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: fullGeojson.geometry.coordinates.slice(0, coordsToShow)
+                        }
+                    };
+                    
+                    source.setData(partialGeojson);
+                    
+                    if (progress < 1) {
+                        lineAnimationRef.current = requestAnimationFrame(animateLine);
+                    } else {
+                        lineAnimationRef.current = null;
+                    }
+                };
+                
+                lineAnimationRef.current = requestAnimationFrame(animateLine);
             }
         }
-    }, [routeCoordinates, clearRoute]);
+
+        return () => {
+            if (lineAnimationRef.current) {
+                cancelAnimationFrame(lineAnimationRef.current);
+                lineAnimationRef.current = null;
+            }
+        };
+    }, [routeCoordinates, clearRoute, flyDuration]);
 
     // Update markers
     useEffect(() => {

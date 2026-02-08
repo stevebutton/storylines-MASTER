@@ -169,14 +169,11 @@ export default function StoryMapView() {
                         if (activeChapter !== index) {
                             // Check if we're moving to a new chapter
                             if (previousChapterRef.current !== -1 && previousChapterRef.current !== index) {
-                                // Clear route and landing markers when moving to a new chapter
+                                // Clear route when moving to a new chapter (but keep landing markers)
                                 setClearRoute(true);
                                 setRouteCoordinates([]);
-                                setClearLandingMarkers(true);
-                                setLandingMarkers([]);
                                 setTimeout(() => {
                                     setClearRoute(false);
-                                    setClearLandingMarkers(false);
                                 }, 100);
                             }
                             
@@ -416,8 +413,17 @@ export default function StoryMapView() {
                                         return prev;
                                     });
                                     
-                                    // Add landing marker for this slide
-                                    setLandingMarkers(prev => [...prev, slide.coordinates]);
+                                    // Add landing marker only if this location doesn't already have one
+                                    setLandingMarkers(prev => {
+                                        const exists = prev.some(coord => 
+                                            coord[0] === slide.coordinates[0] && 
+                                            coord[1] === slide.coordinates[1]
+                                        );
+                                        if (!exists) {
+                                            return [...prev, slide.coordinates];
+                                        }
+                                        return prev;
+                                    });
                                     
                                     setMapConfig({
                                         center: slide.coordinates,
