@@ -172,9 +172,6 @@ Write in a professional style appropriate for NGO and consulting organization au
                 const newChapter = await base44.entities.Chapter.create({
                     story_id: newStory.id,
                     order: i,
-                    coordinates: chapterCoords,
-                    zoom: 12,
-                    map_style: 'light',
                     alignment: 'left'
                 });
 
