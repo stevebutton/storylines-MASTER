@@ -19,13 +19,16 @@ export default function MapBackground({
     flyDuration = 12,
     routeCoordinates = [],
     clearRoute = false,
-    offset = [0, 0]
+    offset = [0, 0],
+    landingMarkers = [],
+    clearLandingMarkers = false
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markersRef = useRef([]);
     const rotationRef = useRef(null);
     const routeSourceAdded = useRef(false);
+    const landingMarkersRef = useRef([]);
 
     // Initialize map
     useEffect(() => {
@@ -229,6 +232,57 @@ export default function MapBackground({
             markersRef.current.push(marker);
         });
     }, [markers, activeMarkerIndex, onMarkerClick]);
+
+    // Handle landing markers (animated position indicators)
+    useEffect(() => {
+        if (!map.current) return;
+
+        // Clear existing landing markers with fade out
+        if (clearLandingMarkers) {
+            landingMarkersRef.current.forEach(marker => {
+                const el = marker.getElement();
+                el.style.transition = 'opacity 1000ms ease-out';
+                el.style.opacity = '0';
+                setTimeout(() => marker.remove(), 1000);
+            });
+            landingMarkersRef.current = [];
+            return;
+        }
+
+        // Add new landing markers
+        landingMarkers.forEach((coord) => {
+            if (!coord || !Array.isArray(coord) || coord.length !== 2 ||
+                isNaN(coord[0]) || isNaN(coord[1]) ||
+                !isFinite(coord[0]) || !isFinite(coord[1])) {
+                return;
+            }
+
+            const el = document.createElement('div');
+            el.style.cssText = `
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: rgba(217, 119, 6, 0.15);
+                border: 2px solid rgba(217, 119, 6, 0.4);
+                box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
+                opacity: 0;
+                transition: opacity 1000ms ease-in;
+                pointer-events: none;
+                z-index: 5;
+            `;
+
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat([coord[1], coord[0]])
+                .addTo(map.current);
+
+            // Trigger fade in after a short delay to sync with flyTo completion
+            setTimeout(() => {
+                el.style.opacity = '1';
+            }, (flyDuration || 12) * 1000 - 1000);
+
+            landingMarkersRef.current.push(marker);
+        });
+    }, [landingMarkers, clearLandingMarkers, flyDuration]);
 
     return (
         <div className="fixed inset-0 z-0">

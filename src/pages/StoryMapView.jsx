@@ -33,6 +33,8 @@ export default function StoryMapView() {
     const [routeCoordinates, setRouteCoordinates] = useState([]);
     const [clearRoute, setClearRoute] = useState(false);
     const previousChapterRef = useRef(-1);
+    const [landingMarkers, setLandingMarkers] = useState([]);
+    const [clearLandingMarkers, setClearLandingMarkers] = useState(false);
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
@@ -167,10 +169,15 @@ export default function StoryMapView() {
                         if (activeChapter !== index) {
                             // Check if we're moving to a new chapter
                             if (previousChapterRef.current !== -1 && previousChapterRef.current !== index) {
-                                // Clear route when moving to a new chapter
+                                // Clear route and landing markers when moving to a new chapter
                                 setClearRoute(true);
                                 setRouteCoordinates([]);
-                                setTimeout(() => setClearRoute(false), 100);
+                                setClearLandingMarkers(true);
+                                setLandingMarkers([]);
+                                setTimeout(() => {
+                                    setClearRoute(false);
+                                    setClearLandingMarkers(false);
+                                }, 100);
                             }
                             
                             previousChapterRef.current = index;
@@ -328,6 +335,8 @@ export default function StoryMapView() {
                 routeCoordinates={routeCoordinates}
                 clearRoute={clearRoute}
                 offset={mapConfig.offset}
+                landingMarkers={landingMarkers}
+                clearLandingMarkers={clearLandingMarkers}
             />
             
             {/* Story Content */}
@@ -406,6 +415,9 @@ export default function StoryMapView() {
                                         }
                                         return prev;
                                     });
+                                    
+                                    // Add landing marker for this slide
+                                    setLandingMarkers(prev => [...prev, slide.coordinates]);
                                     
                                     setMapConfig({
                                         center: slide.coordinates,
