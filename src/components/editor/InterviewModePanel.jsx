@@ -145,10 +145,17 @@ Create a detailed story outline with title (maximum 34 characters), subtitle, an
             // Create chapters and slides
             for (let i = 0; i < response.chapters.length; i++) {
                 const chapterData = response.chapters[i];
+                
+                // Validate and normalize chapter coordinates
+                let chapterCoords = [0, 0];
+                if (Array.isArray(chapterData.coordinates) && chapterData.coordinates.length >= 2) {
+                    chapterCoords = [Number(chapterData.coordinates[0]), Number(chapterData.coordinates[1])];
+                }
+                
                 const newChapter = await base44.entities.Chapter.create({
                     story_id: newStory.id,
                     order: i,
-                    coordinates: chapterData.coordinates || [0, 0],
+                    coordinates: chapterCoords,
                     zoom: 12,
                     map_style: 'light',
                     alignment: 'left'
@@ -156,13 +163,20 @@ Create a detailed story outline with title (maximum 34 characters), subtitle, an
 
                 for (let j = 0; j < chapterData.slides.length; j++) {
                     const slideData = chapterData.slides[j];
+                    
+                    // Validate and normalize slide coordinates
+                    let slideCoords = chapterCoords;
+                    if (Array.isArray(slideData.coordinates) && slideData.coordinates.length >= 2) {
+                        slideCoords = [Number(slideData.coordinates[0]), Number(slideData.coordinates[1])];
+                    }
+                    
                     await base44.entities.Slide.create({
                         chapter_id: newChapter.id,
                         order: j,
                         title: slideData.title,
                         description: slideData.description,
                         location: chapterData.location,
-                        coordinates: slideData.coordinates || chapterData.coordinates || [0, 0]
+                        coordinates: slideCoords
                     });
                 }
             }
@@ -173,9 +187,11 @@ Create a detailed story outline with title (maximum 34 characters), subtitle, an
 
         } catch (error) {
             console.error('Failed to generate story:', error);
+            console.error('Error details:', error.message);
+            console.error('Response data:', response);
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
-                content: 'An error occurred during processing. Please try again.' 
+                content: `An error occurred during processing: ${error.message}. Please try again.` 
             }]);
             setIsProcessing(false);
         }
