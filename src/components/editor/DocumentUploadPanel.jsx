@@ -140,9 +140,15 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                 throw new Error(storyData.details);
             }
 
+            // Truncate title if exceeds limit
+            let storyTitle = storyData.output.title;
+            if (storyTitle.length > 34) {
+                storyTitle = storyTitle.substring(0, 34);
+            }
+
             // Create the story
             const newStory = await base44.entities.Story.create({
-                title: storyData.output.title,
+                title: storyTitle,
                 subtitle: storyData.output.subtitle,
                 author: storyData.output.author,
                 is_published: false

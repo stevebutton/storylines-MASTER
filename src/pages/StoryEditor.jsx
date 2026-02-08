@@ -9,6 +9,7 @@ import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
 import TabbedContentEditor from '@/components/editor/TabbedContentEditor';
 import AIAssistant from '@/components/editor/AIAssistant';
 import HelpPanel from '@/components/editor/HelpPanel';
+import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 
 export default function StoryEditor() {
     const location = useLocation();
@@ -23,6 +24,8 @@ export default function StoryEditor() {
     const [selectedItem, setSelectedItem] = useState({ type: 'story', id: null });
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
     const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(false);
+    const [showTitleValidationDialog, setShowTitleValidationDialog] = useState(false);
+    const [pendingTitle, setPendingTitle] = useState('');
 
     useEffect(() => {
         loadData();
@@ -55,6 +58,13 @@ export default function StoryEditor() {
     };
 
     const handleSave = async () => {
+        // Validate title length before saving
+        if (story.title && story.title.length > 34) {
+            setPendingTitle(story.title);
+            setShowTitleValidationDialog(true);
+            return;
+        }
+
         setIsSaving(true);
         try {
             let savedStoryId = storyId;
@@ -324,6 +334,17 @@ export default function StoryEditor() {
             <HelpPanel
                 isOpen={isHelpPanelOpen}
                 onClose={() => setIsHelpPanelOpen(false)}
+            />
+
+            {/* Title Validation Dialog */}
+            <TitleValidationDialog
+                isOpen={showTitleValidationDialog}
+                onClose={() => setShowTitleValidationDialog(false)}
+                title={pendingTitle}
+                onEdit={() => {
+                    setShowTitleValidationDialog(false);
+                    setSelectedItem({ type: 'story', id: null });
+                }}
             />
 
             {/* AI Assistant Panel */}

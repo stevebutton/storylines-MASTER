@@ -123,9 +123,15 @@ Create a detailed story outline with title, subtitle, and chapters with location
                 content: `✓ Narrative structure created: "${response.title}". Building your project now...` 
             }]);
 
+            // Truncate title if exceeds limit
+            let storyTitle = response.title;
+            if (storyTitle.length > 34) {
+                storyTitle = storyTitle.substring(0, 34);
+            }
+
             // Create the story
             const newStory = await base44.entities.Story.create({
-                title: response.title,
+                title: storyTitle,
                 subtitle: response.subtitle,
                 author: response.author || 'Unknown',
                 category: response.category || 'other',

@@ -94,9 +94,15 @@ Return a structured story outline.`,
         setStep('creating');
 
         try {
+            // Truncate title if exceeds limit
+            let finalTitle = storyTitle || extractedData.title;
+            if (finalTitle.length > 34) {
+                finalTitle = finalTitle.substring(0, 34);
+            }
+
             // Create story
             const newStory = await base44.entities.Story.create({
-                title: storyTitle || extractedData.title,
+                title: finalTitle,
                 subtitle: extractedData.subtitle,
                 category: 'travel',
                 is_published: false
