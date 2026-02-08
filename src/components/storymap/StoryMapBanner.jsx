@@ -66,11 +66,10 @@ export default function StoryMapBanner({
                 {/* Story Title */}
                 {storyTitle && (
                     <motion.div 
-                        className="absolute text-slate-800 left-0 right-0 md:left-[342px] md:right-auto text-xl md:text-[32px] text-center md:text-left px-4 md:px-0"
+                        className="absolute text-slate-800 left-0 right-0 md:left-[342px] md:right-auto text-base md:text-sm text-center md:text-left px-4 md:px-0"
                         style={{ 
-                            top: '28px', 
-                            fontFamily: 'Montserrat, sans-serif',
-                            fontWeight: '800'
+                            top: '28px',
+                            fontWeight: '400'
                         }}
                         initial={{ opacity: 0, x: 20 }}
                         animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
