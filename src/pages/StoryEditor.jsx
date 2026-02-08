@@ -214,8 +214,8 @@ export default function StoryEditor() {
                             <img 
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png" 
                                 alt="Storylines" 
-                                width="125"
-                                height="50"
+                                width="250"
+                                height="100"
                                 className="hover:opacity-80 transition-opacity cursor-pointer"
                             />
                         </Link>
