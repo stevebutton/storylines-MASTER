@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 
 const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
@@ -106,7 +107,10 @@ export default function MapBackground({
         };
     }, [center, zoom, bearing, pitch, shouldRotate, flyDuration]);
 
-    // Update route line with animated drawing
+    // ============================================
+    // ROUTE LINE RENDERING: Draw and animate route line on map
+    // Validates coordinates and removes duplicates before drawing
+    // ============================================
     useEffect(() => {
         if (!map.current || !map.current.isStyleLoaded()) return;
 
@@ -118,6 +122,7 @@ export default function MapBackground({
 
         // Clear route if requested
         if (clearRoute) {
+            console.log('🗺️ [MAP ROUTE] Clearing route line');
             if (map.current.getLayer('route-line')) {
                 map.current.removeLayer('route-line');
             }
@@ -130,14 +135,25 @@ export default function MapBackground({
 
         // Add or update route
         if (routeCoordinates.length >= 2) {
-            // Validate and filter route coordinates
-            const validCoords = routeCoordinates.filter(coord => 
-                coord && Array.isArray(coord) && coord.length === 2 &&
-                !isNaN(coord[0]) && !isNaN(coord[1]) &&
-                isFinite(coord[0]) && isFinite(coord[1])
-            );
+            console.log('🗺️ [MAP ROUTE] Processing route coordinates:', { 
+                totalCoordinates: routeCoordinates.length,
+                coordinates: routeCoordinates 
+            });
             
-            if (validCoords.length < 2) return;
+            // Validate and normalize route coordinates
+            const validCoords = routeCoordinates
+                .map(coord => normalizeCoordinatePair(coord))
+                .filter(coord => coord !== null);
+            
+            console.log('🗺️ [MAP ROUTE] After validation:', { 
+                validCount: validCoords.length,
+                coordinates: validCoords 
+            });
+            
+            if (validCoords.length < 2) {
+                console.warn('⚠️ [MAP ROUTE] Not enough valid coordinates to draw route');
+                return;
+            }
             
             const fullGeojson = {
                 type: 'Feature',
@@ -283,12 +299,18 @@ export default function MapBackground({
         });
     }, [markers, activeMarkerIndex, onMarkerClick]);
 
-    // Handle landing markers (animated position indicators)
+    // ============================================
+    // LANDING MARKERS: Display circular markers at visited locations
+    // Uses normalized coordinates to prevent duplicates
+    // ============================================
     useEffect(() => {
         if (!map.current) return;
 
         // Clear existing landing markers with fade out
         if (clearLandingMarkers) {
+            console.log('🎯 [MAP MARKERS] Clearing all landing markers:', { 
+                count: landingMarkersRef.current.length 
+            });
             landingMarkersRef.current.forEach(marker => {
                 const el = marker.getElement();
                 if (el) {
@@ -304,14 +326,32 @@ export default function MapBackground({
         // Add new landing markers - only process valid, non-null coordinates
         if (!landingMarkers || !Array.isArray(landingMarkers)) return;
         
-        landingMarkers.forEach((coord) => {
-            if (!coord || !Array.isArray(coord) || coord.length !== 2 ||
-                isNaN(coord[0]) || isNaN(coord[1]) ||
-                !isFinite(coord[0]) || !isFinite(coord[1])) {
+        console.log('🎯 [MAP MARKERS] Processing landing markers:', { 
+            newMarkersCount: landingMarkers.length,
+            existingMarkersCount: landingMarkersRef.current.length 
+        });
+        
+        landingMarkers.forEach((coord, idx) => {
+            const normalized = normalizeCoordinatePair(coord);
+            
+            if (!normalized) {
+                console.warn('⚠️ [MAP MARKERS] Invalid coordinate at index', idx, ':', coord);
+                return;
+            }
+
+            // Check if marker already exists at this location (normalized comparison)
+            const exists = landingMarkersRef.current.some(existingMarker => {
+                const existingLngLat = existingMarker.getLngLat();
+                return areCoordinatesEqual([existingLngLat.lat, existingLngLat.lng], normalized);
+            });
+            
+            if (exists) {
+                console.log('🎯 [MAP MARKERS] Marker already exists at:', normalized);
                 return;
             }
 
             try {
+                console.log('🎯 [MAP MARKERS] Creating new marker at:', normalized);
                 const el = document.createElement('div');
                 el.style.cssText = `
                     width: 80px;
@@ -327,7 +367,7 @@ export default function MapBackground({
                 `;
 
                 const marker = new mapboxgl.Marker(el)
-                    .setLngLat([coord[1], coord[0]])
+                    .setLngLat([normalized[1], normalized[0]])
                     .addTo(map.current);
 
                 // Trigger fade in after a short delay to sync with flyTo completion
@@ -336,15 +376,16 @@ export default function MapBackground({
                 }, (flyDuration || 12) * 1000 - 1000);
 
                 landingMarkersRef.current.push(marker);
+                console.log('🎯 [MAP MARKERS] Marker created successfully. Total markers:', landingMarkersRef.current.length);
             } catch (error) {
-                console.error('Error creating landing marker:', error);
+                console.error('❌ [MAP MARKERS] Error creating landing marker:', error);
             }
         });
     }, [landingMarkers, clearLandingMarkers, flyDuration]);
 
     return (
-        <div className="fixed inset-0 z-0">
-            <div ref={mapContainer} className="h-full w-full" />
+        <div className="fixed inset-0 z-0" data-name="map-background-container">
+            <div ref={mapContainer} className="h-full w-full" data-name="mapbox-container" />
             <style>{`
                 .mapboxgl-ctrl-top-left {
                     z-index: 1000 !important;
