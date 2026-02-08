@@ -27,7 +27,8 @@ export default function StoryMapView() {
         zoom: 2,
         mapStyle: 'light',
         shouldRotate: false,
-        flyDuration: 12
+        flyDuration: 12,
+        offset: [-200, 0]
     });
     const [routeCoordinates, setRouteCoordinates] = useState([]);
     const [clearRoute, setClearRoute] = useState(false);
@@ -206,6 +207,7 @@ export default function StoryMapView() {
                             
                             setMapConfig({
                                 center: validCenter,
+                                offset: [-200, 0],
                                 zoom: chapter.zoom || 12,
                                 bearing: chapter.bearing || 0,
                                 pitch: chapter.pitch || 0,
@@ -325,6 +327,7 @@ export default function StoryMapView() {
                 flyDuration={mapConfig.flyDuration}
                 routeCoordinates={routeCoordinates}
                 clearRoute={clearRoute}
+                offset={mapConfig.offset}
             />
             
             {/* Story Content */}
@@ -353,6 +356,7 @@ export default function StoryMapView() {
                             }
                             setMapConfig({
                                 center: validCenter,
+                                offset: [-200, 0],
                                 zoom: first.zoom || 12,
                                 bearing: first.bearing || 0,
                                 pitch: first.pitch || 0,
@@ -405,6 +409,7 @@ export default function StoryMapView() {
                                     
                                     setMapConfig({
                                         center: slide.coordinates,
+                                        offset: [-200, 0],
                                         zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
                                         bearing: slide.bearing !== undefined ? slide.bearing : 0,
                                         pitch: slide.pitch !== undefined ? slide.pitch : 0,

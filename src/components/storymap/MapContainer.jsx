@@ -18,7 +18,8 @@ export default function MapBackground({
     shouldRotate = false,
     flyDuration = 12,
     routeCoordinates = [],
-    clearRoute = false
+    clearRoute = false,
+    offset = [0, 0]
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
@@ -84,6 +85,7 @@ export default function MapBackground({
         // Always just fly to position without rotation
         map.current.flyTo({
             center: [center[1], center[0]],
+            offset: offset,
             zoom: zoom || 12,
             bearing: bearing || 0,
             pitch: pitch || 0,
