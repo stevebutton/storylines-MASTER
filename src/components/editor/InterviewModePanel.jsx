@@ -78,7 +78,7 @@ export default function InterviewModePanel({ isOpen, onClose }) {
 - Tone/Style: ${data.style}
 - Details: ${data.details}
 
-Create a detailed story outline with title, subtitle, and chapters with locations and slide content.`;
+Create a detailed story outline with title (maximum 34 characters), subtitle, and chapters with locations and slide content. Each slide should include geographic coordinates [latitude, longitude].`;
 
             const response = await base44.integrations.Core.InvokeLLM({
                 prompt: prompt,
@@ -107,7 +107,11 @@ Create a detailed story outline with title, subtitle, and chapters with location
                                             type: "object",
                                             properties: {
                                                 title: { type: "string" },
-                                                description: { type: "string" }
+                                                description: { type: "string" },
+                                                coordinates: {
+                                                    type: "array",
+                                                    items: { type: "number" }
+                                                }
                                             }
                                         }
                                     }
@@ -157,7 +161,8 @@ Create a detailed story outline with title, subtitle, and chapters with location
                         order: j,
                         title: slideData.title,
                         description: slideData.description,
-                        location: chapterData.location
+                        location: chapterData.location,
+                        coordinates: slideData.coordinates || chapterData.coordinates || [0, 0]
                     });
                 }
             }

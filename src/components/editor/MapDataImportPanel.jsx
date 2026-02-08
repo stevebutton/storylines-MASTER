@@ -41,7 +41,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
 1. Location names and descriptions
 2. Create a story outline with chapters based on the locations
 3. Generate coordinates for each location
-4. Suggest a story title and subtitle
+4. Suggest a story title (maximum 34 characters) and subtitle
 
 Return a structured story outline.`,
                 file_urls: fileUrls,
