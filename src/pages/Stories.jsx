@@ -249,52 +249,46 @@ export default function Stories() {
                             </h1>
                             <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
                         </div>
-                        <div className="flex gap-2">
-                            <Button 
-                                variant="outline" 
-                                onClick={() => setIsCategoryManagerOpen(true)}
-                                className="border-slate-300"
-                            >
-                                <Tag className="w-4 h-4 mr-2" /> Manage Categories
-                            </Button>
-                            <Link to={createPageUrl('StoriesMap')}>
-                                <Button variant="outline" className="border-amber-600 text-amber-700 hover:bg-amber-50">
-                                    <Map className="w-4 h-4 mr-2" /> View Map
-                                </Button>
-                            </Link>
-                            <Button 
-                                className="bg-amber-600 hover:bg-amber-700"
-                                onClick={() => setIsStoryCreationPanelOpen(true)}
-                            >
-                                <Plus className="w-4 h-4 mr-2" /> New Story
-                            </Button>
-                        </div>
                     </div>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div className="bg-slate-50 rounded-lg p-4">
-                            <p className="text-sm text-slate-500">Total Stories</p>
-                            <p className="text-2xl font-bold text-slate-800">{stories.length}</p>
+                    {/* Stats & Actions */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                        <div className="bg-blue-50 rounded-lg p-4 flex flex-col items-start justify-center">
+                            <p className="text-sm text-blue-600">Total Stories</p>
+                            <p className="text-2xl font-bold text-blue-700">{stories.length}</p>
                         </div>
-                        <div className="bg-green-50 rounded-lg p-4">
+                        <div className="bg-green-50 rounded-lg p-4 flex flex-col items-start justify-center">
                             <p className="text-sm text-green-600">Published</p>
                             <p className="text-2xl font-bold text-green-700">
                                 {stories.filter((s) => s.is_published).length}
                             </p>
                         </div>
-                        <div className="bg-amber-50 rounded-lg p-4">
+                        <div className="bg-amber-50 rounded-lg p-4 flex flex-col items-start justify-center">
                             <p className="text-sm text-amber-600">Drafts</p>
                             <p className="text-2xl font-bold text-amber-700">
                                 {stories.filter((s) => !s.is_published).length}
                             </p>
                         </div>
-                        <div className="bg-blue-50 rounded-lg p-4">
-                            <p className="text-sm text-blue-600">Categories</p>
-                            <p className="text-2xl font-bold text-blue-700">
+                        <div className="bg-purple-50 rounded-lg p-4 flex flex-col items-start justify-center">
+                            <p className="text-sm text-purple-600">Categories</p>
+                            <p className="text-2xl font-bold text-purple-700">
                                 {new Set(stories.map((s) => s.category).filter(Boolean)).size}
                             </p>
                         </div>
+                        <button 
+                            className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
+                            onClick={() => setIsCategoryManagerOpen(true)}
+                        >
+                            <Tag className="w-6 h-6 mb-1" /> 
+                            <span className="text-sm font-semibold">Manage Categories</span>
+                        </button>
+                        <button 
+                            className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
+                            onClick={() => setIsStoryCreationPanelOpen(true)}
+                        >
+                            <Plus className="w-6 h-6 mb-1" /> 
+                            <span className="text-sm font-semibold">New Story</span>
+                        </button>
                     </div>
 
                     {/* Filters */}
@@ -366,7 +360,6 @@ export default function Stories() {
                 {stories.length === 0 ?
         <Card className="border-2 border-dashed">
                         <CardContent className="py-16 text-center">
-                            <Map className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-slate-700 mb-2">No stories yet</h3>
                             <p className="text-slate-500 mb-6">Create your first interactive story map</p>
                             <Button 
