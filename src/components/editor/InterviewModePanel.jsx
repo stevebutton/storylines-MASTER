@@ -6,19 +6,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Loader2, Sparkles, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 
 export default function InterviewModePanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: "Welcome to Interview Mode. We'll help you structure your project narrative through a series of focused questions. Let's begin: What is the primary geographic location or region for your project? (e.g., 'Nairobi, Kenya', 'The Mekong Delta', 'Northern Tanzania')" }
+        { role: 'assistant', content: "Welcome to Interview Mode. We'll help you structure your project narrative through a series of focused questions. Let's begin: What do you want to call your project? (Maximum 34 characters)" }
     ]);
     const [userInput, setUserInput] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [storyData, setStoryData] = useState({});
+    const [showTitleValidationDialog, setShowTitleValidationDialog] = useState(false);
+    const [pendingTitle, setPendingTitle] = useState('');
     const messagesEndRef = useRef(null);
 
     const interviewSteps = [
+        { key: 'title', prompt: "What do you want to call your project? (Maximum 34 characters)" },
         { key: 'location', prompt: "What is the primary geographic location or region for your project? (e.g., 'Nairobi, Kenya', 'The Mekong Delta', 'Northern Tanzania')" },
         { key: 'theme', prompt: "Excellent. What is the central theme or focus of your project? Describe the concept, issue, or area of work." },
         { key: 'chapters', prompt: "How many key sections or geographic areas should this narrative cover? (e.g., 3-5)" },
@@ -37,6 +41,15 @@ export default function InterviewModePanel({ isOpen, onClose }) {
     const handleSendMessage = async () => {
         if (!userInput.trim() || isProcessing) return;
 
+        const stepKey = interviewSteps[currentStep].key;
+        
+        // Validate title length if this is the title step
+        if (stepKey === 'title' && userInput.length > 34) {
+            setPendingTitle(userInput);
+            setShowTitleValidationDialog(true);
+            return;
+        }
+
         const newMessages = [...messages, { role: 'user', content: userInput }];
         setMessages(newMessages);
         
@@ -45,7 +58,6 @@ export default function InterviewModePanel({ isOpen, onClose }) {
         setIsProcessing(true);
 
         // Store the answer
-        const stepKey = interviewSteps[currentStep].key;
         const updatedStoryData = { ...storyData, [stepKey]: currentAnswer };
         setStoryData(updatedStoryData);
 
@@ -74,6 +86,7 @@ export default function InterviewModePanel({ isOpen, onClose }) {
 
         try {
             const prompt = `Based on this interview for an NGO or consulting organization project:
+- Project Title: ${data.title}
 - Primary Geographic Location: ${data.location}
 - Theme/Concept: ${data.theme}
 - Number of chapters: ${data.chapters}
@@ -81,8 +94,7 @@ export default function InterviewModePanel({ isOpen, onClose }) {
 - Details: ${data.details}
 
 Create a professional project narrative outline with:
-- Title (maximum 34 characters)
-- Subtitle
+- Subtitle (complementing the title: "${data.title}")
 - Chapters with specific geographic locations and coordinates
 - EXACTLY 2 sample slides per chapter
 - For each slide, provide a relevant Wikimedia Commons image URL that illustrates the content
@@ -97,7 +109,6 @@ Write in a professional style appropriate for NGO and consulting organization au
                 response_json_schema: {
                     type: "object",
                     properties: {
-                        title: { type: "string" },
                         subtitle: { type: "string" },
                         author: { type: "string" },
                         category: { type: "string" },
@@ -136,18 +147,12 @@ Write in a professional style appropriate for NGO and consulting organization au
 
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
-                content: `✓ Narrative structure created: "${response.title}". Building your project now...` 
+                content: `✓ Narrative structure created: "${data.title}". Building your project now...` 
             }]);
 
-            // Truncate title if exceeds limit
-            let storyTitle = response.title;
-            if (storyTitle.length > 34) {
-                storyTitle = storyTitle.substring(0, 34);
-            }
-
-            // Create the story
+            // Create the story with user-provided title
             const newStory = await base44.entities.Story.create({
-                title: storyTitle,
+                title: data.title,
                 subtitle: response.subtitle,
                 author: response.author || 'Unknown',
                 category: response.category || 'other',
@@ -322,6 +327,21 @@ Write in a professional style appropriate for NGO and consulting organization au
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Title Validation Dialog */}
+            <TitleValidationDialog
+                isOpen={showTitleValidationDialog}
+                onClose={() => {
+                    setShowTitleValidationDialog(false);
+                    setPendingTitle('');
+                }}
+                title={pendingTitle}
+                onEdit={() => {
+                    setShowTitleValidationDialog(false);
+                    setUserInput(pendingTitle);
+                    setPendingTitle('');
+                }}
+            />
         </>
     );
 }
