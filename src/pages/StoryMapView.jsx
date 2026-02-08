@@ -13,6 +13,7 @@ import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
+import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 
 export default function StoryMapView() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -197,22 +198,35 @@ export default function StoryMapView() {
                             setActiveChapter(index);
                             const chapter = chapters[index];
                             
-                            // Initialize route with chapter coordinates AND first slide coordinates
+                            // ============================================
+                            // ROUTE INITIALIZATION: Build initial route for new chapter
+                            // Start with first slide's coordinates
+                            // ============================================
+                            console.log('📍 [ROUTE INIT] Chapter change detected:', { 
+                                chapterIndex: index, 
+                                totalSlides: chapter.slides?.length || 0 
+                            });
+                            
                             const initialRoute = [];
-                            if (chapter.coordinates && Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2 &&
-                                !isNaN(chapter.coordinates[0]) && !isNaN(chapter.coordinates[1])) {
-                                initialRoute.push(chapter.coordinates);
-                            }
-                            // Add first slide's coordinates if they exist and are different
                             const firstSlide = chapter.slides?.[0];
-                            if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
-                                !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
-                                if (initialRoute.length === 0 ||
-                                    (initialRoute[initialRoute.length - 1][0] !== firstSlide.coordinates[0] ||
-                                     initialRoute[initialRoute.length - 1][1] !== firstSlide.coordinates[1])) {
-                                    initialRoute.push(firstSlide.coordinates);
+                            
+                            // Add first slide coordinates (normalized)
+                            if (firstSlide?.coordinates) {
+                                const normalized = normalizeCoordinatePair(firstSlide.coordinates);
+                                if (normalized) {
+                                    initialRoute.push(normalized);
+                                    console.log('📍 [ROUTE INIT] Added first slide:', { 
+                                        raw: firstSlide.coordinates, 
+                                        normalized,
+                                        slideTitle: firstSlide.title 
+                                    });
                                 }
                             }
+                            
+                            console.log('📍 [ROUTE INIT] Setting initial route:', { 
+                                routeLength: initialRoute.length, 
+                                coordinates: initialRoute 
+                            });
                             setRouteCoordinates(initialRoute);
                             
                             // Use first slide coordinates if available
@@ -407,36 +421,54 @@ export default function StoryMapView() {
                             index={index}
                             delay={index === 0 ? 3000 : 0}
                             onSlideChange={(slide) => {
-                                if (slide.coordinates && 
-                                    Array.isArray(slide.coordinates) && 
-                                    slide.coordinates.length === 2 &&
-                                    !isNaN(slide.coordinates[0]) && 
-                                    !isNaN(slide.coordinates[1]) &&
-                                    isFinite(slide.coordinates[0]) &&
-                                    isFinite(slide.coordinates[1])) {
-                                    // Add slide coordinates to route
-                                    setRouteCoordinates(prev => {
-                                        const lastCoord = prev[prev.length - 1];
-                                        // Only add if it's different from the last coordinate
-                                        if (!lastCoord || 
-                                            lastCoord[0] !== slide.coordinates[0] || 
-                                            lastCoord[1] !== slide.coordinates[1]) {
-                                            return [...prev, slide.coordinates];
-                                        }
-                                        return prev;
-                                    });
+                                // ============================================
+                                // SLIDE CHANGE HANDLER: Add coordinates to route and markers
+                                // Uses normalized coordinates to prevent duplicates
+                                // ============================================
+                                if (!isValidCoordinatePair(slide.coordinates)) {
+                                    console.warn('⚠️ [SLIDE CHANGE] Invalid coordinates:', slide.coordinates);
+                                    return;
+                                }
+                                
+                                const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
+                                console.log('📍 [SLIDE CHANGE] Processing slide:', { 
+                                    slideTitle: slide.title,
+                                    rawCoords: slide.coordinates,
+                                    normalizedCoords 
+                                });
+                                
+                                // Add to route (with duplicate check)
+                                setRouteCoordinates(prev => {
+                                    const lastCoord = prev[prev.length - 1];
                                     
-                                    // Add landing marker only if this location doesn't already have one
-                                    setLandingMarkers(prev => {
-                                        const exists = prev.some(coord => 
-                                            coord[0] === slide.coordinates[0] && 
-                                            coord[1] === slide.coordinates[1]
-                                        );
-                                        if (!exists) {
-                                            return [...prev, slide.coordinates];
-                                        }
-                                        return prev;
-                                    });
+                                    // Check if this coordinate is different from last
+                                    if (!lastCoord || !areCoordinatesEqual(lastCoord, normalizedCoords)) {
+                                        console.log('📍 [ROUTE UPDATE] Adding to route:', { 
+                                            previousLength: prev.length, 
+                                            newCoord: normalizedCoords 
+                                        });
+                                        return [...prev, normalizedCoords];
+                                    }
+                                    
+                                    console.log('📍 [ROUTE UPDATE] Skipping duplicate coordinate');
+                                    return prev;
+                                });
+                                
+                                // Add landing marker (with duplicate check)
+                                setLandingMarkers(prev => {
+                                    const exists = prev.some(coord => areCoordinatesEqual(coord, normalizedCoords));
+                                    
+                                    if (!exists) {
+                                        console.log('🎯 [MARKER UPDATE] Adding landing marker:', { 
+                                            totalMarkers: prev.length + 1, 
+                                            newMarker: normalizedCoords 
+                                        });
+                                        return [...prev, normalizedCoords];
+                                    }
+                                    
+                                    console.log('🎯 [MARKER UPDATE] Marker already exists at this location');
+                                    return prev;
+                                });
                                     
                                     setMapConfig({
                                         center: slide.coordinates,
