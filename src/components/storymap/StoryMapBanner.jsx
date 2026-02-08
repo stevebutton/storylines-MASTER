@@ -48,7 +48,7 @@ export default function StoryMapBanner({
                     className="hidden md:block fixed left-[65px] top-0 z-[130] transition-all duration-700 opacity-100 translate-y-0"
                 >
                     <img 
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/7085f68cc_storyline-logo.png" 
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png" 
                         alt="Storylines" 
                         width="250"
                         height="100"
