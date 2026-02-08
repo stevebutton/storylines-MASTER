@@ -22,7 +22,16 @@ export default function StoryMapView() {
     const [chapters, setChapters] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeChapter, setActiveChapter] = useState(0);
-    const [mapConfig, setMapConfig] = useState(null);
+    const [mapConfig, setMapConfig] = useState({
+        center: [0, 0],
+        zoom: 2,
+        mapStyle: 'light',
+        bearing: 0,
+        pitch: 0,
+        shouldRotate: false,
+        flyDuration: 12,
+        offset: [-200, 0]
+    });
     const [routeCoordinates, setRouteCoordinates] = useState([]);
     const [clearRoute, setClearRoute] = useState(false);
     const previousChapterRef = useRef(-1);
@@ -45,19 +54,17 @@ export default function StoryMapView() {
 
     // Set initial map config from story opening view
     useEffect(() => {
-        if (story && !mapConfig) {
-            setMapConfig({
-                center: story.coordinates || [0, 0],
+        if (story && story.coordinates) {
+            setMapConfig(prev => ({
+                ...prev,
+                center: story.coordinates,
                 zoom: story.zoom || 2,
                 mapStyle: story.map_style || 'light',
                 bearing: story.bearing || 0,
-                pitch: story.pitch || 0,
-                shouldRotate: false,
-                flyDuration: 12,
-                offset: [-200, 0]
-            });
+                pitch: story.pitch || 0
+            }));
         }
-    }, [story, mapConfig]);
+    }, [story]);
 
     // Update og:image meta tag for social media sharing
     useEffect(() => {
@@ -327,22 +334,20 @@ export default function StoryMapView() {
             </div>
 
             {/* Map Background */}
-            {mapConfig && (
-                <MapBackground
-                    center={mapConfig.center}
-                    zoom={mapConfig.zoom}
-                    bearing={mapConfig.bearing}
-                    pitch={mapConfig.pitch}
-                    mapStyle={mapConfig.mapStyle}
-                    shouldRotate={mapConfig.shouldRotate}
-                    flyDuration={mapConfig.flyDuration}
-                    routeCoordinates={routeCoordinates}
-                    clearRoute={clearRoute}
-                    offset={mapConfig.offset}
-                    landingMarkers={landingMarkers}
-                    clearLandingMarkers={clearLandingMarkers}
-                />
-            )}
+            <MapBackground
+                center={mapConfig.center}
+                zoom={mapConfig.zoom}
+                bearing={mapConfig.bearing}
+                pitch={mapConfig.pitch}
+                mapStyle={mapConfig.mapStyle}
+                shouldRotate={mapConfig.shouldRotate}
+                flyDuration={mapConfig.flyDuration}
+                routeCoordinates={routeCoordinates}
+                clearRoute={clearRoute}
+                offset={mapConfig.offset}
+                landingMarkers={landingMarkers}
+                clearLandingMarkers={clearLandingMarkers}
+            />
             
             {/* Story Content */}
             <div className="relative z-[60] pointer-events-none" data-name="story-content-container">
