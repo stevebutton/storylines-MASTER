@@ -87,6 +87,49 @@ export default function TabbedContentEditor({
                                 style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                             />
                         </div>
+
+                        {/* Opening Map View */}
+                        <div>
+                            <Label>Story Opening Map View</Label>
+                            <p className="text-xs text-slate-500 mb-2">Set the initial map view when the story opens</p>
+                            <EmbeddedLocationPicker
+                                location={{
+                                    lat: item.coordinates?.[0] || 0,
+                                    lng: item.coordinates?.[1] || 0,
+                                    zoom: item.zoom || 2,
+                                    bearing: item.bearing || 0,
+                                    pitch: item.pitch || 0,
+                                    name: ''
+                                }}
+                                onLocationChange={(newLocation) => {
+                                    onUpdate({
+                                        ...item,
+                                        coordinates: [newLocation.lat, newLocation.lng],
+                                        zoom: newLocation.zoom,
+                                        bearing: newLocation.bearing,
+                                        pitch: newLocation.pitch
+                                    });
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Map Style</Label>
+                            <Select 
+                                value={item.map_style || 'light'} 
+                                onValueChange={(value) => onUpdate({ ...item, map_style: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="light">Light</SelectItem>
+                                    <SelectItem value="dark">Dark</SelectItem>
+                                    <SelectItem value="satellite">Satellite</SelectItem>
+                                    <SelectItem value="terrain">Terrain</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Author</Label>
@@ -195,9 +238,8 @@ export default function TabbedContentEditor({
     if (itemType === 'chapter') {
         return (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="content">Content</TabsTrigger>
-                    <TabsTrigger value="location">Map Location</TabsTrigger>
                     <TabsTrigger value="settings">Settings</TabsTrigger>
                 </TabsList>
 
@@ -216,7 +258,7 @@ export default function TabbedContentEditor({
                                     </Button>
                                 )}
                             </div>
-                            <p className="text-sm text-slate-500">This chapter contains configuration for map positioning and visual presentation.</p>
+                            <p className="text-sm text-slate-500">Chapters organize slides. The first slide defines the starting map location for this chapter.</p>
                             <div className="pt-4 border-t">
                                 <Button onClick={() => onAddSlide(item.id)} className="w-full">
                                     <Plus className="w-4 h-4 mr-2" /> Add Slide to Chapter
@@ -226,52 +268,9 @@ export default function TabbedContentEditor({
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="location" className="space-y-4 mt-4">
-                    <Card>
-                        <CardContent className="pt-6 space-y-4">
-                            <EmbeddedLocationPicker
-                                location={{
-                                    lat: item.coordinates?.[0] || 0,
-                                    lng: item.coordinates?.[1] || 0,
-                                    zoom: item.zoom || 12,
-                                    bearing: item.bearing || 0,
-                                    pitch: item.pitch || 0,
-                                    name: item.location
-                                }}
-                                onLocationChange={(newLocation) => {
-                                    onUpdate({
-                                        ...item,
-                                        coordinates: [newLocation.lat, newLocation.lng],
-                                        zoom: newLocation.zoom,
-                                        bearing: newLocation.bearing,
-                                        pitch: newLocation.pitch
-                                    });
-                                }}
-                            />
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
                 <TabsContent value="settings" className="space-y-4 mt-4">
                     <Card>
                         <CardContent className="pt-6 space-y-4">
-                            <div>
-                                <Label>Map Style</Label>
-                                <Select 
-                                    value={item.map_style || 'light'} 
-                                    onValueChange={(value) => onUpdate({ ...item, map_style: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="light">Light</SelectItem>
-                                        <SelectItem value="dark">Dark</SelectItem>
-                                        <SelectItem value="satellite">Satellite</SelectItem>
-                                        <SelectItem value="terrain">Terrain</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
                             <div>
                                 <Label>Card Alignment</Label>
                                 <Select 
@@ -287,14 +286,6 @@ export default function TabbedContentEditor({
                                         <SelectItem value="right">Right</SelectItem>
                                     </SelectContent>
                                 </Select>
-                            </div>
-                            <div>
-                                <Label>Fly Duration (seconds)</Label>
-                                <Input 
-                                    type="number" 
-                                    value={item.fly_duration || 12} 
-                                    onChange={(e) => onUpdate({ ...item, fly_duration: parseFloat(e.target.value) })}
-                                />
                             </div>
                         </CardContent>
                     </Card>
