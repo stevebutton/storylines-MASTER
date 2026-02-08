@@ -469,18 +469,17 @@ export default function StoryMapView() {
                                     console.log('🎯 [MARKER UPDATE] Marker already exists at this location');
                                     return prev;
                                 });
-                                    
-                                    setMapConfig({
-                                        center: slide.coordinates,
-                                        offset: [-200, 0],
-                                        zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
-                                        bearing: slide.bearing !== undefined ? slide.bearing : 0,
-                                        pitch: slide.pitch !== undefined ? slide.pitch : 0,
-                                        mapStyle: chapter.map_style || 'light',
-                                        shouldRotate: false,
-                                        flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 12)
-                                    });
-                                }
+                                
+                                setMapConfig({
+                                    center: slide.coordinates,
+                                    offset: [-200, 0],
+                                    zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
+                                    bearing: slide.bearing !== undefined ? slide.bearing : 0,
+                                    pitch: slide.pitch !== undefined ? slide.pitch : 0,
+                                    mapStyle: chapter.map_style || 'light',
+                                    shouldRotate: false,
+                                    flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 12)
+                                });
                             }}
                         />
                     </div>
