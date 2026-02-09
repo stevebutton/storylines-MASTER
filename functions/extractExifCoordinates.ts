@@ -13,34 +13,36 @@ function dmsToDecimal(degrees, minutes, seconds, direction) {
 // Parse GPS coordinates from EXIF data
 function parseGPSCoordinates(exifData) {
     try {
-        const gpsLatitude = exifData.GPSLatitude?.description;
-        const gpsLongitude = exifData.GPSLongitude?.description;
+        const gpsLatitude = exifData.GPSLatitude?.value;
+        const gpsLongitude = exifData.GPSLongitude?.value;
         const gpsLatRef = exifData.GPSLatitudeRef?.value[0];
         const gpsLonRef = exifData.GPSLongitudeRef?.value[0];
 
-        if (!gpsLatitude || !gpsLongitude) {
+        if (!gpsLatitude || !gpsLongitude || !Array.isArray(gpsLatitude) || !Array.isArray(gpsLongitude)) {
             return null;
         }
 
-        // Parse DMS format: "44°1'52.13"" or similar
-        const latMatch = gpsLatitude.match(/(\d+)°\s*(\d+)'\s*([\d.]+)/);
-        const lonMatch = gpsLongitude.match(/(\d+)°\s*(\d+)'\s*([\d.]+)/);
+        // GPS coordinates are stored as [degrees, minutes, seconds]
+        // Each value is a rational number (numerator/denominator)
+        const latDegrees = gpsLatitude[0];
+        const latMinutes = gpsLatitude[1];
+        const latSeconds = gpsLatitude[2];
 
-        if (!latMatch || !lonMatch) {
-            return null;
-        }
+        const lonDegrees = gpsLongitude[0];
+        const lonMinutes = gpsLongitude[1];
+        const lonSeconds = gpsLongitude[2];
 
         const lat = dmsToDecimal(
-            parseFloat(latMatch[1]),
-            parseFloat(latMatch[2]),
-            parseFloat(latMatch[3]),
+            latDegrees,
+            latMinutes,
+            latSeconds,
             gpsLatRef
         );
 
         const lon = dmsToDecimal(
-            parseFloat(lonMatch[1]),
-            parseFloat(lonMatch[2]),
-            parseFloat(lonMatch[3]),
+            lonDegrees,
+            lonMinutes,
+            lonSeconds,
             gpsLonRef
         );
 
