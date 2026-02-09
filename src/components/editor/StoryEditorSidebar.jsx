@@ -50,17 +50,16 @@ export default function StoryEditorSidebar({
     return (
         <div className="w-full md:w-80 border-r bg-white h-screen overflow-y-auto flex flex-col">
             {/* Story Settings Button */}
-            <div 
+            <button 
                 onClick={onSelectStory}
                 className={cn(
-                    "p-2 md:p-4 border-b cursor-pointer hover:bg-slate-50 transition-colors",
-                    isStorySelected && "bg-amber-50 border-l-4 border-l-amber-600"
+                    "w-full bg-indigo-50 hover:bg-indigo-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col items-center justify-center m-2",
+                    isStorySelected && "ring-2 ring-indigo-400"
                 )}
             >
-                <div className="flex items-center gap-2">
-                    <span className="text-xl md:text-sm font-medium text-slate-700 truncate text-left"><span className="md:hidden">Chapters</span><span className="hidden md:inline">Story Settings</span></span>
-                </div>
-            </div>
+                <Book className="w-5 h-5 text-indigo-600 mb-1" />
+                <span className="text-xs text-indigo-600 font-semibold">Story Settings</span>
+            </button>
 
             {/* Chapters List */}
             <div className="flex-1 overflow-y-auto">
