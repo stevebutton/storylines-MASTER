@@ -68,9 +68,10 @@ export default function StoryMapBanner({
                 {/* Story Title */}
                 {storyTitle && (
                     <motion.div 
-                        className="absolute text-slate-800 left-0 right-0 md:left-[322px] md:right-auto text-2xl font-light text-center md:text-left px-4 md:px-0"
+                        className="absolute text-slate-800 left-0 right-0 md:left-[322px] md:right-auto font-light text-center md:text-left px-4 md:px-0"
                         style={{ 
-                            top: '26px'
+                            top: '26px',
+                            fontSize: '3rem'
                         }}
                         initial={{ opacity: 0, x: 20 }}
                         animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
@@ -89,15 +90,17 @@ export default function StoryMapBanner({
                     isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full pointer-events-none"
                 )}
             >
-                {/* CTM Logo - hidden on mobile */}
+                {/* Footer Logo - hidden on mobile */}
                 <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/8b6a9082b_CTM.png"
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/6d075347b_footer-logo.png"
                     alt="Content That Moves"
-                    className="hidden md:block h-[60px] ml-[60px]"
+                    width="250"
+                    height="60"
+                    className="hidden md:block ml-[60px]"
                 />
 
                 {/* Buttons - Right Side */}
-                <div className="absolute left-1/2 flex items-center" style={{ gap: '30px' }}>
+                <div className="ml-auto mr-[60px] flex items-center" style={{ gap: '30px' }}>
                     {/* Social Share Buttons */}
                     {isShareable && storyId && (
                         <SocialShareButtons 

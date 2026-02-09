@@ -20,7 +20,7 @@ export default function FloatingNavButtons({
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
-            <div className="flex items-center" style={{ gap: '30px', marginTop: '58px' }}>
+            <div className="ml-auto mr-[60px] flex items-center" style={{ gap: '30px', marginTop: '58px' }}>
                 {/* Chapters Toggle */}
                 {hasChapters && (
                     <button
@@ -33,20 +33,6 @@ export default function FloatingNavButtons({
                             <Menu className="w-5 h-5" />
                         )}
                         <span>Story Chapters</span>
-                    </button>
-                )}
-
-                {/* Document Library - hidden on mobile */}
-                {onOpenLibrary && (
-                    <button
-                        onClick={() => {
-                            console.log('FloatingNavButtons: "Library" button clicked');
-                            onOpenLibrary();
-                        }}
-                        className="hidden md:flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
-                    >
-                        <FileText className="w-5 h-5" />
-                        <span>Library</span>
                     </button>
                 )}
 
