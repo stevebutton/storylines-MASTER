@@ -53,14 +53,18 @@ export default function Stories() {
         setAllUsers(users);
       }
 
-      // Load thumbnails for each story
+      // Load thumbnails for each story - prioritize hero_image, then first slide
       const thumbnails = {};
       for (const story of data) {
-        const chapters = await base44.entities.Chapter.filter({ story_id: story.id }, 'order', 1);
-        if (chapters.length > 0) {
-          const slides = await base44.entities.Slide.filter({ chapter_id: chapters[0].id }, 'order', 1);
-          if (slides.length > 0 && slides[0].image) {
-            thumbnails[story.id] = slides[0].image;
+        if (story.hero_image) {
+          thumbnails[story.id] = story.hero_image;
+        } else {
+          const chapters = await base44.entities.Chapter.filter({ story_id: story.id }, 'order', 1);
+          if (chapters.length > 0) {
+            const slides = await base44.entities.Slide.filter({ chapter_id: chapters[0].id }, 'order', 1);
+            if (slides.length > 0 && slides[0].image) {
+              thumbnails[story.id] = slides[0].image;
+            }
           }
         }
       }

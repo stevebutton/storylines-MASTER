@@ -270,8 +270,8 @@ export default function StoryEditor() {
                             <Sparkles className="w-5 h-5 text-purple-600 mb-1" />
                             <p className="text-xs text-purple-600 font-semibold">Story Helper</p>
                         </button>
-                        {storyId && (
-                            <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank" className="flex-1">
+                        {story.id && (
+                            <Link to={`${createPageUrl('StoryMapView')}?id=${story.id}`} target="_blank" className="flex-1">
                                 <button className="hidden md:flex w-full bg-indigo-50 hover:bg-indigo-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]">
                                     <Eye className="w-5 h-5 text-indigo-600 mb-1" />
                                     <p className="text-xs text-indigo-600 font-semibold">Preview</p>
