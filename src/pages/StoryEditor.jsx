@@ -77,7 +77,6 @@ export default function StoryEditor() {
                 setStory(newStory);
                 const newUrl = `${createPageUrl('StoryEditor')}?id=${newStory.id}`;
                 window.history.replaceState({}, '', newUrl);
-                window.location.href = newUrl;
             }
 
             const chapterIdMap = {};
