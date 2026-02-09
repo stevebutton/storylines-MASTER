@@ -23,14 +23,15 @@ function parseGPSCoordinates(exifData) {
         }
 
         // GPS coordinates are stored as [degrees, minutes, seconds]
-        // Each value is a rational number (numerator/denominator)
-        const latDegrees = gpsLatitude[0];
-        const latMinutes = gpsLatitude[1];
-        const latSeconds = gpsLatitude[2];
+        // Each value is a Rational object with numerator and denominator
+        // Convert Rational objects to decimal numbers
+        const latDegrees = gpsLatitude[0].numerator / gpsLatitude[0].denominator;
+        const latMinutes = gpsLatitude[1].numerator / gpsLatitude[1].denominator;
+        const latSeconds = gpsLatitude[2].numerator / gpsLatitude[2].denominator;
 
-        const lonDegrees = gpsLongitude[0];
-        const lonMinutes = gpsLongitude[1];
-        const lonSeconds = gpsLongitude[2];
+        const lonDegrees = gpsLongitude[0].numerator / gpsLongitude[0].denominator;
+        const lonMinutes = gpsLongitude[1].numerator / gpsLongitude[1].denominator;
+        const lonSeconds = gpsLongitude[2].numerator / gpsLongitude[2].denominator;
 
         const lat = dmsToDecimal(
             latDegrees,
