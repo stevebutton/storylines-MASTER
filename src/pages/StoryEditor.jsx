@@ -221,15 +221,15 @@ export default function StoryEditor() {
                     
                     {/* Unified Menu Bar - Stats and Actions */}
                     <div className="flex flex-wrap md:flex-nowrap items-stretch gap-2 md:gap-4">
-                        <div className="bg-amber-50 rounded-lg p-2 md:p-4 flex flex-col justify-center">
+                        <div className="flex-1 bg-amber-50 rounded-lg p-2 md:p-4 flex flex-col justify-center min-w-[80px]">
                             <p className="text-xs md:text-sm text-amber-600">Chapters</p>
                             <p className="text-lg md:text-2xl font-bold text-amber-700">{chapters.length}</p>
                         </div>
-                        <div className="bg-blue-50 rounded-lg p-2 md:p-4 flex flex-col justify-center">
+                        <div className="flex-1 bg-blue-50 rounded-lg p-2 md:p-4 flex flex-col justify-center min-w-[80px]">
                             <p className="text-xs md:text-sm text-blue-600">Slides</p>
                             <p className="text-lg md:text-2xl font-bold text-blue-700">{slides.length}</p>
                         </div>
-                        <div className="bg-green-50 rounded-lg p-2 md:p-4 flex flex-col justify-center">
+                        <div className="flex-1 bg-green-50 rounded-lg p-2 md:p-4 flex flex-col justify-center min-w-[80px]">
                             <p className="text-xs md:text-sm text-green-600">Media</p>
                             <p className="text-lg md:text-2xl font-bold text-green-700">
                                 {slides.filter(s => s.image || s.video_url || s.pdf_url).length}
@@ -243,7 +243,7 @@ export default function StoryEditor() {
                                     await base44.entities.Story.update(storyId, { is_published: updatedStory.is_published });
                                 }
                             }}
-                            className={`rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col justify-center ${
+                            className={`flex-1 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col justify-center min-w-[80px] ${
                                 story.is_published 
                                     ? 'bg-green-50 hover:bg-green-100' 
                                     : 'bg-slate-50 hover:bg-slate-100'
@@ -257,25 +257,23 @@ export default function StoryEditor() {
                             </p>
                         </button>
                         
-                        <div className="flex-1"></div>
-                        
                         <button
                             onClick={() => setIsHelpPanelOpen(true)}
-                            className="hidden md:flex bg-slate-50 hover:bg-slate-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[100px]"
+                            className="hidden md:flex flex-1 bg-slate-50 hover:bg-slate-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]"
                         >
                             <HelpCircle className="w-5 h-5 text-slate-600 mb-1" />
                             <p className="text-xs text-slate-600 font-semibold">Help</p>
                         </button>
                         <button
                             onClick={() => setIsAIAssistantOpen(true)}
-                            className="hidden md:flex bg-purple-50 hover:bg-purple-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[100px]"
+                            className="hidden md:flex flex-1 bg-purple-50 hover:bg-purple-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]"
                         >
                             <Sparkles className="w-5 h-5 text-purple-600 mb-1" />
                             <p className="text-xs text-purple-600 font-semibold">Story Helper</p>
                         </button>
                         {storyId && (
-                            <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
-                                <button className="hidden md:flex bg-indigo-50 hover:bg-indigo-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[100px]">
+                            <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank" className="flex-1">
+                                <button className="hidden md:flex w-full bg-indigo-50 hover:bg-indigo-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]">
                                     <Eye className="w-5 h-5 text-indigo-600 mb-1" />
                                     <p className="text-xs text-indigo-600 font-semibold">Preview</p>
                                 </button>
@@ -284,7 +282,7 @@ export default function StoryEditor() {
                         <button 
                             onClick={handleSave} 
                             disabled={isSaving}
-                            className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col items-center justify-center min-w-[100px]"
+                            className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col items-center justify-center min-w-[80px]"
                         >
                             {isSaving ? (
                                 <Loader2 className="w-5 h-5 text-white mb-1 animate-spin" />
