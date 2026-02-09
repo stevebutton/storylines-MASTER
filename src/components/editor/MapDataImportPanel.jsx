@@ -35,23 +35,42 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 fileUrls.push(file_url);
             }
 
+            // Extract EXIF coordinates from images
+            const { data: exifData } = await base44.functions.invoke('extractExifCoordinates', {
+                file_urls: fileUrls
+            });
+
+            // Build coordinate context for LLM
+            const coordinateContext = exifData.results
+                .map((result, idx) => {
+                    if (result.has_gps_data) {
+                        return `Image ${idx + 1} (${result.image_url}): GPS coordinates [${result.coordinates[0]}, ${result.coordinates[1]}] (latitude, longitude in decimal degrees)`;
+                    }
+                    return `Image ${idx + 1} (${result.image_url}): No GPS data available`;
+                })
+                .join('\n');
+
             // Extract location data using LLM with vision
             const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `Analyze the provided images (identified by their URLs) and for each image, extract the following:
-1. The URL of the image itself (from the provided file_urls).
-2. A location name and a detailed description for a story chapter or slide based on the image.
-3. Accurate geographical coordinates (latitude, longitude) for the location shown in the image.
+                prompt: `You are analyzing geotagged field documentation images to create a geographic narrative.
 
-Then, use this information to create a structured story outline. Each chapter in the outline should correspond to one of the analyzed images and include:
-- The exact image_url used to generate the chapter.
-- A concise title for the chapter.
-- A descriptive location name.
-- A detailed description of the chapter content, reflecting the image.
-- The extracted coordinates [latitude, longitude].
+EXTRACTED GPS COORDINATES (Decimal Degrees):
+${coordinateContext}
 
-Suggest an overall story title (maximum 34 characters) and a subtitle for the entire collection of images.
+For each image provided:
+1. Use the EXACT GPS coordinates listed above (already in decimal degree format: [latitude, longitude]).
+2. Identify the location name based on the coordinates and image content.
+3. Create a descriptive chapter title and detailed narrative description.
+4. Include the exact image_url that corresponds to this chapter.
 
-Return a JSON object structured as follows, ensuring each chapter includes the image_url, title, location, description, and coordinates.`,
+If an image has no GPS data, analyze the image to identify the location visually and provide estimated coordinates.
+
+Create a structured story outline with:
+- Overall story title (maximum 34 characters) and subtitle
+- One chapter per image
+- Each chapter must include: image_url, title, location name, description, and coordinates in [latitude, longitude] decimal degree format
+
+Return the structured JSON as specified.`,
                 file_urls: fileUrls,
                 add_context_from_internet: true,
                 response_json_schema: {
