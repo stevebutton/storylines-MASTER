@@ -130,7 +130,7 @@ export default function StoryMapView() {
             ]);
 
             if (storyData.length > 0) {
-                setStory(storyData[0].data);
+                setStory(storyData[0]);
             }
 
             // Attach slides to chapters
