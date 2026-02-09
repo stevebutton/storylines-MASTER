@@ -535,25 +535,26 @@ export default function Stories() {
                                             Created {new Date(story.created_date).toLocaleDateString()}
                                         </p>
 
-                                        <div className="flex items-center gap-1.5 md:gap-2 pt-2 md:pt-3 border-t">
+                                        <div className="flex items-stretch gap-0 pt-2 md:pt-3 border-t overflow-hidden rounded-lg">
                                             <Link to={`${createPageUrl('StoryEditor')}?id=${story.id}`} className="flex-1">
-                                                <Button variant="outline" size="sm" className="w-full">
-                                                    <Edit2 className="w-3.5 h-3.5 mr-1.5" /> Edit
-                                                </Button>
+                                                <button className="w-full h-[50px] bg-blue-50 hover:bg-blue-100 transition-colors flex flex-col items-center justify-center">
+                                                    <Edit2 className="w-4 h-4 text-blue-600 mb-0.5" />
+                                                    <span className="text-xs text-blue-700 font-semibold">Edit</span>
+                                                </button>
                                             </Link>
-                                            <Link to={`${createPageUrl('StoryMapView')}?id=${story.id}`}>
-                                                <Button variant="outline" size="sm">
-                                                    <Eye className="w-3.5 h-3.5" />
-                                                </Button>
+                                            <Link to={`${createPageUrl('StoryMapView')}?id=${story.id}`} className="flex-1">
+                                                <button className="w-full h-[50px] bg-green-50 hover:bg-green-100 transition-colors flex flex-col items-center justify-center border-l border-r border-white">
+                                                    <Eye className="w-4 h-4 text-green-600 mb-0.5" />
+                                                    <span className="text-xs text-green-700 font-semibold">View</span>
+                                                </button>
                                             </Link>
-                                            <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => deleteStory(story.id)}
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50">
-
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </Button>
+                                            <button
+                                                onClick={() => deleteStory(story.id)}
+                                                className="flex-1 h-[50px] bg-red-50 hover:bg-red-100 transition-colors flex flex-col items-center justify-center"
+                                            >
+                                                <Trash2 className="w-4 h-4 text-red-600 mb-0.5" />
+                                                <span className="text-xs text-red-700 font-semibold">Trash</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </CardContent>

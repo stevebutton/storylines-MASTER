@@ -105,34 +105,39 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                             <div className="space-y-4">
                                 {options.map((option) => {
                                     const Icon = option.icon;
+                                    const colors = {
+                                        scratch: { bg: 'bg-blue-50', hover: 'hover:bg-blue-100', icon: 'text-blue-600', text: 'text-blue-700' },
+                                        upload: { bg: 'bg-green-50', hover: 'hover:bg-green-100', icon: 'text-green-600', text: 'text-green-700' },
+                                        template: { bg: 'bg-purple-50', hover: 'hover:bg-purple-100', icon: 'text-purple-600', text: 'text-purple-700' },
+                                        map: { bg: 'bg-amber-50', hover: 'hover:bg-amber-100', icon: 'text-amber-600', text: 'text-amber-700' },
+                                        interview: { bg: 'bg-indigo-50', hover: 'hover:bg-indigo-100', icon: 'text-indigo-600', text: 'text-indigo-700' }
+                                    };
+                                    const colorSet = colors[option.id];
                                     return (
                                         <button
                                             key={option.id}
                                             onClick={option.isActive ? option.onClick : undefined}
                                             disabled={!option.isActive}
                                             className={`
-                                                w-full p-6 rounded-lg border-2 text-left transition-all
+                                                w-full rounded-lg text-left transition-all
                                                 ${option.isActive 
-                                                    ? 'border-amber-200 bg-amber-50 hover:bg-amber-100 hover:border-amber-300 cursor-pointer' 
-                                                    : 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
+                                                    ? `${colorSet.bg} ${colorSet.hover} cursor-pointer` 
+                                                    : 'bg-slate-100 opacity-50 cursor-not-allowed'
                                                 }
                                             `}
                                         >
-                                            <div className="flex items-start gap-4">
-                                                <div className={`
-                                                    p-3 rounded-lg 
-                                                    ${option.isActive ? 'bg-amber-100' : 'bg-slate-200'}
-                                                `}>
+                                            <div className="flex items-center gap-4 p-4">
+                                                <div className="flex flex-col items-center justify-center p-3">
                                                     <Icon className={`
-                                                        w-6 h-6 
-                                                        ${option.isActive ? 'text-amber-600' : 'text-slate-400'}
+                                                        w-8 h-8 
+                                                        ${option.isActive ? colorSet.icon : 'text-slate-400'}
                                                     `} />
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <h3 className={`
-                                                            font-semibold 
-                                                            ${option.isActive ? 'text-slate-900' : 'text-slate-500'}
+                                                            text-lg font-semibold 
+                                                            ${option.isActive ? colorSet.text : 'text-slate-500'}
                                                         `}>
                                                             {option.title}
                                                         </h3>

@@ -219,78 +219,80 @@ export default function StoryEditor() {
                         </h1>
                     </div>
                     
-                    {/* Stats and Actions */}
-                    <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-3">
-                        <div className="flex flex-wrap md:flex-nowrap gap-2 md:gap-4">
-                            <div className="bg-amber-50 rounded-lg p-2 md:p-4">
-                                <p className="text-xs md:text-sm text-amber-600">Chapters</p>
-                                <p className="text-lg md:text-2xl font-bold text-amber-700">{chapters.length}</p>
-                            </div>
-                            <div className="bg-blue-50 rounded-lg p-2 md:p-4">
-                                <p className="text-xs md:text-sm text-blue-600">Slides</p>
-                                <p className="text-lg md:text-2xl font-bold text-blue-700">{slides.length}</p>
-                            </div>
-                            <div className="bg-green-50 rounded-lg p-2 md:p-4">
-                                <p className="text-xs md:text-sm text-green-600">Media</p>
-                                <p className="text-lg md:text-2xl font-bold text-green-700">
-                                    {slides.filter(s => s.image || s.video_url || s.pdf_url).length}
-                                </p>
-                            </div>
-                            <button
-                                onClick={async () => {
-                                    const updatedStory = { ...story, is_published: !story.is_published };
-                                    setStory(updatedStory);
-                                    if (storyId) {
-                                        await base44.entities.Story.update(storyId, { is_published: updatedStory.is_published });
-                                    }
-                                }}
-                                className={`rounded-lg p-2 md:p-4 cursor-pointer transition-colors ${
-                                    story.is_published 
-                                        ? 'bg-green-50 hover:bg-green-100' 
-                                        : 'bg-slate-50 hover:bg-slate-100'
-                                }`}
-                            >
-                                <p className={`text-xs md:text-sm ${story.is_published ? 'text-green-600' : 'text-slate-600'}`}>
-                                    Status
-                                </p>
-                                <p className={`text-lg md:text-2xl font-bold ${story.is_published ? 'text-green-700' : 'text-slate-700'}`}>
-                                    {story.is_published ? 'Published' : 'Draft'}
-                                </p>
-                            </button>
+                    {/* Unified Menu Bar - Stats and Actions */}
+                    <div className="flex flex-wrap md:flex-nowrap items-stretch gap-2 md:gap-4">
+                        <div className="bg-amber-50 rounded-lg p-2 md:p-4 flex flex-col justify-center">
+                            <p className="text-xs md:text-sm text-amber-600">Chapters</p>
+                            <p className="text-lg md:text-2xl font-bold text-amber-700">{chapters.length}</p>
                         </div>
-                        <div className="flex flex-wrap md:flex-nowrap items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsHelpPanelOpen(true)}
-                                className="hidden md:flex border-slate-300 text-slate-700 hover:bg-slate-50"
-                            >
-                                <HelpCircle className="w-4 h-4 mr-2" /> Help
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsAIAssistantOpen(true)}
-                                className="hidden md:flex border-amber-300 text-amber-700 hover:bg-amber-50"
-                            >
-                                <Sparkles className="w-4 h-4 mr-2" /> Story Helper
-                            </Button>
-                            {storyId && (
-                                <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
-                                    <Button variant="outline" size="sm" className="hidden md:flex">
-                                        <Eye className="w-4 h-4 mr-2" /> Preview
-                                    </Button>
-                                </Link>
+                        <div className="bg-blue-50 rounded-lg p-2 md:p-4 flex flex-col justify-center">
+                            <p className="text-xs md:text-sm text-blue-600">Slides</p>
+                            <p className="text-lg md:text-2xl font-bold text-blue-700">{slides.length}</p>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-2 md:p-4 flex flex-col justify-center">
+                            <p className="text-xs md:text-sm text-green-600">Media</p>
+                            <p className="text-lg md:text-2xl font-bold text-green-700">
+                                {slides.filter(s => s.image || s.video_url || s.pdf_url).length}
+                            </p>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                const updatedStory = { ...story, is_published: !story.is_published };
+                                setStory(updatedStory);
+                                if (storyId) {
+                                    await base44.entities.Story.update(storyId, { is_published: updatedStory.is_published });
+                                }
+                            }}
+                            className={`rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col justify-center ${
+                                story.is_published 
+                                    ? 'bg-green-50 hover:bg-green-100' 
+                                    : 'bg-slate-50 hover:bg-slate-100'
+                            }`}
+                        >
+                            <p className={`text-xs md:text-sm ${story.is_published ? 'text-green-600' : 'text-slate-600'}`}>
+                                Status
+                            </p>
+                            <p className={`text-lg md:text-2xl font-bold ${story.is_published ? 'text-green-700' : 'text-slate-700'}`}>
+                                {story.is_published ? 'Published' : 'Draft'}
+                            </p>
+                        </button>
+                        
+                        <div className="flex-1"></div>
+                        
+                        <button
+                            onClick={() => setIsHelpPanelOpen(true)}
+                            className="hidden md:flex bg-slate-50 hover:bg-slate-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[100px]"
+                        >
+                            <HelpCircle className="w-5 h-5 text-slate-600 mb-1" />
+                            <p className="text-xs text-slate-600 font-semibold">Help</p>
+                        </button>
+                        <button
+                            onClick={() => setIsAIAssistantOpen(true)}
+                            className="hidden md:flex bg-purple-50 hover:bg-purple-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[100px]"
+                        >
+                            <Sparkles className="w-5 h-5 text-purple-600 mb-1" />
+                            <p className="text-xs text-purple-600 font-semibold">Story Helper</p>
+                        </button>
+                        {storyId && (
+                            <Link to={`${createPageUrl('StoryMapView')}?id=${storyId}`} target="_blank">
+                                <button className="hidden md:flex bg-indigo-50 hover:bg-indigo-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[100px]">
+                                    <Eye className="w-5 h-5 text-indigo-600 mb-1" />
+                                    <p className="text-xs text-indigo-600 font-semibold">Preview</p>
+                                </button>
+                            </Link>
+                        )}
+                        <button 
+                            onClick={handleSave} 
+                            disabled={isSaving}
+                            className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col items-center justify-center min-w-[100px]"
+                        >
+                            {isSaving ? (
+                                <Loader2 className="w-5 h-5 text-white mb-1 animate-spin" />
+                            ) : (
+                                <Save className="w-5 h-5 text-white mb-1" />
                             )}
-                            <Button onClick={handleSave} disabled={isSaving} className="bg-amber-600 hover:bg-amber-700">
-                                {isSaving ? (
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Save className="w-4 h-4 mr-2" />
-                                )}
-                                Save
-                            </Button>
-                        </div>
+                            <p className="text-xs text-white font-semibold">{isSaving ? 'Saving...' : 'Save'}</p>
+                        </button>
                     </div>
                 </div>
             </div>
