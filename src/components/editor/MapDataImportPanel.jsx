@@ -37,13 +37,21 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
 
             // Extract location data using LLM with vision
             const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `Analyze these images and extract:
-1. Location names and descriptions
-2. Create a story outline with chapters based on the locations
-3. Generate coordinates for each location
-4. Suggest a story title (maximum 34 characters) and subtitle
+                prompt: `Analyze the provided images (identified by their URLs) and for each image, extract the following:
+1. The URL of the image itself (from the provided file_urls).
+2. A location name and a detailed description for a story chapter or slide based on the image.
+3. Accurate geographical coordinates (latitude, longitude) for the location shown in the image.
 
-Return a structured story outline.`,
+Then, use this information to create a structured story outline. Each chapter in the outline should correspond to one of the analyzed images and include:
+- The exact image_url used to generate the chapter.
+- A concise title for the chapter.
+- A descriptive location name.
+- A detailed description of the chapter content, reflecting the image.
+- The extracted coordinates [latitude, longitude].
+
+Suggest an overall story title (maximum 34 characters) and a subtitle for the entire collection of images.
+
+Return a JSON object structured as follows, ensuring each chapter includes the image_url, title, location, description, and coordinates.`,
                 file_urls: fileUrls,
                 add_context_from_internet: true,
                 response_json_schema: {
@@ -70,12 +78,6 @@ Return a structured story outline.`,
                     }
                 }
             });
-
-            // Attach uploaded images to chapters
-            response.chapters = response.chapters.map((chapter, idx) => ({
-                ...chapter,
-                image_url: fileUrls[idx] || fileUrls[0]
-            }));
 
             setExtractedData(response);
             setStoryTitle(response.title);
@@ -114,9 +116,6 @@ Return a structured story outline.`,
                 const newChapter = await base44.entities.Chapter.create({
                     story_id: newStory.id,
                     order: i,
-                    coordinates: chapterData.coordinates || [0, 0],
-                    zoom: 12,
-                    map_style: 'light',
                     alignment: 'left'
                 });
 
@@ -126,7 +125,9 @@ Return a structured story outline.`,
                     title: chapterData.title,
                     description: chapterData.description,
                     location: chapterData.location,
-                    image: chapterData.image_url
+                    image: chapterData.image_url,
+                    coordinates: chapterData.coordinates,
+                    zoom: 12
                 });
             }
 
