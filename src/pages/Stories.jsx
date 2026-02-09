@@ -43,10 +43,8 @@ export default function Stories() {
       const user = await base44.auth.me();
       setCurrentUser(user);
       
-      // Load all stories if admin, otherwise just user's stories
-      const data = user.role === 'admin' 
-        ? await base44.entities.Story.list('-created_date')
-        : await base44.entities.Story.filter({ created_by: user.email }, '-created_date');
+      // Load all stories
+      const data = await base44.entities.Story.list('-created_date');
       setStories(data);
       
       // Load all users if admin
