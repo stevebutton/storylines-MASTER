@@ -13,12 +13,25 @@ function dmsToDecimal(degrees, minutes, seconds, direction) {
 // Parse GPS coordinates from EXIF data
 function parseGPSCoordinates(exifData) {
     try {
+        console.log('=== EXIF GPS DATA EXTRACTION ===');
+        console.log('GPSLatitude tag:', JSON.stringify(exifData.GPSLatitude, null, 2));
+        console.log('GPSLongitude tag:', JSON.stringify(exifData.GPSLongitude, null, 2));
+        console.log('GPSLatitudeRef tag:', JSON.stringify(exifData.GPSLatitudeRef, null, 2));
+        console.log('GPSLongitudeRef tag:', JSON.stringify(exifData.GPSLongitudeRef, null, 2));
+        
         const gpsLatitude = exifData.GPSLatitude?.value;
         const gpsLongitude = exifData.GPSLongitude?.value;
         const gpsLatRef = exifData.GPSLatitudeRef?.value[0];
         const gpsLonRef = exifData.GPSLongitudeRef?.value[0];
 
+        console.log('Extracted values:');
+        console.log('- gpsLatitude:', gpsLatitude);
+        console.log('- gpsLongitude:', gpsLongitude);
+        console.log('- gpsLatRef:', gpsLatRef);
+        console.log('- gpsLonRef:', gpsLonRef);
+
         if (!gpsLatitude || !gpsLongitude || !Array.isArray(gpsLatitude) || !Array.isArray(gpsLongitude)) {
+            console.log('❌ Missing or invalid GPS data');
             return null;
         }
 
@@ -33,6 +46,10 @@ function parseGPSCoordinates(exifData) {
         const lonMinutes = gpsLongitude[1].numerator / gpsLongitude[1].denominator;
         const lonSeconds = gpsLongitude[2].numerator / gpsLongitude[2].denominator;
 
+        console.log('Converted DMS values:');
+        console.log(`- Latitude: ${latDegrees}° ${latMinutes}' ${latSeconds}" ${gpsLatRef}`);
+        console.log(`- Longitude: ${lonDegrees}° ${lonMinutes}' ${lonSeconds}" ${gpsLonRef}`);
+
         const lat = dmsToDecimal(
             latDegrees,
             latMinutes,
@@ -46,6 +63,9 @@ function parseGPSCoordinates(exifData) {
             lonSeconds,
             gpsLonRef
         );
+
+        console.log(`✅ Final coordinates: [${lat}, ${lon}]`);
+        console.log('=================================');
 
         return [lat, lon];
     } catch (error) {
