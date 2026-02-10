@@ -73,24 +73,24 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
           {/* Story Title */}
           <motion.h1
-            className="text-white text-6xl font-light text-center leading-tight"
+            className="text-white text-6xl font-light text-center leading-none mb-0"
             style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
             data-name="story-title"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 100, duration: 1, delay: 5 }}
+            transition={{ type: 'spring', stiffness: 100, duration: 1, delay: 6 }}
           >
             {title}
           </motion.h1>
 
           {/* Description */}
           <motion.p
-            className="text-white text-xl font-light text-center leading-snug max-w-md"
+            className="text-white text-xl font-light text-center leading-snug max-w-md mt-4"
             style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
             data-name="story-description"
             initial={{ translateY: '100px', opacity: 0 }}
             animate={{ translateY: '0', opacity: 1 }}
-            transition={{ duration: 1, delay: 7 }}
+            transition={{ duration: 1, delay: 8 }}
           >
             {subtitle}
           </motion.p>
