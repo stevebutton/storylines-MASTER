@@ -71,29 +71,32 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             transition={{ duration: 2, delay: 9 }}
           />
 
-          {/* Story Title */}
-          <motion.h1
-            className="text-white text-6xl font-light text-center leading-none mb-0"
-            style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
-            data-name="story-title"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 100, duration: 1, delay: 6 }}
-          >
-            {title}
-          </motion.h1>
+          {/* Title and Description Container */}
+          <div className="flex flex-col items-center" style={{ gap: '30px' }}>
+            {/* Story Title */}
+            <motion.h1
+              className="text-white text-6xl font-light text-center leading-none"
+              style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
+              data-name="story-title"
+              initial={{ translateX: '100px', opacity: 0 }}
+              animate={{ translateX: '0', opacity: 1 }}
+              transition={{ duration: 2, delay: 8 }}
+            >
+              {title}
+            </motion.h1>
 
-          {/* Description */}
-          <motion.p
-            className="text-white text-xl font-light text-center leading-snug max-w-md mt-4"
-            style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
-            data-name="story-description"
-            initial={{ translateY: '100px', opacity: 0 }}
-            animate={{ translateY: '0', opacity: 1 }}
-            transition={{ duration: 1, delay: 8 }}
-          >
-            {subtitle}
-          </motion.p>
+            {/* Description */}
+            <motion.p
+              className="text-white text-xl font-light text-center leading-snug max-w-md"
+              style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
+              data-name="story-description"
+              initial={{ translateY: '100px', opacity: 0 }}
+              animate={{ translateY: '0', opacity: 1 }}
+              transition={{ duration: 1, delay: 8 }}
+            >
+              {subtitle}
+            </motion.p>
+          </div>
 
           {/* Scroll Arrow */}
           <motion.button
@@ -109,7 +112,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
               transition: { duration: 0.2, ease: 'easeInOut' }
             }}
           >
-            <ChevronDown className="w-6 h-6" />
+            <ChevronDown className="w-4 h-4" />
           </motion.button>
         </motion.div>
       )}
