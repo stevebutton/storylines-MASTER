@@ -52,7 +52,7 @@ export default function StoryMapBanner({
                         alt="Storylines" 
                         width="250"
                         height="100"
-                        className="hover:scale-110 transition-transform cursor-pointer"
+                        className="hover:scale-110 transition-transform duration-500 cursor-pointer"
                     />
                 </Link>
             )}

@@ -58,7 +58,7 @@ export default function MapBackground({
         // Add navigation controls (zoom, compass, pitch)
         map.current.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true
-        }), 'top-left');
+        }), 'bottom-left');
 
         return () => {
             if (map.current) {
@@ -387,9 +387,9 @@ export default function MapBackground({
         <div className="fixed inset-0 z-0" data-name="map-background-container">
             <div ref={mapContainer} className="h-full w-full" data-name="mapbox-container" />
             <style>{`
-                .mapboxgl-ctrl-top-left {
+                .mapboxgl-ctrl-bottom-left {
                     z-index: 1000 !important;
-                    top: 80px !important;
+                    bottom: 80px !important;
                     left: 16px !important;
                     pointer-events: auto !important;
                 }
