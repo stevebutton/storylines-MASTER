@@ -20,30 +20,34 @@ export default function FloatingNavButtons({
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
-            <div className="ml-auto mr-[60px] flex items-center" style={{ gap: '30px', marginTop: '58px' }}>
-                {/* Chapters Toggle */}
-                {hasChapters && (
-                    <button
-                        onClick={onToggleChapterMenu}
-                        className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
-                    >
-                        {isChapterMenuOpen ? (
-                            <X className="w-5 h-5" />
-                        ) : (
-                            <Menu className="w-5 h-5" />
-                        )}
-                        <span>Story Chapters</span>
-                    </button>
-                )}
-
+            <div className="ml-auto mr-[60px] flex items-center gap-[80px]">
                 {/* View Other Stories */}
                 {onViewOtherStories && (
                     <button
                         onClick={onViewOtherStories}
-                        className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300"
                     >
-                        <Map className="w-5 h-5" />
-                        <span>Other Stories</span>
+                        <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/250f728a2_MoreStories.png"
+                            alt="More Stories"
+                            width="50"
+                            height="100"
+                        />
+                    </button>
+                )}
+
+                {/* Chapters Toggle */}
+                {hasChapters && (
+                    <button
+                        onClick={onToggleChapterMenu}
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300"
+                    >
+                        <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
+                            alt="Story Chapters"
+                            width="50"
+                            height="100"
+                        />
                     </button>
                 )}
             </div>
