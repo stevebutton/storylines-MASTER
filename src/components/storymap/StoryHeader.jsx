@@ -56,8 +56,8 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           className="relative z-[95] mx-auto mt-[60px] w-[500px] max-w-[90vw] min-h-[600px] flex flex-col items-center justify-between px-8 py-12"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}
           data-name="content-panel"
-          initial={{ translateY: '-100%', opacity: 1 }}
-          animate={{ translateY: '0' }}
+          initial={{ translateY: '-100%', opacity: 0 }}
+          animate={{ translateY: '0', opacity: 1 }}
           transition={{ duration: 3, ease: [0.42, 0, 1, 1], delay: 5 }}
         >
           {/* Pin Icon */}
@@ -73,7 +73,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
           {/* Story Title */}
           <motion.h1
-            className="text-white text-3xl font-light text-center leading-tight"
+            className="text-white text-6xl font-light text-center leading-tight"
             style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
             data-name="story-title"
             initial={{ opacity: 0 }}
@@ -85,7 +85,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
           {/* Description */}
           <motion.p
-            className="text-white text-xl font-light text-center leading-relaxed max-w-md"
+            className="text-white text-xl font-light text-center leading-snug max-w-md"
             style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
             data-name="story-description"
             initial={{ translateY: '100px', opacity: 0 }}
@@ -109,7 +109,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
               transition: { duration: 0.2, ease: 'easeInOut' }
             }}
           >
-            <ChevronDown className="w-8 h-8" />
+            <ChevronDown className="w-6 h-6" />
           </motion.button>
         </motion.div>
       )}
