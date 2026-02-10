@@ -75,6 +75,19 @@ export default function StoryEditor() {
                 const newStory = await base44.entities.Story.create(story);
                 savedStoryId = newStory.id;
                 setStory(newStory);
+                
+                // Verify story is queryable before proceeding
+                let retries = 0;
+                const maxRetries = 5;
+                while (retries < maxRetries) {
+                    const verifyStory = await base44.entities.Story.filter({ id: newStory.id });
+                    if (verifyStory.length > 0) {
+                        break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    retries++;
+                }
+                
                 const newUrl = `${createPageUrl('StoryEditor')}?id=${newStory.id}`;
                 window.history.replaceState({}, '', newUrl);
             }
