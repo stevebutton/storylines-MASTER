@@ -87,8 +87,8 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
             {/* Description */}
             <motion.p
-              className="text-white text-xl font-light text-center leading-snug max-w-md"
-              style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
+              className="text-white font-light text-center leading-snug max-w-md"
+              style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300, fontSize: '1.4rem' }}
               data-name="story-description"
               initial={{ translateY: '100px', opacity: 0 }}
               animate={{ translateY: '0', opacity: 1 }}
@@ -101,7 +101,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           {/* Scroll Arrow */}
           <motion.button
             onClick={onExplore}
-            className="w-[75px] h-[75px] rounded-full border-2 border-white flex items-center justify-center text-white cursor-pointer pointer-events-auto"
+            className="cursor-pointer pointer-events-auto"
             data-name="scroll-arrow"
             initial={{ translateY: '50px', opacity: 0 }}
             animate={{ translateY: '0', opacity: 1 }}
@@ -112,7 +112,12 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
               transition: { duration: 0.2, ease: 'easeInOut' }
             }}
           >
-            <ChevronDown className="w-4 h-4" />
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
+              alt="Scroll down"
+              width="74"
+              height="50"
+            />
           </motion.button>
         </motion.div>
       )}
