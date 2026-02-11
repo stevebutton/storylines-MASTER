@@ -17,8 +17,8 @@ export default function CategoryFilter({ categories, selectedCategory, onCategor
       <div className="flex items-center gap-6">
         {showTitle && (
           <motion.h2
-            className="text-xl text-black whitespace-nowrap"
-            style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800 }}
+            className="text-base text-black whitespace-nowrap"
+            style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 500 }}
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 2, ease: "easeOut" }}

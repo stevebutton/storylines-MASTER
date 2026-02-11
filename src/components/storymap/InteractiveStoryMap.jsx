@@ -206,15 +206,18 @@ export default function InteractiveStoryMap({
           'circle-radius': [
             'step',
             ['get', 'point_count'],
-            40,
+            55,
             3,
-            60,
+            70,
             5,
-            85
+            90
           ],
           'circle-stroke-width': 3,
           'circle-stroke-color': '#fff',
-          'circle-opacity': 0.6
+          'circle-opacity': 0.6,
+          'circle-opacity-transition': {
+            duration: 500
+          }
         }
       });
 
