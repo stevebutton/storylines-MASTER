@@ -1,0 +1,226 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Loader2, MapPin, CheckCircle2, XCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
+
+export default function StoriesDebug() {
+  const queryClient = useQueryClient();
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false);
+  const [selectedStory, setSelectedStory] = useState(null);
+
+  const { data: stories = [], isLoading } = useQuery({
+    queryKey: ['stories'],
+    queryFn: () => base44.entities.Story.list('-created_date')
+  });
+
+  const updateStoryMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Story.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
+    }
+  });
+
+  const handlePublishToggle = (story) => {
+    updateStoryMutation.mutate({
+      id: story.id,
+      data: { is_published: !story.is_published }
+    });
+  };
+
+  const handleCategoryChange = (story, category) => {
+    updateStoryMutation.mutate({
+      id: story.id,
+      data: { category }
+    });
+  };
+
+  const handleLocationSave = (location) => {
+    if (selectedStory) {
+      updateStoryMutation.mutate({
+        id: selectedStory.id,
+        data: {
+          coordinates: [location.lat, location.lng],
+          zoom: location.zoom || 2,
+          bearing: location.bearing || 0,
+          pitch: location.pitch || 0
+        }
+      });
+    }
+    setLocationDialogOpen(false);
+    setSelectedStory(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Stories Debug View</CardTitle>
+          <p className="text-sm text-slate-600">
+            Testing view for all stories - check and fix missing data
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {stories.map((story) => (
+              <div
+                key={story.id}
+                className="border border-slate-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
+              >
+                <div className="grid grid-cols-12 gap-4 items-center">
+                  {/* Story Title */}
+                  <div className="col-span-3">
+                    <h3 className="font-semibold text-slate-900">{story.title}</h3>
+                    <p className="text-xs text-slate-500 mt-1">ID: {story.id}</p>
+                  </div>
+
+                  {/* Published Status */}
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Checkbox
+                      checked={story.is_published}
+                      onCheckedChange={() => handlePublishToggle(story)}
+                    />
+                    <span className="text-sm">
+                      {story.is_published ? (
+                        <span className="text-green-600 flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4" />
+                          Published
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 flex items-center gap-1">
+                          <XCircle className="w-4 h-4" />
+                          Draft
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Category */}
+                  <div className="col-span-2">
+                    {story.category ? (
+                      <Select
+                        value={story.category}
+                        onValueChange={(value) => handleCategoryChange(story, value)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="travel">Travel</SelectItem>
+                          <SelectItem value="history">History</SelectItem>
+                          <SelectItem value="nature">Nature</SelectItem>
+                          <SelectItem value="culture">Culture</SelectItem>
+                          <SelectItem value="adventure">Adventure</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Select onValueChange={(value) => handleCategoryChange(story, value)}>
+                        <SelectTrigger className="w-full border-red-300 bg-red-50">
+                          <SelectValue placeholder="No category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="travel">Travel</SelectItem>
+                          <SelectItem value="history">History</SelectItem>
+                          <SelectItem value="nature">Nature</SelectItem>
+                          <SelectItem value="culture">Culture</SelectItem>
+                          <SelectItem value="adventure">Adventure</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+
+                  {/* Starting Location */}
+                  <div className="col-span-3">
+                    {story.coordinates && story.coordinates.length === 2 ? (
+                      <div className="text-sm">
+                        <div className="flex items-center gap-1 text-green-600 mb-1">
+                          <MapPin className="w-4 h-4" />
+                          <span className="font-medium">Location set</span>
+                        </div>
+                        <div className="text-xs text-slate-600">
+                          Lat: {story.coordinates[0]?.toFixed(4)}, Lng: {story.coordinates[1]?.toFixed(4)}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          Zoom: {story.zoom || 'N/A'}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-red-600 flex items-center gap-1">
+                        <XCircle className="w-4 h-4" />
+                        No location
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="col-span-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedStory(story);
+                        setLocationDialogOpen(true);
+                      }}
+                    >
+                      {story.coordinates && story.coordinates.length === 2 ? 'Edit' : 'Set'} Location
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {stories.length === 0 && (
+            <div className="text-center py-12 text-slate-500">
+              No stories found
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Location Picker Dialog */}
+      <Dialog open={locationDialogOpen} onOpenChange={setLocationDialogOpen}>
+        <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>
+              Set Location for: {selectedStory?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 h-full">
+            <EmbeddedLocationPicker
+              initialLocation={
+                selectedStory?.coordinates && selectedStory.coordinates.length === 2
+                  ? {
+                      lat: selectedStory.coordinates[0],
+                      lng: selectedStory.coordinates[1],
+                      zoom: selectedStory.zoom || 2
+                    }
+                  : { lat: 0, lng: 0, zoom: 2 }
+              }
+              onSave={handleLocationSave}
+              onCancel={() => {
+                setLocationDialogOpen(false);
+                setSelectedStory(null);
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
