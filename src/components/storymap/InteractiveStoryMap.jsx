@@ -396,17 +396,28 @@ export default function InteractiveStoryMap({
       background-color: white;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       display: flex;
+      flex-direction: column;
       overflow: hidden;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: height 1000ms ease, box-shadow 300ms ease;
       transform: translate(-50%, -50%);
+      transform-origin: top center;
+    `;
+
+    // Top row container (thumbnail + title)
+    const topRow = document.createElement('div');
+    topRow.style.cssText = `
+      width: 100%;
+      height: 40px;
+      display: flex;
+      flex-shrink: 0;
     `;
 
     // Image container (left side - 40px)
     const imageContainer = document.createElement('div');
     imageContainer.style.cssText = `
       width: 40px;
-      height: 100%;
+      height: 40px;
       flex-shrink: 0;
       overflow: hidden;
     `;
@@ -422,13 +433,13 @@ export default function InteractiveStoryMap({
       `;
       imageContainer.appendChild(img);
     }
-    el.appendChild(imageContainer);
+    topRow.appendChild(imageContainer);
 
     // Title container (right side - 200px)
     const titleContainer = document.createElement('div');
     titleContainer.style.cssText = `
       width: 200px;
-      height: 100%;
+      height: 40px;
       display: flex;
       align-items: center;
       padding-left: 15px;
@@ -438,9 +449,74 @@ export default function InteractiveStoryMap({
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-family: 'Raleway', sans-serif;
     `;
     titleContainer.textContent = storyProps.title;
-    el.appendChild(titleContainer);
+    topRow.appendChild(titleContainer);
+    el.appendChild(topRow);
+
+    // Get the story data to access created_date
+    const story = stories.find(s => s.id === storyProps.id);
+    const publicationDate = story?.created_date 
+      ? new Date(story.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '';
+
+    // Expanded content container
+    const expandedContent = document.createElement('div');
+    expandedContent.style.cssText = `
+      width: 100%;
+      height: 100px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 1000ms ease;
+      font-family: 'Raleway', sans-serif;
+    `;
+
+    if (publicationDate) {
+      const dateEl = document.createElement('p');
+      dateEl.style.cssText = `
+        font-size: 11px;
+        color: #94a3b8;
+        margin: 0 0 8px 0;
+      `;
+      dateEl.textContent = publicationDate;
+      expandedContent.appendChild(dateEl);
+    }
+
+    if (storyProps.subtitle) {
+      const descEl = document.createElement('p');
+      descEl.style.cssText = `
+        font-size: 12px;
+        color: #64748b;
+        margin: 0 0 8px 0;
+        line-height: 1.4;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      `;
+      descEl.textContent = storyProps.subtitle;
+      expandedContent.appendChild(descEl);
+    }
+
+    const buttonEl = document.createElement('div');
+    buttonEl.style.cssText = `
+      display: inline-block;
+      padding: 6px 14px;
+      background: #d97706;
+      color: white;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: auto;
+      width: fit-content;
+    `;
+    buttonEl.textContent = 'View Story →';
+    expandedContent.appendChild(buttonEl);
+
+    el.appendChild(expandedContent);
 
     let initialZoom, initialCenter;
 
@@ -450,9 +526,10 @@ export default function InteractiveStoryMap({
       initialZoom = map.current.getZoom();
       initialCenter = map.current.getCenter();
       
-      el.style.transform = 'translate(-50%, -50%) scale(1.15)';
+      el.style.height = '140px';
       el.style.zIndex = '1000';
       el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+      expandedContent.style.opacity = '1';
       
       const newZoom = initialZoom * 1.25;
       map.current.flyTo({
@@ -461,21 +538,13 @@ export default function InteractiveStoryMap({
         duration: 800,
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       });
-      
-      // Show popup on hover
-      popup.addTo(map.current);
-      setTimeout(() => {
-        const popupElement = document.querySelector('.story-detail-popup .mapboxgl-popup-content');
-        if (popupElement) {
-          popupElement.classList.add('show');
-        }
-      }, 10);
     });
 
     el.addEventListener('mouseleave', () => {
-      el.style.transform = 'translate(-50%, -50%) scale(1)';
+      el.style.height = '40px';
       el.style.zIndex = 'auto';
       el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+      expandedContent.style.opacity = '0';
       
       map.current.flyTo({
         center: initialCenter,
@@ -484,17 +553,6 @@ export default function InteractiveStoryMap({
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       });
       
-      // Hide popup on mouse leave
-      const popupElement = document.querySelector('.story-detail-popup .mapboxgl-popup-content');
-      if (popupElement) {
-        popupElement.classList.remove('show');
-        setTimeout(() => {
-          popup.remove();
-        }, 500);
-      } else {
-        popup.remove();
-      }
-      
       resumeRotation();
     });
 
@@ -502,47 +560,8 @@ export default function InteractiveStoryMap({
       navigate(`${createPageUrl('StoryMapView')}?id=${storyProps.id}`);
     });
 
-    // Get the story data to access created_date
-    const story = stories.find(s => s.id === storyProps.id);
-    const publicationDate = story?.created_date 
-      ? new Date(story.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-      : '';
-
-    const popupContent = `
-      <div style="width: 240px; height: 240px; font-family: 'Raleway', sans-serif; display: flex; flex-direction: column; overflow: hidden;">
-        ${storyProps.hero_image ? `
-          <img 
-            src="${storyProps.hero_image}" 
-            alt="${storyProps.title}" 
-            style="width: 100%; height: 120px; object-fit: cover; flex-shrink: 0;" 
-          />
-        ` : '<div style="width: 100%; height: 120px; background: #e2e8f0; flex-shrink: 0;"></div>'}
-        <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-          ${publicationDate ? `
-            <p style="font-size: 11px; color: #94a3b8; margin: 0 0 8px 0;">${publicationDate}</p>
-          ` : ''}
-          ${storyProps.subtitle ? `
-            <p style="font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">${storyProps.subtitle}</p>
-          ` : ''}
-          <div style="margin-top: auto; padding-top: 10px;">
-            <div style="display: inline-block; padding: 6px 14px; background: #d97706; color: white; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
-              View Full Story →
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const popup = new mapboxgl.Popup({ 
-      offset: [0, 60],
-      closeButton: false,
-      maxWidth: 'none',
-      className: 'story-detail-popup'
-    }).setHTML(popupContent);
-
     const marker = new mapboxgl.Marker(el)
       .setLngLat(coordinates)
-      .setPopup(popup)
       .addTo(map.current);
 
     el.style.opacity = '0';
@@ -597,15 +616,6 @@ export default function InteractiveStoryMap({
           border-radius: 10px !important;
           box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
           overflow: hidden;
-          opacity: 0;
-          transition: opacity 500ms ease-in-out;
-        }
-        .mapboxgl-popup-content.show {
-          opacity: 1;
-        }
-        .story-detail-popup .mapboxgl-popup-content {
-          width: 240px;
-          height: 240px;
         }
         .mapboxgl-popup-tip {
           display: none !important;
