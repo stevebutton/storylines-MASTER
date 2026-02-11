@@ -79,6 +79,7 @@ export default function ProjectInterface() {
   const scrollToMap = () => {
     const wasOpen = showStorylinesPanel;
     setShowStorylinesPanel(false);
+    setIsMapSectionVisible(true);
 
     const performScroll = () => {
       const mapSection = document.getElementById('map-section');
@@ -168,7 +169,7 @@ export default function ProjectInterface() {
           heroType={mainStory.hero_type}
           onExplore={scrollToMap}
           onWhatIsStorylines={() => setShowStorylinesPanel(true)}
-          onHeroLoaded={() => setTimeout(() => setHeroMediaLoaded(true), 6000)}
+          onHeroLoaded={() => setHeroMediaLoaded(true)}
         />
         
         {/* Scroll indicator */}
@@ -197,8 +198,7 @@ export default function ProjectInterface() {
       ))}
 
       {/* Map Section - StoriesMap */}
-      {heroMediaLoaded && (
-        <div id="map-section">
+      <div id="map-section">
           <StoryMapBanner isVisible={isBannerVisible} storyTitle={mainStory.title} />
 
           <FloatingNavButtons
@@ -215,8 +215,7 @@ export default function ProjectInterface() {
             isVisible={isMapSectionVisible}
             showCategories={isMapSectionVisible}
           />
-        </div>
-      )}
+      </div>
 
       {/* What is Storylines Panel */}
       <WhatIsStorylinesPanel
