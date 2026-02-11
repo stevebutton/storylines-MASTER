@@ -461,6 +461,9 @@ export default function InteractiveStoryMap({
         duration: 800,
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       });
+      
+      // Show popup on hover
+      popup.addTo(map.current);
     });
 
     el.addEventListener('mouseleave', () => {
@@ -474,6 +477,9 @@ export default function InteractiveStoryMap({
         duration: 800,
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       });
+      
+      // Hide popup on mouse leave
+      popup.remove();
       
       resumeRotation();
     });
