@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom/client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import CategoryFilter from '@/components/storymap/CategoryFilter';
+import StoryMarker from '@/components/storymap/StoryMarker';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ChevronUp } from 'lucide-react';
@@ -389,149 +391,18 @@ export default function InteractiveStoryMap({
 
   const createMarker = (storyProps, coordinates) => {
     const el = document.createElement('div');
-    el.style.cssText = `
-      width: 240px;
-      height: 40px;
-      border-radius: 10px;
-      background-color: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      cursor: pointer;
-      transition: height 1000ms ease, box-shadow 300ms ease;
-      transform: translate(-50%, -50%);
-      transform-origin: top center;
-    `;
-
-    // Top row container (thumbnail + title)
-    const topRow = document.createElement('div');
-    topRow.style.cssText = `
-      width: 100%;
-      height: 40px;
-      display: flex;
-      flex-shrink: 0;
-    `;
-
-    // Image container (left side - 40px)
-    const imageContainer = document.createElement('div');
-    imageContainer.style.cssText = `
-      width: 40px;
-      height: 40px;
-      flex-shrink: 0;
-      overflow: hidden;
-    `;
-
-    if (storyProps.hero_image) {
-      const img = document.createElement('img');
-      img.src = storyProps.hero_image;
-      img.alt = storyProps.title;
-      img.style.cssText = `
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      `;
-      imageContainer.appendChild(img);
-    }
-    topRow.appendChild(imageContainer);
-
-    // Title container (right side - 200px)
-    const titleContainer = document.createElement('div');
-    titleContainer.style.cssText = `
-      width: 200px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      padding-left: 15px;
-      font-size: 0.875rem;
-      color: #1e293b;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-family: 'Raleway', sans-serif;
-    `;
-    titleContainer.textContent = storyProps.title;
-    topRow.appendChild(titleContainer);
-    el.appendChild(topRow);
-
-    // Get the story data to access created_date
+    
     const story = stories.find(s => s.id === storyProps.id);
     const publicationDate = story?.created_date 
       ? new Date(story.created_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
       : '';
 
-    // Expanded content container
-    const expandedContent = document.createElement('div');
-    expandedContent.style.cssText = `
-      width: 100%;
-      height: 200px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      opacity: 0;
-      transition: opacity 800ms ease 200ms;
-      font-family: 'Raleway', sans-serif;
-    `;
-
-    if (publicationDate) {
-      const dateEl = document.createElement('p');
-      dateEl.style.cssText = `
-        font-size: 11px;
-        color: #94a3b8;
-        margin: 0 0 8px 0;
-      `;
-      dateEl.textContent = publicationDate;
-      expandedContent.appendChild(dateEl);
-    }
-
-    if (storyProps.subtitle) {
-      const descEl = document.createElement('p');
-      descEl.style.cssText = `
-        font-size: 12px;
-        color: #64748b;
-        margin: 0 0 8px 0;
-        line-height: 1.4;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-      `;
-      descEl.textContent = storyProps.subtitle;
-      expandedContent.appendChild(descEl);
-    }
-
-    const buttonEl = document.createElement('div');
-    buttonEl.style.cssText = `
-      display: inline-block;
-      padding: 6px 14px;
-      background: #d97706;
-      color: white;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      margin-top: auto;
-      width: fit-content;
-    `;
-    buttonEl.textContent = 'View Story →';
-    expandedContent.appendChild(buttonEl);
-
-    el.appendChild(expandedContent);
-
     let initialZoom, initialCenter;
 
-    el.addEventListener('mouseenter', () => {
+    const handleMouseEnter = () => {
       pauseRotation();
-      
       initialZoom = map.current.getZoom();
       initialCenter = map.current.getCenter();
-      
-      requestAnimationFrame(() => {
-        el.style.height = '240px';
-        el.style.zIndex = '1000';
-        el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
-        expandedContent.style.opacity = '1';
-      });
       
       const newZoom = initialZoom * 1.25;
       map.current.flyTo({
@@ -540,40 +411,36 @@ export default function InteractiveStoryMap({
         duration: 800,
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       });
-    });
+    };
 
-    el.addEventListener('mouseleave', () => {
-      expandedContent.style.opacity = '0';
-      
-      setTimeout(() => {
-        el.style.height = '40px';
-        el.style.zIndex = 'auto';
-        el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-      }, 200);
-      
+    const handleMouseLeave = () => {
       map.current.flyTo({
         center: initialCenter,
         zoom: initialZoom,
         duration: 800,
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       });
-      
       resumeRotation();
-    });
+    };
 
-    el.addEventListener('click', () => {
+    const handleClick = () => {
       navigate(`${createPageUrl('StoryMapView')}?id=${storyProps.id}`);
-    });
+    };
+
+    const root = ReactDOM.createRoot(el);
+    root.render(
+      <StoryMarker 
+        storyProps={storyProps}
+        publicationDate={publicationDate}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
+      />
+    );
 
     const marker = new mapboxgl.Marker(el)
       .setLngLat(coordinates)
       .addTo(map.current);
-
-    el.style.opacity = '0';
-    el.style.transition = 'opacity 500ms ease-in';
-    setTimeout(() => {
-      el.style.opacity = '1';
-    }, 10);
 
     markers.current[storyProps.id] = marker;
   };
