@@ -298,7 +298,7 @@ export default function InteractiveStoryMap({
       display: flex;
       align-items: center;
       padding-left: 15px;
-      font-size: 1.25rem;
+      font-size: 0.875rem;
       color: #1e293b;
       font-weight: 500;
       white-space: nowrap;
