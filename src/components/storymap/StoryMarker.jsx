@@ -237,9 +237,9 @@ export default function StoryMarker({
               width: 'fit-content'
             }}>
               View Story →
-            </div>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
           )}
         </AnimatePresence>,
         portalContainer
