@@ -408,8 +408,8 @@ export default function InteractiveStoryMap({
       map.current.flyTo({
         center: coordinates,
         zoom: newZoom,
-        duration: 800,
-        easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+        duration: 1500,
+        easing: (t) => t * t * t
       });
     };
 
@@ -417,8 +417,8 @@ export default function InteractiveStoryMap({
       map.current.flyTo({
         center: initialCenter,
         zoom: initialZoom,
-        duration: 800,
-        easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+        duration: 1500,
+        easing: (t) => t * t * t
       });
       resumeRotation();
     };
