@@ -79,41 +79,43 @@ export default function StoryMarker({
         onMouseEnter={handleMouseEnter}
         onClick={onClick}
       >
-        {/* Thumbnail */}
-        <div style={{
-          width: '40px',
-          height: '40px',
-          flexShrink: 0,
-          overflow: 'hidden'
-        }}>
-          {storyProps.hero_image && (
-            <img 
-              src={storyProps.hero_image} 
-              alt={storyProps.title}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
-              }}
-            />
-          )}
-        </div>
+        <div style={{ display: 'flex', width: '100%', height: '40px' }}>
+          {/* Thumbnail */}
+          <div style={{
+            width: '40px',
+            height: '40px',
+            flexShrink: 0,
+            overflow: 'hidden'
+          }}>
+            {storyProps.hero_image && (
+              <img 
+                src={storyProps.hero_image} 
+                alt={storyProps.title}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+            )}
+          </div>
 
-        {/* Title */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          paddingLeft: '15px',
-          color: '#1e293b',
-          fontSize: '0.875rem',
-          fontWeight: 500,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          fontFamily: 'Raleway, sans-serif',
-          flex: 1
-        }}>
-          {storyProps.title}
+          {/* Title */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            paddingLeft: '15px',
+            color: '#1e293b',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            fontFamily: 'Raleway, sans-serif',
+            flex: 1
+          }}>
+            {storyProps.title}
+          </div>
         </div>
       </motion.div>
 
