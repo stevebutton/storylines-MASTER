@@ -134,7 +134,10 @@ export default function InteractiveStoryMap({
       if (stories.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
         stories.forEach(story => {
-          if (story.coordinates) {
+          if (story.coordinates && Array.isArray(story.coordinates) && 
+              story.coordinates.length === 2 &&
+              !isNaN(story.coordinates[0]) && !isNaN(story.coordinates[1]) &&
+              isFinite(story.coordinates[0]) && isFinite(story.coordinates[1])) {
             bounds.extend([story.coordinates[1], story.coordinates[0]]);
           }
         });
@@ -238,7 +241,10 @@ export default function InteractiveStoryMap({
   };
 
   const createMarker = (story, initialZoom, initialCenter) => {
-    if (!story.coordinates) return;
+    if (!story.coordinates || !Array.isArray(story.coordinates) || 
+        story.coordinates.length !== 2 ||
+        isNaN(story.coordinates[0]) || isNaN(story.coordinates[1]) ||
+        !isFinite(story.coordinates[0]) || !isFinite(story.coordinates[1])) return;
 
     const el = document.createElement('div');
     el.style.cssText = `
