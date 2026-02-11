@@ -465,12 +465,12 @@ export default function InteractiveStoryMap({
     const expandedContent = document.createElement('div');
     expandedContent.style.cssText = `
       width: 100%;
-      height: 100px;
+      height: 200px;
       padding: 12px;
       display: flex;
       flex-direction: column;
       opacity: 0;
-      transition: opacity 1000ms ease;
+      transition: opacity 800ms ease 200ms;
       font-family: 'Raleway', sans-serif;
     `;
 
@@ -526,10 +526,12 @@ export default function InteractiveStoryMap({
       initialZoom = map.current.getZoom();
       initialCenter = map.current.getCenter();
       
-      el.style.height = '140px';
-      el.style.zIndex = '1000';
-      el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
-      expandedContent.style.opacity = '1';
+      requestAnimationFrame(() => {
+        el.style.height = '240px';
+        el.style.zIndex = '1000';
+        el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+        expandedContent.style.opacity = '1';
+      });
       
       const newZoom = initialZoom * 1.25;
       map.current.flyTo({
@@ -541,10 +543,13 @@ export default function InteractiveStoryMap({
     });
 
     el.addEventListener('mouseleave', () => {
-      el.style.height = '40px';
-      el.style.zIndex = 'auto';
-      el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
       expandedContent.style.opacity = '0';
+      
+      setTimeout(() => {
+        el.style.height = '40px';
+        el.style.zIndex = 'auto';
+        el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+      }, 200);
       
       map.current.flyTo({
         center: initialCenter,
