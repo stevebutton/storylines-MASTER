@@ -53,31 +53,32 @@ export default function StoryMarker({
   };
 
   return (
-    <motion.div
-      className="story-marker"
-      style={{
-        width: '240px',
-        borderRadius: '10px',
-        backgroundColor: 'white',
-        boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.3)',
-        cursor: 'pointer',
-        transform: 'translate(-50%, -50%)',
-        transformOrigin: 'top center',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-      animate={{ 
-        height: isHovered ? '240px' : '40px',
-        zIndex: isHovered ? 1000 : 1
-      }}
-      transition={{ 
-        height: { duration: 1, ease: "easeInOut" },
-        zIndex: { duration: 0 }
-      }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onClick={onClick}
-    >
+    <>
+      {/* Base marker - visible when not hovered */}
+      <motion.div
+        ref={markerRef}
+        className="story-marker"
+        style={{
+          width: '240px',
+          borderRadius: '10px',
+          backgroundColor: 'white',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
+          transform: 'translate(-50%, -50%)',
+          transformOrigin: 'top center',
+          position: 'relative',
+          overflow: 'hidden',
+          opacity: isHovered ? 0 : 1
+        }}
+        animate={{ 
+          height: '40px'
+        }}
+        transition={{ 
+          opacity: { duration: 0.2 }
+        }}
+        onMouseEnter={handleMouseEnter}
+        onClick={onClick}
+      >
       {/* Top row container */}
       <motion.div
         animate={{
