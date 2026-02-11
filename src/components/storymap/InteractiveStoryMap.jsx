@@ -28,6 +28,7 @@ export default function InteractiveStoryMap({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState([]);
   const rotationIntervalRef = useRef(null);
+  const shouldRotateRef = useRef(false);
 
   useEffect(() => {
     const uniqueCategories = [...new Set(stories.map(s => s.category).filter(Boolean))];
@@ -70,45 +71,51 @@ export default function InteractiveStoryMap({
     };
   }, [mapInitialized]);
 
-  useEffect(() => {
-    if (!map.current || !mapInitialized) return;
+  const pauseRotation = () => {
+    if (rotationIntervalRef.current) {
+      clearInterval(rotationIntervalRef.current);
+      rotationIntervalRef.current = null;
+    }
+  };
 
-    if (isVisible) {
+  const resumeRotation = () => {
+    if (shouldRotateRef.current && !rotationIntervalRef.current) {
       const rotateMap = () => {
         if (map.current) {
           const currentCenter = map.current.getCenter();
           map.current.setCenter([currentCenter.lng - 0.171, currentCenter.lat]);
         }
       };
-
       rotationIntervalRef.current = setInterval(rotateMap, 16.67);
+    }
+  };
 
-      const stopRotation = () => {
-        if (rotationIntervalRef.current) {
-          clearInterval(rotationIntervalRef.current);
-          rotationIntervalRef.current = null;
-        }
-      };
+  const stopRotation = () => {
+    shouldRotateRef.current = false;
+    pauseRotation();
+  };
+
+  useEffect(() => {
+    if (!map.current || !mapInitialized) return;
+
+    if (isVisible) {
+      shouldRotateRef.current = true;
+      resumeRotation();
 
       map.current.on('mousedown', stopRotation);
       map.current.on('touchstart', stopRotation);
       map.current.on('wheel', stopRotation);
     } else {
-      if (rotationIntervalRef.current) {
-        clearInterval(rotationIntervalRef.current);
-        rotationIntervalRef.current = null;
-      }
+      shouldRotateRef.current = false;
+      pauseRotation();
     }
 
     return () => {
-      if (rotationIntervalRef.current) {
-        clearInterval(rotationIntervalRef.current);
-        rotationIntervalRef.current = null;
-      }
+      pauseRotation();
       if (map.current) {
-        map.current.off('mousedown');
-        map.current.off('touchstart');
-        map.current.off('wheel');
+        map.current.off('mousedown', stopRotation);
+        map.current.off('touchstart', stopRotation);
+        map.current.off('wheel', stopRotation);
       }
     };
   }, [isVisible, mapInitialized]);
@@ -290,12 +297,14 @@ export default function InteractiveStoryMap({
         );
       });
 
-      // Change cursor on cluster hover
+      // Change cursor on cluster hover and pause rotation
       map.current.on('mouseenter', 'clusters', () => {
         map.current.getCanvas().style.cursor = 'pointer';
+        pauseRotation();
       });
       map.current.on('mouseleave', 'clusters', () => {
         map.current.getCanvas().style.cursor = '';
+        resumeRotation();
       });
 
       setMapInitialized(true);
@@ -437,6 +446,8 @@ export default function InteractiveStoryMap({
     let initialZoom, initialCenter;
 
     el.addEventListener('mouseenter', () => {
+      pauseRotation();
+      
       initialZoom = map.current.getZoom();
       initialCenter = map.current.getCenter();
       
@@ -464,6 +475,8 @@ export default function InteractiveStoryMap({
         duration: 800,
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       });
+      
+      resumeRotation();
     });
 
     el.addEventListener('click', () => {
