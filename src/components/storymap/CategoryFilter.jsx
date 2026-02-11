@@ -13,21 +13,19 @@ export default function CategoryFilter({ categories, selectedCategory, onCategor
   }, []);
 
   return (
-    <div className="backdrop-blur-md bg-white/90 border border-white/30 rounded-2xl px-6 py-6 shadow-lg">
-      <div className="flex flex-col items-center" style={{ gap: '21px' }}>
-        <div className="w-full flex justify-center overflow-hidden h-[35px]">
-          {showTitle && (
-            <motion.h2
-              className="text-[30px] text-black"
-              style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800 }}
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 2, ease: "easeOut" }}
-            >
-              Explore the Stories
-            </motion.h2>
-          )}
-        </div>
+    <div className="backdrop-blur-md bg-white/90 border border-white/30 rounded-2xl px-6 py-4 shadow-lg">
+      <div className="flex items-center gap-6">
+        {showTitle && (
+          <motion.h2
+            className="text-xl text-black whitespace-nowrap"
+            style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 800 }}
+            initial={{ x: 50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 2, ease: "easeOut" }}
+          >
+            Explore the Stories
+          </motion.h2>
+        )}
         <div className="flex gap-2 items-center">
           <Button
             onClick={() => onCategoryChange('all')}
