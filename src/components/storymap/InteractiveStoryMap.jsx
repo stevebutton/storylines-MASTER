@@ -208,7 +208,10 @@ export default function InteractiveStoryMap({
     if (!map.current) return;
 
     const features = storiesToShow.map(story => {
-      if (!story.coordinates) return null;
+      if (!story.coordinates || !Array.isArray(story.coordinates) || 
+          story.coordinates.length !== 2 ||
+          isNaN(story.coordinates[0]) || isNaN(story.coordinates[1]) ||
+          !isFinite(story.coordinates[0]) || !isFinite(story.coordinates[1])) return null;
       
       const geoLngLat = [story.coordinates[1], story.coordinates[0]];
       const geoScreenPoint = map.current.project(geoLngLat);
