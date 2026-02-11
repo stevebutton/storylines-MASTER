@@ -242,7 +242,7 @@ export default function InteractiveStoryMap({
         }
       });
 
-      // Unclustered points layer (simple circles, before custom HTML markers are added)
+      // Unclustered points layer (hidden - custom HTML markers are used instead)
       map.current.addLayer({
         id: 'unclustered-point',
         type: 'circle',
@@ -250,32 +250,13 @@ export default function InteractiveStoryMap({
         filter: ['!', ['has', 'point_count']],
         paint: {
           'circle-color': '#d97706',
-          'circle-radius': 8,
-          'circle-stroke-width': 2,
+          'circle-radius': 0,
+          'circle-stroke-width': 0,
           'circle-stroke-color': '#fff'
         }
       });
 
-      // Handle unclustered point clicks
-      map.current.on('click', 'unclustered-point', (e) => {
-        const features = map.current.queryRenderedFeatures(e.point, {
-          layers: ['unclustered-point']
-        });
-        if (features.length > 0) {
-          const storyId = features[0].properties.id;
-          if (storyId) {
-            navigate(`${createPageUrl('StoryMapView')}?id=${storyId}`);
-          }
-        }
-      });
 
-      // Change cursor on unclustered point hover
-      map.current.on('mouseenter', 'unclustered-point', () => {
-        map.current.getCanvas().style.cursor = 'pointer';
-      });
-      map.current.on('mouseleave', 'unclustered-point', () => {
-        map.current.getCanvas().style.cursor = '';
-      });
 
       // Handle cluster clicks
       map.current.on('click', 'clusters', (e) => {
@@ -293,6 +274,11 @@ export default function InteractiveStoryMap({
               zoom: zoom,
               duration: 800
             });
+            
+            // Update markers after zoom animation completes
+            setTimeout(() => {
+              updateUnclusteredMarkers();
+            }, 850);
           }
         );
       });
