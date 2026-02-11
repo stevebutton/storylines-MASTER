@@ -10,6 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function TabbedContentEditor({ 
     itemType, 
@@ -79,12 +81,19 @@ export default function TabbedContentEditor({
                         </div>
                         <div>
                             <Label>Subtitle</Label>
-                            <Textarea 
-                                value={item.subtitle || ''} 
-                                onChange={(e) => onUpdate({ ...item, subtitle: e.target.value })}
+                            <ReactQuill
+                                value={item.subtitle || ''}
+                                onChange={(content) => onUpdate({ ...item, subtitle: content })}
                                 placeholder="Exploring the world's most iconic landmarks..."
-                                className="h-20"
-                                style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                                className="bg-white"
+                                style={{ height: '100px', marginBottom: '50px' }}
+                                modules={{
+                                    toolbar: [
+                                        ['bold', 'italic', 'underline'],
+                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                        ['link']
+                                    ]
+                                }}
                             />
                         </div>
 
@@ -357,12 +366,19 @@ export default function TabbedContentEditor({
                             </div>
                             <div>
                                 <Label>Description</Label>
-                                <Textarea 
-                                    value={item.description || ''} 
-                                    onChange={(e) => onUpdate({ ...item, description: e.target.value })}
+                                <ReactQuill
+                                    value={item.description || ''}
+                                    onChange={(content) => onUpdate({ ...item, description: content })}
                                     placeholder="Slide description"
-                                    className="h-32"
-                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                                    className="bg-white"
+                                    style={{ height: '120px', marginBottom: '50px' }}
+                                    modules={{
+                                        toolbar: [
+                                            ['bold', 'italic', 'underline'],
+                                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                            ['link']
+                                        ]
+                                    }}
                                 />
                             </div>
                             <div>
