@@ -23,7 +23,7 @@ export default function InteractiveStoryMap({
   const navigate = useNavigate();
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const markers = useRef([]);
+  const markers = useRef({});
   const [mapInitialized, setMapInitialized] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState([]);
@@ -50,30 +50,25 @@ export default function InteractiveStoryMap({
 
   useEffect(() => {
     if (map.current && mapInitialized) {
-      addMarkers();
+      updateStoryData();
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, stories]);
 
   useEffect(() => {
     if (!map.current || !mapInitialized) return;
 
-    const handleMapMove = () => {
-      const filteredStories = selectedCategory === 'all' 
-        ? stories 
-        : stories.filter(s => s.category === selectedCategory);
-      updateConnectionLines(filteredStories);
+    const handleZoom = () => {
+      updateUnclusteredMarkers();
     };
 
-    map.current.on('move', handleMapMove);
-    map.current.on('zoom', handleMapMove);
+    map.current.on('zoom', handleZoom);
 
     return () => {
       if (map.current) {
-        map.current.off('move', handleMapMove);
-        map.current.off('zoom', handleMapMove);
+        map.current.off('zoom', handleZoom);
       }
     };
-  }, [selectedCategory, stories, mapInitialized]);
+  }, [mapInitialized]);
 
   useEffect(() => {
     if (!map.current || !mapInitialized) return;
@@ -176,84 +171,172 @@ export default function InteractiveStoryMap({
         }
       });
 
-      addMarkers();
+      // Add stories source with clustering
+      map.current.addSource('stories', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+        cluster: true,
+        clusterMaxZoom: 10,
+        clusterRadius: 80
+      });
+
+      // Cluster circles layer
+      map.current.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'stories',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            '#d97706',
+            3,
+            '#c2410c',
+            5,
+            '#9a3412'
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            25,
+            3,
+            32,
+            5,
+            40
+          ],
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#fff'
+        }
+      });
+
+      // Cluster count layer
+      map.current.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'stories',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': [
+            'concat',
+            ['get', 'point_count'],
+            [
+              'case',
+              ['==', ['get', 'point_count'], 1],
+              ' story',
+              ' stories'
+            ]
+          ],
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 11
+        },
+        paint: {
+          'text-color': '#ffffff'
+        }
+      });
+
+      // Handle cluster clicks
+      map.current.on('click', 'clusters', (e) => {
+        const features = map.current.queryRenderedFeatures(e.point, {
+          layers: ['clusters']
+        });
+        const clusterId = features[0].properties.cluster_id;
+        map.current.getSource('stories').getClusterExpansionZoom(
+          clusterId,
+          (err, zoom) => {
+            if (err) return;
+
+            map.current.easeTo({
+              center: features[0].geometry.coordinates,
+              zoom: zoom,
+              duration: 800
+            });
+          }
+        );
+      });
+
+      // Change cursor on cluster hover
+      map.current.on('mouseenter', 'clusters', () => {
+        map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current.on('mouseleave', 'clusters', () => {
+        map.current.getCanvas().style.cursor = '';
+      });
+
       setMapInitialized(true);
     });
   };
 
-  const addMarkers = () => {
-    if (!map.current || stories.length === 0) return;
+  const updateStoryData = () => {
+    if (!map.current || !mapInitialized) return;
 
-    markers.current.forEach(marker => {
-      const el = marker.getElement();
-      el.style.transition = 'opacity 500ms ease-out';
-      el.style.opacity = '0';
-    });
+    const filteredStories = selectedCategory === 'all' 
+      ? stories 
+      : stories.filter(s => s.category === selectedCategory);
 
-    setTimeout(() => {
-      markers.current.forEach(marker => marker.remove());
-      markers.current = [];
-
-      let initialZoom = map.current.getZoom();
-      let initialCenter = map.current.getCenter();
-
-      const filteredStories = selectedCategory === 'all' 
-        ? stories 
-        : stories.filter(s => s.category === selectedCategory);
-
-      filteredStories.forEach((story) => {
-        createMarker(story, initialZoom, initialCenter);
-      });
-
-      updateConnectionLines(filteredStories);
-    }, 500);
-  };
-
-  const updateConnectionLines = (storiesToShow) => {
-    if (!map.current) return;
-
-    const features = storiesToShow.map(story => {
-      if (!story.coordinates || !Array.isArray(story.coordinates) || 
-          story.coordinates.length !== 2 ||
-          isNaN(story.coordinates[0]) || isNaN(story.coordinates[1]) ||
-          !isFinite(story.coordinates[0]) || !isFinite(story.coordinates[1])) return null;
-      
-      const geoLngLat = [story.coordinates[1], story.coordinates[0]];
-      const geoScreenPoint = map.current.project(geoLngLat);
-      
-      const thumbnailBottomY = geoScreenPoint.y + 20;
-      const lineStartLngLat = map.current.unproject([geoScreenPoint.x, thumbnailBottomY]);
-      
-      const lineEndY = thumbnailBottomY + 50;
-      const lineEndLngLat = map.current.unproject([geoScreenPoint.x, lineEndY]);
-      
-      return {
+    const features = filteredStories
+      .filter(story => 
+        story.coordinates && 
+        Array.isArray(story.coordinates) && 
+        story.coordinates.length === 2 &&
+        !isNaN(story.coordinates[0]) && 
+        !isNaN(story.coordinates[1]) &&
+        isFinite(story.coordinates[0]) && 
+        isFinite(story.coordinates[1])
+      )
+      .map(story => ({
         type: 'Feature',
         geometry: {
-          type: 'LineString',
-          coordinates: [
-            [lineStartLngLat.lng, lineStartLngLat.lat],
-            [lineEndLngLat.lng, lineEndLngLat.lat]
-          ]
+          type: 'Point',
+          coordinates: [story.coordinates[1], story.coordinates[0]]
+        },
+        properties: {
+          id: story.id,
+          title: story.title,
+          subtitle: story.subtitle,
+          author: story.author,
+          hero_image: story.hero_image,
+          category: story.category
         }
-      };
-    }).filter(Boolean);
+      }));
 
-    const source = map.current.getSource('marker-lines');
+    const source = map.current.getSource('stories');
     if (source) {
       source.setData({
         type: 'FeatureCollection',
         features
       });
+      
+      updateUnclusteredMarkers();
     }
   };
 
-  const createMarker = (story, initialZoom, initialCenter) => {
-    if (!story.coordinates || !Array.isArray(story.coordinates) || 
-        story.coordinates.length !== 2 ||
-        isNaN(story.coordinates[0]) || isNaN(story.coordinates[1]) ||
-        !isFinite(story.coordinates[0]) || !isFinite(story.coordinates[1])) return;
+  const updateUnclusteredMarkers = () => {
+    if (!map.current) return;
 
+    const features = map.current.querySourceFeatures('stories', {
+      filter: ['!', ['has', 'point_count']]
+    });
+
+    // Remove markers that are no longer visible
+    Object.keys(markers.current).forEach(id => {
+      const stillVisible = features.find(f => f.properties.id === id);
+      if (!stillVisible) {
+        markers.current[id].remove();
+        delete markers.current[id];
+      }
+    });
+
+    // Add/update markers for visible unclustered points
+    features.forEach(feature => {
+      const id = feature.properties.id;
+      if (!markers.current[id]) {
+        createMarker(feature.properties, feature.geometry.coordinates);
+      }
+    });
+  };
+
+  const createMarker = (storyProps, coordinates) => {
     const el = document.createElement('div');
     el.style.cssText = `
       width: 240px;
@@ -277,10 +360,10 @@ export default function InteractiveStoryMap({
       overflow: hidden;
     `;
 
-    if (story.hero_image) {
+    if (storyProps.hero_image) {
       const img = document.createElement('img');
-      img.src = story.hero_image;
-      img.alt = story.title;
+      img.src = storyProps.hero_image;
+      img.alt = storyProps.title;
       img.style.cssText = `
         width: 100%;
         height: 100%;
@@ -305,8 +388,10 @@ export default function InteractiveStoryMap({
       overflow: hidden;
       text-overflow: ellipsis;
     `;
-    titleContainer.textContent = story.title;
+    titleContainer.textContent = storyProps.title;
     el.appendChild(titleContainer);
+
+    let initialZoom, initialCenter;
 
     el.addEventListener('mouseenter', () => {
       initialZoom = map.current.getZoom();
@@ -318,7 +403,7 @@ export default function InteractiveStoryMap({
       
       const newZoom = initialZoom * 1.25;
       map.current.flyTo({
-        center: [story.coordinates[1], story.coordinates[0]],
+        center: coordinates,
         zoom: newZoom,
         duration: 800,
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
@@ -339,24 +424,24 @@ export default function InteractiveStoryMap({
     });
 
     el.addEventListener('click', () => {
-      navigate(`${createPageUrl('StoryMapView')}?id=${story.id}`);
+      navigate(`${createPageUrl('StoryMapView')}?id=${storyProps.id}`);
     });
 
     const popupContent = `
       <div style="min-width: 250px; font-family: system-ui, sans-serif;">
-        ${story.hero_image ? `
+        ${storyProps.hero_image ? `
           <img 
-            src="${story.hero_image}" 
-            alt="${story.title}" 
+            src="${storyProps.hero_image}" 
+            alt="${storyProps.title}" 
             style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 12px;" 
           />
         ` : ''}
-        <h3 style="font-weight: 600; color: #1e293b; margin: 0 0 6px 0; font-size: 16px;">${story.title}</h3>
-        ${story.subtitle ? `
-          <p style="font-size: 13px; color: #64748b; margin: 0 0 8px 0; line-height: 1.4;">${story.subtitle}</p>
+        <h3 style="font-weight: 600; color: #1e293b; margin: 0 0 6px 0; font-size: 16px;">${storyProps.title}</h3>
+        ${storyProps.subtitle ? `
+          <p style="font-size: 13px; color: #64748b; margin: 0 0 8px 0; line-height: 1.4;">${storyProps.subtitle}</p>
         ` : ''}
-        ${story.author ? `
-          <p style="font-size: 12px; color: #94a3b8; margin: 0;">By ${story.author}</p>
+        ${storyProps.author ? `
+          <p style="font-size: 12px; color: #94a3b8; margin: 0;">By ${storyProps.author}</p>
         ` : ''}
         <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
           <div style="display: inline-block; padding: 6px 12px; background: #d97706; color: white; border-radius: 6px; font-size: 12px; font-weight: 500;">
@@ -373,7 +458,7 @@ export default function InteractiveStoryMap({
     }).setHTML(popupContent);
 
     const marker = new mapboxgl.Marker(el)
-      .setLngLat([story.coordinates[1], story.coordinates[0]])
+      .setLngLat(coordinates)
       .setPopup(popup)
       .addTo(map.current);
 
@@ -383,7 +468,7 @@ export default function InteractiveStoryMap({
       el.style.opacity = '1';
     }, 10);
 
-    markers.current.push(marker);
+    markers.current[storyProps.id] = marker;
   };
 
   return (
