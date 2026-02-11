@@ -52,7 +52,7 @@ export default function InteractiveStoryMap({
     if (map.current && mapInitialized) {
       updateStoryData();
     }
-  }, [selectedCategory, stories]);
+  }, [selectedCategory, stories, mapInitialized]);
 
   useEffect(() => {
     if (!map.current || !mapInitialized) return;
