@@ -120,31 +120,32 @@ export default function StoryMarker({
       </motion.div>
 
       {/* Expanded marker via portal */}
-      {isHovered && portalContainer && createPortal(
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          style={{
-            position: 'fixed',
-            top: markerPosition.top,
-            left: markerPosition.left,
-            transform: 'translate(-50%, -50%)',
-            width: '240px',
-            height: '240px',
-            borderRadius: '10px',
-            backgroundColor: 'white',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-            cursor: 'pointer',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            pointerEvents: 'auto'
-          }}
-          onMouseLeave={handleMouseLeave}
-          onClick={onClick}
-        >
+      {portalContainer && createPortal(
+        <AnimatePresence>
+          {isHovered && (
+            <motion.div
+              initial={{ opacity: 0, height: '40px' }}
+              animate={{ opacity: 1, height: '240px' }}
+              exit={{ opacity: 0, height: '40px' }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              style={{
+                position: 'fixed',
+                top: markerPosition.top,
+                left: markerPosition.left,
+                transform: 'translate(-50%, -50%)',
+                width: '240px',
+                borderRadius: '10px',
+                backgroundColor: 'white',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                pointerEvents: 'auto'
+              }}
+              onMouseLeave={handleMouseLeave}
+              onClick={onClick}
+            >
           {/* Thumbnail */}
           <motion.div
             initial={{ height: '40px' }}
