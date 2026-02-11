@@ -37,7 +37,7 @@ export default function StoryMarker({
         position: 'relative'
       }}
       animate={{ 
-        height: isHovered ? '240px' : '40px',
+        height: isHovered ? '340px' : '40px',
         zIndex: isHovered ? 1000 : 1
       }}
       transition={{ 
@@ -48,51 +48,58 @@ export default function StoryMarker({
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
     >
-      {/* Top row: thumbnail + title */}
-      <div style={{
-        width: '100%',
-        height: '40px',
-        display: 'flex',
-        flexShrink: 0
-      }}>
-        {/* Thumbnail */}
-        <div style={{
-          width: '40px',
-          height: '40px',
+      {/* Thumbnail */}
+      <motion.div
+        layout
+        animate={{
+          width: isHovered ? '240px' : '40px',
+          height: isHovered ? '180px' : '40px'
+        }}
+        transition={{ duration: 1, ease: "easeInOut" }}
+        style={{
           flexShrink: 0,
           overflow: 'hidden'
-        }}>
-          {storyProps.hero_image && (
-            <img 
-              src={storyProps.hero_image} 
-              alt={storyProps.title}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
-              }}
-            />
-          )}
-        </div>
+        }}
+      >
+        {storyProps.hero_image && (
+          <img 
+            src={storyProps.hero_image} 
+            alt={storyProps.title}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }}
+          />
+        )}
+      </motion.div>
 
-        {/* Title */}
-        <div style={{
-          width: '200px',
-          height: '40px',
+      {/* Title */}
+      <motion.div
+        layout
+        animate={{
+          paddingLeft: isHovered ? '12px' : '15px',
+          paddingRight: isHovered ? '12px' : '0',
+          paddingTop: isHovered ? '12px' : '0',
+          paddingBottom: isHovered ? '8px' : '0',
+          fontSize: isHovered ? '1.5rem' : '0.875rem',
+          fontWeight: isHovered ? 700 : 500,
+          height: isHovered ? 'auto' : '40px',
+          whiteSpace: isHovered ? 'normal' : 'nowrap'
+        }}
+        transition={{ duration: 1, ease: "easeInOut" }}
+        style={{
           display: 'flex',
-          alignItems: 'center',
-          paddingLeft: '15px',
-          fontSize: '0.875rem',
+          alignItems: isHovered ? 'flex-start' : 'center',
           color: '#1e293b',
-          fontWeight: 500,
-          whiteSpace: 'nowrap',
           overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          fontFamily: 'Raleway, sans-serif'
-        }}>
-          {storyProps.title}
-        </div>
-      </div>
+          textOverflow: isHovered ? 'clip' : 'ellipsis',
+          fontFamily: 'Raleway, sans-serif',
+          lineHeight: 1.2
+        }}
+      >
+        {storyProps.title}
+      </motion.div>
 
       {/* Expanded content */}
       <AnimatePresence>
@@ -101,14 +108,14 @@ export default function StoryMarker({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
             style={{
               width: '100%',
-              height: '200px',
-              padding: '12px',
+              padding: '0 12px 12px 12px',
               display: 'flex',
               flexDirection: 'column',
-              fontFamily: 'Raleway, sans-serif'
+              fontFamily: 'Raleway, sans-serif',
+              flex: 1
             }}
           >
             {publicationDate && (
