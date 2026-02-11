@@ -221,7 +221,7 @@ export default function InteractiveStoryMap({
       const geoLngLat = [story.coordinates[1], story.coordinates[0]];
       const geoScreenPoint = map.current.project(geoLngLat);
       
-      const thumbnailBottomY = geoScreenPoint.y + 67.5;
+      const thumbnailBottomY = geoScreenPoint.y + 20;
       const lineStartLngLat = map.current.unproject([geoScreenPoint.x, thumbnailBottomY]);
       
       const lineEndY = thumbnailBottomY + 50;
@@ -257,62 +257,64 @@ export default function InteractiveStoryMap({
     const el = document.createElement('div');
     el.style.cssText = `
       width: 240px;
-      height: 135px;
-    `;
-
-    const inner = document.createElement('div');
-    inner.className = 'story-marker-inner';
-    inner.style.cssText = `
-      width: 100%;
-      height: 100%;
-      border-radius: 12px;
+      height: 40px;
+      border-radius: 10px;
+      background-color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
       overflow: hidden;
       cursor: pointer;
-      border: 3px solid white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       transition: all 0.3s ease;
-      background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
       transform: translate(-50%, -50%);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
+    `;
+
+    // Image container (left side - 40px)
+    const imageContainer = document.createElement('div');
+    imageContainer.style.cssText = `
+      width: 40px;
+      height: 100%;
+      flex-shrink: 0;
+      overflow: hidden;
     `;
 
     if (story.hero_image) {
-      inner.style.backgroundImage = `url(${story.hero_image})`;
-      inner.style.backgroundSize = 'cover';
-      inner.style.backgroundPosition = 'center';
+      const img = document.createElement('img');
+      img.src = story.hero_image;
+      img.alt = story.title;
+      img.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      `;
+      imageContainer.appendChild(img);
     }
+    el.appendChild(imageContainer);
 
-    const titleOverlay = document.createElement('div');
-    titleOverlay.style.cssText = `
-      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 100%);
-      padding: 8px 12px;
-      color: white;
-      font-size: 16px;
+    // Title container (right side - 200px)
+    const titleContainer = document.createElement('div');
+    titleContainer.style.cssText = `
+      width: 200px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding-left: 15px;
+      font-size: 1.25rem;
+      color: #1e293b;
       font-weight: 500;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-      line-height: 1.05;
-      text-align: left;
-      max-height: 60%;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      margin-top: auto;
     `;
-    titleOverlay.textContent = story.title;
-    inner.appendChild(titleOverlay);
+    titleContainer.textContent = story.title;
+    el.appendChild(titleContainer);
 
     el.addEventListener('mouseenter', () => {
       initialZoom = map.current.getZoom();
       initialCenter = map.current.getCenter();
       
-      inner.style.transform = 'translate(-50%, -50%) scale(1.15)';
-      inner.style.zIndex = '1000';
-      inner.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
+      el.style.transform = 'translate(-50%, -50%) scale(1.15)';
+      el.style.zIndex = '1000';
+      el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.4)';
       
       const newZoom = initialZoom * 1.25;
       map.current.flyTo({
@@ -324,9 +326,9 @@ export default function InteractiveStoryMap({
     });
 
     el.addEventListener('mouseleave', () => {
-      inner.style.transform = 'translate(-50%, -50%) scale(1)';
-      inner.style.zIndex = 'auto';
-      inner.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+      el.style.transform = 'translate(-50%, -50%) scale(1)';
+      el.style.zIndex = 'auto';
+      el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
       
       map.current.flyTo({
         center: initialCenter,
@@ -335,8 +337,6 @@ export default function InteractiveStoryMap({
         easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
       });
     });
-
-    el.appendChild(inner);
 
     el.addEventListener('click', () => {
       navigate(`${createPageUrl('StoryMapView')}?id=${story.id}`);
@@ -367,7 +367,7 @@ export default function InteractiveStoryMap({
     `;
 
     const popup = new mapboxgl.Popup({ 
-      offset: 85,
+      offset: [0, -20],
       closeButton: false,
       maxWidth: '300px'
     }).setHTML(popupContent);
