@@ -79,32 +79,13 @@ export default function StoryMarker({
         onMouseEnter={handleMouseEnter}
         onClick={onClick}
       >
-      {/* Top row container */}
-      <motion.div
-        animate={{
-          flexDirection: isHovered ? 'column' : 'row'
-        }}
-        transition={{ duration: 1, ease: "easeInOut" }}
-        style={{
-          display: 'flex',
-          width: '100%',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
         {/* Thumbnail */}
-        <motion.div
-          animate={{
-            width: isHovered ? '240px' : '40px',
-            height: isHovered ? '80px' : '40px'
-          }}
-          transition={{ duration: 1, ease: "easeInOut" }}
-          style={{
-            flexShrink: 0,
-            overflow: 'hidden',
-            position: 'relative'
-          }}
-        >
+        <div style={{
+          width: '40px',
+          height: '40px',
+          flexShrink: 0,
+          overflow: 'hidden'
+        }}>
           {storyProps.hero_image && (
             <img 
               src={storyProps.hero_image} 
@@ -116,43 +97,96 @@ export default function StoryMarker({
               }}
             />
           )}
-        </motion.div>
+        </div>
 
         {/* Title */}
-        <motion.div
-          animate={{
-            paddingLeft: isHovered ? '12px' : '15px',
-            paddingRight: isHovered ? '12px' : '0',
-            paddingTop: isHovered ? '12px' : '0',
-            paddingBottom: isHovered ? '8px' : '0',
-            fontSize: isHovered ? '1.125rem' : '0.875rem',
-            fontWeight: isHovered ? 700 : 500,
-            width: isHovered ? '240px' : '200px',
-            height: isHovered ? 'auto' : '40px',
-            whiteSpace: isHovered ? 'normal' : 'nowrap'
-          }}
-          transition={{ duration: 1, ease: "easeInOut" }}
-          style={{
-            display: 'flex',
-            alignItems: isHovered ? 'flex-start' : 'center',
-            color: '#1e293b',
-            overflow: 'hidden',
-            textOverflow: isHovered ? 'clip' : 'ellipsis',
-            fontFamily: 'Raleway, sans-serif',
-            lineHeight: 1.2
-          }}
-        >
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          paddingLeft: '15px',
+          color: '#1e293b',
+          fontSize: '0.875rem',
+          fontWeight: 500,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          fontFamily: 'Raleway, sans-serif',
+          flex: 1
+        }}>
           {storyProps.title}
-        </motion.div>
+        </div>
       </motion.div>
 
-      {/* Expanded content */}
-      <AnimatePresence>
-        {isHovered && (
+      {/* Expanded marker via portal */}
+      {isHovered && portalContainer && createPortal(
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          style={{
+            position: 'fixed',
+            top: markerPosition.top,
+            left: markerPosition.left,
+            transform: 'translate(-50%, -50%)',
+            width: '240px',
+            height: '240px',
+            borderRadius: '10px',
+            backgroundColor: 'white',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+            cursor: 'pointer',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            pointerEvents: 'auto'
+          }}
+          onMouseLeave={handleMouseLeave}
+          onClick={onClick}
+        >
+          {/* Thumbnail */}
+          <motion.div
+            initial={{ height: '40px' }}
+            animate={{ height: '80px' }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            style={{
+              width: '240px',
+              flexShrink: 0,
+              overflow: 'hidden'
+            }}
+          >
+            {storyProps.hero_image && (
+              <img 
+                src={storyProps.hero_image} 
+                alt={storyProps.title}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+            )}
+          </motion.div>
+
+          {/* Title */}
+          <motion.div
+            initial={{ fontSize: '0.875rem', fontWeight: 500, paddingLeft: '15px', paddingTop: '0' }}
+            animate={{ fontSize: '1.125rem', fontWeight: 700, paddingLeft: '12px', paddingTop: '12px' }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            style={{
+              color: '#1e293b',
+              fontFamily: 'Raleway, sans-serif',
+              lineHeight: 1.2,
+              paddingRight: '12px',
+              paddingBottom: '8px'
+            }}
+          >
+            {storyProps.title}
+          </motion.div>
+
+          {/* Expanded content */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             style={{
               width: '100%',
@@ -184,7 +218,7 @@ export default function StoryMarker({
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical'
               }}>
-                {storyProps.subtitle}
+                {stripHtml(storyProps.subtitle)}
               </p>
             )}
 
@@ -202,8 +236,9 @@ export default function StoryMarker({
               View Story →
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+        </motion.div>,
+        portalContainer
+      )}
+    </>
   );
 }
