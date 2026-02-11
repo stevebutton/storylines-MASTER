@@ -206,11 +206,11 @@ export default function InteractiveStoryMap({
           'circle-radius': [
             'step',
             ['get', 'point_count'],
-            25,
+            40,
             3,
-            32,
+            60,
             5,
-            40
+            85
           ],
           'circle-stroke-width': 3,
           'circle-stroke-color': '#fff'
