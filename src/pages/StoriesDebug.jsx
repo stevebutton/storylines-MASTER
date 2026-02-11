@@ -201,24 +201,32 @@ export default function StoriesDebug() {
               Set Location for: {selectedStory?.title}
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 h-full">
-            <EmbeddedLocationPicker
-              initialLocation={
-                selectedStory?.coordinates && selectedStory.coordinates.length === 2
-                  ? {
-                      lat: selectedStory.coordinates[0],
-                      lng: selectedStory.coordinates[1],
-                      zoom: selectedStory.zoom || 2
-                    }
-                  : { lat: 0, lng: 0, zoom: 2 }
-              }
-              onSave={handleLocationSave}
-              onCancel={() => {
-                setLocationDialogOpen(false);
-                setSelectedStory(null);
-              }}
-            />
-          </div>
+          {selectedStory && (
+            <div className="flex-1 h-full">
+              <EmbeddedLocationPicker
+                location={
+                  selectedStory.coordinates && selectedStory.coordinates.length === 2
+                    ? {
+                        lat: selectedStory.coordinates[0],
+                        lng: selectedStory.coordinates[1],
+                        zoom: selectedStory.zoom || 2,
+                        bearing: selectedStory.bearing || 0,
+                        pitch: selectedStory.pitch || 0
+                      }
+                    : { lat: 0, lng: 0, zoom: 2, bearing: 0, pitch: 0 }
+                }
+                onLocationChange={handleLocationSave}
+              />
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => {
+                  setLocationDialogOpen(false);
+                  setSelectedStory(null);
+                }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
