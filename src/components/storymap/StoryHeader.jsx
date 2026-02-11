@@ -86,16 +86,15 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             </motion.h1>
 
             {/* Description */}
-            <motion.p
+            <motion.div
               className="text-white font-light text-center leading-snug max-w-md"
               style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300, fontSize: '1.4rem' }}
               data-name="story-description"
               initial={{ translateY: '100px', opacity: 0 }}
               animate={{ translateY: '0', opacity: 1 }}
               transition={{ duration: 1, delay: 8 }}
-            >
-              {subtitle}
-            </motion.p>
+              dangerouslySetInnerHTML={{ __html: subtitle }}
+            />
           </div>
 
           {/* Scroll Arrow */}
