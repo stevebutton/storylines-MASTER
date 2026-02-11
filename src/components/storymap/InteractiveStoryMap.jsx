@@ -228,7 +228,7 @@ export default function InteractiveStoryMap({
           'text-field': ['get', 'point_count'],
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
           'text-size': 40,
-          'text-offset': [0, -0.7]
+          'text-offset': [-0.8, 0]
         },
         paint: {
           'text-color': '#ffffff'
@@ -245,7 +245,7 @@ export default function InteractiveStoryMap({
           'text-field': 'stories',
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
           'text-size': 18,
-          'text-offset': [0, 0.9]
+          'text-offset': [1.2, 0]
         },
         paint: {
           'text-color': '#ffffff'
