@@ -464,6 +464,12 @@ export default function InteractiveStoryMap({
       
       // Show popup on hover
       popup.addTo(map.current);
+      setTimeout(() => {
+        const popupElement = document.querySelector('.story-detail-popup .mapboxgl-popup-content');
+        if (popupElement) {
+          popupElement.classList.add('show');
+        }
+      }, 10);
     });
 
     el.addEventListener('mouseleave', () => {
@@ -479,7 +485,15 @@ export default function InteractiveStoryMap({
       });
       
       // Hide popup on mouse leave
-      popup.remove();
+      const popupElement = document.querySelector('.story-detail-popup .mapboxgl-popup-content');
+      if (popupElement) {
+        popupElement.classList.remove('show');
+        setTimeout(() => {
+          popup.remove();
+        }, 500);
+      } else {
+        popup.remove();
+      }
       
       resumeRotation();
     });
@@ -500,16 +514,15 @@ export default function InteractiveStoryMap({
           <img 
             src="${storyProps.hero_image}" 
             alt="${storyProps.title}" 
-            style="width: 100%; height: 100px; object-fit: cover; flex-shrink: 0;" 
+            style="width: 100%; height: 120px; object-fit: cover; flex-shrink: 0;" 
           />
-        ` : '<div style="width: 100%; height: 100px; background: #e2e8f0; flex-shrink: 0;"></div>'}
+        ` : '<div style="width: 100%; height: 120px; background: #e2e8f0; flex-shrink: 0;"></div>'}
         <div style="padding: 12px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-          <h3 style="font-weight: 600; color: #1e293b; margin: 0 0 6px 0; font-size: 15px; line-height: 1.3;">${storyProps.title}</h3>
           ${publicationDate ? `
             <p style="font-size: 11px; color: #94a3b8; margin: 0 0 8px 0;">${publicationDate}</p>
           ` : ''}
           ${storyProps.subtitle ? `
-            <p style="font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${storyProps.subtitle}</p>
+            <p style="font-size: 12px; color: #64748b; margin: 0; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;">${storyProps.subtitle}</p>
           ` : ''}
           <div style="margin-top: auto; padding-top: 10px;">
             <div style="display: inline-block; padding: 6px 14px; background: #d97706; color: white; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;">
@@ -521,7 +534,7 @@ export default function InteractiveStoryMap({
     `;
 
     const popup = new mapboxgl.Popup({ 
-      offset: [0, 40],
+      offset: [0, 60],
       closeButton: false,
       maxWidth: 'none',
       className: 'story-detail-popup'
@@ -584,6 +597,11 @@ export default function InteractiveStoryMap({
           border-radius: 10px !important;
           box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
           overflow: hidden;
+          opacity: 0;
+          transition: opacity 500ms ease-in-out;
+        }
+        .mapboxgl-popup-content.show {
+          opacity: 1;
         }
         .story-detail-popup .mapboxgl-popup-content {
           width: 240px;
