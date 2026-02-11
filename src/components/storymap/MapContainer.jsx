@@ -52,7 +52,8 @@ export default function MapBackground({
             pitch: pitch || 0,
             interactive: true,
             dragRotate: true,
-            pitchWithRotate: true
+            pitchWithRotate: true,
+            fog: null
         });
 
         // Add navigation controls (zoom, compass, pitch)
