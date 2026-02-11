@@ -264,6 +264,11 @@ export default function InteractiveStoryMap({
       });
 
       setMapInitialized(true);
+      
+      // Populate initial data immediately after map loads
+      setTimeout(() => {
+        updateStoryData();
+      }, 100);
     });
   };
 
