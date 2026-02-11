@@ -213,29 +213,39 @@ export default function InteractiveStoryMap({
             85
           ],
           'circle-stroke-width': 3,
-          'circle-stroke-color': '#fff'
+          'circle-stroke-color': '#fff',
+          'circle-opacity': 0.6
         }
       });
 
-      // Cluster count layer
+      // Cluster count number layer
       map.current.addLayer({
-        id: 'cluster-count',
+        id: 'cluster-count-number',
         type: 'symbol',
         source: 'stories',
         filter: ['has', 'point_count'],
         layout: {
-          'text-field': [
-            'concat',
-            ['get', 'point_count'],
-            [
-              'case',
-              ['==', ['get', 'point_count'], 1],
-              ' story',
-              ' stories'
-            ]
-          ],
+          'text-field': ['get', 'point_count'],
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 11
+          'text-size': 30,
+          'text-offset': [0, -0.5]
+        },
+        paint: {
+          'text-color': '#ffffff'
+        }
+      });
+
+      // Cluster "stories" label layer
+      map.current.addLayer({
+        id: 'cluster-count-label',
+        type: 'symbol',
+        source: 'stories',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': 'stories',
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 20,
+          'text-offset': [0, 0.6]
         },
         paint: {
           'text-color': '#ffffff'
