@@ -344,6 +344,7 @@ export default function StoryMapView() {
                 isVisible={isBannerVisible}
                 onViewOtherStories={() => setIsStorySlideshowOpen(true)}
                 onOpenLibrary={() => setShowLibraryModal(true)}
+                storyId={storyId}
             />
             </div>
 

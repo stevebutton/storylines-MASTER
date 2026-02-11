@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { List, Plus, Map, Menu, X, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function FloatingNavButtons({ 
@@ -10,7 +9,8 @@ export default function FloatingNavButtons({
     hasChapters = false,
     isVisible = true,
     onViewOtherStories,
-    onOpenLibrary
+    onOpenLibrary,
+    storyId
 }) {
     return (
         <div 
@@ -21,11 +21,26 @@ export default function FloatingNavButtons({
             )}
         >
             <div className="ml-auto mr-[60px] flex items-center gap-[80px]">
+                {/* Chapters Toggle */}
+                {hasChapters && (
+                    <button
+                        onClick={onToggleChapterMenu}
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                    >
+                        <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
+                            alt="Story Chapters"
+                            width="50"
+                            height="100"
+                        />
+                    </button>
+                )}
+
                 {/* View Other Stories */}
                 {onViewOtherStories && (
                     <button
                         onClick={onViewOtherStories}
-                        className="opacity-30 hover:opacity-100 transition-opacity duration-300"
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                     >
                         <img 
                             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/250f728a2_MoreStories.png"
@@ -36,19 +51,19 @@ export default function FloatingNavButtons({
                     </button>
                 )}
 
-                {/* Chapters Toggle */}
-                {hasChapters && (
-                    <button
-                        onClick={onToggleChapterMenu}
-                        className="opacity-30 hover:opacity-100 transition-opacity duration-300"
+                {/* Edit Story */}
+                {storyId && (
+                    <Link
+                        to={`${createPageUrl('StoryEditor')}?id=${storyId}`}
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                     >
                         <img 
-                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
-                            alt="Story Chapters"
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/44e8e4095_EditStory.png"
+                            alt="Edit Story"
                             width="50"
                             height="100"
                         />
-                    </button>
+                    </Link>
                 )}
             </div>
         </div>

@@ -355,8 +355,8 @@ export default function MapBackground({
                 console.log('🎯 [MAP MARKERS] Creating new marker at:', normalized);
                 const el = document.createElement('div');
                 el.style.cssText = `
-                    width: 80px;
-                    height: 80px;
+                    width: 120px;
+                    height: 120px;
                     border-radius: 50%;
                     background: rgba(217, 119, 6, 0.15);
                     border: 2px solid rgba(217, 119, 6, 0.4);

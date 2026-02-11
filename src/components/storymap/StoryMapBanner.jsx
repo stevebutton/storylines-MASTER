@@ -109,15 +109,6 @@ export default function StoryMapBanner({
                         />
                     )}
 
-                    {/* Edit Story */}
-                    <Link
-                        to={`${createPageUrl('StoryEditor')}?id=${storyId}`}
-                        className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
-                    >
-                        <List className="w-5 h-5" />
-                        <span>Edit Story</span>
-                    </Link>
-
                     {/* Auth Button */}
                     {!isLoading && (
                         user ? (
@@ -128,7 +119,7 @@ export default function StoryMapBanner({
                                 </div>
                                 <button
                                     onClick={handleLogout}
-                                    className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
+                                    className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black cursor-pointer"
                                 >
                                     <LogOut className="w-4 h-4" />
                                     Logout
@@ -137,7 +128,7 @@ export default function StoryMapBanner({
                         ) : (
                             <button
                                 onClick={handleLogin}
-                                className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black"
+                                className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black cursor-pointer"
                             >
                                 <LogIn className="w-4 h-4" />
                                 Login

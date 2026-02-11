@@ -32,13 +32,13 @@ export default function SocialShareButtons({ storyTitle, storyUrl }) {
     };
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center" style={{ gap: '17px' }}>
             <Share2 className="w-4 h-4 text-slate-500" />
             <span className="text-sm text-slate-500">Share:</span>
             
             <button
                 onClick={shareOnFacebook}
-                className="p-1.5 rounded-full hover:bg-slate-100 transition-colors"
+                className="p-3 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
                 title="Share on Facebook"
             >
                 <Facebook className="w-4 h-4 text-slate-600" />
@@ -46,7 +46,7 @@ export default function SocialShareButtons({ storyTitle, storyUrl }) {
             
             <button
                 onClick={shareOnTwitter}
-                className="p-1.5 rounded-full hover:bg-slate-100 transition-colors"
+                className="p-3 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
                 title="Share on Twitter"
             >
                 <Twitter className="w-4 h-4 text-slate-600" />
@@ -54,7 +54,7 @@ export default function SocialShareButtons({ storyTitle, storyUrl }) {
             
             <button
                 onClick={shareOnLinkedIn}
-                className="p-1.5 rounded-full hover:bg-slate-100 transition-colors"
+                className="p-3 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
                 title="Share on LinkedIn"
             >
                 <Linkedin className="w-4 h-4 text-slate-600" />
@@ -63,7 +63,7 @@ export default function SocialShareButtons({ storyTitle, storyUrl }) {
             <button
                 onClick={handleCopyLink}
                 className={cn(
-                    "p-1.5 rounded-full transition-colors",
+                    "p-3 rounded-full transition-colors cursor-pointer",
                     copied ? "bg-green-100" : "hover:bg-slate-100"
                 )}
                 title={copied ? "Link copied!" : "Copy link"}
