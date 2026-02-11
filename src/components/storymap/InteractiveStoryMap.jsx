@@ -299,9 +299,15 @@ export default function InteractiveStoryMap({
       });
 
       setMapInitialized(true);
-      // Populate initial data immediately after map loads
-      updateStoryData();
     });
+
+    // Populate initial data after map is fully initialized
+    // Wait for state update before calling
+    setTimeout(() => {
+      if (map.current && map.current.getSource('stories')) {
+        updateStoryData();
+      }
+    }, 0);
   };
 
   const updateStoryData = () => {
