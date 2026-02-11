@@ -82,10 +82,11 @@ export default function StoryMarker({
           paddingRight: isHovered ? '12px' : '0',
           paddingTop: isHovered ? '12px' : '0',
           paddingBottom: isHovered ? '8px' : '0',
-          fontSize: isHovered ? '1.5rem' : '0.875rem',
+          fontSize: isHovered ? '1.25rem' : '0.875rem',
           fontWeight: isHovered ? 700 : 500,
           height: isHovered ? 'auto' : '40px',
-          whiteSpace: isHovered ? 'normal' : 'nowrap'
+          whiteSpace: isHovered ? 'normal' : 'nowrap',
+          width: isHovered ? '100%' : '200px'
         }}
         transition={{ duration: 1, ease: "easeInOut" }}
         style={{
@@ -95,7 +96,8 @@ export default function StoryMarker({
           overflow: 'hidden',
           textOverflow: isHovered ? 'clip' : 'ellipsis',
           fontFamily: 'Raleway, sans-serif',
-          lineHeight: 1.2
+          lineHeight: 1.2,
+          position: 'relative'
         }}
       >
         {storyProps.title}
