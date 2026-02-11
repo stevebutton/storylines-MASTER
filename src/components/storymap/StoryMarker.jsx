@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function StoryMarker({ 
@@ -9,8 +10,32 @@ export default function StoryMarker({
   onClick 
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [portalContainer, setPortalContainer] = useState(null);
+  const markerRef = useRef(null);
+  const [markerPosition, setMarkerPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    let container = document.getElementById('story-marker-portal');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'story-marker-portal';
+      container.style.position = 'fixed';
+      container.style.top = '0';
+      container.style.left = '0';
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.pointerEvents = 'none';
+      container.style.zIndex = '10000';
+      document.body.appendChild(container);
+    }
+    setPortalContainer(container);
+  }, []);
 
   const handleMouseEnter = () => {
+    if (markerRef.current) {
+      const rect = markerRef.current.getBoundingClientRect();
+      setMarkerPosition({ top: rect.top, left: rect.left });
+    }
     setIsHovered(true);
     onMouseEnter();
   };
@@ -18,6 +43,13 @@ export default function StoryMarker({
   const handleMouseLeave = () => {
     setIsHovered(false);
     onMouseLeave();
+  };
+
+  const stripHtml = (html) => {
+    if (!html) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
   };
 
   return (
