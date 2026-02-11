@@ -133,20 +133,25 @@ export default function InteractiveStoryMap({
     map.current.on('load', () => {
       if (stories.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
+        let hasValidCoords = false;
+        
         stories.forEach(story => {
           if (story.coordinates && Array.isArray(story.coordinates) && 
               story.coordinates.length === 2 &&
               !isNaN(story.coordinates[0]) && !isNaN(story.coordinates[1]) &&
               isFinite(story.coordinates[0]) && isFinite(story.coordinates[1])) {
             bounds.extend([story.coordinates[1], story.coordinates[0]]);
+            hasValidCoords = true;
           }
         });
 
-        map.current.fitBounds(bounds, {
-          padding: { top: 100, bottom: 100, left: 100, right: 100 },
-          maxZoom: 2,
-          duration: 2000
-        });
+        if (hasValidCoords) {
+          map.current.fitBounds(bounds, {
+            padding: { top: 100, bottom: 100, left: 100, right: 100 },
+            maxZoom: 2,
+            duration: 2000
+          });
+        }
       }
 
       map.current.addSource('marker-lines', {
