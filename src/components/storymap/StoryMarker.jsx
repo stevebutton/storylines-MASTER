@@ -28,16 +28,14 @@ export default function StoryMarker({
         borderRadius: '10px',
         backgroundColor: 'white',
         boxShadow: isHovered ? '0 8px 24px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.3)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
         cursor: 'pointer',
         transform: 'translate(-50%, -50%)',
         transformOrigin: 'top center',
-        position: 'relative'
+        position: 'relative',
+        overflow: 'hidden'
       }}
       animate={{ 
-        height: isHovered ? '340px' : '40px',
+        height: isHovered ? '240px' : '40px',
         zIndex: isHovered ? 1000 : 1
       }}
       transition={{ 
@@ -48,57 +46,71 @@ export default function StoryMarker({
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
     >
-      {/* Thumbnail */}
+      {/* Top row container */}
       <motion.div
-        layout
         animate={{
-          width: isHovered ? '240px' : '40px',
-          height: isHovered ? '180px' : '40px'
-        }}
-        transition={{ duration: 1, ease: "easeInOut" }}
-        style={{
-          flexShrink: 0,
-          overflow: 'hidden'
-        }}
-      >
-        {storyProps.hero_image && (
-          <img 
-            src={storyProps.hero_image} 
-            alt={storyProps.title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-          />
-        )}
-      </motion.div>
-
-      {/* Title */}
-      <motion.div
-        layout
-        animate={{
-          paddingLeft: isHovered ? '12px' : '15px',
-          paddingRight: isHovered ? '12px' : '0',
-          paddingTop: isHovered ? '12px' : '0',
-          paddingBottom: isHovered ? '8px' : '0',
-          fontSize: isHovered ? '1.5rem' : '0.875rem',
-          fontWeight: isHovered ? 700 : 500,
-          height: isHovered ? 'auto' : '40px',
-          whiteSpace: isHovered ? 'normal' : 'nowrap'
+          flexDirection: isHovered ? 'column' : 'row'
         }}
         transition={{ duration: 1, ease: "easeInOut" }}
         style={{
           display: 'flex',
-          alignItems: isHovered ? 'flex-start' : 'center',
-          color: '#1e293b',
-          overflow: 'hidden',
-          textOverflow: isHovered ? 'clip' : 'ellipsis',
-          fontFamily: 'Raleway, sans-serif',
-          lineHeight: 1.2
+          width: '100%',
+          position: 'relative',
+          overflow: 'hidden'
         }}
       >
-        {storyProps.title}
+        {/* Thumbnail */}
+        <motion.div
+          animate={{
+            width: isHovered ? '240px' : '40px',
+            height: isHovered ? '80px' : '40px'
+          }}
+          transition={{ duration: 1, ease: "easeInOut" }}
+          style={{
+            flexShrink: 0,
+            overflow: 'hidden',
+            position: 'relative'
+          }}
+        >
+          {storyProps.hero_image && (
+            <img 
+              src={storyProps.hero_image} 
+              alt={storyProps.title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+            />
+          )}
+        </motion.div>
+
+        {/* Title */}
+        <motion.div
+          animate={{
+            paddingLeft: isHovered ? '12px' : '15px',
+            paddingRight: isHovered ? '12px' : '0',
+            paddingTop: isHovered ? '12px' : '0',
+            paddingBottom: isHovered ? '8px' : '0',
+            fontSize: isHovered ? '1.125rem' : '0.875rem',
+            fontWeight: isHovered ? 700 : 500,
+            width: isHovered ? '240px' : '200px',
+            height: isHovered ? 'auto' : '40px',
+            whiteSpace: isHovered ? 'normal' : 'nowrap'
+          }}
+          transition={{ duration: 1, ease: "easeInOut" }}
+          style={{
+            display: 'flex',
+            alignItems: isHovered ? 'flex-start' : 'center',
+            color: '#1e293b',
+            overflow: 'hidden',
+            textOverflow: isHovered ? 'clip' : 'ellipsis',
+            fontFamily: 'Raleway, sans-serif',
+            lineHeight: 1.2
+          }}
+        >
+          {storyProps.title}
+        </motion.div>
       </motion.div>
 
       {/* Expanded content */}
