@@ -400,6 +400,7 @@ export default function InteractiveStoryMap({
     let initialZoom, initialCenter;
 
     const handleMouseEnter = () => {
+      if (!map.current) return;
       pauseRotation();
       initialZoom = map.current.getZoom();
       initialCenter = map.current.getCenter();
@@ -414,6 +415,7 @@ export default function InteractiveStoryMap({
     };
 
     const handleMouseLeave = () => {
+      if (!map.current) return;
       map.current.flyTo({
         center: initialCenter,
         zoom: initialZoom,
