@@ -219,7 +219,7 @@ export default function StoryChapter({
             <motion.div
                 initial={{ opacity: 0, x: 100 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut", delay: index === 0 ? delay / 1000 : 0 }}
+                transition={{ duration: 2, ease: "easeOut", delay: index === 0 ? delay / 1000 : 0 }}
                 viewport={{ once: false, amount: 0.5 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[550px]"
             >
