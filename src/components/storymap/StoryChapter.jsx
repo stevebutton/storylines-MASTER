@@ -217,9 +217,9 @@ export default function StoryChapter({
             style={{ minHeight: '85vh', paddingTop: '50px' }}
         >
             <motion.div
-                initial={index === 0 ? { opacity: 0, x: 100 } : { opacity: 0, y: 40 }}
-                whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
-                transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
+                initial={{ opacity: 0, x: 100 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: index === 0 ? delay / 1000 : 0 }}
                 viewport={{ once: false, amount: 0.5 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[550px]"
             >
