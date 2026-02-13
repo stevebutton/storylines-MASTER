@@ -28,7 +28,7 @@ export default function ChapterCarousel({ slides, onSlideChange }) {
     // Single slide - no carousel controls needed
     if (slides.length === 1) {
         return (
-            <div className="relative h-48 md:h-56 overflow-hidden">
+            <div className="relative h-[300px] overflow-hidden">
                 <img 
                     src={slides[0].image} 
                     alt={slides[0].title}
@@ -40,7 +40,7 @@ export default function ChapterCarousel({ slides, onSlideChange }) {
     }
 
     return (
-        <div className="relative h-48 md:h-56 overflow-hidden group">
+        <div className="relative h-[300px] overflow-hidden group">
             <div ref={emblaRef} className="h-full">
                 <div className="flex h-full">
                     {slides.map((slide, index) => (
