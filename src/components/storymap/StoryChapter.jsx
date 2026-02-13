@@ -79,7 +79,7 @@ export default function StoryChapter({
                             {/* Chapter number */}
                             <div className="flex items-center gap-3 mb-4">
                                 <span className="text-xs font-medium tracking-[0.2em] uppercase text-amber-400">
-                                    Chapter {String(index + 1).padStart(2, '0')}
+                                    Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
                                 </span>
                                 <div className="flex-1 h-px bg-gradient-to-r from-amber-400/50 to-transparent" />
                             </div>
@@ -275,7 +275,7 @@ export default function StoryChapter({
                         {/* Chapter number */}
                         <div className="flex items-center gap-3 mb-4">
                             <span className="text-xs font-medium tracking-[0.2em] uppercase text-amber-600">
-                                Chapter {String(index + 1).padStart(2, '0')}
+                                Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
                             </span>
                             <div className="flex-1 h-px bg-gradient-to-r from-amber-600/50 to-transparent" />
                         </div>

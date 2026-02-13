@@ -106,7 +106,7 @@ export default function StoryEditorSidebar({
                                                 {index + 1}
                                             </span>
                                             <span className={cn("hidden md:inline text-xs md:text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
-                                                Chapter {index + 1}
+                                                Chapter {index + 1}{chapter.name ? `: ${chapter.name}` : ''}
                                             </span>
                                             <div className="flex items-center gap-0.5 md:gap-1">
                                                 {chapter.coordinates && (
