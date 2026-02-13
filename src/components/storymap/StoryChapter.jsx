@@ -51,7 +51,7 @@ export default function StoryChapter({
     if (cardStyle === 'full_background') {
         return (
             <div 
-                className="flex items-center py-24 px-4 md:px-8 pr-24 justify-end pointer-events-none"
+                className="relative w-full py-24 px-4 md:px-8 pointer-events-none"
                 style={{ minHeight: '85vh', paddingTop: '140px' }}
             >
                 <motion.div
@@ -59,7 +59,7 @@ export default function StoryChapter({
                     whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
                     transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
                     viewport={{ once: false, amount: 0.5 }}
-                    className="relative w-[40%] min-w-[300px] max-w-[550px]"
+                    className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[550px]"
                 >
                     {/* Full Background Card */}
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
@@ -213,7 +213,7 @@ export default function StoryChapter({
     // Default Style
     return (
         <div 
-            className="flex items-center py-24 px-4 md:px-8 pr-24 justify-end pointer-events-none"
+            className="relative w-full py-24 px-4 md:px-8 pointer-events-none"
             style={{ minHeight: '85vh', paddingTop: '140px' }}
         >
             <motion.div
@@ -221,7 +221,7 @@ export default function StoryChapter({
                 whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
                 transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
                 viewport={{ once: false, amount: 0.5 }}
-                className="relative w-[40%] min-w-[300px] max-w-[550px]"
+                className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[550px]"
             >
                 {/* Card */}
                 <div className={cn(
