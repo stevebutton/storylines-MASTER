@@ -390,6 +390,22 @@ export default function TabbedContentEditor({
                                     style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                 />
                             </div>
+                            <div>
+                                <Label>Card Style</Label>
+                                <Select 
+                                    value={item.card_style || 'default'} 
+                                    onValueChange={(value) => onUpdate({ ...item, card_style: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="default">Default Card</SelectItem>
+                                        <SelectItem value="full_background">Full Background</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-slate-500 mt-1">Choose the visual style for this slide</p>
+                            </div>
                             {onDelete && (
                                 <Button 
                                     variant="destructive" 
