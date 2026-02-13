@@ -234,7 +234,7 @@ export default function StoryChapter({
                         <div className="relative">
                             {!isVideoPlaying && currentSlide.video_thumbnail_url ? (
                                 <div 
-                                    className="relative cursor-pointer group h-64"
+                                    className="relative cursor-pointer group h-[300px]"
                                     onClick={() => setIsVideoPlaying(true)}
                                 >
                                     <img 
@@ -252,7 +252,7 @@ export default function StoryChapter({
                                         src={currentSlide.video_url}
                                         controls
                                         autoPlay={isVideoPlaying}
-                                        className="w-full h-64 object-cover"
+                                        className="w-full h-[300px] object-cover"
                                     />
                                     <button
                                         onClick={() => setShowVideoModal(true)}
