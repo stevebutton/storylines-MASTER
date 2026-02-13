@@ -22,7 +22,8 @@ export default function MapBackground({
     clearRoute = false,
     offset = [0, 0],
     landingMarkers = [],
-    clearLandingMarkers = false
+    clearLandingMarkers = false,
+    activeLayerId = null
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
@@ -31,6 +32,7 @@ export default function MapBackground({
     const routeSourceAdded = useRef(false);
     const landingMarkersRef = useRef([]);
     const lineAnimationRef = useRef(null);
+    const previousLayerId = useRef(null);
 
     // Initialize map
     useEffect(() => {
@@ -383,6 +385,41 @@ export default function MapBackground({
             }
         });
     }, [landingMarkers, clearLandingMarkers, flyDuration]);
+
+    // ============================================
+    // LAYER VISIBILITY: Show/hide Mapbox layers based on active slide
+    // ============================================
+    useEffect(() => {
+        if (!map.current || !map.current.isStyleLoaded()) return;
+
+        // Hide previous layer if it exists and is different from current
+        if (previousLayerId.current && previousLayerId.current !== activeLayerId) {
+            try {
+                if (map.current.getLayer(previousLayerId.current)) {
+                    console.log('🗺️ [LAYER] Hiding layer:', previousLayerId.current);
+                    map.current.setLayoutProperty(previousLayerId.current, 'visibility', 'none');
+                }
+            } catch (error) {
+                console.warn('⚠️ [LAYER] Error hiding layer:', previousLayerId.current, error);
+            }
+        }
+
+        // Show current layer if it exists
+        if (activeLayerId) {
+            try {
+                if (map.current.getLayer(activeLayerId)) {
+                    console.log('🗺️ [LAYER] Showing layer:', activeLayerId);
+                    map.current.setLayoutProperty(activeLayerId, 'visibility', 'visible');
+                } else {
+                    console.warn('⚠️ [LAYER] Layer not found in style:', activeLayerId);
+                }
+            } catch (error) {
+                console.warn('⚠️ [LAYER] Error showing layer:', activeLayerId, error);
+            }
+        }
+
+        previousLayerId.current = activeLayerId;
+    }, [activeLayerId]);
 
     return (
         <div className="fixed inset-0 z-0" data-name="map-background-container">

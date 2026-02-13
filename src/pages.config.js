@@ -63,12 +63,12 @@ import PageEditor from './pages/PageEditor';
 import PageTest from './pages/PageTest';
 import ProjectInterface from './pages/ProjectInterface';
 import Stories from './pages/Stories';
+import StoriesDebug from './pages/StoriesDebug';
 import StoriesMap from './pages/StoriesMap';
 import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
 import Storyboarder from './pages/Storyboarder';
-import StoriesDebug from './pages/StoriesDebug';
 import __Layout from './Layout.jsx';
 
 
@@ -89,12 +89,12 @@ export const PAGES = {
     "PageTest": PageTest,
     "ProjectInterface": ProjectInterface,
     "Stories": Stories,
+    "StoriesDebug": StoriesDebug,
     "StoriesMap": StoriesMap,
     "StoryEditor": StoryEditor,
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
     "Storyboarder": Storyboarder,
-    "StoriesDebug": StoriesDebug,
 }
 
 export const pagesConfig = {

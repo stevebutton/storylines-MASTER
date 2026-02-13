@@ -457,6 +457,19 @@ export default function TabbedContentEditor({
                                     });
                                 }}
                             />
+                            
+                            <div className="pt-4 border-t">
+                                <Label>Mapbox Layer ID (Optional)</Label>
+                                <Input 
+                                    value={item.mapbox_layer_id || ''} 
+                                    onChange={(e) => onUpdate({ ...item, mapbox_layer_id: e.target.value })}
+                                    placeholder="e.g., my-custom-layer"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                                />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Enter the ID of a Mapbox layer to display when this slide is active
+                                </p>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
