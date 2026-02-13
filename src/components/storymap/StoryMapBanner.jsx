@@ -68,7 +68,7 @@ export default function StoryMapBanner({
                 {/* Story Title */}
                 {storyTitle && (
                     <motion.div 
-                        className="absolute text-slate-800 left-0 right-0 md:left-[322px] md:right-[200px] font-light text-center md:text-left px-4 md:px-0 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl"
+                        className="absolute text-slate-800 left-0 right-0 md:left-[322px] md:right-[50px] font-light text-center md:text-left px-4 md:px-0 text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl"
                         style={{ 
                             top: '26px'
                         }}

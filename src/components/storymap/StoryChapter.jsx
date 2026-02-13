@@ -59,7 +59,7 @@ export default function StoryChapter({
                     whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
                     transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
                     viewport={{ once: false, amount: 0.5 }}
-                    className="relative w-1/2 min-w-[300px]"
+                    className="relative w-[40%] min-w-[300px] max-w-[550px]"
                 >
                     {/* Full Background Card */}
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
@@ -221,7 +221,7 @@ export default function StoryChapter({
                 whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
                 transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
                 viewport={{ once: false, amount: 0.5 }}
-                className="relative w-1/2 min-w-[300px]"
+                className="relative w-[40%] min-w-[300px] max-w-[550px]"
             >
                 {/* Card */}
                 <div className={cn(
