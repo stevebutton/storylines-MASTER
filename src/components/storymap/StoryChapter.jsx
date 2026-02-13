@@ -214,7 +214,7 @@ export default function StoryChapter({
     return (
         <div 
             className="relative w-full py-24 px-4 md:px-8 pointer-events-none"
-            style={{ minHeight: '85vh', paddingTop: '140px' }}
+            style={{ minHeight: '85vh', paddingTop: '50px' }}
         >
             <motion.div
                 initial={index === 0 ? { opacity: 0, x: 100 } : { opacity: 0, y: 40 }}
