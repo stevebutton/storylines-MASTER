@@ -101,12 +101,13 @@ export default function StoryMarker({
           </div>
 
           {/* Title */}
-          <div style={{
+          <div 
+            className="text-xs sm:text-sm"
+            style={{
             display: 'flex',
             alignItems: 'center',
             paddingLeft: '15px',
             color: '#1e293b',
-            fontSize: '0.875rem',
             fontWeight: 500,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -172,8 +173,9 @@ export default function StoryMarker({
 
           {/* Title */}
           <motion.div
-            initial={{ fontSize: '0.875rem', fontWeight: 500, paddingLeft: '15px', paddingTop: '0' }}
-            animate={{ fontSize: '1.125rem', fontWeight: 700, paddingLeft: '12px', paddingTop: '12px' }}
+            className="text-sm sm:text-base md:text-lg"
+            initial={{ fontWeight: 500, paddingLeft: '15px', paddingTop: '0' }}
+            animate={{ fontWeight: 700, paddingLeft: '12px', paddingTop: '12px' }}
             transition={{ duration: 1, ease: "easeInOut" }}
             style={{
               color: '#1e293b',
@@ -201,8 +203,9 @@ export default function StoryMarker({
             }}
           >
             {publicationDate && (
-              <p style={{
-                fontSize: '11px',
+              <p 
+                className="text-[10px] sm:text-xs"
+                style={{
                 color: '#94a3b8',
                 margin: '0 0 8px 0'
               }}>
@@ -211,8 +214,9 @@ export default function StoryMarker({
             )}
 
             {storyProps.subtitle && (
-              <p style={{
-                fontSize: '12px',
+              <p 
+                className="text-xs sm:text-sm"
+                style={{
                 color: '#64748b',
                 margin: '0 0 8px 0',
                 lineHeight: 1.4,
@@ -225,13 +229,14 @@ export default function StoryMarker({
               </p>
             )}
 
-            <div style={{
+            <div 
+              className="text-xs sm:text-sm"
+              style={{
               display: 'inline-block',
               padding: '6px 14px',
               background: '#d97706',
               color: 'white',
               borderRadius: '6px',
-              fontSize: '12px',
               fontWeight: 500,
               marginTop: 'auto',
               width: 'fit-content'
