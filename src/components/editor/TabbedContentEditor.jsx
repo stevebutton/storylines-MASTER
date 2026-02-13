@@ -281,6 +281,20 @@ export default function TabbedContentEditor({
                     <Card>
                         <CardContent className="pt-6 space-y-4">
                             <div>
+                                <Label>Chapter Name (optional)</Label>
+                                <Input
+                                    type="text"
+                                    placeholder="Enter chapter name..."
+                                    value={item.name || ''}
+                                    onChange={(e) => onUpdate({ ...item, name: e.target.value.slice(0, 25) })}
+                                    maxLength={25}
+                                />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    {item.name?.length || 0}/25 characters
+                                </p>
+                            </div>
+
+                            <div>
                                 <Label>Card Alignment</Label>
                                 <Select 
                                     value={item.alignment || 'left'} 
