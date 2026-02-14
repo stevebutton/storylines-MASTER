@@ -122,7 +122,7 @@ export default function StoryChapter({
                                     )}
                                 </div>
                             ) : chapter.slides && chapter.slides.length > 0 && (
-                                <div className="mb-6">
+                                <div className="mb-6 pointer-events-auto">
                                     <ChapterCarousel 
                                         slides={chapter.slides} 
                                         onSlideChange={handleSlideChange}
@@ -280,10 +280,16 @@ export default function StoryChapter({
                             )}
                         </div>
                     ) : chapter.slides && chapter.slides.length > 0 && (
-                        <ChapterCarousel 
-                            slides={chapter.slides} 
-                            onSlideChange={handleSlideChange}
-                        />
+                        <div className="pointer-events-auto">
+                            <ChapterCarousel 
+                                slides={chapter.slides} 
+                                onSlideChange={handleSlideChange}
+                                onImageClick={(index) => {
+                                    setFullScreenImageIndex(index);
+                                    setShowFullScreenViewer(true);
+                                }}
+                            />
+                        </div>
                     )}
                     
                     {/* Content */}
