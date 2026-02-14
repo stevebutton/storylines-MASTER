@@ -203,7 +203,7 @@ export default function ProjectInterface() {
             storyTitle={mainStory.title}
             isChapterMenuOpen={isOtherStoriesOpen}
             onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
-            hasChapters={false}
+            hasChapters={true}
           />
 
           <InteractiveStoryMap

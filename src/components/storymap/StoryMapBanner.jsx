@@ -63,10 +63,10 @@ export default function StoryMapBanner({
                 />
             </Link>
 
-            {/* Story Title - Center */}
+            {/* Story Title - Left */}
             {storyTitle && (
                 <motion.div 
-                    className="text-slate-800 flex-grow text-center font-light text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mx-4 md:mx-8"
+                    className="text-slate-800 flex-grow text-left font-light text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mx-4 md:mx-8"
                     initial={{ opacity: 0, x: 20 }}
                     animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
                     transition={{ duration: 1.5, delay: hasExplored ? 3 : 0, ease: "easeOut" }}
