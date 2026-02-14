@@ -7,7 +7,6 @@ import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
-import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
 import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -183,14 +182,10 @@ export default function StoryMap() {
             {/* Top Banner */}
             <StoryMapBanner
                 isVisible={isBannerVisible}
-            />
-
-            {/* Floating Navigation Buttons */}
-            <FloatingNavButtons
+                storyTitle={story?.title}
                 isChapterMenuOpen={isChapterMenuOpen}
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
-                isVisible={isBannerVisible}
             />
 
             {/* Map Background */}
