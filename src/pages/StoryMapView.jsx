@@ -344,9 +344,6 @@ export default function StoryMapView() {
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
                 isVisible={isBannerVisible}
-                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                onOpenLibrary={() => setShowLibraryModal(true)}
-                storyId={storyId}
             />
             </div>
 
@@ -494,7 +491,11 @@ export default function StoryMapView() {
                 
                 {/* Footer */}
                 <div className="pointer-events-auto" data-name="footer-wrapper">
-                <StoryFooter onRestart={scrollToTop} />
+                <StoryFooter 
+                    onRestart={scrollToTop}
+                    onViewOtherStories={() => setIsStorySlideshowOpen(true)}
+                    storyId={storyId}
+                />
                 </div>
             </div>
             

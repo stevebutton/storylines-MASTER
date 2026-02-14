@@ -2,11 +2,52 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
-export default function StoryFooter({ onRestart }) {
+export default function StoryFooter({ onRestart, onViewOtherStories, storyId }) {
     return (
         <div className="min-h-screen flex items-center justify-center relative">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
+            
+            {/* Footer Navigation Buttons */}
+            <div className="fixed bottom-8 left-8 z-30 flex items-center gap-12">
+                <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
+                    alt="Menu"
+                    width="50"
+                    height="100"
+                    className="opacity-0 pointer-events-none"
+                />
+                
+                {onViewOtherStories && (
+                    <button
+                        onClick={onViewOtherStories}
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                    >
+                        <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/250f728a2_MoreStories.png"
+                            alt="More Stories"
+                            width="50"
+                            height="100"
+                        />
+                    </button>
+                )}
+
+                {storyId && (
+                    <Link
+                        to={`${createPageUrl('StoryEditor')}?id=${storyId}`}
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                    >
+                        <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/44e8e4095_EditStory.png"
+                            alt="Edit Story"
+                            width="50"
+                            height="100"
+                        />
+                    </Link>
+                )}
+            </div>
             
             <motion.div 
                 className="relative z-20 text-center px-6 max-w-2xl pointer-events-auto"
