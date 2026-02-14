@@ -73,12 +73,12 @@ export default function FullScreenImageViewer({
 
                 {/* Caption Overlay */}
                 <motion.div 
-                    className="absolute bottom-0 left-0 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg p-8 pb-12 max-w-[35vw]"
+                    className="absolute top-0 left-0 h-screen w-[20vw] bg-white/60 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col justify-center"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    <div className="max-w-full">
+                    <div className="w-full text-right">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentIndex}
@@ -97,7 +97,7 @@ export default function FullScreenImageViewer({
                                 </h3>
                                 {currentSlide.description && (
                                     <div 
-                                        className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none"
+                                        className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-right"
                                         dangerouslySetInnerHTML={{ __html: currentSlide.description }}
                                     />
                                 )}
