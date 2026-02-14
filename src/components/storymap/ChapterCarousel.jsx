@@ -3,7 +3,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function ChapterCarousel({ slides, onSlideChange }) {
+export default function ChapterCarousel({ slides, onSlideChange, onImageClick }) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
     const [selectedIndex, setSelectedIndex] = React.useState(0);
 
@@ -28,11 +28,11 @@ export default function ChapterCarousel({ slides, onSlideChange }) {
     // Single slide - no carousel controls needed
     if (slides.length === 1) {
         return (
-            <div className="relative h-[300px] overflow-hidden">
+            <div className="relative h-[300px] overflow-hidden group cursor-pointer" onClick={() => onImageClick?.(0)}>
                 <img 
                     src={slides[0].image} 
                     alt={slides[0].title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             </div>
@@ -44,11 +44,15 @@ export default function ChapterCarousel({ slides, onSlideChange }) {
             <div ref={emblaRef} className="h-full">
                 <div className="flex h-full">
                     {slides.map((slide, index) => (
-                        <div key={index} className="flex-[0_0_100%] min-w-0 h-full">
+                        <div 
+                            key={index} 
+                            className="flex-[0_0_100%] min-w-0 h-full cursor-pointer"
+                            onClick={() => onImageClick?.(index)}
+                        >
                             <img 
                                 src={slide.image} 
                                 alt={slide.title}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                             />
                         </div>
                     ))}

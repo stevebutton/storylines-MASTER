@@ -6,6 +6,7 @@ import { FileText, Play, Maximize2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PdfViewer from '@/components/pdf/PdfViewer';
 import VideoPlayerModal from './VideoPlayerModal';
+import FullScreenImageViewer from './FullScreenImageViewer';
 
 export default function StoryChapter({ 
     chapter, 
@@ -19,6 +20,8 @@ export default function StoryChapter({
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [showVideoModal, setShowVideoModal] = useState(false);
     const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+    const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
+    const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
     
     console.log("Current Slide for debugging:", currentSlide);
@@ -123,6 +126,10 @@ export default function StoryChapter({
                                     <ChapterCarousel 
                                         slides={chapter.slides} 
                                         onSlideChange={handleSlideChange}
+                                        onImageClick={(index) => {
+                                            setFullScreenImageIndex(index);
+                                            setShowFullScreenViewer(true);
+                                        }}
                                     />
                                 </div>
                             )}
@@ -205,6 +212,15 @@ export default function StoryChapter({
                     onClose={() => setShowVideoModal(false)}
                     videoUrl={currentSlide?.video_url}
                     title={currentSlide?.title}
+                />
+
+                {/* Full Screen Image Viewer */}
+                <FullScreenImageViewer
+                    isOpen={showFullScreenViewer}
+                    onClose={() => setShowFullScreenViewer(false)}
+                    slides={chapter.slides}
+                    currentIndex={fullScreenImageIndex}
+                    onNavigate={setFullScreenImageIndex}
                 />
             </div>
         );
@@ -358,6 +374,15 @@ export default function StoryChapter({
                 onClose={() => setShowVideoModal(false)}
                 videoUrl={currentSlide?.video_url}
                 title={currentSlide?.title}
+            />
+
+            {/* Full Screen Image Viewer */}
+            <FullScreenImageViewer
+                isOpen={showFullScreenViewer}
+                onClose={() => setShowFullScreenViewer(false)}
+                slides={chapter.slides}
+                currentIndex={fullScreenImageIndex}
+                onNavigate={setFullScreenImageIndex}
             />
         </div>
     );
