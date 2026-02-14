@@ -9,7 +9,7 @@ import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
-import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
+
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
@@ -334,18 +334,13 @@ export default function StoryMapView() {
                 hasExplored={hasExplored}
                 storyId={storyId}
                 isShareable={story.is_shareable}
-            />
-            </div>
-
-            {/* Floating Navigation Buttons */}
-            <div className="pointer-events-auto" data-name="floating-nav-wrapper">
-            <FloatingNavButtons
                 isChapterMenuOpen={isChapterMenuOpen}
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
-                isVisible={isBannerVisible}
             />
             </div>
+
+
 
             {/* Map Background */}
             <MapBackground

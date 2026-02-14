@@ -198,14 +198,6 @@ export default function ProjectInterface() {
 
       {/* Map Section - StoriesMap */}
       <div id="map-section">
-          <StoryMapBanner 
-            isVisible={isBannerVisible} 
-            storyTitle={mainStory.title}
-            isChapterMenuOpen={isOtherStoriesOpen}
-            onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
-            hasChapters={true}
-          />
-
           <InteractiveStoryMap
             stories={allStories}
             onScrollToTop={scrollToTop}
