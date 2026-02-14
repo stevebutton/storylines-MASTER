@@ -221,6 +221,7 @@ export default function StoryChapter({
                     slides={chapter.slides}
                     currentIndex={fullScreenImageIndex}
                     onNavigate={setFullScreenImageIndex}
+                    chapterName={chapter.name}
                 />
             </div>
         );

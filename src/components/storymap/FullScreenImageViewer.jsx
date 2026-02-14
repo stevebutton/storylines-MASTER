@@ -8,7 +8,8 @@ export default function FullScreenImageViewer({
     onClose, 
     slides, 
     currentIndex, 
-    onNavigate 
+    onNavigate,
+    chapterName 
 }) {
     if (!slides || slides.length === 0) return null;
 
@@ -27,13 +28,13 @@ export default function FullScreenImageViewer({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-none w-screen h-screen p-0 border-0 z-[9999] bg-black/95">
+            <DialogContent className="max-w-none w-screen h-screen p-0 border-0 z-[9999] bg-white">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 z-[10000] bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-3 transition-all"
+                    className="absolute top-6 right-6 z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                 >
-                    <X className="w-6 h-6 text-white" />
+                    <X className="w-6 h-6 text-slate-700" />
                 </button>
 
                 {/* Navigation Buttons */}
@@ -41,15 +42,15 @@ export default function FullScreenImageViewer({
                     <>
                         <button
                             onClick={handlePrevious}
-                            className="absolute left-6 top-1/2 -translate-y-1/2 z-[10000] bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-3 transition-all"
+                            className="absolute left-6 top-1/2 -translate-y-1/2 z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                         >
-                            <ChevronLeft className="w-8 h-8 text-white" />
+                            <ChevronLeft className="w-8 h-8 text-slate-700" />
                         </button>
                         <button
                             onClick={handleNext}
-                            className="absolute right-6 top-1/2 -translate-y-1/2 z-[10000] bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-3 transition-all"
+                            className="absolute right-6 top-1/2 -translate-y-1/2 z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                         >
-                            <ChevronRight className="w-8 h-8 text-white" />
+                            <ChevronRight className="w-8 h-8 text-slate-700" />
                         </button>
                     </>
                 )}
@@ -65,19 +66,19 @@ export default function FullScreenImageViewer({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.4, ease: "easeOut" }}
-                            className="max-w-[90vw] max-h-[75vh] object-contain"
+                            className="max-w-[100vw] max-h-[95vh] object-contain"
                         />
                     </AnimatePresence>
                 </div>
 
                 {/* Caption Overlay */}
                 <motion.div 
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-8 pb-12"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute bottom-0 left-0 bg-white/95 backdrop-blur-sm border-t border-slate-200 shadow-lg p-8 pb-12 max-w-[35vw]"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    <div className="max-w-4xl mx-auto">
+                    <div className="max-w-full">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentIndex}
@@ -86,17 +87,22 @@ export default function FullScreenImageViewer({
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h3 className="text-2xl md:text-3xl font-light text-white mb-3">
+                                {chapterName && (
+                                    <div className="text-xs font-medium tracking-[0.2em] uppercase text-amber-600 mb-3">
+                                        {chapterName}
+                                    </div>
+                                )}
+                                <h3 className="text-2xl md:text-3xl font-light text-slate-800 mb-3">
                                     {currentSlide.title}
                                 </h3>
                                 {currentSlide.description && (
                                     <div 
-                                        className="text-white/90 text-sm md:text-base leading-relaxed prose prose-invert max-w-none"
+                                        className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none"
                                         dangerouslySetInnerHTML={{ __html: currentSlide.description }}
                                     />
                                 )}
                                 {currentSlide.location && (
-                                    <p className="text-white/70 text-sm mt-3">
+                                    <p className="text-slate-500 text-sm mt-3">
                                         📍 {currentSlide.location}
                                     </p>
                                 )}
@@ -105,7 +111,7 @@ export default function FullScreenImageViewer({
 
                         {/* Slide Counter */}
                         {hasMultipleSlides && (
-                            <div className="text-white/50 text-sm mt-4">
+                            <div className="text-slate-400 text-sm mt-4">
                                 {currentIndex + 1} / {slides.length}
                             </div>
                         )}
