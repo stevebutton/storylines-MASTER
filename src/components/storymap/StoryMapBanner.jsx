@@ -76,19 +76,17 @@ export default function StoryMapBanner({
             )}
 
             {/* Chapters Toggle Button - Right */}
-            {hasChapters && (
-                <button
-                    onClick={onToggleChapterMenu}
-                    className="flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
-                >
-                    <img 
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
-                        alt="Story Chapters"
-                        width="50"
-                        height="100"
-                    />
-                </button>
-            )}
+            <button
+                onClick={onToggleChapterMenu}
+                className="flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+            >
+                <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
+                    alt="Story Chapters"
+                    width="50"
+                    height="100"
+                />
+            </button>
         </div>
     );
 }

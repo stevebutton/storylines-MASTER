@@ -32,7 +32,7 @@ export default function FullScreenImageViewer({
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                    className="absolute top-[104px] right-6 z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                 >
                     <X className="w-6 h-6 text-slate-700" />
                 </button>
