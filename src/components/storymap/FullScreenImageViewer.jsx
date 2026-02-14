@@ -27,8 +27,10 @@ export default function FullScreenImageViewer({
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-none w-screen h-screen p-0 border-0 z-[9999] bg-white overflow-y-auto">
+        <AnimatePresence>
+            {isOpen && (
+                <Dialog open={isOpen} onOpenChange={onClose}>
+                    <DialogContent className="max-w-none w-screen h-screen p-0 border-0 z-[9999] bg-white overflow-y-auto">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
@@ -117,7 +119,9 @@ export default function FullScreenImageViewer({
                         )}
                     </div>
                 </motion.div>
-            </DialogContent>
-        </Dialog>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </AnimatePresence>
     );
 }

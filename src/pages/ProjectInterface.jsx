@@ -7,6 +7,7 @@ import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import WhatIsStorylinesPanel from '@/components/storymap/WhatIsStorylinesPanel';
 import InteractiveStoryMap from '@/components/storymap/InteractiveStoryMap';
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
+import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, ChevronDown } from 'lucide-react';
 
@@ -204,6 +205,16 @@ export default function ProjectInterface() {
             isChapterMenuOpen={isOtherStoriesOpen}
             onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
             hasChapters={true}
+          />
+
+          <ChapterNavigation
+            chapters={allStories.map((story, idx) => ({ name: story.title, location: story.subtitle }))}
+            activeIndex={0}
+            onNavigate={(index) => {
+              const story = allStories[index];
+              navigate(`${createPageUrl('StoryMapView')}?id=${story.id}`);
+            }}
+            isOpen={isOtherStoriesOpen}
           />
 
           <InteractiveStoryMap
