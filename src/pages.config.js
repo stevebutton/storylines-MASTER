@@ -55,6 +55,7 @@ import ChapterPreview from './pages/ChapterPreview';
 import DocumentManager from './pages/DocumentManager';
 import ExitStory from './pages/ExitStory';
 import Home from './pages/Home';
+import HomeTest from './pages/HomeTest';
 import LocationPickerPage from './pages/LocationPickerPage';
 import MediaLibrary from './pages/MediaLibrary';
 import MobileStoryCapture from './pages/MobileStoryCapture';
@@ -68,7 +69,6 @@ import StoryEditor from './pages/StoryEditor';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
 import Storyboarder from './pages/Storyboarder';
-import HomeTest from './pages/HomeTest';
 import __Layout from './Layout.jsx';
 
 
@@ -81,6 +81,7 @@ export const PAGES = {
     "DocumentManager": DocumentManager,
     "ExitStory": ExitStory,
     "Home": Home,
+    "HomeTest": HomeTest,
     "LocationPickerPage": LocationPickerPage,
     "MediaLibrary": MediaLibrary,
     "MobileStoryCapture": MobileStoryCapture,
@@ -94,7 +95,6 @@ export const PAGES = {
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
     "Storyboarder": Storyboarder,
-    "HomeTest": HomeTest,
 }
 
 export const pagesConfig = {
