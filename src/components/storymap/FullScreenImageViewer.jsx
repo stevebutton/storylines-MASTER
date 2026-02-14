@@ -42,13 +42,13 @@ export default function FullScreenImageViewer({
                     <>
                         <button
                             onClick={handlePrevious}
-                            className="absolute left-6 top-1/2 -translate-y-1/2 z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                            className="absolute left-6 bottom-[20vh] z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                         >
                             <ChevronLeft className="w-8 h-8 text-slate-700" />
                         </button>
                         <button
                             onClick={handleNext}
-                            className="absolute right-6 top-1/2 -translate-y-1/2 z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                            className="absolute right-6 bottom-[20vh] z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                         >
                             <ChevronRight className="w-8 h-8 text-slate-700" />
                         </button>
@@ -73,7 +73,7 @@ export default function FullScreenImageViewer({
 
                 {/* Caption Overlay */}
                 <motion.div 
-                    className="absolute top-0 left-0 h-screen w-[20vw] bg-white/60 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col justify-center"
+                    className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col justify-center"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
