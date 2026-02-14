@@ -66,7 +66,7 @@ export default function FullScreenImageViewer({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ duration: 0.4, ease: "easeOut" }}
-                            className="max-w-[100vw] max-h-[95vh] object-contain"
+                            className="w-full h-full object-cover"
                         />
                     </AnimatePresence>
                 </div>
