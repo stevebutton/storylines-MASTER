@@ -4,7 +4,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
-import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
 import WhatIsStorylinesPanel from '@/components/storymap/WhatIsStorylinesPanel';
 import InteractiveStoryMap from '@/components/storymap/InteractiveStoryMap';
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
@@ -199,14 +198,12 @@ export default function ProjectInterface() {
 
       {/* Map Section - StoriesMap */}
       <div id="map-section">
-          <StoryMapBanner isVisible={isBannerVisible} storyTitle={mainStory.title} />
-
-          <FloatingNavButtons
+          <StoryMapBanner 
+            isVisible={isBannerVisible} 
+            storyTitle={mainStory.title}
             isChapterMenuOpen={isOtherStoriesOpen}
             onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
             hasChapters={false}
-            isVisible={isBannerVisible}
-            onOpenLibrary={() => setShowLibraryModal(true)}
           />
 
           <InteractiveStoryMap
