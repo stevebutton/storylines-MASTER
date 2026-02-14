@@ -73,7 +73,7 @@ export default function MapBackground({
 
     // Update map position
     useEffect(() => {
-        if (!map.current) return;
+        if (!map.current || !map.current.isStyleLoaded()) return;
         
         // Validate center coordinates
         if (!center || !Array.isArray(center) || center.length !== 2 || 
@@ -90,13 +90,18 @@ export default function MapBackground({
 
         const flyMs = (flyDuration || 12) * 1000;
 
+        // Validate pitch value
+        const validPitch = (typeof pitch === 'number' && !isNaN(pitch) && isFinite(pitch) && pitch >= 0 && pitch <= 85) 
+            ? pitch 
+            : 0;
+
         // Always just fly to position without rotation
         map.current.flyTo({
             center: [center[1], center[0]],
             offset: offset,
             zoom: zoom || 12,
             bearing: bearing || 0,
-            pitch: pitch || 0,
+            pitch: validPitch,
             duration: flyMs,
             essential: true,
             easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
