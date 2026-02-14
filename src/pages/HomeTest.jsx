@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
+import FloatingNavButtons from '@/components/storymap/FloatingNavButtons';
 import CategoryFilter from '@/components/storymap/CategoryFilter';
 import WhatIsStorylinesPanel from '@/components/storymap/WhatIsStorylinesPanel';
 import mapboxgl from 'mapbox-gl';
@@ -560,11 +561,13 @@ export default function HomeTest() {
 
       {/* Map Section - StoriesMap */}
       <div id="map-section" className="relative h-screen w-full flex items-center justify-center">
-        <StoryMapBanner 
-          isVisible={isBannerVisible}
+        <StoryMapBanner isVisible={isBannerVisible} />
+
+        <FloatingNavButtons
           isChapterMenuOpen={isOtherStoriesOpen}
           onToggleChapterMenu={() => setIsOtherStoriesOpen(!isOtherStoriesOpen)}
           hasChapters={false}
+          isVisible={isBannerVisible}
         />
 
         <div ref={mapContainer} className="h-[80vh] w-full" />
