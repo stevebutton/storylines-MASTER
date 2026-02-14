@@ -495,6 +495,7 @@ export default function StoryMapView() {
                     onRestart={scrollToTop}
                     onViewOtherStories={() => setIsStorySlideshowOpen(true)}
                     storyId={storyId}
+                    isVisible={isBannerVisible}
                 />
                 </div>
             </div>

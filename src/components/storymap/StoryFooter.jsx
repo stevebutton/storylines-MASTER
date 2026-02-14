@@ -1,53 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, LogIn, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
+import { cn } from '@/lib/utils';
 
-export default function StoryFooter({ onRestart, onViewOtherStories, storyId }) {
+export default function StoryFooter({ onRestart, onViewOtherStories, storyId, isVisible = true }) {
+    const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const currentUser = await base44.auth.me();
+                setUser(currentUser);
+            } catch (error) {
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        checkAuth();
+    }, []);
+
+    const handleLogin = () => {
+        base44.auth.redirectToLogin();
+    };
+
+    const handleLogout = () => {
+        base44.auth.logout();
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center relative">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
-            
-            {/* Footer Navigation Buttons */}
-            <div className="fixed bottom-8 left-8 z-30 flex items-center gap-12">
-                <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
-                    alt="Menu"
-                    width="50"
-                    height="100"
-                    className="opacity-0 pointer-events-none"
-                />
-                
-                {onViewOtherStories && (
-                    <button
-                        onClick={onViewOtherStories}
-                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
-                    >
-                        <img 
-                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/250f728a2_MoreStories.png"
-                            alt="More Stories"
-                            width="50"
-                            height="100"
-                        />
-                    </button>
-                )}
-
-                {storyId && (
-                    <Link
-                        to={`${createPageUrl('StoryEditor')}?id=${storyId}`}
-                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
-                    >
-                        <img 
-                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/44e8e4095_EditStory.png"
-                            alt="Edit Story"
-                            width="50"
-                            height="100"
-                        />
-                    </Link>
-                )}
-            </div>
             
             <motion.div 
                 className="relative z-20 text-center px-6 max-w-2xl pointer-events-auto"
@@ -80,6 +68,82 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId }) 
                     Back to Beginning
                 </Button>
             </motion.div>
+
+            {/* Footer Bar */}
+            <div 
+                className={cn(
+                    "fixed bottom-0 left-0 right-0 z-[100] h-[60px] transition-all duration-700",
+                    "bg-white/95 backdrop-blur-xl shadow-lg border-t border-slate-200/50",
+                    "flex items-center justify-between px-[60px]",
+                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full pointer-events-none"
+                )}
+            >
+                {/* Logo */}
+                <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/6d075347b_footer-logo.png"
+                    alt="Content That Moves"
+                    width="200"
+                    height="50"
+                    className="hidden md:block"
+                />
+
+                {/* More Stories Button */}
+                {onViewOtherStories && (
+                    <button
+                        onClick={onViewOtherStories}
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                    >
+                        <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/250f728a2_MoreStories.png"
+                            alt="More Stories"
+                            width="50"
+                            height="100"
+                        />
+                    </button>
+                )}
+
+                {/* Edit Story Button */}
+                {storyId && (
+                    <Link
+                        to={`${createPageUrl('StoryEditor')}?id=${storyId}`}
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                    >
+                        <img 
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/44e8e4095_EditStory.png"
+                            alt="Edit Story"
+                            width="50"
+                            height="100"
+                        />
+                    </Link>
+                )}
+
+                {/* User Auth */}
+                {!isLoading && (
+                    user ? (
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-slate-500" />
+                                <span className="text-sm text-slate-500">{user.email}</span>
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black cursor-pointer"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                Logout
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleLogin}
+                            className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black cursor-pointer"
+                        >
+                            <LogIn className="w-4 h-4" />
+                            Login
+                        </button>
+                    )
+                )}
+            </div>
         </div>
     );
 }

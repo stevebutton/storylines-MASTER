@@ -81,61 +81,7 @@ export default function StoryMapBanner({
                 )}
             </div>
 
-            {/* Footer */}
-            <div 
-                className={cn(
-                    "fixed bottom-0 left-0 right-0 z-[100] h-[60px] transition-all duration-700 flex items-center",
-                    "bg-white/95 backdrop-blur-xl shadow-lg border-t border-slate-200/50",
-                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-full pointer-events-none"
-                )}
-            >
-                {/* Footer Logo - hidden on mobile */}
-                <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/6d075347b_footer-logo.png"
-                    alt="Content That Moves"
-                    width="250"
-                    height="60"
-                    className="hidden md:block ml-[60px]"
-                />
-
-                {/* Buttons - Right Side */}
-                <div className="ml-auto mr-[60px] flex items-center" style={{ gap: '30px' }}>
-                    {/* Social Share Buttons */}
-                    {isShareable && storyId && (
-                        <SocialShareButtons 
-                            storyTitle={storyTitle}
-                            storyUrl={`${window.location.origin}${createPageUrl('StoryMapView')}?id=${storyId}`}
-                        />
-                    )}
-
-                    {/* Auth Button */}
-                    {!isLoading && (
-                        user ? (
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4 text-slate-500" />
-                                    <span className="text-sm text-slate-500">{user.email}</span>
-                                </div>
-                                <button
-                                    onClick={handleLogout}
-                                    className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black cursor-pointer"
-                                >
-                                    <LogOut className="w-4 h-4" />
-                                    Logout
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={handleLogin}
-                                className="flex items-center gap-2 transition-colors text-sm font-medium text-slate-500 hover:text-black cursor-pointer"
-                            >
-                                <LogIn className="w-4 h-4" />
-                                Login
-                            </button>
-                        )
-                    )}
-                </div>
-            </div>
+            {/* Footer - Hidden, navigation moved to StoryFooter */}
         </>
     );
 }
