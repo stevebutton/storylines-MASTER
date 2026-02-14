@@ -102,9 +102,10 @@ export default function FullScreenImageViewer({
                                     />
                                 )}
                                 {currentSlide.location && (
-                                    <p className="text-slate-500 text-sm mt-3">
-                                        📍 {currentSlide.location}
-                                    </p>
+                                    <div className="flex items-center justify-end gap-2 text-slate-500 text-sm mt-3">
+                                        <span>{currentSlide.location}</span>
+                                        <div className="w-5 h-5 rounded-full bg-amber-500 border-2 border-white shadow-lg" />
+                                    </div>
                                 )}
                             </motion.div>
                         </AnimatePresence>

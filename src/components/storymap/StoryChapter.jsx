@@ -390,6 +390,7 @@ export default function StoryChapter({
                 slides={chapter.slides}
                 currentIndex={fullScreenImageIndex}
                 onNavigate={setFullScreenImageIndex}
+                chapterName={chapter.name ? `Chapter ${String(index + 1).padStart(2, '0')}: ${chapter.name}` : `Chapter ${String(index + 1).padStart(2, '0')}`}
             />
         </div>
     );
