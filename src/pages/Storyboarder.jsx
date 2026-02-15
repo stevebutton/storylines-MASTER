@@ -478,12 +478,12 @@ export default function Storyboarder() {
 
                                 <div>
                                     <Badge className="bg-amber-100 text-amber-700 mb-2">Story Title</Badge>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                        Dictate Story Title
-                                    </h2>
-                                    <p className="text-sm text-slate-600">
-                                        Press the microphone to record your story's main title.
-                                    </p>
+                                    <h2 className="text-slate-800 mb-2 text-2xl font-bold text-center">Dictate Story Title
+
+                </h2>
+                                    <p className="text-slate-600 text-sm text-center">Press the microphone to record your story's main title.
+
+                </p>
                                 </div>
 
                                 <VoiceNarrationRecorder
