@@ -401,15 +401,15 @@ export default function Storyboarder() {
                                 <div className="space-y-3">
                                     {/* Story Title Button */}
                                     <Button
-                  onClick={() => setCurrentStep(10)}
-                  className={`w-full h-28 justify-between border-0 shadow-lg ${
-                  storyTitle ?
-                  'bg-green-500 hover:bg-green-600' :
-                  'bg-purple-500 hover:bg-purple-600'}`
-                  }>
+                  onClick={() => setCurrentStep(10)} className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground px-4 py-2 w-full h-20 justify-between border-0 shadow-lg bg-purple-500 hover:bg-purple-600">
+
+
+
+
+
 
                                         <Mic className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                                        <p className="font-black text-white text-2xl flex-1 text-center">STORY TITLE</p>
+                                        <p className="text-white text-xl font-black text-center flex-1">STORY TITLE</p>
                                         {storyTitle && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
@@ -423,12 +423,12 @@ export default function Storyboarder() {
                   className="hidden" />
 
                                     <Button
-                  onClick={handleTakePhoto}
-                  className={`w-full h-28 justify-between border-0 shadow-lg ${
-                  coverPhoto ?
-                  'bg-green-500 hover:bg-green-600' :
-                  'bg-blue-500 hover:bg-blue-600'}`
-                  }
+                  onClick={handleTakePhoto} className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground px-4 py-2 w-full h-20 justify-between border-0 shadow-lg bg-blue-500 hover:bg-blue-600"
+
+
+
+
+
                   disabled={isUploading}>
 
                                         {isUploading ?
@@ -436,31 +436,31 @@ export default function Storyboarder() {
 
                   <Camera className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
                   }
-                                        <p className="font-black text-white text-2xl flex-1 text-center">COVER PHOTO</p>
+                                        <p className="text-white text-xl font-black text-center flex-1">COVER PHOTO</p>
                                         {coverPhoto && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
                                     {/* Capture Location Button */}
                                     <Button
-                  onClick={handleCaptureLocation}
-                  className={`w-full h-28 justify-between border-0 shadow-lg ${
-                  startingLocation ?
-                  'bg-green-500 hover:bg-green-600' :
-                  'bg-orange-500 hover:bg-orange-600'}`
-                  }>
+                  onClick={handleCaptureLocation} className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground px-4 py-2 w-full h-20 justify-between border-0 shadow-lg bg-orange-500 hover:bg-orange-600">
+
+
+
+
+
 
                                         <MapPin className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                                        <p className="font-black text-white text-2xl flex-1 text-center">LOCATION</p>
+                                        <p className="text-white text-xl font-black text-center flex-1">LOCATION</p>
                                         {startingLocation && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
                                     </Button>
 
                                     {/* Review Button */}
                                     <Button
-                  onClick={() => setCurrentStep(2)}
-                  className="w-full h-28 justify-between bg-slate-700 hover:bg-slate-800 border-0 mt-6 shadow-lg">
+                  onClick={() => setCurrentStep(2)} className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground px-4 py-2 w-full h-20 justify-between bg-slate-700 hover:bg-slate-800 border-0 mt-6 shadow-lg">
+
 
                                         <FileText className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                                        <p className="font-black text-white text-2xl flex-1 text-center">REVIEW STORY</p>
+                                        <p className="text-white text-xl font-black text-center flex-1">REVIEW STORY</p>
                                         <ChevronRight className="w-16 h-16 text-white flex-shrink-0" strokeWidth={3} />
                                     </Button>
                                 </div>
