@@ -13,13 +13,13 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
 
   const addLog = (message) => {
     const timestamp = new Date().toLocaleTimeString();
-    setEventLog(prev => [...prev.slice(-4), `${timestamp}: ${message}`]);
+    setEventLog((prev) => [...prev.slice(-4), `${timestamp}: ${message}`]);
     console.log(message);
   };
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
       setError('Speech recognition is not supported in this browser.');
       setIsSupported(false);
@@ -50,7 +50,7 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
   const createRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognitionInstance = new SpeechRecognition();
-    
+
     recognitionInstance.continuous = true;
     recognitionInstance.interimResults = true;
     recognitionInstance.lang = 'en-US';
@@ -78,10 +78,10 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
 
     recognitionInstance.onresult = (event) => {
       addLog(`✓ onresult fired! (${event.results.length} results)`);
-      
+
       let interimText = '';
       let finalText = '';
-      
+
       for (let i = 0; i < event.results.length; i++) {
         const resultTranscript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
@@ -92,16 +92,16 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
           addLog(`interim: "${resultTranscript}"`);
         }
       }
-      
+
       if (finalText) {
-        setTranscript(prev => prev + finalText);
+        setTranscript((prev) => prev + finalText);
         setDebugInfo('✅ GOT TRANSCRIPTION');
       }
       if (interimText) {
         setInterimTranscript(interimText);
         setDebugInfo('📝 Hearing you...');
       }
-      
+
       setError('');
     };
 
@@ -130,8 +130,8 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
       addLog(`❌ ERROR: ${event.error}`);
       setIsRecording(false);
       recognitionRef.current = null;
-      
-      switch(event.error) {
+
+      switch (event.error) {
         case 'not-allowed':
           setError('❌ Microphone permission denied');
           setDebugInfo('Permission denied');
@@ -187,7 +187,7 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
       setInterimTranscript('');
       addLog('User clicked start');
       setDebugInfo('Starting...');
-      
+
       try {
         if (recognitionRef.current) {
           addLog('Cleaning up old instance');
@@ -198,13 +198,13 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
           }
           recognitionRef.current = null;
         }
-        
+
         addLog('Creating new recognition');
         recognitionRef.current = createRecognition();
         addLog('Calling start()...');
         recognitionRef.current.start();
         setIsRecording(true);
-        
+
       } catch (err) {
         addLog(`Start failed: ${err.message}`);
         setError('Failed to start. Try again.');
@@ -216,27 +216,27 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
 
   return (
     <div className="space-y-4">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      {error &&
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
-      )}
+      }
 
       <div className="flex flex-col items-center py-4">
         <button
           onClick={toggleRecording}
-          disabled={!isSupported}
-          className={`
-            w-32 h-32 rounded-full flex items-center justify-center text-4xl
-            transition-all duration-300 shadow-lg
-            ${isRecording 
-              ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-              : 'bg-amber-600 hover:bg-amber-700'
-            }
-            ${!isSupported ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-            text-white
-          `}
-        >
+          disabled={!isSupported} className="bg-lime-500 text-white text-4xl rounded-full w-32 h-32 flex items-center justify-center transition-all duration-300 shadow-lg hover:bg-amber-700 cursor-pointer">
+
+
+
+
+
+
+
+
+
+
+
           {isRecording ? '⏹️' : '🎤'}
         </button>
         
@@ -244,8 +244,8 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
           {isRecording ? 'RECORDING - Click to stop' : 'Click to start'}
         </p>
         
-        {showDebug && (
-          <>
+        {showDebug &&
+        <>
             <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
               <p className="text-xs font-semibold text-blue-700 mb-1">STATUS:</p>
               <p className="text-blue-900 text-base font-bold">{debugInfo}</p>
@@ -253,39 +253,39 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
 
             <div className="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 max-h-32 overflow-y-auto mt-4">
               <p className="text-xs font-semibold text-gray-700 mb-1">EVENT LOG:</p>
-              {eventLog.length === 0 ? (
-                <p className="text-xs text-gray-500">No events yet</p>
-              ) : (
-                eventLog.map((log, i) => (
-                  <p key={i} className="text-xs text-gray-700 font-mono">{log}</p>
-                ))
-              )}
+              {eventLog.length === 0 ?
+            <p className="text-xs text-gray-500">No events yet</p> :
+
+            eventLog.map((log, i) =>
+            <p key={i} className="text-xs text-gray-700 font-mono">{log}</p>
+            )
+            }
             </div>
           </>
-        )}
+        }
       </div>
 
-{showDebug && interimTranscript && (
-        <div className="w-full bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+      {showDebug && interimTranscript &&
+      <div className="w-full bg-yellow-50 border border-yellow-300 rounded-lg p-3">
           <p className="text-xs font-semibold text-yellow-700 mb-1">INTERIM:</p>
           <p className="text-gray-700 text-sm italic">{interimTranscript}</p>
         </div>
-      )}
+      }
       
-      {transcript && (
-        <div className="w-full bg-green-50 border border-green-200 rounded-lg p-4">
+      {transcript &&
+      <div className="w-full bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-xs font-semibold text-green-700 mb-2">TRANSCRIPT:</p>
           <p className="text-gray-800 text-lg">{transcript}</p>
         </div>
-      )}
+      }
       
-      {!transcript && !interimTranscript && !error && !isRecording && (
-        <div className="w-full bg-gray-50 border border-gray-200 rounded-lg p-4">
+      {!transcript && !interimTranscript && !error && !isRecording &&
+      <div className="w-full bg-gray-50 border border-gray-200 rounded-lg p-4">
           <p className="text-gray-500 text-center italic">
             Transcription will appear here
           </p>
         </div>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }
