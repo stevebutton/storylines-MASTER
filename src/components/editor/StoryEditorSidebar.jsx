@@ -2,106 +2,106 @@ import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Book } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function StoryEditorSidebar({ 
-    story, 
-    chapters, 
-    slides,
-    selectedItem,
-    onSelectStory,
-    onSelectChapter,
-    onSelectSlide 
+export default function StoryEditorSidebar({
+  story,
+  chapters,
+  slides,
+  selectedItem,
+  onSelectStory,
+  onSelectChapter,
+  onSelectSlide
 }) {
-    const [expandedChapters, setExpandedChapters] = useState([]);
+  const [expandedChapters, setExpandedChapters] = useState([]);
 
-    const toggleChapter = (chapterId) => {
-        setExpandedChapters(prev => 
-            prev.includes(chapterId)
-                ? prev.filter(id => id !== chapterId)
-                : [...prev, chapterId]
-        );
-    };
+  const toggleChapter = (chapterId) => {
+    setExpandedChapters((prev) =>
+    prev.includes(chapterId) ?
+    prev.filter((id) => id !== chapterId) :
+    [...prev, chapterId]
+    );
+  };
 
-    const getSlidesForChapter = (chapterId) => {
-        return slides
-            .filter(s => s.chapter_id === chapterId)
-            .sort((a, b) => a.order - b.order);
-    };
+  const getSlidesForChapter = (chapterId) => {
+    return slides.
+    filter((s) => s.chapter_id === chapterId).
+    sort((a, b) => a.order - b.order);
+  };
 
-    const getSlideIndicators = (slide) => {
-        const indicators = [];
-        if (slide.coordinates && slide.coordinates.length === 2) {
-            indicators.push(<MapPin key="map" className="w-3 h-3 text-amber-600" />);
-        }
-        if (slide.image || slide.video_url) {
-            indicators.push(<Image key="img" className="w-3 h-3 text-blue-600" />);
-        }
-        if (slide.pdf_url) {
-            indicators.push(<FileText key="pdf" className="w-3 h-3 text-red-600" />);
-        }
-        return indicators;
-    };
+  const getSlideIndicators = (slide) => {
+    const indicators = [];
+    if (slide.coordinates && slide.coordinates.length === 2) {
+      indicators.push(<MapPin key="map" className="w-3 h-3 text-amber-600" />);
+    }
+    if (slide.image || slide.video_url) {
+      indicators.push(<Image key="img" className="w-3 h-3 text-blue-600" />);
+    }
+    if (slide.pdf_url) {
+      indicators.push(<FileText key="pdf" className="w-3 h-3 text-red-600" />);
+    }
+    return indicators;
+  };
 
-    const isStorySelected = selectedItem?.type === 'story';
-    const isChapterSelected = (chapterId) => 
-        selectedItem?.type === 'chapter' && selectedItem?.id === chapterId;
-    const isSlideSelected = (slideId) => 
-        selectedItem?.type === 'slide' && selectedItem?.id === slideId;
+  const isStorySelected = selectedItem?.type === 'story';
+  const isChapterSelected = (chapterId) =>
+  selectedItem?.type === 'chapter' && selectedItem?.id === chapterId;
+  const isSlideSelected = (slideId) =>
+  selectedItem?.type === 'slide' && selectedItem?.id === slideId;
 
-    return (
-        <div className="w-full md:w-80 border-r bg-white h-screen overflow-y-auto flex flex-col">
+  return (
+    <div className="w-full md:w-80 border-r bg-white h-screen overflow-y-auto flex flex-col">
             {/* Story Settings Button */}
-            <button 
-                onClick={onSelectStory}
-                className={cn(
-                    "w-full bg-indigo-50 hover:bg-indigo-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col items-center justify-center m-2",
-                    isStorySelected && "ring-2 ring-indigo-400"
-                )}
-            >
-                <Book className="w-5 h-5 text-indigo-600 mb-1" />
-                <span className="text-xs text-indigo-600 font-semibold">Story Settings</span>
+            <button
+        onClick={onSelectStory} className="bg-sky-500 m-2 p-2 rounded-lg w-full hover:bg-indigo-100 md:p-4 cursor-pointer transition-colors flex flex-col items-center justify-center ring-2 ring-indigo-400">
+
+
+
+
+
+                <Book className="text-slate-50 mb-1 lucide lucide-book w-5 h-5" />
+                <span className="text-slate-50 text-lg font-semibold uppercase">Story Settings</span>
             </button>
 
             {/* Chapters List */}
             <div className="flex-1 overflow-y-auto">
-                {chapters.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400">
+                {chapters.length === 0 ?
+        <div className="p-8 text-center text-slate-400">
                         <p className="text-sm">No chapters yet</p>
                         <p className="text-xs mt-1">Add a chapter to get started</p>
-                    </div>
-                ) : (
-                    <div className="py-2">
-                        {chapters.map((chapter, index) => {
-                            const chapterSlides = getSlidesForChapter(chapter.id);
-                            const isExpanded = expandedChapters.includes(chapter.id);
-                            const selected = isChapterSelected(chapter.id);
+                    </div> :
 
-                            return (
-                                <div key={chapter.id}>
+        <div className="py-2">
+                        {chapters.map((chapter, index) => {
+            const chapterSlides = getSlidesForChapter(chapter.id);
+            const isExpanded = expandedChapters.includes(chapter.id);
+            const selected = isChapterSelected(chapter.id);
+
+            return (
+              <div key={chapter.id}>
                                     {/* Chapter Item */}
                                     <div
-                                        className={cn(
-                                            "group flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors",
-                                            selected ? "bg-amber-50 border-l-4 border-l-amber-600" : "bg-slate-900 text-white"
-                                        )}
-                                    >
+                  className={cn(
+                    "group flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors",
+                    selected ? "bg-amber-50 border-l-4 border-l-amber-600" : "bg-slate-900 text-white"
+                  )}>
+
                                         <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleChapter(chapter.id);
-                                            }}
-                                            className="p-0.5 hover:bg-slate-700 rounded"
-                                        >
-                                            {isExpanded ? (
-                                                <ChevronDown className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
-                                            ) : (
-                                                <ChevronRight className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
-                                            )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleChapter(chapter.id);
+                    }}
+                    className="p-0.5 hover:bg-slate-700 rounded">
+
+                                            {isExpanded ?
+                    <ChevronDown className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} /> :
+
+                    <ChevronRight className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
+                    }
                                         </button>
                                         
-                                        <div 
-                                            onClick={() => onSelectChapter(chapter)}
-                                            className="flex-1 flex items-center gap-1 md:gap-2 min-w-0"
-                                        >
+                                        <div
+                    onClick={() => onSelectChapter(chapter)}
+                    className="flex-1 flex items-center gap-1 md:gap-2 min-w-0">
+
                                             <span className={cn("text-xl md:text-xs font-bold md:font-medium min-w-[20px] md:min-w-[20px]", selected ? "text-slate-700 md:text-slate-500" : "text-white md:text-slate-300")}>
                                                 {index + 1}
                                             </span>
@@ -109,9 +109,9 @@ export default function StoryEditorSidebar({
                                                 Chapter {index + 1}{chapter.name ? `: ${chapter.name}` : ''}
                                             </span>
                                             <div className="flex items-center gap-0.5 md:gap-1">
-                                                {chapter.coordinates && (
-                                                    <MapPin className={cn("w-2.5 h-2.5 md:w-3 md:h-3", selected ? "text-amber-600" : "text-amber-400")} />
-                                                )}
+                                                {chapter.coordinates &&
+                      <MapPin className={cn("w-2.5 h-2.5 md:w-3 md:h-3", selected ? "text-amber-600" : "text-amber-400")} />
+                      }
                                                 <span className={cn("text-[10px] md:text-xs", selected ? "text-slate-400" : "text-slate-300")}>
                                                     {chapterSlides.length}
                                                 </span>
@@ -120,17 +120,17 @@ export default function StoryEditorSidebar({
                                     </div>
 
                                     {/* Slides List */}
-                                    {isExpanded && chapterSlides.length > 0 && (
-                                        <div className="bg-slate-50">
-                                            {chapterSlides.map((slide, slideIndex) => (
-                                                <div
-                                                    key={slide.id}
-                                                    onClick={() => onSelectSlide(slide)}
-                                                    className={cn(
-                                                        "flex items-center justify-center gap-1 md:gap-2 pl-2 md:pl-12 pr-2 md:pr-4 py-2 hover:bg-slate-100 cursor-pointer transition-colors",
-                                                        isSlideSelected(slide.id) && "bg-amber-100 border-l-4 border-l-amber-600"
-                                                    )}
-                                                >
+                                    {isExpanded && chapterSlides.length > 0 &&
+                <div className="bg-slate-50">
+                                            {chapterSlides.map((slide, slideIndex) =>
+                  <div
+                    key={slide.id}
+                    onClick={() => onSelectSlide(slide)}
+                    className={cn(
+                      "flex items-center justify-center gap-1 md:gap-2 pl-2 md:pl-12 pr-2 md:pr-4 py-2 hover:bg-slate-100 cursor-pointer transition-colors",
+                      isSlideSelected(slide.id) && "bg-amber-100 border-l-4 border-l-amber-600"
+                    )}>
+
                                                     <Image className="w-3 h-3 md:hidden text-slate-400" />
                                                     <span className="text-xs md:text-sm text-slate-600 truncate">
                                                         <span className="md:hidden">slide {slideIndex + 1}</span>
@@ -140,14 +140,14 @@ export default function StoryEditorSidebar({
                                                         {getSlideIndicators(slide)}
                                                     </div>
                                                 </div>
-                                            ))}
+                  )}
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        })}
+                }
+                                </div>);
+
+          })}
                     </div>
-                )}
+        }
             </div>
 
             {/* Stats Footer */}
@@ -163,12 +163,12 @@ export default function StoryEditorSidebar({
                     </div>
                     <div>
                         <div className="text-base md:text-lg font-semibold text-green-600">
-                            {slides.filter(s => s.image || s.video_url).length}
+                            {slides.filter((s) => s.image || s.video_url).length}
                         </div>
                         <div className="text-[10px] md:text-xs text-slate-500">Media</div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        </div>);
+
 }
