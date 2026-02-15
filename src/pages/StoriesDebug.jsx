@@ -13,26 +13,16 @@ export default function StoriesDebug() {
   const queryClient = useQueryClient();
   const [locationDialogOpen, setLocationDialogOpen] = useState(false);
   const [selectedStory, setSelectedStory] = useState(null);
-  const [selectedStoryIds, setSelectedStoryIds] = useState([]);
-  const [sortBy, setSortBy] = useState('-created_date');
 
   const { data: stories = [], isLoading } = useQuery({
-    queryKey: ['stories', sortBy],
-    queryFn: () => base44.entities.Story.list(sortBy)
+    queryKey: ['stories'],
+    queryFn: () => base44.entities.Story.list('-created_date')
   });
 
   const updateStoryMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Story.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stories', sortBy] });
-    }
-  });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: (ids) => Promise.all(ids.map(id => base44.entities.Story.delete(id))),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stories', sortBy] });
-      setSelectedStoryIds([]);
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
     }
   });
 
@@ -48,26 +38,6 @@ export default function StoriesDebug() {
       id: story.id,
       data: { category }
     });
-  };
-
-  const handleSelectStory = (storyId, isChecked) => {
-    setSelectedStoryIds(prev =>
-      isChecked ? [...prev, storyId] : prev.filter(id => id !== storyId)
-    );
-  };
-
-  const handleSelectAll = (isChecked) => {
-    if (isChecked) {
-      setSelectedStoryIds(stories.map(story => story.id));
-    } else {
-      setSelectedStoryIds([]);
-    }
-  };
-
-  const handleDeleteSelected = () => {
-    if (selectedStoryIds.length > 0 && confirm(`Delete ${selectedStoryIds.length} selected stories?`)) {
-      bulkDeleteMutation.mutate(selectedStoryIds);
-    }
   };
 
   const handleLocationSave = (location) => {
@@ -98,45 +68,12 @@ export default function StoriesDebug() {
     <div className="min-h-screen bg-slate-50 p-8">
       <Card>
         <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>Stories Debug View</span>
-            <div className="flex items-center space-x-4">
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="-created_date">Newest First</SelectItem>
-                  <SelectItem value="created_date">Oldest First</SelectItem>
-                  <SelectItem value="title">Title (A-Z)</SelectItem>
-                  <SelectItem value="-title">Title (Z-A)</SelectItem>
-                </SelectContent>
-              </Select>
-              {selectedStoryIds.length > 0 && (
-                <Button
-                  variant="destructive"
-                  onClick={handleDeleteSelected}
-                  disabled={bulkDeleteMutation.isPending}
-                >
-                  {bulkDeleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Delete Selected ({selectedStoryIds.length})
-                </Button>
-              )}
-            </div>
-          </CardTitle>
+          <CardTitle>Stories Debug View</CardTitle>
           <p className="text-sm text-slate-600">
             Testing view for all stories - check and fix missing data
           </p>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 p-4 border-b border-slate-200 flex items-center">
-            <Checkbox
-              checked={selectedStoryIds.length === stories.length && stories.length > 0}
-              onCheckedChange={handleSelectAll}
-              disabled={stories.length === 0}
-            />
-            <span className="ml-2 text-sm font-medium text-slate-700">Select All</span>
-          </div>
           <div className="space-y-4">
             {stories.map((story) => (
               <div
@@ -144,15 +81,8 @@ export default function StoriesDebug() {
                 className="border border-slate-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow"
               >
                 <div className="grid grid-cols-12 gap-4 items-center">
-                  {/* Checkbox */}
-                  <div className="col-span-1">
-                    <Checkbox
-                      checked={selectedStoryIds.includes(story.id)}
-                      onCheckedChange={(isChecked) => handleSelectStory(story.id, isChecked)}
-                    />
-                  </div>
                   {/* Story Title */}
-                  <div className="col-span-2">
+                  <div className="col-span-3">
                     <h3 className="font-semibold text-slate-900">{story.title}</h3>
                     <p className="text-xs text-slate-500 mt-1">ID: {story.id}</p>
                   </div>
@@ -215,7 +145,7 @@ export default function StoriesDebug() {
                   </div>
 
                   {/* Starting Location */}
-                  <div className="col-span-2">
+                  <div className="col-span-3">
                     {story.coordinates && story.coordinates.length === 2 ? (
                       <div className="text-sm">
                         <div className="flex items-center gap-1 text-green-600 mb-1">
