@@ -243,7 +243,7 @@ export default function StoryEditor() {
                         </div>
                         <div className="bg-sky-400 p-2 rounded-lg flex-1 md:p-4 flex flex-col justify-center min-w-[80px]">
                             <p className="text-gray-50 text-xs md:text-sm">Media</p>
-                            <p className="text-lg md:text-2xl font-bold text-green-700">
+                            <p className="text-gray-50 text-lg font-bold md:text-2xl">
                                 {slides.filter((s) => s.image || s.video_url || s.pdf_url).length}
                             </p>
                         </div>
