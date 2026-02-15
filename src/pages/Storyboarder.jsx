@@ -390,9 +390,9 @@ export default function Storyboarder() {
 
 
                                 <div className="mb-6">
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                        New Story Details
-                                    </h2>
+                                    <h2 className="text-slate-800 mb-2 text-2xl font-bold text-center lowercase">Story Details
+
+                </h2>
                                     <p className="text-sm text-slate-600">
                                         Provide the essential details for your story.
                                     </p>
