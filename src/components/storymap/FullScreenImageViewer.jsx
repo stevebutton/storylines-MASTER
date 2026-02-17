@@ -73,7 +73,8 @@ export default function FullScreenImageViewer({
 
                 {/* Caption Overlay */}
                 <motion.div 
-                    className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col justify-center"
+                    className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col"
+                    style={{ paddingTop: '100px' }}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
@@ -89,7 +90,9 @@ export default function FullScreenImageViewer({
                             >
                                 {chapterName && (
                                     <div className="font-bold tracking-[0.2em] uppercase text-amber-600 mb-3" style={{ fontSize: '1.3rem', lineHeight: '1.3rem' }}>
-                                        {chapterName}
+                                        {chapterName.split(':').map((part, i) => (
+                                            <div key={i}>{part.trim()}</div>
+                                        ))}
                                     </div>
                                 )}
                                 <h3 className="text-2xl md:text-3xl font-medium text-slate-800 mb-3">
@@ -103,7 +106,7 @@ export default function FullScreenImageViewer({
                                     />
                                 )}
                                 {currentSlide.location && (
-                                    <div className="flex items-center justify-end gap-2 text-sm mt-3" style={{ color: '#000000' }}>
+                                    <div className="flex items-center justify-end gap-2 text-sm" style={{ color: '#000000', marginTop: '40px' }}>
                                         <span>{currentSlide.location}</span>
                                         <div className="w-5 h-5 rounded-full bg-amber-500 border-2 border-white shadow-lg" />
                                     </div>
@@ -125,7 +128,8 @@ export default function FullScreenImageViewer({
                     <AnimatePresence mode="wait">
                         <motion.div 
                             key={`extended-${currentIndex}`}
-                            className="hidden md:flex absolute top-0 left-[300px] h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 z-[9998] flex-col justify-center"
+                            className="hidden md:flex absolute top-0 left-[300px] h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 z-[9998] flex-col"
+                            style={{ paddingTop: '100px' }}
                             initial={{ opacity: 0, y: '100%' }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: '100%' }}
