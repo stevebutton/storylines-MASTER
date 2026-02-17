@@ -14,6 +14,9 @@ export default function FullScreenImageViewer({
     if (!slides || slides.length === 0) return null;
 
     const currentSlide = slides[currentIndex];
+    console.log('🔍 DEBUG - currentSlide:', currentSlide);
+    console.log('🔍 DEBUG - extended_content:', currentSlide.extended_content);
+    console.log('🔍 DEBUG - extended_content type:', typeof currentSlide.extended_content);
     const hasMultipleSlides = slides.length > 1;
 
     const handlePrevious = () => {
