@@ -371,10 +371,10 @@ export default function MapBackground({
                     .setLngLat([normalized[1], normalized[0]])
                     .addTo(map.current);
 
-                // Trigger fade in after a short delay to sync with flyTo completion
+                // Trigger fade in with smooth timing
                 setTimeout(() => {
                     if (el) el.style.opacity = '1';
-                }, (flyDuration || 12) * 1000 - 1000);
+                }, 2000);
 
                 landingMarkersRef.current.push(marker);
                 console.log('🎯 [MAP MARKERS] Marker created successfully. Total markers:', landingMarkersRef.current.length);

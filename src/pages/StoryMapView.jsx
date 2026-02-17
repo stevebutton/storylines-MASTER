@@ -232,6 +232,18 @@ export default function StoryMapView() {
                             });
                             setRouteCoordinates(initialRoute);
                             
+                            // Add first slide as landing marker
+                            if (initialRoute.length > 0) {
+                                setLandingMarkers(prev => {
+                                    const exists = prev.some(coord => areCoordinatesEqual(coord, initialRoute[0]));
+                                    if (!exists) {
+                                        console.log('🎯 [MARKER INIT] Adding first slide marker:', initialRoute[0]);
+                                        return [...prev, initialRoute[0]];
+                                    }
+                                    return prev;
+                                });
+                            }
+                            
                             // Use first slide coordinates if available
                             let validCenter = [0, 0];
                             if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
