@@ -74,7 +74,7 @@ export default function FullScreenImageViewer({
                 {/* Caption Overlay */}
                 <motion.div 
                     className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col"
-                    style={{ paddingTop: '100px' }}
+                    style={{ paddingTop: '150px' }}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
@@ -129,7 +129,7 @@ export default function FullScreenImageViewer({
                         <motion.div 
                             key={`extended-${currentIndex}`}
                             className="hidden md:flex absolute top-0 left-[300px] h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 z-[9998] flex-col"
-                            style={{ paddingTop: '100px' }}
+                            style={{ paddingTop: '150px' }}
                             initial={{ opacity: 0, y: '100%' }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: '100%' }}
