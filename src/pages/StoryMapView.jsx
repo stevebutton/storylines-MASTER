@@ -416,7 +416,7 @@ export default function StoryMapView() {
                             isActive={activeChapter === index}
                             alignment={chapter.alignment}
                             index={index}
-                            delay={index === 0 ? 3000 : 0}
+                            delay={index === 0 ? 1000 : 0}
                             onSlideChange={(slide) => {
                                 // ============================================
                                 // SLIDE CHANGE HANDLER: Add coordinates to route and markers

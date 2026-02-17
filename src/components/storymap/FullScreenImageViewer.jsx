@@ -89,7 +89,7 @@ export default function FullScreenImageViewer({
                                 transition={{ duration: 0.3 }}
                             >
                                 {chapterName && (
-                                    <div className="font-bold tracking-[0.2em] uppercase text-amber-600 mb-3" style={{ fontSize: '1.3rem', lineHeight: '1.3rem' }}>
+                                    <div className="font-bold tracking-[0.2em] uppercase text-amber-600 mb-3" style={{ fontSize: '1.3rem', lineHeight: '1.3rem', paddingBottom: '30px' }}>
                                         {chapterName.split(':').map((part, i) => (
                                             <div key={i}>{part.trim()}</div>
                                         ))}
