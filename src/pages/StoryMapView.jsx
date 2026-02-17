@@ -156,7 +156,8 @@ export default function StoryMapView() {
                         pdf_url: s.pdf_url,
                         video_url: s.video_url,
                         video_thumbnail_url: s.video_thumbnail_url,
-                        mapbox_layer_id: s.mapbox_layer_id
+                        mapbox_layer_id: s.mapbox_layer_id,
+                        extended_content: s.extended_content
                     }))
             }));
 
