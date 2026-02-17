@@ -396,6 +396,23 @@ export default function TabbedContentEditor({
                                 />
                             </div>
                             <div>
+                                <Label>Extended Content</Label>
+                                <ReactQuill
+                                    value={item.extended_content || ''}
+                                    onChange={(content) => onUpdate({ ...item, extended_content: content })}
+                                    placeholder="Additional detailed content (appears in fullscreen view)"
+                                    className="bg-white"
+                                    style={{ height: '150px', marginBottom: '50px' }}
+                                    modules={{
+                                        toolbar: [
+                                            ['bold', 'italic', 'underline'],
+                                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                            ['link']
+                                        ]
+                                    }}
+                                />
+                            </div>
+                            <div>
                                 <Label>Location Name</Label>
                                 <Input 
                                     value={item.location || ''} 

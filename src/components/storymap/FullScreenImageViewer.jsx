@@ -118,6 +118,27 @@ export default function FullScreenImageViewer({
                         )}
                     </div>
                 </motion.div>
+
+                {/* Extended Content Overlay - Only on Desktop */}
+                {currentSlide.extended_content && (
+                    <AnimatePresence mode="wait">
+                        <motion.div 
+                            key={`extended-${currentIndex}`}
+                            className="hidden md:block absolute top-0 left-[300px] h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col justify-center"
+                            initial={{ opacity: 0, y: '100%' }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: '100%' }}
+                            transition={{ duration: 2, ease: "easeOut" }}
+                        >
+                            <div className="w-full text-right">
+                                <div 
+                                    className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-right"
+                                    dangerouslySetInnerHTML={{ __html: currentSlide.extended_content }}
+                                />
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+                )}
             </DialogContent>
         </Dialog>
     );
