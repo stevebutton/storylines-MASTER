@@ -53,12 +53,11 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
       {mediaLoaded && (
         <motion.div
-          className="relative z-[95] mx-auto mt-[60px] w-[500px] max-w-[90vw] min-h-[600px] flex flex-col items-center justify-between px-8 py-12"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)' }}
+          className="relative z-[95] mx-auto mt-[60px] w-[500px] max-w-[90vw] min-h-[600px] flex flex-col items-center justify-between px-8 py-12 bg-black/25 backdrop-blur-sm"
           data-name="content-panel"
           initial={{ translateY: '-100%', opacity: 0 }}
           animate={{ translateY: '0', opacity: 1 }}
-          transition={{ duration: 3, ease: [0.42, 0, 1, 1], delay: 5 }}
+          transition={{ duration: 3, ease: [0.42, 0, 1, 1], delay: 2 }}
         >
           {/* Pin Icon */}
           <motion.img
@@ -68,7 +67,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             data-name="pin-icon"
             initial={{ translateY: '-50px', opacity: 0 }}
             animate={{ translateY: '0', opacity: 1 }}
-            transition={{ duration: 2, delay: 9 }}
+            transition={{ duration: 2, delay: 6 }}
           />
 
           {/* Title and Description Container */}
@@ -80,7 +79,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
               data-name="story-title"
               initial={{ translateX: '100px', opacity: 0 }}
               animate={{ translateX: '0', opacity: 1 }}
-              transition={{ duration: 2, delay: 8 }}
+              transition={{ duration: 2, delay: 5 }}
             >
               {title}
             </motion.h1>
@@ -92,7 +91,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
               data-name="story-description"
               initial={{ translateY: '100px', opacity: 0 }}
               animate={{ translateY: '0', opacity: 1 }}
-              transition={{ duration: 1, delay: 8 }}
+              transition={{ duration: 1, delay: 5 }}
               dangerouslySetInnerHTML={{ __html: subtitle }}
             />
           </div>
@@ -104,7 +103,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             data-name="scroll-arrow"
             initial={{ translateY: '50px', opacity: 0 }}
             animate={{ translateY: '0', opacity: 1 }}
-            transition={{ duration: 2, delay: 9 }}
+            transition={{ duration: 2, delay: 6 }}
             whileHover={{ 
               scale: 1.1,
               filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
