@@ -88,21 +88,22 @@ export default function FullScreenImageViewer({
                                 transition={{ duration: 0.3 }}
                             >
                                 {chapterName && (
-                                    <div className="text-xs font-medium tracking-[0.2em] uppercase text-amber-600 mb-3">
+                                    <div className="font-bold tracking-[0.2em] uppercase text-amber-600 mb-3" style={{ fontSize: '1.3rem', lineHeight: '1.3rem' }}>
                                         {chapterName}
                                     </div>
                                 )}
-                                <h3 className="text-2xl md:text-3xl font-light text-slate-800 mb-3">
+                                <h3 className="text-2xl md:text-3xl font-medium text-slate-800 mb-3">
                                     {currentSlide.title}
                                 </h3>
                                 {currentSlide.description && (
                                     <div 
-                                        className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-right"
+                                        className="text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-right"
+                                        style={{ color: '#000000' }}
                                         dangerouslySetInnerHTML={{ __html: currentSlide.description }}
                                     />
                                 )}
                                 {currentSlide.location && (
-                                    <div className="flex items-center justify-end gap-2 text-slate-500 text-sm mt-3">
+                                    <div className="flex items-center justify-end gap-2 text-sm mt-3" style={{ color: '#000000' }}>
                                         <span>{currentSlide.location}</span>
                                         <div className="w-5 h-5 rounded-full bg-amber-500 border-2 border-white shadow-lg" />
                                     </div>
@@ -112,7 +113,7 @@ export default function FullScreenImageViewer({
 
                         {/* Slide Counter */}
                         {hasMultipleSlides && (
-                            <div className="text-slate-400 text-sm mt-4">
+                            <div className="text-sm mt-4" style={{ color: '#000000' }}>
                                 {currentIndex + 1} / {slides.length}
                             </div>
                         )}
@@ -128,10 +129,10 @@ export default function FullScreenImageViewer({
                             initial={{ opacity: 0, y: '100%' }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: '100%' }}
-                            transition={{ duration: 2, ease: "easeOut" }}
+                            transition={{ duration: 3, ease: "easeOut" }}
                         >
                             <div 
-                                className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-right"
+                                className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-left"
                                 dangerouslySetInnerHTML={{ __html: currentSlide.extended_content }}
                             />
                         </motion.div>
