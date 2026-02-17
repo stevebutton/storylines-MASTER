@@ -53,7 +53,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
       {mediaLoaded && (
         <motion.div
-          className="relative z-[95] mx-auto mt-[60px] w-[500px] max-w-[90vw] min-h-[600px] flex flex-col items-center justify-between px-8 py-12 bg-black/25 backdrop-blur-sm"
+          className="relative z-[95] mx-auto mt-[60px] w-[500px] max-w-[90vw] min-h-[600px] flex flex-col items-center justify-between px-8 py-12 bg-black/25 backdrop-blur-lg"
           data-name="content-panel"
           initial={{ translateY: '-100%', opacity: 0 }}
           animate={{ translateY: '0', opacity: 1 }}
