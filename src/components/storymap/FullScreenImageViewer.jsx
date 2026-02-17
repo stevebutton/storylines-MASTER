@@ -77,7 +77,7 @@ export default function FullScreenImageViewer({
                     style={{ paddingTop: '150px' }}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
+                    transition={{ duration: 0.6, delay: 3 }}
                 >
                     <div className="w-full text-right">
                         <AnimatePresence mode="wait">
@@ -133,7 +133,7 @@ export default function FullScreenImageViewer({
                             initial={{ opacity: 0, y: '100%' }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: '100%' }}
-                            transition={{ duration: 3, ease: "easeOut" }}
+                            transition={{ duration: 3, ease: "easeOut", delay: 5 }}
                         >
                             <div 
                                 className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-left"
