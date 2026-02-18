@@ -544,8 +544,8 @@ export default function StoryMapView() {
                             : 'slideOutToBottom 3s ease-in'
                     }}
                 >
-                    <SheetHeader>
-                        <SheetTitle>Document Library</SheetTitle>
+                    <SheetHeader className="pl-[200px]">
+                        <SheetTitle className="text-3xl">Document Library</SheetTitle>
                     </SheetHeader>
                     <div className="h-[calc(100%-60px)] overflow-auto mt-4">
                         <DocumentManagerContent storyId={storyId} />

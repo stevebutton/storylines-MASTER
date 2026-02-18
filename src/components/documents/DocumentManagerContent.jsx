@@ -131,7 +131,7 @@ export default function DocumentManagerContent({ storyId = null }) {
         const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = categoryFilter === 'all' || doc.category === categoryFilter;
-        const matchesFolder = folderFilter === 'all' || doc.folder === folderFolder;
+        const matchesFolder = folderFilter === 'all' || doc.folder === folderFilter;
         return matchesSearch && matchesCategory && matchesFolder;
     });
 
@@ -157,7 +157,7 @@ export default function DocumentManagerContent({ storyId = null }) {
                                 <SelectTrigger className="w-40">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="z-[100]">
                                     <SelectItem value="all">All Categories</SelectItem>
                                     <SelectItem value="research">Research</SelectItem>
                                     <SelectItem value="education">Education</SelectItem>
@@ -171,7 +171,7 @@ export default function DocumentManagerContent({ storyId = null }) {
                                 <SelectTrigger className="w-40">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="z-[100]">
                                     <SelectItem value="all">All Folders</SelectItem>
                                     {uniqueFolders.map(folder => (
                                         <SelectItem key={folder} value={folder}>{folder}</SelectItem>
@@ -204,8 +204,8 @@ export default function DocumentManagerContent({ storyId = null }) {
                 </CardContent>
             </Card>
 
-            {/* Documents Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Documents Grid - 4 columns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {filteredDocs.map((doc) => (
                     <Card key={doc.id} className="hover:shadow-lg transition-shadow">
                         <CardHeader className="pb-3">
