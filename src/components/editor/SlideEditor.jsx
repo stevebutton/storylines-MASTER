@@ -218,20 +218,22 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     {/* Video Section */}
                                     <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
                                         <Label className="text-xs font-medium">Video (optional)</Label>
-                                        <p className="text-xs text-slate-500 mb-2">Upload a video or enter a URL</p>
+                                        <p className="text-xs text-slate-500 mb-2">Enter a YouTube/Vimeo URL or upload a video file</p>
                                         
                                         {/* Video URL Input */}
                                         <div className="mb-2">
+                                            <Label className="text-xs">Video URL</Label>
                                             <Input 
                                                 value={slide.video_url || ''} 
                                                 onChange={(e) => onUpdate({ ...slide, video_url: e.target.value })}
-                                                placeholder="Enter video URL or upload below"
+                                                placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
                                                 className="h-9 text-xs"
                                             />
                                         </div>
 
                                         {/* Video Upload */}
                                         <div className="mb-2">
+                                            <Label className="text-xs">Or Upload Video File</Label>
                                             <input
                                                 type="file"
                                                 accept="video/*"
@@ -260,12 +262,12 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                     size="sm"
                                                     disabled={isUploadingVideo}
                                                     onClick={() => document.getElementById(`slide-video-upload-${slide.id}`).click()}
-                                                    className="w-full h-8"
+                                                    className="w-full h-8 mt-1"
                                                 >
                                                     {isUploadingVideo ? (
                                                         <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading Video...</>
                                                     ) : (
-                                                        <><Video className="w-3 h-3 mr-2" /> Upload Video</>
+                                                        <><Video className="w-3 h-3 mr-2" /> Upload Video File</>
                                                     )}
                                                 </Button>
                                             </label>

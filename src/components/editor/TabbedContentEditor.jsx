@@ -196,6 +196,18 @@ export default function TabbedContentEditor({
                                         </button>
                                     </div>
                                 )}
+                                
+                                {/* Video URL Input */}
+                                <div>
+                                    <Label className="text-xs">Video URL (YouTube, Vimeo, or direct link)</Label>
+                                    <Input 
+                                        value={item.hero_video || ''} 
+                                        onChange={(e) => onUpdate({ ...item, hero_video: e.target.value, hero_type: 'video' })}
+                                        placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+                                        className="text-xs"
+                                    />
+                                </div>
+
                                 <div className="flex gap-2">
                                     <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="hidden" id="hero-image" />
                                     <label htmlFor="hero-image">
@@ -537,6 +549,18 @@ export default function TabbedContentEditor({
                                         </button>
                                     </div>
                                 )}
+                                
+                                {/* Video URL Input */}
+                                <div className="mt-2">
+                                    <Label className="text-xs">Video URL (YouTube, Vimeo, or direct link)</Label>
+                                    <Input 
+                                        value={item.video_url || ''} 
+                                        onChange={(e) => onUpdate({ ...item, video_url: e.target.value })}
+                                        placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+                                        className="text-xs"
+                                    />
+                                </div>
+
                                 <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" id="slide-video" />
                                 <label htmlFor="slide-video">
                                     <Button 
