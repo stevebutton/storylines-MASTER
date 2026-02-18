@@ -75,6 +75,7 @@ export default function StoryEditor() {
                 const newStory = await base44.entities.Story.create(story);
                 savedStoryId = newStory.id;
                 setStory(newStory);
+                urlParams.set('id', newStory.id);
                 
                 // Verify story is queryable before proceeding
                 let retries = 0;
