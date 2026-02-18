@@ -162,23 +162,19 @@ export default function StoryChapter({
                 <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
                     <DialogContent 
                         disableDefaultPosition
-                        className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6"
-                        asChild
+                        customAnimation={{
+                            initial: { x: "-100%", opacity: 0 },
+                            animate: { x: 0, opacity: 1, transition: { duration: 2, ease: "easeOut" } },
+                            exit: { x: "-100%", opacity: 0, transition: { duration: 2, ease: "easeOut" } }
+                        }}
+                        className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6 flex flex-col"
                     >
-                        <motion.div
-                            initial={{ x: "-100%", opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: "-100%", opacity: 0 }}
-                            transition={{ duration: 2, ease: "easeOut" }}
-                            className="flex flex-col"
-                        >
-                            <DialogHeader>
-                                <DialogTitle style={{ fontSize: '1.5rem' }}>{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
-                            </DialogHeader>
-                            <div className="flex-1 h-full overflow-hidden">
-                                <PdfViewer url={currentSlide?.pdf_url} />
-                            </div>
-                        </motion.div>
+                        <DialogHeader className="pb-5">
+                            <DialogTitle style={{ fontSize: '1.5rem' }}>{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-1 overflow-auto">
+                            <PdfViewer url={currentSlide?.pdf_url} />
+                        </div>
                     </DialogContent>
                 </Dialog>
 
@@ -302,23 +298,19 @@ export default function StoryChapter({
             <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
                 <DialogContent 
                     disableDefaultPosition
-                    className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6"
-                    asChild
+                    customAnimation={{
+                        initial: { x: "-100%", opacity: 0 },
+                        animate: { x: 0, opacity: 1, transition: { duration: 2, ease: "easeOut" } },
+                        exit: { x: "-100%", opacity: 0, transition: { duration: 2, ease: "easeOut" } }
+                    }}
+                    className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6 flex flex-col"
                 >
-                    <motion.div
-                        initial={{ x: "-100%", opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: "-100%", opacity: 0 }}
-                        transition={{ duration: 2, ease: "easeOut" }}
-                        className="flex flex-col"
-                    >
-                        <DialogHeader>
-                            <DialogTitle style={{ fontSize: '1.5rem' }}>{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex-1 h-full overflow-hidden">
-                            <PdfViewer url={currentSlide?.pdf_url} />
-                        </div>
-                    </motion.div>
+                    <DialogHeader className="pb-5">
+                        <DialogTitle style={{ fontSize: '1.5rem' }}>{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-auto">
+                        <PdfViewer url={currentSlide?.pdf_url} />
+                    </div>
                 </DialogContent>
             </Dialog>
 

@@ -30,14 +30,14 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
-const DialogContent = React.forwardRef(({ className, children, disableDefaultPosition, ...props }, ref) => (
+const DialogContent = React.forwardRef(({ className, children, disableDefaultPosition, customAnimation, ...props }, ref) => (
   <AnimatePresence>
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content ref={ref} asChild {...props}>
         <motion.div
-          initial={disableDefaultPosition ? { opacity: 0 } : { opacity: 0, y: 100, x: "-50%" }}
-          animate={disableDefaultPosition ? { opacity: 1 } : { 
+          initial={disableDefaultPosition ? (customAnimation?.initial || { opacity: 0 }) : { opacity: 0, y: 100, x: "-50%" }}
+          animate={disableDefaultPosition ? (customAnimation?.animate || { opacity: 1 }) : { 
             opacity: 1, 
             y: "-50%", 
             x: "-50%",
@@ -46,7 +46,7 @@ const DialogContent = React.forwardRef(({ className, children, disableDefaultPos
               opacity: { duration: 1, ease: "easeOut" }
             }
           }}
-          exit={disableDefaultPosition ? { opacity: 0 } : { 
+          exit={disableDefaultPosition ? (customAnimation?.exit || { opacity: 0 }) : { 
             opacity: 0, 
             y: 100, 
             x: "-50%",
