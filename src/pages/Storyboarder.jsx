@@ -350,22 +350,22 @@ export default function Storyboarder() {
               key="welcome"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="p-8 space-y-8 text-center">
+              exit={{ opacity: 0, y: -20 }} className="bg-gray-300 p-8 text-center space-y-8">
+
 
                                 <div className="py-6">
-                                    <h2 className="text-4xl font-bold text-slate-800 mb-6">
-                                        Storyboarder
-                                    </h2>
-                                    <p className="text-slate-700 mb-2 text-xl leading-relaxed">is your companion for
+                                    <h2 className="text-slate-50 mb-6 text-4xl font-bold">Storyboarder
+
+                </h2>
+                                    <p className="text-slate-50 mb-2 text-xl leading-relaxed">is your companion for
 
                 </p>
-                                    <p className="text-lg text-slate-700 leading-relaxed">
-                                        building stories on location.
-                                    </p>
+                                    <p className="text-slate-50 text-xl leading-relaxed">building stories on location.
+
+                </p>
                                 </div>
 
-                                <p className="text-slate-600 leading-relaxed max-w-lg mx-auto">Use ivoice, image, and location capture tools to build your story on the go, ready for editing in the Storylines desktop editor.
+                                <p className="text-slate-50 mx-auto px-32 text-lg text-center leading-relaxed max-w-lg">Use voice, image, and location capture tools to build your story on the go, ready for editing in the Storylines desktop editor.
 
 
               </p>
