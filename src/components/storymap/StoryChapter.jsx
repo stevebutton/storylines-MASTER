@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ChapterCarousel from './ChapterCarousel';
-import { FileText, Play, Maximize2 } from 'lucide-react';
+import { FileText, Play } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PdfViewer from '@/components/pdf/PdfViewer';
-import VideoPlayerModal from './VideoPlayerModal';
 import FullScreenImageViewer from './FullScreenImageViewer';
 
 export default function StoryChapter({ 
@@ -18,8 +17,6 @@ export default function StoryChapter({
 }) {
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const [showPdfModal, setShowPdfModal] = useState(false);
-    const [showVideoModal, setShowVideoModal] = useState(false);
-    const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
     const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
@@ -90,36 +87,22 @@ export default function StoryChapter({
                             {/* Video or Image Carousel */}
                             {currentSlide?.video_url ? (
                                 <div className="mb-6 relative">
-                                    {!isVideoPlaying && currentSlide.video_thumbnail_url ? (
-                                        <div 
-                                            className="relative cursor-pointer group"
-                                            onClick={() => setIsVideoPlaying(true)}
-                                        >
-                                            <img 
-                                                src={currentSlide.video_thumbnail_url}
-                                                alt="Video thumbnail"
-                                                className="w-full h-64 object-cover rounded-lg"
-                                            />
-                                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center">
-                                                <Play className="w-16 h-16 text-white" fill="white" />
-                                            </div>
+                                    <div 
+                                        className="relative cursor-pointer group"
+                                        onClick={() => {
+                                            setFullScreenImageIndex(activeSlideIndex);
+                                            setShowFullScreenViewer(true);
+                                        }}
+                                    >
+                                        <img 
+                                            src={currentSlide.video_thumbnail_url || currentSlide.image}
+                                            alt="Video thumbnail"
+                                            className="w-full h-64 object-cover rounded-lg"
+                                        />
+                                        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center">
+                                            <Play className="w-16 h-16 text-white" fill="white" />
                                         </div>
-                                    ) : (
-                                        <div className="relative">
-                                            <video 
-                                                src={currentSlide.video_url}
-                                                controls
-                                                autoPlay={isVideoPlaying}
-                                                className="w-full h-64 object-cover rounded-lg"
-                                            />
-                                            <button
-                                                onClick={() => setShowVideoModal(true)}
-                                                className="absolute bottom-2 right-2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors"
-                                            >
-                                                <Maximize2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
                             ) : chapter.slides && chapter.slides.length > 0 && (
                                 <div className="mb-6 pointer-events-auto">
@@ -206,14 +189,6 @@ export default function StoryChapter({
                     </DialogContent>
                 </Dialog>
 
-                {/* Video Modal */}
-                <VideoPlayerModal
-                    isOpen={showVideoModal}
-                    onClose={() => setShowVideoModal(false)}
-                    videoUrl={currentSlide?.video_url}
-                    title={currentSlide?.title}
-                />
-
                 {/* Full Screen Image Viewer */}
                 <FullScreenImageViewer
                     isOpen={showFullScreenViewer}
@@ -249,36 +224,22 @@ export default function StoryChapter({
                     {/* Video or Image Carousel */}
                     {currentSlide?.video_url ? (
                         <div className="relative">
-                            {!isVideoPlaying && currentSlide.video_thumbnail_url ? (
-                                <div 
-                                    className="relative cursor-pointer group h-[300px]"
-                                    onClick={() => setIsVideoPlaying(true)}
-                                >
-                                    <img 
-                                        src={currentSlide.video_thumbnail_url}
-                                        alt="Video thumbnail"
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                        <Play className="w-16 h-16 text-white" fill="white" />
-                                    </div>
+                            <div 
+                                className="relative cursor-pointer group h-[300px]"
+                                onClick={() => {
+                                    setFullScreenImageIndex(activeSlideIndex);
+                                    setShowFullScreenViewer(true);
+                                }}
+                            >
+                                <img 
+                                    src={currentSlide.video_thumbnail_url || currentSlide.image}
+                                    alt="Video thumbnail"
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                    <Play className="w-16 h-16 text-white" fill="white" />
                                 </div>
-                            ) : (
-                                <div className="relative">
-                                    <video 
-                                        src={currentSlide.video_url}
-                                        controls
-                                        autoPlay={isVideoPlaying}
-                                        className="w-full h-[300px] object-cover"
-                                    />
-                                    <button
-                                        onClick={() => setShowVideoModal(true)}
-                                        className="absolute bottom-2 right-2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors"
-                                    >
-                                        <Maximize2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
+                            </div>
                         </div>
                     ) : chapter.slides && chapter.slides.length > 0 && (
                         <div className="pointer-events-auto">
@@ -374,14 +335,6 @@ export default function StoryChapter({
                     </div>
                 </DialogContent>
             </Dialog>
-
-            {/* Video Modal */}
-            <VideoPlayerModal
-                isOpen={showVideoModal}
-                onClose={() => setShowVideoModal(false)}
-                videoUrl={currentSlide?.video_url}
-                title={currentSlide?.title}
-            />
 
             {/* Full Screen Image Viewer */}
             <FullScreenImageViewer

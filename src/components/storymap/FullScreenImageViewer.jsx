@@ -55,19 +55,35 @@ export default function FullScreenImageViewer({
                     </>
                 )}
 
-                {/* Image Display */}
+                {/* Image or Video Display */}
                 <div className="relative w-full h-full flex items-center justify-center">
                     <AnimatePresence mode="wait">
-                        <motion.img
-                            key={currentIndex}
-                            src={currentSlide.image}
-                            alt={currentSlide.title}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.4, ease: "easeOut" }}
-                            className="w-full h-full object-cover"
-                        />
+                        {currentSlide.video_url ? (
+                            <motion.video
+                                key={currentIndex}
+                                src={currentSlide.video_url}
+                                controls
+                                autoPlay
+                                loop
+                                playsInline
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <motion.img
+                                key={currentIndex}
+                                src={currentSlide.image}
+                                alt={currentSlide.title}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                                className="w-full h-full object-cover"
+                            />
+                        )}
                     </AnimatePresence>
                 </div>
 
