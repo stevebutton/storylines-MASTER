@@ -388,6 +388,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                            onUpdate({ ...slide, pdf_url: file_url });
 
                                                            // Create Document entity for the library
+                                                           console.log('Story ID when uploading PDF:', storyId);
                                                            if (storyId) {
                                                                await base44.entities.Document.create({
                                                                    title: file.name.replace(/\.pdf$/i, ''),
