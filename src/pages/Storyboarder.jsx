@@ -350,7 +350,7 @@ export default function Storyboarder() {
               key="welcome"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }} className="bg-gray-300 p-8 text-center space-y-8">
+              exit={{ opacity: 0, y: -20 }} className="bg-gray-500 p-8 text-center space-y-8">
 
 
                                 <div className="py-6">
