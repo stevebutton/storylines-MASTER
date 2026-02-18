@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2, FileText, Video } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ReactQuill from 'react-quill';
@@ -29,6 +30,7 @@ const validateField = (field, value) => {
 };
 
 export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
+    const queryClient = useQueryClient();
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingBackground, setIsUploadingBackground] = useState(false);
     const [isUploadingPdf, setIsUploadingPdf] = useState(false);
@@ -398,6 +400,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                                    file_size: file.size,
                                                                    description: `Attached to slide: ${slide.title || 'Untitled'}`
                                                                });
+                                                               queryClient.invalidateQueries(['documents']);
                                                            }
                                                         } catch (error) {
                                                            console.error('Failed to upload PDF:', error);
