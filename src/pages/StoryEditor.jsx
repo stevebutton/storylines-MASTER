@@ -109,18 +109,15 @@ export default function StoryEditor() {
             }
 
             for (const slide of slides) {
-                console.log('[StoryEditor] Processing slide for save:', slide);
                 if (slide.id.startsWith('temp-')) {
                     const { id, ...slideData } = slide;
                     const finalChapterId = chapterIdMap[slide.chapter_id] || slide.chapter_id;
-                    console.log('[StoryEditor] Creating new slide with data:', { ...slideData, chapter_id: finalChapterId });
                     const newSlide = await base44.entities.Slide.create({ 
                         ...slideData, 
                         chapter_id: finalChapterId 
                     });
                     setSlides(prev => prev.map(s => s.id === id ? newSlide : s));
                 } else {
-                    console.log('[StoryEditor] Updating existing slide with id:', slide.id, 'data:', slide);
                     await base44.entities.Slide.update(slide.id, slide);
                 }
             }
@@ -167,7 +164,6 @@ export default function StoryEditor() {
     };
 
     const updateSlide = (updatedSlide) => {
-        console.log('[StoryEditor] updateSlide called with:', updatedSlide);
         setSlides(slides.map(s => s.id === updatedSlide.id ? updatedSlide : s));
     };
 

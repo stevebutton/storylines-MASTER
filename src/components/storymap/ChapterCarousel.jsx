@@ -3,6 +3,43 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const VideoEmbed = ({ url }) => {
+    if (!url) return null;
+
+    let embedUrl = '';
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        const videoId = url.split('v=')[1]?.split('&')[0] || url.split('youtu.be/')[1]?.split('?')[0];
+        embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&showinfo=0` : '';
+    } else if (url.includes('vimeo.com')) {
+        const videoId = url.split('vimeo.com/')[1]?.split('?')[0];
+        embedUrl = videoId ? `https://player.vimeo.com/video/${videoId}?autoplay=1&muted=1&loop=1&controls=0&background=1` : '';
+    } else {
+        return (
+            <video 
+                src={url}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover"
+            />
+        );
+    }
+
+    if (!embedUrl) return null;
+
+    return (
+        <iframe
+            src={embedUrl}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full object-cover"
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+        ></iframe>
+    );
+};
+
 export default function ChapterCarousel({ slides, onSlideChange, onImageClick }) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
     const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -30,14 +67,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick })
         return (
             <div className="relative h-[300px] overflow-hidden group cursor-pointer" onClick={() => onImageClick?.(0)}>
                 {slides[0].video_url ? (
-                    <video 
-                        src={slides[0].video_url}
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        className="w-full h-full object-cover"
-                    />
+                    <VideoEmbed url={slides[0].video_url} />
                 ) : (
                     <img 
                         src={slides[0].image} 
@@ -57,18 +87,11 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick })
                     {slides.map((slide, index) => (
                         <div 
                             key={index} 
-                            className="flex-[0_0_100%] min-w-0 h-full cursor-pointer"
+                            className="flex-[0_0_100%] min-w-0 h-full cursor-pointer relative"
                             onClick={() => onImageClick?.(index)}
                         >
                             {slide.video_url ? (
-                                <video 
-                                    src={slide.video_url}
-                                    autoPlay
-                                    muted
-                                    loop
-                                    playsInline
-                                    className="w-full h-full object-cover"
-                                />
+                                <VideoEmbed url={slide.video_url} />
                             ) : (
                                 <img 
                                     src={slide.image} 

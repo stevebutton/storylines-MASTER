@@ -3,6 +3,54 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
+const VideoPlayer = ({ url }) => {
+    if (!url) return null;
+
+    let embedUrl = '';
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        const videoId = url.split('v=')[1]?.split('&')[0] || url.split('youtu.be/')[1]?.split('?')[0];
+        embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0` : '';
+    } else if (url.includes('vimeo.com')) {
+        const videoId = url.split('vimeo.com/')[1]?.split('?')[0];
+        embedUrl = videoId ? `https://player.vimeo.com/video/${videoId}?autoplay=1&controls=1` : '';
+    } else {
+        return (
+            <motion.video
+                src={url}
+                controls
+                autoPlay
+                playsInline
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="w-full h-full object-contain"
+            />
+        );
+    }
+
+    if (!embedUrl) return null;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="relative w-full h-full flex items-center justify-center"
+        >
+            <iframe
+                src={embedUrl}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+                style={{ minHeight: '80vh' }}
+            ></iframe>
+        </motion.div>
+    );
+};
+
 export default function FullScreenImageViewer({ 
     isOpen, 
     onClose, 
@@ -59,19 +107,7 @@ export default function FullScreenImageViewer({
                 <div className="relative w-full h-full flex items-center justify-center">
                     <AnimatePresence mode="wait">
                         {currentSlide.video_url ? (
-                            <motion.video
-                                key={currentIndex}
-                                src={currentSlide.video_url}
-                                controls
-                                autoPlay
-                                loop
-                                playsInline
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.4, ease: "easeOut" }}
-                                className="w-full h-full object-cover"
-                            />
+                            <VideoPlayer url={currentSlide.video_url} key={currentIndex} />
                         ) : (
                             <motion.img
                                 key={currentIndex}

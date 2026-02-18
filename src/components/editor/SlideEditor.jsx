@@ -146,7 +146,6 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                 <ReactQuill
                                     value={slide.description || ''}
                                     onChange={(content) => {
-                                        // Only update if content actually changed
                                         if (content !== slide.description) {
                                             const error = validateField('description', content);
                                             setErrors(prev => ({ ...prev, description: error }));
@@ -225,12 +224,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                             <Label className="text-xs">Video URL</Label>
                                             <Input 
                                                 value={slide.video_url || ''} 
-                                                onChange={(e) => {
-                                                    console.log('[SlideEditor] Video URL changed to:', e.target.value);
-                                                    const updatedSlide = { ...slide, video_url: e.target.value };
-                                                    console.log('[SlideEditor] Updated slide object:', updatedSlide);
-                                                    onUpdate(updatedSlide);
-                                                }}
+                                                onChange={(e) => onUpdate({ ...slide, video_url: e.target.value })}
                                                 placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
                                                 className="h-9 text-xs"
                                             />
