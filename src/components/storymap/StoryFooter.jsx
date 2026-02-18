@@ -117,6 +117,18 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
                     </Link>
                 )}
 
+                {/* Library Button */}
+                {storyId && (
+                    <Link
+                        to={`${createPageUrl('StoryLibrary')}?storyId=${storyId}`}
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300"
+                    >
+                        <Button variant="ghost" className="text-sm font-medium">
+                            Library
+                        </Button>
+                    </Link>
+                )}
+
                 {/* User Auth */}
                 {!isLoading && (
                     user ? (
