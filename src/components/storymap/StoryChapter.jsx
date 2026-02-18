@@ -94,12 +94,15 @@ export default function StoryChapter({
                                             setShowFullScreenViewer(true);
                                         }}
                                     >
-                                        <img 
-                                            src={currentSlide.video_thumbnail_url || currentSlide.image}
-                                            alt="Video thumbnail"
+                                        <video 
+                                            src={currentSlide.video_url}
+                                            autoPlay
+                                            muted
+                                            loop
+                                            playsInline
                                             className="w-full h-64 object-cover rounded-lg"
                                         />
-                                        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center">
+                                        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center pointer-events-none">
                                             <Play className="w-16 h-16 text-white" fill="white" />
                                         </div>
                                     </div>
@@ -231,12 +234,15 @@ export default function StoryChapter({
                                     setShowFullScreenViewer(true);
                                 }}
                             >
-                                <img 
-                                    src={currentSlide.video_thumbnail_url || currentSlide.image}
-                                    alt="Video thumbnail"
+                                <video 
+                                    src={currentSlide.video_url}
+                                    autoPlay
+                                    muted
+                                    loop
+                                    playsInline
                                     className="w-full h-full object-cover"
                                 />
-                                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center pointer-events-none">
                                     <Play className="w-16 h-16 text-white" fill="white" />
                                 </div>
                             </div>

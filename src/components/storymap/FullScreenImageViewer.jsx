@@ -42,13 +42,13 @@ export default function FullScreenImageViewer({
                     <>
                         <button
                             onClick={handlePrevious}
-                            className="absolute left-6 bottom-[20vh] z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                            className="absolute left-6 bottom-[20vh] z-[10001] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                         >
                             <ChevronLeft className="w-8 h-8 text-slate-700" />
                         </button>
                         <button
                             onClick={handleNext}
-                            className="absolute right-6 bottom-[20vh] z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                            className="absolute right-6 bottom-[20vh] z-[10001] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                         >
                             <ChevronRight className="w-8 h-8 text-slate-700" />
                         </button>
