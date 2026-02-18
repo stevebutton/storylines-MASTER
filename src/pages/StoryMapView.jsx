@@ -11,7 +11,7 @@ import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 
@@ -46,7 +46,6 @@ export default function StoryMapView() {
     const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     const [hasExplored, setHasExplored] = useState(false);
-    const savedScrollPosition = useRef(0);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -530,29 +529,47 @@ export default function StoryMapView() {
             />
             </div>
 
-            {/* Document Library Modal */}
-            <Dialog 
+            {/* Document Library Sheet */}
+            <Sheet 
                 open={showLibraryModal} 
-                onOpenChange={(open) => {
-                    if (open) {
-                        // Save scroll position when opening
-                        savedScrollPosition.current = window.scrollY;
-                    } else {
-                        // Restore scroll position when closing
-                        setTimeout(() => {
-                            window.scrollTo(0, savedScrollPosition.current);
-                        }, 100);
-                    }
-                    setShowLibraryModal(open);
-                }}
+                onOpenChange={setShowLibraryModal}
             >
-                <DialogContent className="max-w-6xl h-[80vh] z-[100000]">
-                    <DialogHeader>
-                        <DialogTitle>Document Library</DialogTitle>
-                    </DialogHeader>
-                    <DocumentManagerContent />
-                </DialogContent>
-            </Dialog>
+                <SheetContent 
+                    side="bottom" 
+                    className="w-full h-[calc(100vh-100px)] top-[100px] z-[95] pointer-events-auto"
+                    style={{
+                        animation: showLibraryModal 
+                            ? 'slideInFromBottom 3s ease-out' 
+                            : 'slideOutToBottom 3s ease-in'
+                    }}
+                >
+                    <SheetHeader>
+                        <SheetTitle>Document Library</SheetTitle>
+                    </SheetHeader>
+                    <div className="h-[calc(100%-60px)] overflow-auto mt-4">
+                        <DocumentManagerContent />
+                    </div>
+                </SheetContent>
+            </Sheet>
+            
+            <style>{`
+                @keyframes slideInFromBottom {
+                    from {
+                        transform: translateY(100%);
+                    }
+                    to {
+                        transform: translateY(0);
+                    }
+                }
+                @keyframes slideOutToBottom {
+                    from {
+                        transform: translateY(0);
+                    }
+                    to {
+                        transform: translateY(100%);
+                    }
+                }
+            `}</style>
             </div>
             );
             }
