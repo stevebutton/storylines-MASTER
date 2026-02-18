@@ -492,6 +492,7 @@ export default function StoryMapView() {
                     onViewOtherStories={() => setIsStorySlideshowOpen(true)}
                     storyId={storyId}
                     isVisible={isBannerVisible}
+                    onOpenLibrary={() => setShowLibraryModal(true)}
                 />
                 </div>
             </div>
@@ -547,7 +548,7 @@ export default function StoryMapView() {
                         <SheetTitle>Document Library</SheetTitle>
                     </SheetHeader>
                     <div className="h-[calc(100%-60px)] overflow-auto mt-4">
-                        <DocumentManagerContent />
+                        <DocumentManagerContent storyId={storyId} />
                     </div>
                 </SheetContent>
             </Sheet>

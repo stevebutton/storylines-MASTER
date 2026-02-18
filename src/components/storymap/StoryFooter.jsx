@@ -7,7 +7,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 
-export default function StoryFooter({ onRestart, onViewOtherStories, storyId, isVisible = true }) {
+export default function StoryFooter({ onRestart, onViewOtherStories, storyId, isVisible = true, onOpenLibrary }) {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -118,15 +118,14 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
                 )}
 
                 {/* Library Button */}
-                {storyId && (
-                    <Link
-                        to={`${createPageUrl('StoryLibrary')}?storyId=${storyId}`}
-                        className="opacity-30 hover:opacity-100 transition-opacity duration-300"
+                {storyId && onOpenLibrary && (
+                    <Button 
+                        variant="ghost" 
+                        className="text-sm font-medium opacity-30 hover:opacity-100 transition-opacity duration-300"
+                        onClick={onOpenLibrary}
                     >
-                        <Button variant="ghost" className="text-sm font-medium">
-                            Library
-                        </Button>
-                    </Link>
+                        Library
+                    </Button>
                 )}
 
                 {/* User Auth */}
