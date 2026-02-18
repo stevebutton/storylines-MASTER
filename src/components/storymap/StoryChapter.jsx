@@ -160,7 +160,7 @@ export default function StoryChapter({
 
                 {/* PDF Modal */}
                 <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                    <DialogContent className="max-w-4xl h-[90vh] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30">
+                    <DialogContent className="max-w-4xl h-[90vh] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 !left-0 !top-[110px] !translate-x-0 !translate-y-0">
                         <DialogHeader>
                             <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
                         </DialogHeader>
@@ -288,7 +288,7 @@ export default function StoryChapter({
 
             {/* PDF Modal */}
             <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                <DialogContent className="max-w-4xl h-[90vh] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30">
+                <DialogContent className="max-w-4xl h-[90vh] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 !left-0 !top-[110px] !translate-x-0 !translate-y-0">
                     <DialogHeader>
                         <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
                     </DialogHeader>
