@@ -225,7 +225,12 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                             <Label className="text-xs">Video URL</Label>
                                             <Input 
                                                 value={slide.video_url || ''} 
-                                                onChange={(e) => onUpdate({ ...slide, video_url: e.target.value })}
+                                                onChange={(e) => {
+                                                    console.log('[SlideEditor] Video URL changed to:', e.target.value);
+                                                    const updatedSlide = { ...slide, video_url: e.target.value };
+                                                    console.log('[SlideEditor] Updated slide object:', updatedSlide);
+                                                    onUpdate(updatedSlide);
+                                                }}
                                                 placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
                                                 className="h-9 text-xs"
                                             />
