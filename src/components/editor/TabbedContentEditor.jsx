@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
+import DocumentPicker from '@/components/editor/DocumentPicker';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -25,9 +26,9 @@ export default function TabbedContentEditor({
     const [activeTab, setActiveTab] = useState('content');
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [isUploadingVideo, setIsUploadingVideo] = useState(false);
-    const [isUploadingPDF, setIsUploadingPDF] = useState(false);
     const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
     const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
+    const [showDocumentPicker, setShowDocumentPicker] = useState(false);
 
     // Handle missing item
     if (!item) {
@@ -355,17 +356,7 @@ export default function TabbedContentEditor({
             }
         };
 
-        const handlePDFUpload = async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            setIsUploadingPDF(true);
-            try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                onUpdate({ ...item, pdf_url: file_url });
-            } finally {
-                setIsUploadingPDF(false);
-            }
-        };
+
 
         return (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -579,7 +570,7 @@ export default function TabbedContentEditor({
                             {/* PDF */}
                             <div>
                                 <Label>PDF Document</Label>
-                                {item.pdf_url && (
+                                {item.pdf_url ? (
                                     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border mt-2">
                                         <div className="flex items-center gap-2">
                                             <FileText className="w-5 h-5 text-red-600" />
@@ -592,21 +583,29 @@ export default function TabbedContentEditor({
                                             <X className="w-4 h-4" />
                                         </button>
                                     </div>
-                                )}
-                                <input type="file" accept="application/pdf" onChange={handlePDFUpload} className="hidden" id="slide-pdf" />
-                                <label htmlFor="slide-pdf">
+                                ) : (
                                     <Button 
                                         type="button" 
                                         variant="outline" 
-                                        disabled={isUploadingPDF}
-                                        onClick={() => document.getElementById('slide-pdf').click()}
+                                        onClick={() => setShowDocumentPicker(true)}
                                         className="mt-2 w-full"
                                     >
-                                        {isUploadingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
-                                        Upload PDF
+                                        <FileText className="w-4 h-4 mr-2" />
+                                        Browse Document Library
                                     </Button>
-                                </label>
+                                )}
                             </div>
+                            
+                            {/* Document Picker Dialog */}
+                            <DocumentPicker
+                                isOpen={showDocumentPicker}
+                                onClose={() => setShowDocumentPicker(false)}
+                                storyId={storyId}
+                                onSelect={(doc) => {
+                                    onUpdate({ ...item, pdf_url: doc.file_url });
+                                    setShowDocumentPicker(false);
+                                }}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>
