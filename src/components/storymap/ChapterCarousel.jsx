@@ -29,14 +29,17 @@ const VideoEmbed = ({ url }) => {
     if (!embedUrl) return null;
 
     return (
-        <iframe
-            src={embedUrl}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full object-cover"
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-        ></iframe>
+        <>
+            <iframe
+                src={embedUrl}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full object-cover"
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+            ></iframe>
+            <div className="absolute inset-0 z-10" style={{ pointerEvents: 'auto' }} />
+        </>
     );
 };
 
