@@ -160,13 +160,21 @@ export default function StoryChapter({
 
                 {/* PDF Modal */}
                 <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                    <DialogContent className="max-w-4xl h-[90vh] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 !left-0 !top-[110px] !translate-x-0 !translate-y-0">
-                        <DialogHeader>
-                            <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
-                        </DialogHeader>
-                        <div className="flex-1 h-full overflow-hidden">
-                            <PdfViewer url={currentSlide?.pdf_url} />
-                        </div>
+                    <DialogContent asChild>
+                        <motion.div
+                            initial={{ x: "-100%", opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: "-100%", opacity: 0 }}
+                            transition={{ duration: 2, ease: "easeOut" }}
+                            className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 rounded-lg p-6 flex flex-col"
+                        >
+                            <DialogHeader>
+                                <DialogTitle className="text-1.5xl">{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex-1 h-full overflow-hidden">
+                                <PdfViewer url={currentSlide?.pdf_url} />
+                            </div>
+                        </motion.div>
                     </DialogContent>
                 </Dialog>
 
@@ -288,13 +296,21 @@ export default function StoryChapter({
 
             {/* PDF Modal */}
             <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                <DialogContent className="max-w-4xl h-[90vh] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 !left-0 !top-[110px] !translate-x-0 !translate-y-0">
-                    <DialogHeader>
-                        <DialogTitle>{currentSlide?.title} - Document</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex-1 h-full overflow-hidden">
-                        <PdfViewer url={currentSlide?.pdf_url} />
-                    </div>
+                <DialogContent asChild>
+                    <motion.div
+                        initial={{ x: "-100%", opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: "-100%", opacity: 0 }}
+                        transition={{ duration: 2, ease: "easeOut" }}
+                        className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 rounded-lg p-6 flex flex-col"
+                    >
+                        <DialogHeader>
+                            <DialogTitle className="text-1.5xl">{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-1 h-full overflow-hidden">
+                            <PdfViewer url={currentSlide?.pdf_url} />
+                        </div>
+                    </motion.div>
                 </DialogContent>
             </Dialog>
 
