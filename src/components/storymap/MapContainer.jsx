@@ -361,20 +361,27 @@ export default function MapBackground({
             try {
                 console.log('🎯 [MAP MARKERS] Creating new marker at:', normalized);
                 const el = document.createElement('div');
-                el.className = 'landing-marker';
                 el.style.cssText = `
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 50%;
+                    background: rgba(217, 119, 6, 0.15);
+                    border: 2px solid rgba(217, 119, 6, 0.4);
+                    box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
                     opacity: 0;
                     transition: opacity 1000ms ease-in;
+                    pointer-events: none;
+                    z-index: 5;
                 `;
 
                 const marker = new mapboxgl.Marker(el)
                     .setLngLat([normalized[1], normalized[0]])
                     .addTo(map.current);
 
-                // Trigger fade in with smooth timing
+                // Trigger fade in after a short delay to sync with flyTo completion
                 setTimeout(() => {
                     if (el) el.style.opacity = '1';
-                }, 2000);
+                }, (flyDuration || 12) * 1000 - 1000);
 
                 landingMarkersRef.current.push(marker);
                 console.log('🎯 [MAP MARKERS] Marker created successfully. Total markers:', landingMarkersRef.current.length);
@@ -383,31 +390,6 @@ export default function MapBackground({
             }
         });
     }, [landingMarkers, clearLandingMarkers, flyDuration]);
-
-    // ============================================
-    // PULSE ANIMATION: Apply pulse to the active landing marker
-    // ============================================
-    useEffect(() => {
-        if (!map.current || !map.current.isStyleLoaded()) return;
-
-        const normalizedCenter = normalizeCoordinatePair(center);
-
-        landingMarkersRef.current.forEach(marker => {
-            const el = marker.getElement();
-            if (!el) return;
-
-            const markerLngLat = marker.getLngLat();
-            const markerCoords = [markerLngLat.lat, markerLngLat.lng];
-            const isThisMarkerActive = normalizedCenter && areCoordinatesEqual(markerCoords, normalizedCenter);
-
-            if (isThisMarkerActive) {
-                el.classList.add('pulse-marker');
-            } else {
-                el.classList.remove('pulse-marker');
-            }
-        });
-
-    }, [center, landingMarkersRef.current.length]);
 
     // ============================================
     // LAYER VISIBILITY: Show/hide Mapbox layers based on active slide
@@ -448,37 +430,6 @@ export default function MapBackground({
         <div className="fixed inset-0 z-0" data-name="map-background-container">
             <div ref={mapContainer} className="h-full w-full" data-name="mapbox-container" />
             <style>{`
-                .landing-marker {
-                    width: 120px;
-                    height: 120px;
-                    border-radius: 50%;
-                    background: rgba(217, 119, 6, 0.15);
-                    border: 2px solid rgba(217, 119, 6, 0.4);
-                    box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
-                    pointer-events: none;
-                    z-index: 5;
-                }
-
-                .landing-marker.pulse-marker {
-                    animation: pulse 2s infinite ease-in-out;
-                    z-index: 10;
-                }
-
-                @keyframes pulse {
-                    0% {
-                        transform: scale(0.95);
-                        box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
-                    }
-                    50% {
-                        transform: scale(1.05);
-                        box-shadow: 0 0 30px rgba(217, 119, 6, 0.4);
-                    }
-                    100% {
-                        transform: scale(0.95);
-                        box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
-                    }
-                }
-
                 .mapboxgl-ctrl-bottom-left {
                     z-index: 1000 !important;
                     bottom: 80px !important;
