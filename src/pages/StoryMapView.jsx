@@ -46,6 +46,7 @@ export default function StoryMapView() {
     const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     const [hasExplored, setHasExplored] = useState(false);
+    const savedScrollPosition = useRef(0);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -530,7 +531,21 @@ export default function StoryMapView() {
             </div>
 
             {/* Document Library Modal */}
-            <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
+            <Dialog 
+                open={showLibraryModal} 
+                onOpenChange={(open) => {
+                    if (open) {
+                        // Save scroll position when opening
+                        savedScrollPosition.current = window.scrollY;
+                    } else {
+                        // Restore scroll position when closing
+                        setTimeout(() => {
+                            window.scrollTo(0, savedScrollPosition.current);
+                        }, 100);
+                    }
+                    setShowLibraryModal(open);
+                }}
+            >
                 <DialogContent className="max-w-6xl h-[80vh] z-[100000]">
                     <DialogHeader>
                         <DialogTitle>Document Library</DialogTitle>
