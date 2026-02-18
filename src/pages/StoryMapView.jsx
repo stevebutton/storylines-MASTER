@@ -142,10 +142,10 @@ export default function StoryMapView() {
                         is_published: true
                     });
                     
-                    // Exclude current story and limit to 3 suggestions
+                    // Exclude current story and limit to 4 suggestions
                     const related = allStoriesInCategory
                         .filter(s => s.id !== currentStory.id)
-                        .slice(0, 3);
+                        .slice(0, 4);
                     setRelatedStories(related);
                 }
             }

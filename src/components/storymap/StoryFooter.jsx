@@ -80,16 +80,16 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
                         <h3 className="text-xl font-light text-white/80 mb-6">
                             More {currentCategory} Stories
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             {relatedStories.map((relatedStory) => (
-                                <Link
+                                <div
                                     key={relatedStory.id}
-                                    to={`${createPageUrl('StoryMapView')}?id=${relatedStory.id}`}
-                                    className="group"
+                                    onClick={() => window.location.href = `${createPageUrl('StoryMapView')}?id=${relatedStory.id}`}
+                                    className="group cursor-pointer"
                                 >
                                     <motion.div
                                         whileHover={{ y: -4 }}
-                                        className="relative h-48 rounded-lg overflow-hidden shadow-lg"
+                                        className="relative h-60 rounded-lg overflow-hidden shadow-lg"
                                     >
                                         <img
                                             src={relatedStory.hero_image}
@@ -108,7 +108,7 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
                                             )}
                                         </div>
                                     </motion.div>
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     </motion.div>
