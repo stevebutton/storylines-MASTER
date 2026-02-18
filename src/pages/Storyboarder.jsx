@@ -357,9 +357,9 @@ export default function Storyboarder() {
                                     <h2 className="text-4xl font-bold text-slate-800 mb-6">
                                         Storyboarder
                                     </h2>
-                                    <p className="text-lg text-slate-700 leading-relaxed mb-2">
-                                        is your companion for
-                                    </p>
+                                    <p className="text-slate-700 mb-2 text-xl leading-relaxed">is your companion for
+
+                </p>
                                     <p className="text-lg text-slate-700 leading-relaxed">
                                         building stories on location.
                                     </p>
