@@ -13,7 +13,7 @@ import { Upload, FileText, Download, Trash2, Edit, Search, Folder } from 'lucide
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 
-export default function DocumentManagerContent() {
+export default function DocumentManagerContent({ storyId = null }) {
     const queryClient = useQueryClient();
     const [user, setUser] = useState(null);
     const [selectedDocs, setSelectedDocs] = useState([]);
@@ -45,8 +45,11 @@ export default function DocumentManagerContent() {
     }, []);
 
     const { data: documents = [] } = useQuery({
-        queryKey: ['documents'],
-        queryFn: () => base44.entities.Document.list('-created_date')
+        queryKey: ['documents', storyId],
+        queryFn: async () => {
+            const allDocs = await base44.entities.Document.list('-created_date');
+            return storyId ? allDocs.filter(doc => doc.story_id === storyId) : allDocs;
+        }
     });
 
     const createDocMutation = useMutation({
@@ -87,7 +90,8 @@ export default function DocumentManagerContent() {
             file_url,
             title: uploadData.title || file.name.replace(/\.pdf$/i, ''),
             tags: uploadData.tags ? uploadData.tags.split(',').map(t => t.trim()) : [],
-            file_size: file.size
+            file_size: file.size,
+            ...(storyId && { story_id: storyId })
         });
     };
 
