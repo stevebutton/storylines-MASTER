@@ -386,6 +386,18 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                         try {
                                                            const { file_url } = await base44.integrations.Core.UploadFile({ file });
                                                            onUpdate({ ...slide, pdf_url: file_url });
+
+                                                           // Create Document entity for the library
+                                                           if (storyId) {
+                                                               await base44.entities.Document.create({
+                                                                   title: file.name.replace(/\.pdf$/i, ''),
+                                                                   file_url,
+                                                                   story_id: storyId,
+                                                                   category: 'other',
+                                                                   file_size: file.size,
+                                                                   description: `Attached to slide: ${slide.title || 'Untitled'}`
+                                                               });
+                                                           }
                                                         } catch (error) {
                                                            console.error('Failed to upload PDF:', error);
                                                            setPdfFileName('');
