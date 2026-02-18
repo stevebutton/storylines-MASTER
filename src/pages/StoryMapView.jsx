@@ -21,6 +21,7 @@ export default function StoryMapView() {
 
     const [story, setStory] = useState(null);
     const [chapters, setChapters] = useState([]);
+    const [relatedStories, setRelatedStories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeChapter, setActiveChapter] = useState(0);
     const [mapConfig, setMapConfig] = useState({
@@ -132,6 +133,21 @@ export default function StoryMapView() {
 
             if (storyData.length > 0) {
                 setStory(storyData[0]);
+                
+                // Fetch related stories in the same category
+                const currentStory = storyData[0];
+                if (currentStory.category) {
+                    const allStoriesInCategory = await base44.entities.Story.filter({
+                        category: currentStory.category,
+                        is_published: true
+                    });
+                    
+                    // Exclude current story and limit to 3 suggestions
+                    const related = allStoriesInCategory
+                        .filter(s => s.id !== currentStory.id)
+                        .slice(0, 3);
+                    setRelatedStories(related);
+                }
             }
 
             // Attach slides to chapters
@@ -493,6 +509,8 @@ export default function StoryMapView() {
                     storyId={storyId}
                     isVisible={isBannerVisible}
                     onOpenLibrary={() => setShowLibraryModal(true)}
+                    relatedStories={relatedStories}
+                    currentCategory={story?.category}
                 />
                 </div>
             </div>

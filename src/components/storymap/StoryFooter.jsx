@@ -7,7 +7,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 
-export default function StoryFooter({ onRestart, onViewOtherStories, storyId, isVisible = true, onOpenLibrary }) {
+export default function StoryFooter({ onRestart, onViewOtherStories, storyId, isVisible = true, onOpenLibrary, relatedStories = [], currentCategory }) {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -67,6 +67,52 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
                     <ArrowUp className="w-4 h-4" />
                     Back to Beginning
                 </Button>
+
+                {/* Related Stories */}
+                {relatedStories.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                        viewport={{ once: false }}
+                        className="mt-12"
+                    >
+                        <h3 className="text-xl font-light text-white/80 mb-6">
+                            More {currentCategory} Stories
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {relatedStories.map((relatedStory) => (
+                                <Link
+                                    key={relatedStory.id}
+                                    to={`${createPageUrl('StoryMapView')}?id=${relatedStory.id}`}
+                                    className="group"
+                                >
+                                    <motion.div
+                                        whileHover={{ y: -4 }}
+                                        className="relative h-48 rounded-lg overflow-hidden shadow-lg"
+                                    >
+                                        <img
+                                            src={relatedStory.hero_image}
+                                            alt={relatedStory.title}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                                            <h4 className="text-white font-medium text-lg mb-1">
+                                                {relatedStory.title}
+                                            </h4>
+                                            {relatedStory.subtitle && (
+                                                <p className="text-white/70 text-sm line-clamp-2">
+                                                    {relatedStory.subtitle}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                </Link>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
             </motion.div>
 
             {/* Footer Bar */}
