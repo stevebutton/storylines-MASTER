@@ -88,7 +88,7 @@ export default function StoryChapter({
                             {currentSlide?.video_url ? (
                                 <div className="mb-6 relative">
                                     <div 
-                                        className="relative cursor-pointer group"
+                                        className="relative cursor-pointer"
                                         onClick={() => {
                                             setFullScreenImageIndex(activeSlideIndex);
                                             setShowFullScreenViewer(true);
@@ -102,9 +102,6 @@ export default function StoryChapter({
                                             playsInline
                                             className="w-full h-64 object-cover rounded-lg"
                                         />
-                                        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center pointer-events-none">
-                                            <Play className="w-16 h-16 text-white" fill="white" />
-                                        </div>
                                     </div>
                                 </div>
                             ) : chapter.slides && chapter.slides.length > 0 && (
@@ -228,7 +225,7 @@ export default function StoryChapter({
                     {currentSlide?.video_url ? (
                         <div className="relative">
                             <div 
-                                className="relative cursor-pointer group h-[300px]"
+                                className="relative cursor-pointer h-[300px]"
                                 onClick={() => {
                                     setFullScreenImageIndex(activeSlideIndex);
                                     setShowFullScreenViewer(true);
@@ -242,9 +239,6 @@ export default function StoryChapter({
                                     playsInline
                                     className="w-full h-full object-cover"
                                 />
-                                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center pointer-events-none">
-                                    <Play className="w-16 h-16 text-white" fill="white" />
-                                </div>
                             </div>
                         </div>
                     ) : chapter.slides && chapter.slides.length > 0 && (
