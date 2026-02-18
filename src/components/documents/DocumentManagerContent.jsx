@@ -319,7 +319,7 @@ export default function DocumentManagerContent({ storyId = null }) {
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="z-[200000]" position="popper" side="right" align="start">
                                     <SelectItem value="research">Research</SelectItem>
                                     <SelectItem value="education">Education</SelectItem>
                                     <SelectItem value="reports">Reports</SelectItem>
@@ -377,7 +377,7 @@ export default function DocumentManagerContent({ storyId = null }) {
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="z-[200000]" position="popper" side="right" align="start">
                                         <SelectItem value="research">Research</SelectItem>
                                         <SelectItem value="education">Education</SelectItem>
                                         <SelectItem value="reports">Reports</SelectItem>
