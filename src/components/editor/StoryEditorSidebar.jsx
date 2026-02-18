@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Book } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 export default function StoryEditorSidebar({ 
     story, 
@@ -9,7 +10,8 @@ export default function StoryEditorSidebar({
     selectedItem,
     onSelectStory,
     onSelectChapter,
-    onSelectSlide 
+    onSelectSlide,
+    onDragEnd
 }) {
     const [expandedChapters, setExpandedChapters] = useState([]);
 
@@ -69,84 +71,139 @@ export default function StoryEditorSidebar({
                         <p className="text-xs mt-1">Add a chapter to get started</p>
                     </div>
                 ) : (
-                    <div className="py-2">
-                        {chapters.map((chapter, index) => {
-                            const chapterSlides = getSlidesForChapter(chapter.id);
-                            const isExpanded = expandedChapters.includes(chapter.id);
-                            const selected = isChapterSelected(chapter.id);
+                    <DragDropContext onDragEnd={onDragEnd}>
+                        <Droppable droppableId="chapters" type="chapter">
+                            {(provided) => (
+                                <div 
+                                    className="py-2"
+                                    {...provided.droppableProps}
+                                    ref={provided.innerRef}
+                                >
+                                    {chapters.map((chapter, index) => {
+                                        const chapterSlides = getSlidesForChapter(chapter.id);
+                                        const isExpanded = expandedChapters.includes(chapter.id);
+                                        const selected = isChapterSelected(chapter.id);
 
-                            return (
-                                <div key={chapter.id}>
-                                    {/* Chapter Item */}
-                                    <div
-                                        className={cn(
-                                            "group flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors",
-                                            selected ? "bg-amber-50 border-l-4 border-l-amber-600" : "bg-slate-900 text-white"
-                                        )}
-                                    >
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleChapter(chapter.id);
-                                            }}
-                                            className="p-0.5 hover:bg-slate-700 rounded"
-                                        >
-                                            {isExpanded ? (
-                                                <ChevronDown className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
-                                            ) : (
-                                                <ChevronRight className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
-                                            )}
-                                        </button>
-                                        
-                                        <div 
-                                            onClick={() => onSelectChapter(chapter)}
-                                            className="flex-1 flex items-center gap-1 md:gap-2 min-w-0"
-                                        >
-                                            <span className={cn("text-xl md:text-xs font-bold md:font-medium min-w-[20px] md:min-w-[20px]", selected ? "text-slate-700 md:text-slate-500" : "text-white md:text-slate-300")}>
-                                                {index + 1}
-                                            </span>
-                                            <span className={cn("hidden md:inline text-xs md:text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
-                                                Chapter {index + 1}{chapter.name ? `: ${chapter.name}` : ''}
-                                            </span>
-                                            <div className="flex items-center gap-0.5 md:gap-1">
-                                                {chapter.coordinates && (
-                                                    <MapPin className={cn("w-2.5 h-2.5 md:w-3 md:h-3", selected ? "text-amber-600" : "text-amber-400")} />
-                                                )}
-                                                <span className={cn("text-[10px] md:text-xs", selected ? "text-slate-400" : "text-slate-300")}>
-                                                    {chapterSlides.length}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                        return (
+                                            <Draggable 
+                                                key={chapter.id} 
+                                                draggableId={`chapter-${chapter.id}`} 
+                                                index={index}
+                                            >
+                                                {(provided, snapshot) => (
+                                                    <div
+                                                        ref={provided.innerRef}
+                                                        {...provided.draggableProps}
+                                                    >
+                                                        {/* Chapter Item */}
+                                                        <div
+                                                            className={cn(
+                                                                "group flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors",
+                                                                selected ? "bg-amber-50 border-l-4 border-l-amber-600" : "bg-slate-900 text-white",
+                                                                snapshot.isDragging && "opacity-50"
+                                                            )}
+                                                        >
+                                                            <div 
+                                                                {...provided.dragHandleProps}
+                                                                className="p-0.5 hover:bg-slate-700 rounded cursor-grab active:cursor-grabbing"
+                                                            >
+                                                                <GripVertical className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
+                                                            </div>
+                                                            
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    toggleChapter(chapter.id);
+                                                                }}
+                                                                className="p-0.5 hover:bg-slate-700 rounded"
+                                                            >
+                                                                {isExpanded ? (
+                                                                    <ChevronDown className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
+                                                                ) : (
+                                                                    <ChevronRight className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
+                                                                )}
+                                                            </button>
+                                                            
+                                                            <div 
+                                                                onClick={() => onSelectChapter(chapter)}
+                                                                className="flex-1 flex items-center gap-1 md:gap-2 min-w-0"
+                                                            >
+                                                                <span className={cn("text-xl md:text-xs font-bold md:font-medium min-w-[20px] md:min-w-[20px]", selected ? "text-slate-700 md:text-slate-500" : "text-white md:text-slate-300")}>
+                                                                    {index + 1}
+                                                                </span>
+                                                                <span className={cn("hidden md:inline text-xs md:text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
+                                                                    Chapter {index + 1}{chapter.name ? `: ${chapter.name}` : ''}
+                                                                </span>
+                                                                <div className="flex items-center gap-0.5 md:gap-1">
+                                                                    {chapter.coordinates && (
+                                                                        <MapPin className={cn("w-2.5 h-2.5 md:w-3 md:h-3", selected ? "text-amber-600" : "text-amber-400")} />
+                                                                    )}
+                                                                    <span className={cn("text-[10px] md:text-xs", selected ? "text-slate-400" : "text-slate-300")}>
+                                                                        {chapterSlides.length}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
-                                    {/* Slides List */}
-                                    {isExpanded && chapterSlides.length > 0 && (
-                                        <div className="bg-slate-50">
-                                            {chapterSlides.map((slide, slideIndex) => (
-                                                <div
-                                                    key={slide.id}
-                                                    onClick={() => onSelectSlide(slide)}
-                                                    className={cn(
-                                                        "flex items-center justify-center gap-1 md:gap-2 pl-2 md:pl-12 pr-2 md:pr-4 py-2 hover:bg-slate-100 cursor-pointer transition-colors",
-                                                        isSlideSelected(slide.id) && "bg-amber-100 border-l-4 border-l-amber-600"
-                                                    )}
-                                                >
-                                                    <Image className="w-3 h-3 md:hidden text-slate-400" />
-                                                    <span className="text-xs md:text-sm text-slate-600 truncate">
-                                                        <span className="md:hidden">slide {slideIndex + 1}</span>
-                                                        <span className="hidden md:inline">{slide.title || `Slide ${slideIndex + 1}`}</span>
-                                                    </span>
-                                                    <div className="hidden md:flex items-center gap-0.5 md:gap-1 ml-auto">
-                                                        {getSlideIndicators(slide)}
+                                                        {/* Slides List */}
+                                                        {isExpanded && chapterSlides.length > 0 && (
+                                                            <Droppable droppableId={`slides-${chapter.id}`} type="slide">
+                                                                {(provided) => (
+                                                                    <div 
+                                                                        className="bg-slate-50"
+                                                                        {...provided.droppableProps}
+                                                                        ref={provided.innerRef}
+                                                                    >
+                                                                        {chapterSlides.map((slide, slideIndex) => (
+                                                                            <Draggable
+                                                                                key={slide.id}
+                                                                                draggableId={`slide-${slide.id}`}
+                                                                                index={slideIndex}
+                                                                            >
+                                                                                {(provided, snapshot) => (
+                                                                                    <div
+                                                                                        ref={provided.innerRef}
+                                                                                        {...provided.draggableProps}
+                                                                                        onClick={() => onSelectSlide(slide)}
+                                                                                        className={cn(
+                                                                                            "flex items-center justify-center gap-1 md:gap-2 pl-2 md:pl-12 pr-2 md:pr-4 py-2 hover:bg-slate-100 cursor-pointer transition-colors",
+                                                                                            isSlideSelected(slide.id) && "bg-amber-100 border-l-4 border-l-amber-600",
+                                                                                            snapshot.isDragging && "opacity-50"
+                                                                                        )}
+                                                                                    >
+                                                                                        <div 
+                                                                                            {...provided.dragHandleProps}
+                                                                                            className="cursor-grab active:cursor-grabbing"
+                                                                                        >
+                                                                                            <GripVertical className="w-3 h-3 text-slate-400" />
+                                                                                        </div>
+                                                                                        <Image className="w-3 h-3 md:hidden text-slate-400" />
+                                                                                        <span className="text-xs md:text-sm text-slate-600 truncate">
+                                                                                            <span className="md:hidden">slide {slideIndex + 1}</span>
+                                                                                            <span className="hidden md:inline">{slide.title || `Slide ${slideIndex + 1}`}</span>
+                                                                                        </span>
+                                                                                        <div className="hidden md:flex items-center gap-0.5 md:gap-1 ml-auto">
+                                                                                            {getSlideIndicators(slide)}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                            </Draggable>
+                                                                        ))}
+                                                                        {provided.placeholder}
+                                                                    </div>
+                                                                )}
+                                                            </Droppable>
+                                                        )}
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                                )}
+                                            </Draggable>
+                                        );
+                                    })}
+                                    {provided.placeholder}
                                 </div>
-                            );
-                        })}
-                    </div>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
                 )}
             </div>
 

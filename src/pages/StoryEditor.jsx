@@ -192,6 +192,74 @@ export default function StoryEditor() {
         setSelectedItem({ type: 'story', id: null });
     };
 
+    const handleDragEnd = (result) => {
+        const { destination, source, type } = result;
+
+        // Dropped outside the list
+        if (!destination) return;
+
+        // Dropped in the same position
+        if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+        if (type === 'chapter') {
+            // Reorder chapters
+            const reorderedChapters = Array.from(chapters);
+            const [movedChapter] = reorderedChapters.splice(source.index, 1);
+            reorderedChapters.splice(destination.index, 0, movedChapter);
+
+            // Update order field for all chapters
+            const updatedChapters = reorderedChapters.map((chapter, index) => ({
+                ...chapter,
+                order: index
+            }));
+
+            setChapters(updatedChapters);
+        } else if (type === 'slide') {
+            // Extract chapter ID from droppableId (format: "slides-{chapterId}")
+            const sourceChapterId = source.droppableId.replace('slides-', '');
+            const destChapterId = destination.droppableId.replace('slides-', '');
+
+            if (sourceChapterId === destChapterId) {
+                // Reordering within the same chapter
+                const chapterSlides = slides.filter(s => s.chapter_id === sourceChapterId);
+                const otherSlides = slides.filter(s => s.chapter_id !== sourceChapterId);
+                
+                const reorderedSlides = Array.from(chapterSlides);
+                const [movedSlide] = reorderedSlides.splice(source.index, 1);
+                reorderedSlides.splice(destination.index, 0, movedSlide);
+
+                // Update order field for slides in this chapter
+                const updatedChapterSlides = reorderedSlides.map((slide, index) => ({
+                    ...slide,
+                    order: index
+                }));
+
+                setSlides([...otherSlides, ...updatedChapterSlides]);
+            } else {
+                // Moving slide to a different chapter
+                const sourceSlides = slides.filter(s => s.chapter_id === sourceChapterId);
+                const destSlides = slides.filter(s => s.chapter_id === destChapterId);
+                const otherSlides = slides.filter(s => s.chapter_id !== sourceChapterId && s.chapter_id !== destChapterId);
+
+                const [movedSlide] = sourceSlides.splice(source.index, 1);
+                movedSlide.chapter_id = destChapterId;
+                destSlides.splice(destination.index, 0, movedSlide);
+
+                // Update order field for both affected chapters
+                const updatedSourceSlides = sourceSlides.map((slide, index) => ({
+                    ...slide,
+                    order: index
+                }));
+                const updatedDestSlides = destSlides.map((slide, index) => ({
+                    ...slide,
+                    order: index
+                }));
+
+                setSlides([...otherSlides, ...updatedSourceSlides, ...updatedDestSlides]);
+            }
+        }
+    };
+
     const getCurrentItem = () => {
         if (selectedItem.type === 'story') return story;
         if (selectedItem.type === 'chapter') return chapters.find(c => c.id === selectedItem.id);
@@ -321,6 +389,7 @@ export default function StoryEditor() {
                         onSelectStory={() => setSelectedItem({ type: 'story', id: null })}
                         onSelectChapter={(chapter) => setSelectedItem({ type: 'chapter', id: chapter.id })}
                         onSelectSlide={(slide) => setSelectedItem({ type: 'slide', id: slide.id })}
+                        onDragEnd={handleDragEnd}
                     />
                 </div>
 
