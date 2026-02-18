@@ -84,27 +84,8 @@ export default function StoryChapter({
                                 <div className="flex-1 h-px bg-gradient-to-r from-amber-400/50 to-transparent" />
                             </div>
                             
-                            {/* Video or Image Carousel */}
-                            {currentSlide?.video_url ? (
-                                <div className="mb-6 relative">
-                                    <div 
-                                        className="relative cursor-pointer"
-                                        onClick={() => {
-                                            setFullScreenImageIndex(activeSlideIndex);
-                                            setShowFullScreenViewer(true);
-                                        }}
-                                    >
-                                        <video 
-                                            src={currentSlide.video_url}
-                                            autoPlay
-                                            muted
-                                            loop
-                                            playsInline
-                                            className="w-full h-64 object-cover rounded-lg"
-                                        />
-                                    </div>
-                                </div>
-                            ) : chapter.slides && chapter.slides.length > 0 && (
+                            {/* Carousel for all media types */}
+                            {chapter.slides && chapter.slides.length > 0 && (
                                 <div className="mb-6 pointer-events-auto">
                                     <ChapterCarousel 
                                         slides={chapter.slides} 
@@ -221,27 +202,8 @@ export default function StoryChapter({
                     "bg-white/90 dark:bg-slate-900/90",
                     "border border-white/20"
                 )}>
-                    {/* Video or Image Carousel */}
-                    {currentSlide?.video_url ? (
-                        <div className="relative">
-                            <div 
-                                className="relative cursor-pointer h-[300px]"
-                                onClick={() => {
-                                    setFullScreenImageIndex(activeSlideIndex);
-                                    setShowFullScreenViewer(true);
-                                }}
-                            >
-                                <video 
-                                    src={currentSlide.video_url}
-                                    autoPlay
-                                    muted
-                                    loop
-                                    playsInline
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        </div>
-                    ) : chapter.slides && chapter.slides.length > 0 && (
+                    {/* Carousel for all media types */}
+                    {chapter.slides && chapter.slides.length > 0 && (
                         <div className="pointer-events-auto">
                             <ChapterCarousel 
                                 slides={chapter.slides} 
