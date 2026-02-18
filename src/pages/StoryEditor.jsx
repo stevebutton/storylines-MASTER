@@ -14,7 +14,7 @@ import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 export default function StoryEditor() {
     const location = useLocation();
     const urlParams = new URLSearchParams(location.search);
-    const storyId = urlParams.get('id');
+    const [currentStoryId, setCurrentStoryId] = useState(urlParams.get('id'));
 
     const [story, setStory] = useState({ title: '', subtitle: '', author: '' });
     const [chapters, setChapters] = useState([]);
@@ -29,15 +29,15 @@ export default function StoryEditor() {
 
     useEffect(() => {
         loadData();
-    }, [storyId]);
+    }, [currentStoryId]);
 
     const loadData = async () => {
         setIsLoading(true);
         try {
-            if (storyId) {
+            if (currentStoryId) {
                 const [storyData, chaptersData, slidesData] = await Promise.all([
-                    base44.entities.Story.filter({ id: storyId }),
-                    base44.entities.Chapter.filter({ story_id: storyId }, 'order'),
+                    base44.entities.Story.filter({ id: currentStoryId }),
+                    base44.entities.Chapter.filter({ story_id: currentStoryId }, 'order'),
                     base44.entities.Slide.list('order')
                 ]);
                 
@@ -67,14 +67,15 @@ export default function StoryEditor() {
 
         setIsSaving(true);
         try {
-            let savedStoryId = storyId;
+            let savedStoryId = currentStoryId;
             
-            if (storyId) {
-                await base44.entities.Story.update(storyId, story);
+            if (currentStoryId) {
+                await base44.entities.Story.update(currentStoryId, story);
             } else {
                 const newStory = await base44.entities.Story.create(story);
                 savedStoryId = newStory.id;
                 setStory(newStory);
+                setCurrentStoryId(newStory.id);
                 urlParams.set('id', newStory.id);
                 
                 // Verify story is queryable before proceeding
@@ -134,7 +135,7 @@ export default function StoryEditor() {
     const addChapter = () => {
         const newChapter = {
             id: `temp-${Date.now()}`,
-            story_id: storyId,
+            story_id: currentStoryId,
             order: chapters.length,
             alignment: 'left'
         };
@@ -253,7 +254,7 @@ export default function StoryEditor() {
                                 const updatedStory = { ...story, is_published: !story.is_published };
                                 setStory(updatedStory);
                                 if (storyId) {
-                                    await base44.entities.Story.update(storyId, { is_published: updatedStory.is_published });
+                                    await base44.entities.Story.update(currentStoryId, { is_published: updatedStory.is_published });
                                 }
                             }}
                             className={`flex-1 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col justify-center min-w-[80px] ${
@@ -329,7 +330,7 @@ export default function StoryEditor() {
                         <TabbedContentEditor
                             itemType={selectedItem.type}
                             item={getCurrentItem()}
-                            storyId={storyId}
+                            storyId={currentStoryId}
                             onUpdate={
                                 selectedItem.type === 'story' ? updateStory :
                                 selectedItem.type === 'chapter' ? updateChapter :
@@ -385,7 +386,7 @@ export default function StoryEditor() {
                     outline.chapters?.forEach((chapterData, idx) => {
                         const newChapter = {
                             id: `temp-ai-${timestamp}-${idx}`,
-                            story_id: storyId,
+                            story_id: currentStoryId,
                             order: chapters.length + idx,
                             alignment: 'left'
                         };
