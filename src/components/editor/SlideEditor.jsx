@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import DocumentPicker from './DocumentPicker';
 
 const validateField = (field, value) => {
     switch (field) {
@@ -33,11 +34,11 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
     const queryClient = useQueryClient();
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingBackground, setIsUploadingBackground] = useState(false);
-    const [isUploadingPdf, setIsUploadingPdf] = useState(false);
     const [isUploadingVideo, setIsUploadingVideo] = useState(false);
     const [isUploadingVideoThumbnail, setIsUploadingVideoThumbnail] = useState(false);
     const [pdfFileName, setPdfFileName] = useState('');
     const [errors, setErrors] = useState({});
+    const [showDocumentPicker, setShowDocumentPicker] = useState(false);
 
     React.useEffect(() => {
         if (slide.pdf_url) {
@@ -354,7 +355,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     {/* PDF Attachment */}
                                     <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                                         <Label className="text-xs font-medium">PDF Attachment (optional)</Label>
-                                        <p className="text-xs text-slate-500 mb-2">Attach a PDF document to this slide</p>
+                                        <p className="text-xs text-slate-500 mb-2">Select from document library or upload new</p>
                                         {slide.pdf_url ? (
                                             <div className="flex items-center gap-2 p-2 bg-white rounded border border-blue-300">
                                                 <FileText className="w-4 h-4 text-blue-600" />
@@ -376,63 +377,28 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div>
-                                                <input
-                                                    type="file"
-                                                    accept="application/pdf"
-                                                    onChange={async (e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (!file) return;
-                                                        setIsUploadingPdf(true);
-                                                        setPdfFileName(file.name);
-                                                        try {
-                                                           const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                                                           onUpdate({ ...slide, pdf_url: file_url });
-
-                                                           // Create Document entity for the library
-                                                           console.log('Story ID when uploading PDF:', storyId);
-                                                           if (storyId) {
-                                                               await base44.entities.Document.create({
-                                                                   title: file.name.replace(/\.pdf$/i, ''),
-                                                                   file_url,
-                                                                   story_id: storyId,
-                                                                   category: 'other',
-                                                                   file_size: file.size,
-                                                                   description: `Attached to slide: ${slide.title || 'Untitled'}`
-                                                               });
-                                                               queryClient.invalidateQueries(['documents']);
-                                                           }
-                                                        } catch (error) {
-                                                           console.error('Failed to upload PDF:', error);
-                                                           setPdfFileName('');
-                                                        } finally {
-                                                           setIsUploadingPdf(false);
-                                                           e.target.value = '';
-                                                        }
-                                                    }}
-                                                    className="hidden"
-                                                    id={`slide-pdf-upload-${slide.id}`}
-                                                    disabled={isUploadingPdf}
-                                                />
-                                                <label htmlFor={`slide-pdf-upload-${slide.id}`}>
-                                                    <Button 
-                                                        type="button" 
-                                                        variant="outline"
-                                                        size="sm"
-                                                        disabled={isUploadingPdf}
-                                                        onClick={() => document.getElementById(`slide-pdf-upload-${slide.id}`).click()}
-                                                        className="w-full h-8"
-                                                    >
-                                                        {isUploadingPdf ? (
-                                                            <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...</>
-                                                        ) : (
-                                                            <><FileText className="w-3 h-3 mr-2" /> Upload PDF</>
-                                                        )}
-                                                    </Button>
-                                                </label>
-                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setShowDocumentPicker(true)}
+                                                className="w-full h-8"
+                                            >
+                                                <FileText className="w-3 h-3 mr-2" /> Browse Documents
+                                            </Button>
                                         )}
                                     </div>
+
+                                    {/* Document Picker Dialog */}
+                                    <DocumentPicker
+                                        isOpen={showDocumentPicker}
+                                        onClose={() => setShowDocumentPicker(false)}
+                                        storyId={storyId}
+                                        onSelect={(doc) => {
+                                            onUpdate({ ...slide, pdf_url: doc.file_url });
+                                            setPdfFileName(doc.title + '.pdf');
+                                        }}
+                                    />
 
                                     {/* Background Image for Full Background Style */}
                                     {slide.card_style === 'full_background' && (
