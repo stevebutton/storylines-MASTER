@@ -30,14 +30,14 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
-const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => (
+const DialogContent = React.forwardRef(({ className, children, disableDefaultPosition, ...props }, ref) => (
   <AnimatePresence>
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content ref={ref} asChild {...props}>
         <motion.div
-          initial={{ opacity: 0, y: 100, x: "-50%" }}
-          animate={{ 
+          initial={disableDefaultPosition ? { opacity: 0 } : { opacity: 0, y: 100, x: "-50%" }}
+          animate={disableDefaultPosition ? { opacity: 1 } : { 
             opacity: 1, 
             y: "-50%", 
             x: "-50%",
@@ -46,7 +46,7 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
               opacity: { duration: 1, ease: "easeOut" }
             }
           }}
-          exit={{ 
+          exit={disableDefaultPosition ? { opacity: 0 } : { 
             opacity: 0, 
             y: 100, 
             x: "-50%",
@@ -56,7 +56,8 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
             }
           }}
           className={cn(
-            "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
+            "z-50 grid w-full max-w-lg gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
+            !disableDefaultPosition && "fixed left-[50%] top-[50%]",
             className
           )}
         >
