@@ -166,10 +166,11 @@ export default function StoryChapter({
                             animate={{ x: 0, opacity: 1 }}
                             exit={{ x: "-100%", opacity: 0 }}
                             transition={{ duration: 2, ease: "easeOut" }}
-                            className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 rounded-lg p-6 flex flex-col"
+                            className="fixed !left-0 !top-[100px] !translate-x-0 !translate-y-0 w-[45vw] h-[calc(100vh-100px)] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 rounded-lg p-6 flex flex-col"
+                            style={{ left: 0, top: '100px', transform: 'none' }}
                         >
                             <DialogHeader>
-                                <DialogTitle className="text-1.5xl">{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
+                                <DialogTitle style={{ fontSize: '1.5rem' }}>{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
                             </DialogHeader>
                             <div className="flex-1 h-full overflow-hidden">
                                 <PdfViewer url={currentSlide?.pdf_url} />
@@ -302,10 +303,11 @@ export default function StoryChapter({
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: "-100%", opacity: 0 }}
                         transition={{ duration: 2, ease: "easeOut" }}
-                        className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 rounded-lg p-6 flex flex-col"
+                        className="fixed !left-0 !top-[100px] !translate-x-0 !translate-y-0 w-[45vw] h-[calc(100vh-100px)] z-[9999] backdrop-blur-2xl bg-white/80 border-white/30 rounded-lg p-6 flex flex-col"
+                        style={{ left: 0, top: '100px', transform: 'none' }}
                     >
                         <DialogHeader>
-                            <DialogTitle className="text-1.5xl">{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
+                            <DialogTitle style={{ fontSize: '1.5rem' }}>{currentSlide?.title}: {decodeURIComponent(currentSlide?.pdf_url?.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</DialogTitle>
                         </DialogHeader>
                         <div className="flex-1 h-full overflow-hidden">
                             <PdfViewer url={currentSlide?.pdf_url} />
