@@ -618,9 +618,9 @@ export default function Storyboarder() {
 
                                 <div>
                                     <Badge className="bg-green-100 text-green-700 mb-2">Chapter Title</Badge>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                        Record Chapter Title
-                                    </h2>
+                                    <h2 className="text-slate-800 mb-2 text-2xl font-bold text-center">Record Chapter Title
+
+                </h2>
                                     <p className="text-sm text-slate-600">
                                         Dictate the title for this chapter. The first slide will provide location and visual content.
                                     </p>
