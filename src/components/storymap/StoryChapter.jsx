@@ -13,14 +13,15 @@ export default function StoryChapter({
     alignment = 'left',
     index,
     onSlideChange,
-    delay = 0,
-    showFullScreenViewer,
-    onFullScreenViewerChange
+    delay = 0
 }) {
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const [showPdfModal, setShowPdfModal] = useState(false);
+    const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
     const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
+    
+    console.log("Current Slide for debugging:", currentSlide);
 
     // Notify parent of initial slide when chapter or isActive changes
     useEffect(() => {
@@ -91,7 +92,7 @@ export default function StoryChapter({
                                         onSlideChange={handleSlideChange}
                                         onImageClick={(index) => {
                                             setFullScreenImageIndex(index);
-                                            onFullScreenViewerChange(true);
+                                            setShowFullScreenViewer(true);
                                         }}
                                     />
                                 </div>
@@ -178,7 +179,7 @@ export default function StoryChapter({
                 {/* Full Screen Image Viewer */}
                 <FullScreenImageViewer
                     isOpen={showFullScreenViewer}
-                    onClose={() => onFullScreenViewerChange(false)}
+                    onClose={() => setShowFullScreenViewer(false)}
                     slides={chapter.slides}
                     currentIndex={fullScreenImageIndex}
                     onNavigate={setFullScreenImageIndex}
@@ -215,7 +216,7 @@ export default function StoryChapter({
                                 onSlideChange={handleSlideChange}
                                 onImageClick={(index) => {
                                     setFullScreenImageIndex(index);
-                                    onFullScreenViewerChange(true);
+                                    setShowFullScreenViewer(true);
                                 }}
                             />
                         </div>
@@ -312,7 +313,7 @@ export default function StoryChapter({
             {/* Full Screen Image Viewer */}
             <FullScreenImageViewer
                 isOpen={showFullScreenViewer}
-                onClose={() => onFullScreenViewerChange(false)}
+                onClose={() => setShowFullScreenViewer(false)}
                 slides={chapter.slides}
                 currentIndex={fullScreenImageIndex}
                 onNavigate={setFullScreenImageIndex}

@@ -88,7 +88,7 @@ export default function FullScreenImageViewer({
     return (
         <AnimatePresence>
             {isOpen && (
-                <React.Fragment key={isOpen ? 'viewer-open' : 'viewer-closed'}>
+                <>
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -225,7 +225,7 @@ export default function FullScreenImageViewer({
                             </AnimatePresence>
                         )}
                     </motion.div>
-                </React.Fragment>
+                </>
             )}
         </AnimatePresence>
     );
