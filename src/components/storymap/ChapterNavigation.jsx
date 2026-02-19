@@ -3,16 +3,14 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { MapPin } from 'lucide-react';
 
-export default function ChapterNavigation({ chapters, activeIndex, onNavigate, isOpen, hideForFullscreen }) {
-    console.log('🔍 ChapterNavigation: hideForFullscreen =', hideForFullscreen, ', isOpen =', isOpen);
-    
+export default function ChapterNavigation({ chapters, activeIndex, onNavigate, isOpen }) {
     return (
         <motion.div 
             className="fixed right-6 top-[120px] z-[100]"
             initial={{ x: 300, opacity: 0 }}
             animate={{ 
-                x: (isOpen && !hideForFullscreen) ? 0 : 300, 
-                opacity: (isOpen && !hideForFullscreen) ? 1 : 0
+                x: isOpen ? 0 : 300, 
+                opacity: isOpen ? 1 : 0
             }}
             exit={{ x: 300, opacity: 0 }}
             transition={{ 
