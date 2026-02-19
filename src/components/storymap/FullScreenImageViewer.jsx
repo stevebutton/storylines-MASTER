@@ -75,6 +75,8 @@ export default function FullScreenImageViewer({
     };
 
     return (
+        <AnimatePresence mode="wait">
+            {isOpen && (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-none w-screen h-screen p-0 border-0 z-[9999] bg-white overflow-y-auto">
                 {/* Close Button */}
@@ -196,5 +198,7 @@ export default function FullScreenImageViewer({
                 )}
             </DialogContent>
         </Dialog>
+            )}
+        </AnimatePresence>
     );
 }
