@@ -40,7 +40,7 @@ export default function StoryMapView() {
     const previousChapterRef = useRef(-1);
     const [landingMarkers, setLandingMarkers] = useState([]);
     const [clearLandingMarkers, setClearLandingMarkers] = useState(false);
-    const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(true);
+    const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
     const [showLibraryModal, setShowLibraryModal] = useState(false);
@@ -48,10 +48,6 @@ export default function StoryMapView() {
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     const [hasExplored, setHasExplored] = useState(false);
     const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
-    
-    useEffect(() => {
-        console.log('🔍 StoryMapView: isFullScreenOpen changed to', isFullScreenOpen);
-    }, [isFullScreenOpen]);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -527,7 +523,6 @@ export default function StoryMapView() {
                 chapters={chapters}
                 activeIndex={activeChapter}
                 isOpen={isChapterMenuOpen}
-                hideForFullscreen={isFullScreenOpen}
                 onNavigate={(index) => {
                     navigateToChapter(index);
                     setIsChapterMenuOpen(false);
@@ -542,6 +537,7 @@ export default function StoryMapView() {
                     totalChapters={chapters.length}
                     activeIndex={activeChapter}
                     onNavigate={navigateToChapter}
+                    hideForFullscreen={isFullScreenOpen}
                 />
                 </div>
             )}
