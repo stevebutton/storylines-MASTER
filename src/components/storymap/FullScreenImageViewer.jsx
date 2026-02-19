@@ -205,7 +205,10 @@ export default function FullScreenImageViewer({
                         </motion.div>
                     </AnimatePresence>
                 )}
-            </DialogContent>
+                        </motion.div>
+                    </DialogContent>
+                )}
+            </AnimatePresence>
         </Dialog>
     );
 }
