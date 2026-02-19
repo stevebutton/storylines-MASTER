@@ -47,6 +47,7 @@ export default function StoryMapView() {
     const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     const [hasExplored, setHasExplored] = useState(false);
+    const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
     
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -433,6 +434,8 @@ export default function StoryMapView() {
                             alignment={chapter.alignment}
                             index={index}
                             delay={index === 0 ? 1000 : 0}
+                            showFullScreenViewer={showFullScreenViewer}
+                            onFullScreenViewerChange={setShowFullScreenViewer}
                             onSlideChange={(slide) => {
                                 // ============================================
                                 // SLIDE CHANGE HANDLER: Add coordinates to route and markers
@@ -520,8 +523,9 @@ export default function StoryMapView() {
             <ChapterNavigation
                 chapters={chapters}
                 activeIndex={activeChapter}
-                isOpen={isChapterMenuOpen && !showFullScreenViewer}
+                isOpen={isChapterMenuOpen}
                 onNavigate={(index) => {
+                    setShowFullScreenViewer(false);
                     navigateToChapter(index);
                     setIsChapterMenuOpen(false);
                 }}
