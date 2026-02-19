@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const VideoPlayer = ({ url }) => {
     if (!url) return null;
@@ -74,44 +73,68 @@ export default function FullScreenImageViewer({
         onNavigate(newIndex);
     };
 
+    // Handle escape key
+    useEffect(() => {
+        if (!isOpen) return;
+        
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') onClose();
+        };
+        
+        window.addEventListener('keydown', handleEscape);
+        return () => window.removeEventListener('keydown', handleEscape);
+    }, [isOpen, onClose]);
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-none w-screen h-screen p-0 border-0 z-[9999] bg-white overflow-y-auto data-[state=open]:animate-none data-[state=closed]:animate-none">
-                <motion.div
-                    initial={{ y: "100vh", opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: "100vh", opacity: 0 }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    className="relative w-full h-full"
-                >
-                {/* Close Button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-[144px] right-6 z-[10000] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
-                >
-                    <X className="w-6 h-6 text-slate-700" />
-                </button>
-
-                {/* Navigation Buttons */}
-                {hasMultipleSlides && (
-                    <>
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="fixed inset-0 bg-black/50 z-40"
+                        onClick={onClose}
+                    />
+                    
+                    {/* Main Content */}
+                    <motion.div
+                        initial={{ y: "100vh", opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: "100vh", opacity: 0 }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="fixed inset-0 z-40 bg-white overflow-y-auto"
+                    >
+                        {/* Close Button */}
                         <button
-                            onClick={handlePrevious}
-                            className="absolute left-6 bottom-[20vh] z-[10001] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                            onClick={onClose}
+                            className="absolute top-[144px] right-6 z-10 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                         >
-                            <ChevronLeft className="w-8 h-8 text-slate-700" />
+                            <X className="w-6 h-6 text-slate-700" />
                         </button>
-                        <button
-                            onClick={handleNext}
-                            className="absolute right-6 bottom-[20vh] z-[10001] bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
-                        >
-                            <ChevronRight className="w-8 h-8 text-slate-700" />
-                        </button>
-                    </>
-                )}
 
-                {/* Image or Video Display */}
-                <div className="relative w-full h-full flex items-center justify-center">
+                        {/* Navigation Buttons */}
+                        {hasMultipleSlides && (
+                            <>
+                                <button
+                                    onClick={handlePrevious}
+                                    className="absolute left-6 bottom-[20vh] z-10 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                                >
+                                    <ChevronLeft className="w-8 h-8 text-slate-700" />
+                                </button>
+                                <button
+                                    onClick={handleNext}
+                                    className="absolute right-6 bottom-[20vh] z-10 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                                >
+                                    <ChevronRight className="w-8 h-8 text-slate-700" />
+                                </button>
+                            </>
+                        )}
+
+                        {/* Image or Video Display */}
+                        <div className="relative w-full h-full flex items-center justify-center">
                     <AnimatePresence mode="wait">
                         {currentSlide.video_url ? (
                             <VideoPlayer url={currentSlide.video_url} key={currentIndex} />
@@ -127,82 +150,83 @@ export default function FullScreenImageViewer({
                                 className="w-full h-full object-cover"
                             />
                         )}
-                    </AnimatePresence>
-                </div>
+                            </AnimatePresence>
+                        </div>
 
-                {/* Caption Overlay */}
-                <motion.div 
-                    className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col"
-                    style={{ paddingTop: '150px' }}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 3 }}
-                >
-                    <div className="w-full text-right">
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={currentIndex}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                {chapterName && (
-                                    <div className="font-bold tracking-[0.2em] uppercase text-amber-600 mb-3" style={{ fontSize: '1.3rem', lineHeight: '1.3rem', paddingBottom: '30px' }}>
-                                        {chapterName.split(':').map((part, i) => (
-                                            <div key={i}>{part.trim()}</div>
-                                        ))}
-                                    </div>
-                                )}
-                                <h3 className="text-2xl md:text-3xl font-medium text-slate-800 mb-3">
-                                    {currentSlide.title}
-                                </h3>
-                                {currentSlide.description && (
-                                    <div 
-                                        className="text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-right"
-                                        style={{ color: '#000000' }}
-                                        dangerouslySetInnerHTML={{ __html: currentSlide.description }}
-                                    />
-                                )}
-                                {currentSlide.location && (
-                                    <div className="flex items-center justify-end gap-2 text-sm" style={{ color: '#000000', marginTop: '40px' }}>
-                                        <span>{currentSlide.location}</span>
-                                        <div className="w-5 h-5 rounded-full bg-amber-500 border-2 border-white shadow-lg" />
-                                    </div>
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
-
-                        {/* Slide Counter */}
-                        {hasMultipleSlides && (
-                            <div className="text-sm mt-4" style={{ color: '#000000' }}>
-                                {currentIndex + 1} / {slides.length}
-                            </div>
-                        )}
-                    </div>
-                </motion.div>
-
-                {/* Extended Content Overlay - Only on Desktop */}
-                {currentSlide.extended_content && (
-                    <AnimatePresence mode="wait">
+                        {/* Caption Overlay */}
                         <motion.div 
-                            key={`extended-${currentIndex}`}
-                            className="hidden md:flex absolute top-0 left-[300px] h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 z-[9998] flex-col"
+                            className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col"
                             style={{ paddingTop: '150px' }}
-                            initial={{ opacity: 0, y: '100%' }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: '100%' }}
-                            transition={{ duration: 3, ease: "easeOut", delay: 5 }}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 3 }}
                         >
-                            <div 
-                                className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-left"
-                                dangerouslySetInnerHTML={{ __html: currentSlide.extended_content }}
-                            />
+                            <div className="w-full text-right">
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={currentIndex}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        {chapterName && (
+                                            <div className="font-bold tracking-[0.2em] uppercase text-amber-600 mb-3" style={{ fontSize: '1.3rem', lineHeight: '1.3rem', paddingBottom: '30px' }}>
+                                                {chapterName.split(':').map((part, i) => (
+                                                    <div key={i}>{part.trim()}</div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <h3 className="text-2xl md:text-3xl font-medium text-slate-800 mb-3">
+                                            {currentSlide.title}
+                                        </h3>
+                                        {currentSlide.description && (
+                                            <div 
+                                                className="text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-right"
+                                                style={{ color: '#000000' }}
+                                                dangerouslySetInnerHTML={{ __html: currentSlide.description }}
+                                            />
+                                        )}
+                                        {currentSlide.location && (
+                                            <div className="flex items-center justify-end gap-2 text-sm" style={{ color: '#000000', marginTop: '40px' }}>
+                                                <span>{currentSlide.location}</span>
+                                                <div className="w-5 h-5 rounded-full bg-amber-500 border-2 border-white shadow-lg" />
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                </AnimatePresence>
+
+                                {/* Slide Counter */}
+                                {hasMultipleSlides && (
+                                    <div className="text-sm mt-4" style={{ color: '#000000' }}>
+                                        {currentIndex + 1} / {slides.length}
+                                    </div>
+                                )}
+                            </div>
                         </motion.div>
-                    </AnimatePresence>
-                )}
-                </motion.div>
-            </DialogContent>
-        </Dialog>
+
+                        {/* Extended Content Overlay - Only on Desktop */}
+                        {currentSlide.extended_content && (
+                            <AnimatePresence mode="wait">
+                                <motion.div 
+                                    key={`extended-${currentIndex}`}
+                                    className="hidden md:flex absolute top-0 left-[300px] h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 z-10 flex-col"
+                                    style={{ paddingTop: '150px' }}
+                                    initial={{ opacity: 0, y: '100%' }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: '100%' }}
+                                    transition={{ duration: 3, ease: "easeOut", delay: 5 }}
+                                >
+                                    <div 
+                                        className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-left"
+                                        dangerouslySetInnerHTML={{ __html: currentSlide.extended_content }}
+                                    />
+                                </motion.div>
+                            </AnimatePresence>
+                        )}
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
     );
 }
