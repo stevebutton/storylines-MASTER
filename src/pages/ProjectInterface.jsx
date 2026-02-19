@@ -9,6 +9,7 @@ import InteractiveStoryMap from '@/components/storymap/InteractiveStoryMap';
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, ChevronDown } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 export default function ProjectInterface() {
   const navigate = useNavigate();
@@ -213,15 +214,18 @@ export default function ProjectInterface() {
       />
 
       {/* Document Library Modal */}
-      {console.log('ProjectInterface: showLibraryModal state before Dialog:', showLibraryModal)}
-      <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
-        <DialogContent className="w-[90vw] max-w-6xl h-[80vh] z-[100000]">
-          <DialogHeader>
-            <DialogTitle>Document Library</DialogTitle>
-          </DialogHeader>
-          <DocumentManagerContent />
-        </DialogContent>
-      </Dialog>
+      <AnimatePresence>
+        {showLibraryModal && (
+          <Dialog open={showLibraryModal} onOpenChange={setShowLibraryModal}>
+            <DialogContent className="w-[90vw] max-w-6xl h-[80vh] z-[100000]">
+              <DialogHeader>
+                <DialogTitle>Document Library</DialogTitle>
+              </DialogHeader>
+              <DocumentManagerContent />
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
