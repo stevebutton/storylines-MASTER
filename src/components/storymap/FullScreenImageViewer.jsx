@@ -58,8 +58,6 @@ export default function FullScreenImageViewer({
     onNavigate,
     chapterName 
 }) {
-    console.log('🔍 [FULLSCREEN VIEWER] isOpen:', isOpen);
-    
     if (!slides || slides.length === 0) return null;
 
     const currentSlide = slides[currentIndex];
@@ -90,7 +88,7 @@ export default function FullScreenImageViewer({
     return (
         <AnimatePresence>
             {isOpen && (
-                <>
+                <React.Fragment key={isOpen ? 'viewer-open' : 'viewer-closed'}>
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
@@ -227,7 +225,7 @@ export default function FullScreenImageViewer({
                             </AnimatePresence>
                         )}
                     </motion.div>
-                </>
+                </React.Fragment>
             )}
         </AnimatePresence>
     );

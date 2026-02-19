@@ -177,7 +177,6 @@ export default function StoryChapter({
 
                 {/* Full Screen Image Viewer */}
                 <FullScreenImageViewer
-                    key={showFullScreenViewer ? 'open-viewer' : 'closed-viewer'}
                     isOpen={showFullScreenViewer}
                     onClose={() => onFullScreenViewerChange(false)}
                     slides={chapter.slides}
@@ -312,7 +311,6 @@ export default function StoryChapter({
 
             {/* Full Screen Image Viewer */}
             <FullScreenImageViewer
-                key={showFullScreenViewer ? 'open-viewer' : 'closed-viewer'}
                 isOpen={showFullScreenViewer}
                 onClose={() => onFullScreenViewerChange(false)}
                 slides={chapter.slides}
