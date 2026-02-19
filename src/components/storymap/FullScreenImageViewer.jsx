@@ -95,7 +95,7 @@ export default function FullScreenImageViewer({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="fixed inset-0 bg-black/50 z-40"
+                        className="fixed inset-0 bg-black/50 z-[9997]"
                         onClick={onClose}
                     />
                     
@@ -105,12 +105,12 @@ export default function FullScreenImageViewer({
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: "100vh", opacity: 0 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="fixed inset-0 z-40 bg-white overflow-y-auto"
+                        className="fixed inset-0 z-[9998] bg-white overflow-y-auto"
                     >
                         {/* Close Button */}
                         <button
                             onClick={onClose}
-                            className="absolute top-[144px] right-6 z-10 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                            className="absolute top-[144px] right-6 z-50 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                         >
                             <X className="w-6 h-6 text-slate-700" />
                         </button>
@@ -120,13 +120,13 @@ export default function FullScreenImageViewer({
                             <>
                                 <button
                                     onClick={handlePrevious}
-                                    className="absolute left-6 bottom-[20vh] z-10 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                                    className="absolute left-6 bottom-[20vh] z-50 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                                 >
                                     <ChevronLeft className="w-8 h-8 text-slate-700" />
                                 </button>
                                 <button
                                     onClick={handleNext}
-                                    className="absolute right-6 bottom-[20vh] z-10 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                                    className="absolute right-6 bottom-[20vh] z-50 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
                                 >
                                     <ChevronRight className="w-8 h-8 text-slate-700" />
                                 </button>
