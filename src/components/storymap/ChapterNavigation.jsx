@@ -9,13 +9,12 @@ export default function ChapterNavigation({ chapters, activeIndex, onNavigate, i
             className="fixed right-6 top-[120px] z-[100]"
             initial={{ x: 300, opacity: 0 }}
             animate={{ 
-                x: isOpen ? 0 : 300, 
-                opacity: (isOpen && !hideForFullscreen) ? 1 : 0,
-                display: hideForFullscreen ? 'none' : 'block'
+                x: (isOpen && !hideForFullscreen) ? 0 : 300, 
+                opacity: (isOpen && !hideForFullscreen) ? 1 : 0
             }}
             exit={{ x: 300, opacity: 0 }}
             transition={{ 
-                duration: isOpen ? 1.5 : 1,
+                duration: 0.7,
                 ease: "easeInOut"
             }}
         >
