@@ -72,7 +72,7 @@ export default function MapBackground({
 
     // Update map position
     useEffect(() => {
-        if (!map.current || !map.current.isStyleLoaded()) return;
+        if (!map.current || !map.current.isStyleLoaded() || !mapContainer.current) return;
         
         // Validate center coordinates
         if (!center || !Array.isArray(center) || center.length !== 2 || 
@@ -95,16 +95,20 @@ export default function MapBackground({
             : 0;
 
         // Always just fly to position without rotation
-        map.current.flyTo({
-            center: [center[1], center[0]],
-            offset: offset,
-            zoom: zoom || 12,
-            bearing: bearing || 0,
-            pitch: validPitch,
-            duration: flyMs,
-            essential: true,
-            easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-        });
+        try {
+            map.current.flyTo({
+                center: [center[1], center[0]],
+                offset: offset,
+                zoom: zoom || 12,
+                bearing: bearing || 0,
+                pitch: validPitch,
+                duration: flyMs,
+                essential: true,
+                easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+            });
+        } catch (error) {
+            console.warn('Map flyTo error (map may be destroyed):', error);
+        }
 
         return () => {
             if (rotationRef.current) {
@@ -119,7 +123,7 @@ export default function MapBackground({
     // Validates coordinates and removes duplicates before drawing
     // ============================================
     useEffect(() => {
-        if (!map.current || !map.current.isStyleLoaded()) return;
+        if (!map.current || !map.current.isStyleLoaded() || !mapContainer.current) return;
 
         // Cancel any ongoing animation
         if (lineAnimationRef.current) {
@@ -252,7 +256,7 @@ export default function MapBackground({
 
     // Update markers
     useEffect(() => {
-        if (!map.current) return;
+        if (!map.current || !mapContainer.current) return;
 
         // Remove existing markers
         markersRef.current.forEach(marker => marker.remove());
@@ -311,7 +315,7 @@ export default function MapBackground({
     // Uses normalized coordinates to prevent duplicates
     // ============================================
     useEffect(() => {
-        if (!map.current) return;
+        if (!map.current || !mapContainer.current) return;
 
         // Clear existing landing markers with fade out
         if (clearLandingMarkers) {
@@ -394,7 +398,7 @@ export default function MapBackground({
     // LAYER VISIBILITY: Show/hide Mapbox layers based on active slide
     // ============================================
     useEffect(() => {
-        if (!map.current || !map.current.isStyleLoaded()) return;
+        if (!map.current || !map.current.isStyleLoaded() || !mapContainer.current) return;
 
         // Hide previous layer if it exists and is different from current
         if (previousLayerId.current && previousLayerId.current !== activeLayerId) {
