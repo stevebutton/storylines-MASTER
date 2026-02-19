@@ -10,100 +10,42 @@ import { createPageUrl } from '@/utils';
 
 export default function MapDataImportPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
-    const [files, setFiles] = useState([]);
+    const [zipFile, setZipFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [step, setStep] = useState('upload'); // upload, processing, preview, creating
     const [extractedData, setExtractedData] = useState(null);
     const [storyTitle, setStoryTitle] = useState('');
 
     const handleFileUpload = (e) => {
-        const uploadedFiles = Array.from(e.target.files);
-        setFiles(uploadedFiles);
+        const uploadedFile = e.target.files[0];
+        if (uploadedFile && uploadedFile.name.endsWith('.zip')) {
+            setZipFile(uploadedFile);
+        } else {
+            alert('Please upload a .zip file containing folders with images');
+        }
     };
 
     const processFiles = async () => {
-        if (files.length === 0) return;
+        if (!zipFile) return;
 
         setIsProcessing(true);
         setStep('processing');
 
         try {
-            // Upload files
-            const fileUrls = [];
-            for (const file of files) {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                fileUrls.push(file_url);
-            }
+            // Upload zip file
+            const { file_url } = await base44.integrations.Core.UploadFile({ file: zipFile });
 
-            // Extract EXIF coordinates from images
-            const { data: exifData } = await base44.functions.invoke('extractExifCoordinates', {
-                file_urls: fileUrls
-            });
-
-            // Build coordinate context for LLM
-            const coordinateContext = exifData.results
-                .map((result, idx) => {
-                    if (result.has_gps_data) {
-                        return `Image ${idx + 1} (${result.image_url}): GPS coordinates [${result.coordinates[0]}, ${result.coordinates[1]}] (latitude, longitude in decimal degrees)`;
-                    }
-                    return `Image ${idx + 1} (${result.image_url}): No GPS data available`;
-                })
-                .join('\n');
-
-            // Extract location data using LLM with vision
-            const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `You are analyzing geotagged field documentation images to create a geographic narrative.
-
-EXTRACTED GPS COORDINATES (Decimal Degrees):
-${coordinateContext}
-
-For each image provided:
-1. Use the EXACT GPS coordinates listed above (already in decimal degree format: [latitude, longitude]).
-2. Identify the location name based on the coordinates and image content.
-3. Create a descriptive chapter title and detailed narrative description.
-4. Include the exact image_url that corresponds to this chapter.
-
-If an image has no GPS data, analyze the image to identify the location visually and provide estimated coordinates.
-
-Create a structured story outline with:
-- Overall story title (maximum 34 characters) and subtitle
-- One chapter per image
-- Each chapter must include: image_url, title, location name, description, and coordinates in [latitude, longitude] decimal degree format
-
-Return the structured JSON as specified.`,
-                file_urls: fileUrls,
-                add_context_from_internet: true,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        title: { type: "string" },
-                        subtitle: { type: "string" },
-                        chapters: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    title: { type: "string" },
-                                    location: { type: "string" },
-                                    description: { type: "string" },
-                                    coordinates: {
-                                        type: "array",
-                                        items: { type: "number" }
-                                    },
-                                    image_url: { type: "string" }
-                                }
-                            }
-                        }
-                    }
-                }
+            // Process zip file with backend function
+            const { data: response } = await base44.functions.invoke('processZipForStory', {
+                zip_url: file_url
             });
 
             setExtractedData(response);
             setStoryTitle(response.title);
             setStep('preview');
         } catch (error) {
-            console.error('Failed to process files:', error);
-            alert('Failed to process files. Please try again.');
+            console.error('Failed to process zip file:', error);
+            alert('Failed to process zip file. Please try again.');
             setStep('upload');
         } finally {
             setIsProcessing(false);
@@ -134,20 +76,25 @@ Return the structured JSON as specified.`,
                 const chapterData = extractedData.chapters[i];
                 const newChapter = await base44.entities.Chapter.create({
                     story_id: newStory.id,
+                    name: chapterData.folder_name,
                     order: i,
                     alignment: 'left'
                 });
 
-                await base44.entities.Slide.create({
-                    chapter_id: newChapter.id,
-                    order: 0,
-                    title: chapterData.title,
-                    description: chapterData.description,
-                    location: chapterData.location,
-                    image: chapterData.image_url,
-                    coordinates: chapterData.coordinates,
-                    zoom: 12
-                });
+                // Create slides for this chapter
+                for (let j = 0; j < chapterData.slides.length; j++) {
+                    const slideData = chapterData.slides[j];
+                    await base44.entities.Slide.create({
+                        chapter_id: newChapter.id,
+                        order: j,
+                        title: slideData.title,
+                        description: slideData.description,
+                        location: slideData.location,
+                        image: slideData.image_url,
+                        coordinates: slideData.coordinates,
+                        zoom: 12
+                    });
+                }
             }
 
             setTimeout(() => {
@@ -160,7 +107,7 @@ Return the structured JSON as specified.`,
     };
 
     const resetPanel = () => {
-        setFiles([]);
+        setZipFile(null);
         setExtractedData(null);
         setStoryTitle('');
         setStep('upload');
@@ -216,48 +163,42 @@ Return the structured JSON as specified.`,
                                     <div className="border-2 border-dashed border-slate-300 rounded-lg p-12 text-center">
                                         <Upload className="w-16 h-16 text-slate-400 mx-auto mb-4" />
                                         <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                                            Upload Field Documentation
+                                            Upload Field Documentation Archive
                                         </h3>
                                         <p className="text-sm text-slate-600 mb-6">
-                                            We'll analyze location-tagged images and help structure them into a cohesive geographic narrative. Upload photos containing location metadata or recognizable landmarks.
+                                            Upload a .zip file containing folders with location-tagged images. Each folder will become a chapter, with images as slides.
                                         </p>
                                         <input
                                             type="file"
-                                            multiple
-                                            accept="image/*"
+                                            accept=".zip"
                                             onChange={handleFileUpload}
                                             className="hidden"
                                             id="file-upload"
                                         />
                                         <label htmlFor="file-upload">
                                             <Button className="bg-blue-600 hover:bg-blue-700" asChild>
-                                                <span>Choose Files</span>
+                                                <span>Choose ZIP File</span>
                                             </Button>
                                         </label>
                                     </div>
 
-                                    {files.length > 0 && (
+                                    {zipFile && (
                                         <div>
                                             <h3 className="font-semibold text-slate-800 mb-3">
-                                                Selected Files ({files.length})
+                                                Selected File
                                             </h3>
-                                            <div className="grid grid-cols-3 gap-4">
-                                                {files.map((file, idx) => (
-                                                    <div key={idx} className="border rounded-lg overflow-hidden">
-                                                        <div className="aspect-video bg-slate-100 flex items-center justify-center">
-                                                            <Image className="w-8 h-8 text-slate-400" />
-                                                        </div>
-                                                        <div className="p-2">
-                                                            <p className="text-xs text-slate-600 truncate">{file.name}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                            <div className="border rounded-lg p-4 flex items-center gap-3">
+                                                <FileText className="w-8 h-8 text-blue-600" />
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-medium text-slate-800">{zipFile.name}</p>
+                                                    <p className="text-xs text-slate-500">{(zipFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                </div>
                                             </div>
                                             <Button 
                                                 onClick={processFiles}
                                                 className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
                                             >
-                                                Process Files & Extract Locations
+                                                Process Archive & Extract Locations
                                             </Button>
                                         </div>
                                     )}
@@ -302,14 +243,18 @@ Return the structured JSON as specified.`,
                                                         </div>
                                                         <div className="flex-1">
                                                             <h4 className="font-semibold text-slate-800 mb-1">
-                                                                Chapter {idx + 1}: {chapter.title}
+                                                                Chapter {idx + 1}: {chapter.folder_name}
                                                             </h4>
                                                             <p className="text-sm text-slate-600 mb-2">
-                                                                {chapter.location}
+                                                                {chapter.slides.length} slide{chapter.slides.length !== 1 ? 's' : ''}
                                                             </p>
-                                                            <p className="text-xs text-slate-500">
-                                                                {chapter.description}
-                                                            </p>
+                                                            <div className="mt-2 space-y-1">
+                                                                {chapter.slides.map((slide, slideIdx) => (
+                                                                    <div key={slideIdx} className="text-xs text-slate-500 pl-4 border-l-2 border-slate-200">
+                                                                        {slide.title} - {slide.location}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
