@@ -76,7 +76,14 @@ export default function FullScreenImageViewer({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-none w-screen h-screen p-0 border-0 z-[9999] bg-white overflow-y-auto">
+            <DialogContent className="max-w-none w-screen h-screen p-0 border-0 z-[9999] bg-white overflow-y-auto data-[state=open]:animate-none data-[state=closed]:animate-none">
+                <motion.div
+                    initial={{ y: "100vh", opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: "100vh", opacity: 0 }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="relative w-full h-full"
+                >
                 {/* Close Button */}
                 <button
                     onClick={onClose}
@@ -194,6 +201,7 @@ export default function FullScreenImageViewer({
                         </motion.div>
                     </AnimatePresence>
                 )}
+                </motion.div>
             </DialogContent>
         </Dialog>
     );
