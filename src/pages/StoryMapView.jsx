@@ -520,7 +520,7 @@ export default function StoryMapView() {
             <ChapterNavigation
                 chapters={chapters}
                 activeIndex={activeChapter}
-                isOpen={isChapterMenuOpen}
+                isOpen={isChapterMenuOpen && !showFullScreenViewer}
                 onNavigate={(index) => {
                     navigateToChapter(index);
                     setIsChapterMenuOpen(false);
