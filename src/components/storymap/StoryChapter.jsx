@@ -24,6 +24,7 @@ export default function StoryChapter({
     // Notify parent when fullscreen state changes
     useEffect(() => {
         if (onFullScreenChange) {
+            console.log('🔍 StoryChapter: Calling onFullScreenChange with', showFullScreenViewer);
             onFullScreenChange(showFullScreenViewer);
         }
     }, [showFullScreenViewer, onFullScreenChange]);
@@ -99,6 +100,7 @@ export default function StoryChapter({
                                         slides={chapter.slides} 
                                         onSlideChange={handleSlideChange}
                                         onImageClick={(index) => {
+                                            console.log('🔍 StoryChapter: Image clicked, opening fullscreen viewer');
                                             setFullScreenImageIndex(index);
                                             setShowFullScreenViewer(true);
                                         }}
@@ -223,6 +225,7 @@ export default function StoryChapter({
                                 slides={chapter.slides} 
                                 onSlideChange={handleSlideChange}
                                 onImageClick={(index) => {
+                                    console.log('🔍 StoryChapter: Image clicked (full_background), opening fullscreen viewer');
                                     setFullScreenImageIndex(index);
                                     setShowFullScreenViewer(true);
                                 }}

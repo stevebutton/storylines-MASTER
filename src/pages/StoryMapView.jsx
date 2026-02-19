@@ -49,6 +49,10 @@ export default function StoryMapView() {
     const [hasExplored, setHasExplored] = useState(false);
     const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
     
+    useEffect(() => {
+        console.log('🔍 StoryMapView: isFullScreenOpen changed to', isFullScreenOpen);
+    }, [isFullScreenOpen]);
+    
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
 

@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils';
 import { MapPin } from 'lucide-react';
 
 export default function ChapterNavigation({ chapters, activeIndex, onNavigate, isOpen, hideForFullscreen }) {
+    console.log('🔍 ChapterNavigation: hideForFullscreen =', hideForFullscreen, ', isOpen =', isOpen);
+    
     return (
         <motion.div 
             className="fixed right-6 top-[120px] z-[100]"
