@@ -555,7 +555,7 @@ export default function StoryMapView() {
             >
                 <SheetContent 
                     side="bottom" 
-                    className="w-full h-[calc(100vh-100px)] top-[100px] z-[95] pointer-events-auto"
+                    className="w-full h-[calc(100vh-100px)] top-[100px] z-[95] pointer-events-auto [&>div:first-child]:bg-transparent [&>div:first-child]:backdrop-blur-none"
                     style={{
                         animation: showLibraryModal 
                             ? 'slideInFromBottom 3s ease-out' 
