@@ -23,6 +23,7 @@ export default function StoryChapter({
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
     
     console.log("Current Slide for debugging:", currentSlide);
+    console.log('🔍 [STORY CHAPTER] showFullScreenViewer prop:', showFullScreenViewer);
 
     // Notify parent of initial slide when chapter or isActive changes
     useEffect(() => {

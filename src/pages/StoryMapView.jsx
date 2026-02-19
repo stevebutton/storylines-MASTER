@@ -525,7 +525,9 @@ export default function StoryMapView() {
                 activeIndex={activeChapter}
                 isOpen={isChapterMenuOpen}
                 onNavigate={(index) => {
+                    console.log('🔍 [CHAPTER NAV] Before closing fullscreen viewer:', showFullScreenViewer);
                     setShowFullScreenViewer(false);
+                    console.log('🔍 [CHAPTER NAV] After calling setShowFullScreenViewer(false)');
                     navigateToChapter(index);
                     setIsChapterMenuOpen(false);
                 }}

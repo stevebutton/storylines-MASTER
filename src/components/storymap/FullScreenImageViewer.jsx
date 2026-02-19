@@ -58,6 +58,8 @@ export default function FullScreenImageViewer({
     onNavigate,
     chapterName 
 }) {
+    console.log('🔍 [FULLSCREEN VIEWER] isOpen:', isOpen);
+    
     if (!slides || slides.length === 0) return null;
 
     const currentSlide = slides[currentIndex];
