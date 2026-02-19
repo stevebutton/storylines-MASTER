@@ -10,9 +10,8 @@ import { ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
-const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
-mapboxgl.accessToken = MAPBOX_TOKEN;
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY;
 
 export default function InteractiveStoryMap({ 
   stories = [], 
