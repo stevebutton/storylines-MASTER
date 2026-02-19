@@ -13,12 +13,20 @@ export default function StoryChapter({
     alignment = 'left',
     index,
     onSlideChange,
-    delay = 0
+    delay = 0,
+    onFullScreenChange
 }) {
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
     const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
+    
+    // Notify parent when fullscreen state changes
+    useEffect(() => {
+        if (onFullScreenChange) {
+            onFullScreenChange(showFullScreenViewer);
+        }
+    }, [showFullScreenViewer, onFullScreenChange]);
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
     
     console.log("Current Slide for debugging:", currentSlide);

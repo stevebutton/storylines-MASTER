@@ -68,8 +68,8 @@ import StoriesMap from './pages/StoriesMap';
 import StoryEditor from './pages/StoryEditor';
 import StoryLibrary from './pages/StoryLibrary';
 import StoryMap from './pages/StoryMap';
-import StoryMapView from './pages/StoryMapView';
 import Storyboarder from './pages/Storyboarder';
+import StoryMapView from './pages/StoryMapView';
 import __Layout from './Layout.jsx';
 
 
@@ -95,8 +95,8 @@ export const PAGES = {
     "StoryEditor": StoryEditor,
     "StoryLibrary": StoryLibrary,
     "StoryMap": StoryMap,
-    "StoryMapView": StoryMapView,
     "Storyboarder": Storyboarder,
+    "StoryMapView": StoryMapView,
 }
 
 export const pagesConfig = {
