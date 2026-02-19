@@ -40,7 +40,7 @@ export default function StoryMapView() {
     const previousChapterRef = useRef(-1);
     const [landingMarkers, setLandingMarkers] = useState([]);
     const [clearLandingMarkers, setClearLandingMarkers] = useState(false);
-    const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
+    const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(true);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
     const [showLibraryModal, setShowLibraryModal] = useState(false);
