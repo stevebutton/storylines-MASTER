@@ -105,7 +105,7 @@ export default function FullScreenImageViewer({
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: "100vh", opacity: 0 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="fixed inset-0 z-[9998] bg-white overflow-y-auto"
+                        className="fixed inset-0 z-[9998] bg-white overflow-y-auto pointer-events-auto"
                     >
                         {/* Close Button */}
                         <button
@@ -134,7 +134,7 @@ export default function FullScreenImageViewer({
                         )}
 
                         {/* Image or Video Display */}
-                        <div className="relative w-full h-full flex items-center justify-center">
+                        <div className="relative w-full h-full flex items-center justify-center z-10">
                     <AnimatePresence mode="wait">
                         {currentSlide.video_url ? (
                             <VideoPlayer url={currentSlide.video_url} key={currentIndex} />
@@ -155,7 +155,7 @@ export default function FullScreenImageViewer({
 
                         {/* Caption Overlay */}
                         <motion.div 
-                            className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col"
+                            className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col z-20 pointer-events-none"
                             style={{ paddingTop: '150px' }}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
