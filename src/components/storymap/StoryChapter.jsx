@@ -159,9 +159,8 @@ export default function StoryChapter({
                 </motion.div>
 
                 {/* PDF Modal */}
-                <AnimatePresence>
-                    {showPdfModal && (
-                        <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
+                {showPdfModal && (
+                    <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
                             <DialogContent className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6 flex flex-col z-[100]">
                                 <DialogHeader className="pb-5">
                                     <DialogTitle style={{ fontSize: '1.5rem' }}>
@@ -174,9 +173,8 @@ export default function StoryChapter({
                                     <PdfViewer url={currentSlide?.pdf_url} />
                                 </div>
                             </DialogContent>
-                        </Dialog>
-                    )}
-                </AnimatePresence>
+                    </Dialog>
+                )}
 
                 {/* Full Screen Image Viewer */}
                 <FullScreenImageViewer
@@ -295,9 +293,8 @@ export default function StoryChapter({
             </motion.div>
 
             {/* PDF Modal */}
-            <AnimatePresence>
-                {showPdfModal && (
-                    <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
+            {showPdfModal && (
+                <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
                         <DialogContent className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6 flex flex-col z-[100]">
                             <DialogHeader className="pb-5">
                                 <DialogTitle style={{ fontSize: '1.5rem' }}>
@@ -312,7 +309,6 @@ export default function StoryChapter({
                         </DialogContent>
                     </Dialog>
                 )}
-            </AnimatePresence>
 
             {/* Full Screen Image Viewer */}
             <FullScreenImageViewer
