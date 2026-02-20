@@ -310,10 +310,10 @@ export default function ChapterEditor({
                                     No slides yet. Add your first slide.
                                 </div>
                             )}
-                            </div>
-                            </CardContent>
-                            </CollapsibleContent>
-                            </Collapsible>
-                            </Card>
-                            );
-                            }
+                        </div>
+                    </CardContent>
+                </CollapsibleContent>
+            </Collapsible>
+        </Card>
+    );
+}
