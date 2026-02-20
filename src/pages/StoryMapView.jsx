@@ -178,6 +178,7 @@ export default function StoryMapView() {
                     }))
             }));
 
+            console.log('DEBUG: StoryMapView - Chapters with Slides Data:', chaptersWithSlides);
             setChapters(chaptersWithSlides);
         } catch (error) {
             console.error('Failed to load story:', error);

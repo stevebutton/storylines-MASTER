@@ -45,6 +45,7 @@ export default function StoryEditor() {
         
         // If location data exists, update the slide
         if (slideId && pickedLat && pickedLng) {
+            console.log('DEBUG: StoryEditor - Slides State on URL param check:', slides);
             const slide = slides.find(s => s.id === slideId);
             if (slide) {
                 const updatedSlide = {
@@ -211,6 +212,7 @@ export default function StoryEditor() {
     };
 
     const updateSlide = async (updatedSlide) => {
+        console.log('DEBUG: StoryEditor - updateSlide called with:', updatedSlide);
         setSlides(slides.map(s => s.id === updatedSlide.id ? updatedSlide : s));
         
         // Auto-save if slide has a real ID (not temp)
