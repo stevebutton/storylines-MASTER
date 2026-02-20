@@ -69,6 +69,21 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
         }
     };
 
+    const handleBackgroundImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingBackground(true);
+        try {
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            onUpdate({ ...slide, background_image: file_url });
+        } catch (error) {
+            console.error('Failed to upload background image:', error);
+        } finally {
+            setIsUploadingBackground(false);
+        }
+    };
+
     return (
         <Card className="border-slate-200">
             <CardContent className="p-4">
