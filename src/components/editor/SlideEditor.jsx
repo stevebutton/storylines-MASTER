@@ -78,29 +78,32 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                         <GripVertical className="w-5 h-5 text-slate-400" />
                     </div>
 
-                    {/* Image upload */}
-                    <div className="w-32 h-24 shrink-0 rounded-lg overflow-hidden bg-slate-100 relative group">
-                        {slide.image ? (
-                            <img src={slide.image} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <ImageIcon className="w-8 h-8 text-slate-300" />
-                            </div>
-                        )}
-                        <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                            {isUploading ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    {/* Normal Image upload */}
+                    <div className="shrink-0">
+                        <Label className="text-xs mb-1 block">Normal Image</Label>
+                        <div className="w-32 h-24 rounded-lg overflow-hidden bg-slate-100 relative group">
+                            {slide.image ? (
+                                <img src={slide.image} alt="" className="w-full h-full object-cover" />
                             ) : (
-                                <Upload className="w-5 h-5 text-white" />
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <ImageIcon className="w-8 h-8 text-slate-300" />
+                                </div>
                             )}
-                            <input 
-                                type="file" 
-                                accept="image/*" 
-                                className="hidden" 
-                                onChange={handleImageUpload}
-                                disabled={isUploading}
-                            />
-                        </label>
+                            <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                {isUploading ? (
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                    <Upload className="w-5 h-5 text-white" />
+                                )}
+                                <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    className="hidden" 
+                                    onChange={handleImageUpload}
+                                    disabled={isUploading}
+                                />
+                            </label>
+                        </div>
                     </div>
 
                     {/* Fields */}
