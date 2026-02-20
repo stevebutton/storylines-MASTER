@@ -448,67 +448,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                         }}
                                     />
 
-                                    {/* Background Image for Full Background Style */}
-                                    {slide.card_style === 'full_background' && (
-                                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                                    <Label className="text-xs font-medium">Background Image</Label>
-                                    <p className="text-xs text-slate-500 mb-2">Upload a background for full background card</p>
-                                    {slide.background_image ? (
-                                    <div className="relative">
-                                        <img 
-                                            src={slide.background_image} 
-                                            alt="Background" 
-                                            className="w-full h-24 object-cover rounded-lg"
-                                        />
-                                        <button
-                                            onClick={() => onUpdate({ ...slide, background_image: '' })}
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                        >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                    ) : (
-                                    <div>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0];
-                                                if (!file) return;
-                                                setIsUploadingBackground(true);
-                                                try {
-                                                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                                                    onUpdate({ ...slide, background_image: file_url });
-                                                } catch (error) {
-                                                    console.error('Failed to upload background:', error);
-                                                } finally {
-                                                    setIsUploadingBackground(false);
-                                                }
-                                            }}
-                                            className="hidden"
-                                            id={`slide-bg-upload-${slide.id}`}
-                                            disabled={isUploadingBackground}
-                                        />
-                                        <label htmlFor={`slide-bg-upload-${slide.id}`}>
-                                            <Button 
-                                                type="button" 
-                                                variant="outline"
-                                                size="sm"
-                                                disabled={isUploadingBackground}
-                                                onClick={() => document.getElementById(`slide-bg-upload-${slide.id}`).click()}
-                                                className="w-full h-8"
-                                            >
-                                                {isUploadingBackground ? (
-                                                    <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...</>
-                                                ) : (
-                                                    <><Upload className="w-3 h-3 mr-2" /> Upload</>
-                                                )}
-                                            </Button>
-                                        </label>
-                                    </div>
-                                    )}
-                                    </div>
-                                    )}
+
                                     </div>
 
                                     {/* Delete button */}
