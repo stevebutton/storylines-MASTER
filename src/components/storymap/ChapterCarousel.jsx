@@ -73,7 +73,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick })
                     <VideoEmbed url={slides[0].video_url} />
                 ) : (
                     <img 
-                        src={slides[0].image} 
+                        src={slides[0].card_style === 'full_background' ? slides[0].background_image : slides[0].image} 
                         alt={slides[0].title}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -97,7 +97,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick })
                                 <VideoEmbed url={slide.video_url} />
                             ) : (
                                 <img 
-                                    src={slide.image} 
+                                    src={slide.card_style === 'full_background' ? slide.background_image : slide.image} 
                                     alt={slide.title}
                                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                                 />
