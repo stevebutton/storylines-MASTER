@@ -251,7 +251,6 @@ export default function ChapterEditor({
                                     />
                                 </div>
                             </div>
-                            </div>
 
                             {/* Slides */}
                         <div>
