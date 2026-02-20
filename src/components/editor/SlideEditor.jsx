@@ -121,6 +121,36 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                         </div>
                     </div>
 
+                    {/* Background Image upload (for full_background card style) */}
+                    {slide.card_style === 'full_background' && (
+                        <div className="shrink-0">
+                            <Label className="text-xs mb-1 block">Background Image</Label>
+                            <div className="w-32 h-24 rounded-lg overflow-hidden bg-amber-50 relative group border border-amber-200">
+                                {slide.background_image ? (
+                                    <img src={slide.background_image} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <ImageIcon className="w-8 h-8 text-amber-300" />
+                                    </div>
+                                )}
+                                <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                    {isUploadingBackground ? (
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <Upload className="w-5 h-5 text-white" />
+                                    )}
+                                    <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        className="hidden" 
+                                        onChange={handleBackgroundImageUpload}
+                                        disabled={isUploadingBackground}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Fields */}
                     <div className="flex-1 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
