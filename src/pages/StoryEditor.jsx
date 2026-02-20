@@ -31,12 +31,35 @@ export default function StoryEditor() {
         loadData();
     }, [currentStoryId]);
 
-    // Restore selected item from URL parameters (after returning from LocationPicker)
+    // Restore selected item and apply location data from URL parameters (after returning from LocationPicker)
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const chapterId = urlParams.get('chapterId');
         const slideId = urlParams.get('slideId');
+        const pickedLat = urlParams.get('pickedLat');
+        const pickedLng = urlParams.get('pickedLng');
+        const pickedZoom = urlParams.get('pickedZoom');
+        const pickedBearing = urlParams.get('pickedBearing');
+        const pickedPitch = urlParams.get('pickedPitch');
+        const pickedName = urlParams.get('pickedName');
         
+        // If location data exists, update the slide
+        if (slideId && pickedLat && pickedLng) {
+            const slide = slides.find(s => s.id === slideId);
+            if (slide) {
+                const updatedSlide = {
+                    ...slide,
+                    coordinates: [parseFloat(pickedLat), parseFloat(pickedLng)],
+                    zoom: pickedZoom ? parseFloat(pickedZoom) : slide.zoom,
+                    bearing: pickedBearing ? parseFloat(pickedBearing) : slide.bearing,
+                    pitch: pickedPitch ? parseFloat(pickedPitch) : slide.pitch,
+                    location: pickedName || slide.location
+                };
+                updateSlide(updatedSlide);
+            }
+        }
+        
+        // Set selected item
         if (slideId) {
             setSelectedItem({ type: 'slide', id: slideId });
         } else if (chapterId) {
