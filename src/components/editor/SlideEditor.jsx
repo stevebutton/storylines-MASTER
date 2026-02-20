@@ -31,7 +31,7 @@ const validateField = (field, value) => {
 };
 
 export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
-    console.log('🔍 SlideEditor RENDER - slide.id:', slide.id, 'card_style:', slide.card_style);
+    console.log('🔍 SlideEditor RENDER - slide.id:', slide.id, 'card_style (initial):', slide.card_style);
     
     const queryClient = useQueryClient();
     const [isUploading, setIsUploading] = useState(false);
@@ -124,7 +124,10 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                     </div>
 
                     {/* Background Image upload (for full_background card style) */}
-                    {console.log('🔍 Checking background upload condition - card_style:', slide.card_style, 'should show:', slide.card_style === 'full_background')}
+                    {(() => {
+                        console.log('🔍 SlideEditor: Conditional render check for background image upload. Current card_style:', slide.card_style);
+                        return null;
+                    })()}
                     {slide.card_style === 'full_background' && (
                         <div className="shrink-0">
                             <Label className="text-xs mb-1 block">Background Image</Label>
@@ -229,7 +232,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     <Select 
                                        value={slide.card_style || 'default'} 
                                        onValueChange={(value) => {
-                                           console.log('🔍 Card style changed from', slide.card_style, 'to', value);
+                                           console.log('🔍 SlideEditor: Card style changed from', slide.card_style, 'to', value);
                                            onUpdate({ ...slide, card_style: value });
                                        }}
                                     >
