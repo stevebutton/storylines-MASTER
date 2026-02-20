@@ -78,9 +78,7 @@ export default function ChapterEditor({
     const firstSlideTitle = slides[0]?.title || `Chapter ${index + 1}`;
     const hasPDF = slides.some(s => s.pdf_url);
     
-    console.log(`[ChapterEditor Chapter ${index + 1}] Slides:`, slides);
-    console.log(`[ChapterEditor Chapter ${index + 1}] Has PDF:`, hasPDF);
-    console.log(`[ChapterEditor Chapter ${index + 1}] PDF URLs:`, slides.map(s => ({ title: s.title, pdf_url: s.pdf_url })));
+
 
     return (
         <Card className="border-slate-200 overflow-hidden">
