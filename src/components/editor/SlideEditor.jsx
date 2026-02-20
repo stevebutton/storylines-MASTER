@@ -31,6 +31,8 @@ const validateField = (field, value) => {
 };
 
 export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
+    console.log('🔍 SlideEditor RENDER - slide.id:', slide.id, 'card_style:', slide.card_style);
+    
     const queryClient = useQueryClient();
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingBackground, setIsUploadingBackground] = useState(false);
@@ -122,6 +124,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                     </div>
 
                     {/* Background Image upload (for full_background card style) */}
+                    {console.log('🔍 Checking background upload condition - card_style:', slide.card_style, 'should show:', slide.card_style === 'full_background')}
                     {slide.card_style === 'full_background' && (
                         <div className="shrink-0">
                             <Label className="text-xs mb-1 block">Background Image</Label>
@@ -224,8 +227,11 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     <div>
                                     <Label className="text-xs">Card Style</Label>
                                     <Select 
-                                        value={slide.card_style || 'default'} 
-                                        onValueChange={(value) => onUpdate({ ...slide, card_style: value })}
+                                       value={slide.card_style || 'default'} 
+                                       onValueChange={(value) => {
+                                           console.log('🔍 Card style changed from', slide.card_style, 'to', value);
+                                           onUpdate({ ...slide, card_style: value });
+                                       }}
                                     >
                                         <SelectTrigger className="h-9">
                                             <SelectValue />
