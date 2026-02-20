@@ -31,6 +31,19 @@ export default function StoryEditor() {
         loadData();
     }, [currentStoryId]);
 
+    // Restore selected item from URL parameters (after returning from LocationPicker)
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const chapterId = urlParams.get('chapterId');
+        const slideId = urlParams.get('slideId');
+        
+        if (slideId) {
+            setSelectedItem({ type: 'slide', id: slideId });
+        } else if (chapterId) {
+            setSelectedItem({ type: 'chapter', id: chapterId });
+        }
+    }, [location.search]);
+
     const loadData = async () => {
         setIsLoading(true);
         try {
@@ -161,12 +174,30 @@ export default function StoryEditor() {
         setStory(updatedStory);
     };
 
-    const updateChapter = (updatedChapter) => {
+    const updateChapter = async (updatedChapter) => {
         setChapters(chapters.map(c => c.id === updatedChapter.id ? updatedChapter : c));
+        
+        // Auto-save if chapter has a real ID (not temp)
+        if (!updatedChapter.id.startsWith('temp-')) {
+            try {
+                await base44.entities.Chapter.update(updatedChapter.id, updatedChapter);
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }
     };
 
-    const updateSlide = (updatedSlide) => {
+    const updateSlide = async (updatedSlide) => {
         setSlides(slides.map(s => s.id === updatedSlide.id ? updatedSlide : s));
+        
+        // Auto-save if slide has a real ID (not temp)
+        if (!updatedSlide.id.startsWith('temp-')) {
+            try {
+                await base44.entities.Slide.update(updatedSlide.id, updatedSlide);
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }
     };
 
     const deleteChapter = async (chapterId) => {
