@@ -31,7 +31,6 @@ const validateField = (field, value) => {
 };
 
 export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
-    const queryClient = useQueryClient();
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingBackground, setIsUploadingBackground] = useState(false);
     const [isUploadingVideo, setIsUploadingVideo] = useState(false);
