@@ -87,7 +87,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
             <CardContent className="p-4">
                 <div className="flex gap-4">
                     {/* Drag handle */}
-                    <div {...dragHandleProps} className="cursor-grab pt-2">
+                    <div {...dragHandleProps} className="cursor-grab pt-2 shrink-0">
                         <GripVertical className="w-5 h-5 text-slate-400" />
                     </div>
 
