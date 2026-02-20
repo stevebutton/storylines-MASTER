@@ -31,8 +31,6 @@ const validateField = (field, value) => {
 };
 
 export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDelete, dragHandleProps }) {
-    console.log('🔍 SlideEditor RENDER - slide.id:', slide.id, 'card_style (initial):', slide.card_style);
-    
     const queryClient = useQueryClient();
     const [isUploading, setIsUploading] = useState(false);
     const [isUploadingBackground, setIsUploadingBackground] = useState(false);
@@ -124,10 +122,6 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                     </div>
 
                     {/* Background Image upload (for full_background card style) */}
-                    {(() => {
-                        console.log('🔍 SlideEditor: Conditional render check for background image upload. Current card_style:', slide.card_style);
-                        return null;
-                    })()}
                     {slide.card_style === 'full_background' && (
                         <div className="shrink-0">
                             <Label className="text-xs mb-1 block">Background Image</Label>
@@ -224,17 +218,14 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                                         <AlertCircle className="w-3 h-3" /> {errors.description}
                                     </p>
-                                    )}
-                                    </div>
-                                    <div className="space-y-2">
-                                    <div>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <div>
                                     <Label className="text-xs">Card Style</Label>
                                     <Select 
-                                       value={slide.card_style || 'default'} 
-                                       onValueChange={(value) => {
-                                           console.log('🔍 SlideEditor: Card style changed from', slide.card_style, 'to', value);
-                                           onUpdate({ ...slide, card_style: value });
-                                       }}
+                                        value={slide.card_style || 'default'} 
+                                        onValueChange={(value) => onUpdate({ ...slide, card_style: value })}
                                     >
                                         <SelectTrigger className="h-9">
                                             <SelectValue />
@@ -244,8 +235,8 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                             <SelectItem value="full_background">Full Background</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    </div>
-                                    <div>
+                                </div>
+                                <div>
                                     <Label className="text-xs">Map Position (optional)</Label>
                                     <Link to={createPageUrl(`LocationPickerPage?returnTo=StoryEditor&storyId=${storyId}&chapterId=${chapterId}&slideId=${slide.id}${slide.coordinates ? `&lat=${slide.coordinates[0]}&lng=${slide.coordinates[1]}` : ''}`)}>
                                         <Button variant="outline" size="sm" className="h-9 w-full">
@@ -270,197 +261,195 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                         placeholder="Use chapter default"
                                         className="h-9"
                                     />
-                                    </div>
-                                    </div>
-                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                    {/* Video Section */}
-                                    <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                                        <Label className="text-xs font-medium">Video (optional)</Label>
-                                        <p className="text-xs text-slate-500 mb-2">Enter a YouTube/Vimeo URL or upload a video file</p>
-                                        
-                                        {/* Video URL Input */}
-                                        <div className="mb-2">
-                                            <Label className="text-xs">Video URL</Label>
-                                            <Input 
-                                                value={slide.video_url || ''} 
-                                                onChange={(e) => onUpdate({ ...slide, video_url: e.target.value })}
-                                                placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
-                                                className="h-9 text-xs"
+                        {/* Video Section */}
+                        <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <Label className="text-xs font-medium">Video (optional)</Label>
+                            <p className="text-xs text-slate-500 mb-2">Enter a YouTube/Vimeo URL or upload a video file</p>
+                            
+                            {/* Video URL Input */}
+                            <div className="mb-2">
+                                <Label className="text-xs">Video URL</Label>
+                                <Input 
+                                    value={slide.video_url || ''} 
+                                    onChange={(e) => onUpdate({ ...slide, video_url: e.target.value })}
+                                    placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+                                    className="h-9 text-xs"
+                                />
+                            </div>
+
+                            {/* Video Upload */}
+                            <div className="mb-2">
+                                <Label className="text-xs">Or Upload Video File</Label>
+                                <input
+                                    type="file"
+                                    accept="video/*"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        setIsUploadingVideo(true);
+                                        try {
+                                            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                            onUpdate({ ...slide, video_url: file_url });
+                                        } catch (error) {
+                                            console.error('Failed to upload video:', error);
+                                        } finally {
+                                            setIsUploadingVideo(false);
+                                            e.target.value = '';
+                                        }
+                                    }}
+                                    className="hidden"
+                                    id={`slide-video-upload-${slide.id}`}
+                                    disabled={isUploadingVideo}
+                                />
+                                <label htmlFor={`slide-video-upload-${slide.id}`}>
+                                    <Button 
+                                        type="button" 
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={isUploadingVideo}
+                                        onClick={() => document.getElementById(`slide-video-upload-${slide.id}`).click()}
+                                        className="w-full h-8 mt-1"
+                                    >
+                                        {isUploadingVideo ? (
+                                            <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading Video...</>
+                                        ) : (
+                                            <><Video className="w-3 h-3 mr-2" /> Upload Video File</>
+                                        )}
+                                    </Button>
+                                </label>
+                            </div>
+
+                            {/* Video Thumbnail */}
+                            {slide.video_url && (
+                                <div>
+                                    <Label className="text-xs font-medium">Video Thumbnail</Label>
+                                    <p className="text-xs text-slate-500 mb-2">Upload a preview image for the video</p>
+                                    {slide.video_thumbnail_url ? (
+                                        <div className="relative">
+                                            <img 
+                                                src={slide.video_thumbnail_url} 
+                                                alt="Video thumbnail" 
+                                                className="w-full h-24 object-cover rounded-lg"
                                             />
+                                            <button
+                                                onClick={() => onUpdate({ ...slide, video_thumbnail_url: '' })}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
                                         </div>
-
-                                        {/* Video Upload */}
-                                        <div className="mb-2">
-                                            <Label className="text-xs">Or Upload Video File</Label>
+                                    ) : (
+                                        <div>
                                             <input
                                                 type="file"
-                                                accept="video/*"
+                                                accept="image/*"
                                                 onChange={async (e) => {
                                                     const file = e.target.files?.[0];
                                                     if (!file) return;
-                                                    setIsUploadingVideo(true);
+                                                    setIsUploadingVideoThumbnail(true);
                                                     try {
                                                         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                                                        onUpdate({ ...slide, video_url: file_url });
+                                                        onUpdate({ ...slide, video_thumbnail_url: file_url });
                                                     } catch (error) {
-                                                        console.error('Failed to upload video:', error);
+                                                        console.error('Failed to upload thumbnail:', error);
                                                     } finally {
-                                                        setIsUploadingVideo(false);
+                                                        setIsUploadingVideoThumbnail(false);
                                                         e.target.value = '';
                                                     }
                                                 }}
                                                 className="hidden"
-                                                id={`slide-video-upload-${slide.id}`}
-                                                disabled={isUploadingVideo}
+                                                id={`slide-video-thumb-${slide.id}`}
+                                                disabled={isUploadingVideoThumbnail}
                                             />
-                                            <label htmlFor={`slide-video-upload-${slide.id}`}>
+                                            <label htmlFor={`slide-video-thumb-${slide.id}`}>
                                                 <Button 
                                                     type="button" 
                                                     variant="outline"
                                                     size="sm"
-                                                    disabled={isUploadingVideo}
-                                                    onClick={() => document.getElementById(`slide-video-upload-${slide.id}`).click()}
-                                                    className="w-full h-8 mt-1"
+                                                    disabled={isUploadingVideoThumbnail}
+                                                    onClick={() => document.getElementById(`slide-video-thumb-${slide.id}`).click()}
+                                                    className="w-full h-8"
                                                 >
-                                                    {isUploadingVideo ? (
-                                                        <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading Video...</>
+                                                    {isUploadingVideoThumbnail ? (
+                                                        <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...</>
                                                     ) : (
-                                                        <><Video className="w-3 h-3 mr-2" /> Upload Video File</>
+                                                        <><Upload className="w-3 h-3 mr-2" /> Upload Thumbnail</>
                                                     )}
                                                 </Button>
                                             </label>
                                         </div>
+                                    )}
+                                </div>
+                            )}
 
-                                        {/* Video Thumbnail */}
-                                        {slide.video_url && (
-                                            <div>
-                                                <Label className="text-xs font-medium">Video Thumbnail</Label>
-                                                <p className="text-xs text-slate-500 mb-2">Upload a preview image for the video</p>
-                                                {slide.video_thumbnail_url ? (
-                                                    <div className="relative">
-                                                        <img 
-                                                            src={slide.video_thumbnail_url} 
-                                                            alt="Video thumbnail" 
-                                                            className="w-full h-24 object-cover rounded-lg"
-                                                        />
-                                                        <button
-                                                            onClick={() => onUpdate({ ...slide, video_thumbnail_url: '' })}
-                                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                                        >
-                                                            <X className="w-3 h-3" />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <div>
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={async (e) => {
-                                                                const file = e.target.files?.[0];
-                                                                if (!file) return;
-                                                                setIsUploadingVideoThumbnail(true);
-                                                                try {
-                                                                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                                                                    onUpdate({ ...slide, video_thumbnail_url: file_url });
-                                                                } catch (error) {
-                                                                    console.error('Failed to upload thumbnail:', error);
-                                                                } finally {
-                                                                    setIsUploadingVideoThumbnail(false);
-                                                                    e.target.value = '';
-                                                                }
-                                                            }}
-                                                            className="hidden"
-                                                            id={`slide-video-thumb-${slide.id}`}
-                                                            disabled={isUploadingVideoThumbnail}
-                                                        />
-                                                        <label htmlFor={`slide-video-thumb-${slide.id}`}>
-                                                            <Button 
-                                                                type="button" 
-                                                                variant="outline"
-                                                                size="sm"
-                                                                disabled={isUploadingVideoThumbnail}
-                                                                onClick={() => document.getElementById(`slide-video-thumb-${slide.id}`).click()}
-                                                                className="w-full h-8"
-                                                            >
-                                                                {isUploadingVideoThumbnail ? (
-                                                                    <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...</>
-                                                                ) : (
-                                                                    <><Upload className="w-3 h-3 mr-2" /> Upload Thumbnail</>
-                                                                )}
-                                                            </Button>
-                                                        </label>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
+                            {/* Clear Video */}
+                            {slide.video_url && (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onUpdate({ ...slide, video_url: '', video_thumbnail_url: '' })}
+                                    className="w-full h-8 mt-2 text-red-500 hover:text-red-600"
+                                >
+                                    <X className="w-3 h-3 mr-2" /> Clear Video
+                                </Button>
+                            )}
+                        </div>
 
-                                        {/* Clear Video */}
-                                        {slide.video_url && (
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => onUpdate({ ...slide, video_url: '', video_thumbnail_url: '' })}
-                                                className="w-full h-8 mt-2 text-red-500 hover:text-red-600"
-                                            >
-                                                <X className="w-3 h-3 mr-2" /> Clear Video
-                                            </Button>
+                        {/* PDF Attachment */}
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <Label className="text-xs font-medium">PDF Attachment (optional)</Label>
+                            <p className="text-xs text-slate-500 mb-2">Select from document library or upload new</p>
+                            {slide.pdf_url ? (
+                                <div className="flex items-center gap-2 p-2 bg-white rounded border border-blue-300">
+                                    <FileText className="w-4 h-4 text-blue-600" />
+                                    <div className="flex-1">
+                                        <p className="text-xs font-medium text-slate-700">PDF attached</p>
+                                        {pdfFileName && (
+                                            <p className="text-xs text-slate-500">{pdfFileName}</p>
                                         )}
                                     </div>
-
-                                    {/* PDF Attachment */}
-                                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                        <Label className="text-xs font-medium">PDF Attachment (optional)</Label>
-                                        <p className="text-xs text-slate-500 mb-2">Select from document library or upload new</p>
-                                        {slide.pdf_url ? (
-                                            <div className="flex items-center gap-2 p-2 bg-white rounded border border-blue-300">
-                                                <FileText className="w-4 h-4 text-blue-600" />
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-medium text-slate-700">PDF attached</p>
-                                                    {pdfFileName && (
-                                                        <p className="text-xs text-slate-500">{pdfFileName}</p>
-                                                    )}
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        onUpdate({ ...slide, pdf_url: null });
-                                                        setPdfFileName('');
-                                                    }}
-                                                    className="text-red-500 hover:text-red-600"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setShowDocumentPicker(true)}
-                                                className="w-full h-8"
-                                            >
-                                                <FileText className="w-3 h-3 mr-2" /> Browse Documents
-                                            </Button>
-                                        )}
-                                    </div>
-
-                                    {/* Document Picker Dialog */}
-                                    <DocumentPicker
-                                        isOpen={showDocumentPicker}
-                                        onClose={() => setShowDocumentPicker(false)}
-                                        storyId={storyId}
-                                        onSelect={(doc) => {
-                                            onUpdate({ ...slide, pdf_url: doc.file_url });
-                                            setPdfFileName(doc.title + '.pdf');
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onUpdate({ ...slide, pdf_url: null });
+                                            setPdfFileName('');
                                         }}
-                                    />
+                                        className="text-red-500 hover:text-red-600"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowDocumentPicker(true)}
+                                    className="w-full h-8"
+                                >
+                                    <FileText className="w-3 h-3 mr-2" /> Browse Documents
+                                </Button>
+                            )}
+                        </div>
 
+                        {/* Document Picker Dialog */}
+                        <DocumentPicker
+                            isOpen={showDocumentPicker}
+                            onClose={() => setShowDocumentPicker(false)}
+                            storyId={storyId}
+                            onSelect={(doc) => {
+                                onUpdate({ ...slide, pdf_url: doc.file_url });
+                                setPdfFileName(doc.title + '.pdf');
+                            }}
+                        />
+                    </div>
 
-                                    </div>
-
-                                    {/* Delete button */}
+                    {/* Delete button */}
                     <Button 
                         variant="ghost" 
                         size="icon" 
