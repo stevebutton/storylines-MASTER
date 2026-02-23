@@ -209,44 +209,23 @@ export default function StoryMapView() {
                                 // Clear route when moving to a new chapter (but keep landing markers)
                                 setClearRoute(true);
                                 setRouteCoordinates([]);
-                                setTimeout(() => {
-                                    setClearRoute(false);
-                                }, 100);
                             }
                             
                             previousChapterRef.current = index;
                             setActiveChapter(index);
                             const chapter = chapters[index];
                             
-                            // ============================================
-                            // ROUTE INITIALIZATION: Build initial route for new chapter
-                            // Start with first slide's coordinates
-                            // ============================================
-                            console.log('📍 [ROUTE INIT] Chapter change detected:', { 
-                                chapterIndex: index, 
-                                totalSlides: chapter.slides?.length || 0 
-                            });
-                            
+                            // Build initial route for new chapter with first slide coordinates
                             const initialRoute = [];
                             const firstSlide = chapter.slides?.[0];
-                            
-                            // Add first slide coordinates (normalized)
+
                             if (firstSlide?.coordinates) {
                                 const normalized = normalizeCoordinatePair(firstSlide.coordinates);
                                 if (normalized) {
                                     initialRoute.push(normalized);
-                                    console.log('📍 [ROUTE INIT] Added first slide:', { 
-                                        raw: firstSlide.coordinates, 
-                                        normalized,
-                                        slideTitle: firstSlide.title 
-                                    });
                                 }
                             }
-                            
-                            console.log('📍 [ROUTE INIT] Setting initial route:', { 
-                                routeLength: initialRoute.length, 
-                                coordinates: initialRoute 
-                            });
+
                             setRouteCoordinates(initialRoute);
                             
                             // Use first slide coordinates if available
@@ -371,6 +350,7 @@ export default function StoryMapView() {
                 flyDuration={mapConfig.flyDuration}
                 routeCoordinates={routeCoordinates}
                 clearRoute={clearRoute}
+                onRouteCleared={() => setClearRoute(false)}
                 offset={mapConfig.offset}
                 landingMarkers={landingMarkers}
                 clearLandingMarkers={clearLandingMarkers}
@@ -436,52 +416,23 @@ export default function StoryMapView() {
                             delay={index === 0 ? 1000 : 0}
                             onFullScreenChange={setIsFullScreenOpen}
                             onSlideChange={(slide) => {
-                                // ============================================
-                                // SLIDE CHANGE HANDLER: Add coordinates to route and markers
-                                // Uses normalized coordinates to prevent duplicates
-                                // ============================================
-                                if (!isValidCoordinatePair(slide.coordinates)) {
-                                    console.warn('⚠️ [SLIDE CHANGE] Invalid coordinates:', slide.coordinates);
-                                    return;
-                                }
-                                
+                                if (!isValidCoordinatePair(slide.coordinates)) return;
+
                                 const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
-                                console.log('📍 [SLIDE CHANGE] Processing slide:', { 
-                                    slideTitle: slide.title,
-                                    rawCoords: slide.coordinates,
-                                    normalizedCoords 
-                                });
-                                
+
                                 // Add to route (with duplicate check)
                                 setRouteCoordinates(prev => {
                                     const lastCoord = prev[prev.length - 1];
-                                    
-                                    // Check if this coordinate is different from last
                                     if (!lastCoord || !areCoordinatesEqual(lastCoord, normalizedCoords)) {
-                                        console.log('📍 [ROUTE UPDATE] Adding to route:', { 
-                                            previousLength: prev.length, 
-                                            newCoord: normalizedCoords 
-                                        });
                                         return [...prev, normalizedCoords];
                                     }
-                                    
-                                    console.log('📍 [ROUTE UPDATE] Skipping duplicate coordinate');
                                     return prev;
                                 });
-                                
+
                                 // Add landing marker (with duplicate check)
                                 setLandingMarkers(prev => {
                                     const exists = prev.some(coord => areCoordinatesEqual(coord, normalizedCoords));
-                                    
-                                    if (!exists) {
-                                        console.log('🎯 [MARKER UPDATE] Adding landing marker:', { 
-                                            totalMarkers: prev.length + 1, 
-                                            newMarker: normalizedCoords 
-                                        });
-                                        return [...prev, normalizedCoords];
-                                    }
-                                    
-                                    console.log('🎯 [MARKER UPDATE] Marker already exists at this location');
+                                    if (!exists) return [...prev, normalizedCoords];
                                     return prev;
                                 });
                                 
