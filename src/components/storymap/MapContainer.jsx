@@ -319,7 +319,7 @@ export default function MapBackground({
                         font-family: system-ui, sans-serif;
                     `;
                     tooltipEl.innerHTML = `
-                        ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover;" />` : ''}
+                        ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block;" />` : ''}
                         <div style="padding: 8px 10px;">
                             <div style="font-weight: 600; font-size: 13px; color: #1e293b; line-height: 1.3;">${markerData.title}</div>
                         </div>

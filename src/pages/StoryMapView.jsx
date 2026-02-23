@@ -50,6 +50,7 @@ export default function StoryMapView() {
     const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
     const [storyMarkers, setStoryMarkers] = useState([]);
     const [activeMarkerIdx, setActiveMarkerIdx] = useState(-1);
+    const [targetSlide, setTargetSlide] = useState(null);
 
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -363,7 +364,10 @@ export default function StoryMapView() {
                 activeMarkerIndex={activeMarkerIdx}
                 onMarkerClick={(markerIndex) => {
                     const marker = storyMarkers[markerIndex];
-                    if (marker) navigateToChapter(marker.chapterIndex);
+                    if (marker) {
+                        navigateToChapter(marker.chapterIndex);
+                        setTargetSlide({ chapter: marker.chapterIndex, slide: marker.slideIndex });
+                    }
                 }}
             />
             
@@ -425,6 +429,7 @@ export default function StoryMapView() {
                             index={index}
                             delay={index === 0 ? 1000 : 0}
                             onFullScreenChange={setIsFullScreenOpen}
+                            targetSlideIndex={targetSlide?.chapter === index ? targetSlide.slide : undefined}
                             onSlideChange={(slide) => {
                                 if (!isValidCoordinatePair(slide.coordinates)) return;
 
@@ -461,6 +466,13 @@ export default function StoryMapView() {
                                 });
 
                                 // Build interactive marker for this slide
+                                const slideIdx = chapter.slides?.findIndex(s =>
+                                    s.coordinates && areCoordinatesEqual(
+                                        normalizeCoordinatePair(s.coordinates),
+                                        normalizedCoords
+                                    )
+                                ) ?? -1;
+
                                 setStoryMarkers(prev => {
                                     const exists = prev.findIndex(m => areCoordinatesEqual(m.coordinates, normalizedCoords));
                                     if (exists === -1) {
@@ -470,7 +482,8 @@ export default function StoryMapView() {
                                             location: slide.location || '',
                                             image: slide.image || '',
                                             description: slide.description || '',
-                                            chapterIndex: index
+                                            chapterIndex: index,
+                                            slideIndex: slideIdx
                                         }];
                                     }
                                     return prev;
