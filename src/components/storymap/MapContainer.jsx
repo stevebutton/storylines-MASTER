@@ -210,38 +210,49 @@ export default function MapBackground({
             geometry: { type: 'LineString', coordinates: staticCoords }
         });
 
-        // Animate only the new segment
-        const animationDuration = (flyDuration || 12) * 1000 - 1000;
+        // Delay line animation so camera starts moving first, then line chases it
+        const startDelay = 500;
+        // Line duration matches flyTo minus the delay, so they finish together
+        const flyMs = (flyDuration || 12) * 1000;
+        const animationDuration = flyMs - startDelay;
         const newSegmentCoords = allLngLat.slice(Math.max(prevLen - 1, 0));
-        const startTime = performance.now();
 
-        const animateLine = (currentTime) => {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / animationDuration, 1);
+        // Same easing curve as the flyTo for synchronized feel
+        const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-            const newCoordsToShow = Math.max(2, Math.floor(newSegmentCoords.length * progress));
-            const visibleCoords = [
-                ...allLngLat.slice(0, Math.max(prevLen, 1)),
-                ...newSegmentCoords.slice(1, newCoordsToShow)
-            ];
+        const delayTimer = setTimeout(() => {
+            const startTime = performance.now();
 
-            source.setData({
-                type: 'Feature',
-                properties: {},
-                geometry: { type: 'LineString', coordinates: visibleCoords }
-            });
+            const animateLine = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const linearProgress = Math.min(elapsed / animationDuration, 1);
+                const easedProgress = easeInOutCubic(linearProgress);
 
-            if (progress < 1) {
-                lineAnimationRef.current = requestAnimationFrame(animateLine);
-            } else {
-                prevRouteLength.current = totalLen;
-                lineAnimationRef.current = null;
-            }
-        };
+                const newCoordsToShow = Math.max(2, Math.floor(newSegmentCoords.length * easedProgress));
+                const visibleCoords = [
+                    ...allLngLat.slice(0, Math.max(prevLen, 1)),
+                    ...newSegmentCoords.slice(1, newCoordsToShow)
+                ];
 
-        lineAnimationRef.current = requestAnimationFrame(animateLine);
+                source.setData({
+                    type: 'Feature',
+                    properties: {},
+                    geometry: { type: 'LineString', coordinates: visibleCoords }
+                });
+
+                if (linearProgress < 1) {
+                    lineAnimationRef.current = requestAnimationFrame(animateLine);
+                } else {
+                    prevRouteLength.current = totalLen;
+                    lineAnimationRef.current = null;
+                }
+            };
+
+            lineAnimationRef.current = requestAnimationFrame(animateLine);
+        }, startDelay);
 
         return () => {
+            clearTimeout(delayTimer);
             if (lineAnimationRef.current) {
                 cancelAnimationFrame(lineAnimationRef.current);
                 lineAnimationRef.current = null;
