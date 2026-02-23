@@ -284,8 +284,9 @@ export default function MapBackground({
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: ${isActive ? 'default' : 'pointer'};
+                pointer-events: auto;
                 transition: background 0.3s ease, width 0.3s ease, height 0.3s ease;
-                z-index: ${isActive ? '10' : '1'};
+                z-index: ${isActive ? '10' : '8'};
             `;
 
             const marker = new mapboxgl.Marker(el)
