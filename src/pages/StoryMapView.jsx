@@ -464,7 +464,7 @@ export default function StoryMapView() {
                                 setStoryMarkers(prev => {
                                     const exists = prev.findIndex(m => areCoordinatesEqual(m.coordinates, normalizedCoords));
                                     if (exists === -1) {
-                                        const newMarkers = [...prev, {
+                                        return [...prev, {
                                             coordinates: normalizedCoords,
                                             title: slide.title || '',
                                             location: slide.location || '',
@@ -472,13 +472,13 @@ export default function StoryMapView() {
                                             description: slide.description || '',
                                             chapterIndex: index
                                         }];
-                                        setActiveMarkerIdx(newMarkers.length - 1);
-                                        return newMarkers;
-                                    } else {
-                                        setActiveMarkerIdx(exists);
-                                        return prev;
                                     }
+                                    return prev;
                                 });
+
+                                // Set active index separately (avoid nested setState)
+                                const existingIdx = storyMarkers.findIndex(m => areCoordinatesEqual(m.coordinates, normalizedCoords));
+                                setActiveMarkerIdx(existingIdx === -1 ? storyMarkers.length : existingIdx);
                             }}
                         />
                     </div>
