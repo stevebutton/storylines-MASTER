@@ -43,19 +43,26 @@ const VideoEmbed = ({ url }) => {
     );
 };
 
-export default function ChapterCarousel({ slides, onSlideChange, onImageClick }) {
+export default function ChapterCarousel({ slides, onSlideChange, onImageClick, scrollToRef }) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
     const [selectedIndex, setSelectedIndex] = React.useState(0);
 
+    // Expose scrollTo for external navigation
+    React.useEffect(() => {
+        if (scrollToRef && emblaApi) {
+            scrollToRef.current = (idx) => emblaApi.scrollTo(idx);
+        }
+    }, [emblaApi, scrollToRef]);
+
     React.useEffect(() => {
         if (!emblaApi) return;
-        
+
         const onSelect = () => {
             const index = emblaApi.selectedScrollSnap();
             setSelectedIndex(index);
             onSlideChange?.(index);
         };
-        
+
         emblaApi.on('select', onSelect);
         return () => emblaApi.off('select', onSelect);
     }, [emblaApi, onSlideChange]);

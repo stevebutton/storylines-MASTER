@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ChapterCarousel from './ChapterCarousel';
@@ -7,16 +7,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import PdfViewer from '@/components/pdf/PdfViewer';
 import FullScreenImageViewer from './FullScreenImageViewer';
 
-export default function StoryChapter({ 
-    chapter, 
-    isActive, 
+export default function StoryChapter({
+    chapter,
+    isActive,
     alignment = 'left',
     index,
     onSlideChange,
     delay = 0,
-    onFullScreenChange
+    onFullScreenChange,
+    targetSlideIndex
 }) {
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+    const carouselScrollToRef = useRef(null);
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
     const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
@@ -31,6 +33,13 @@ export default function StoryChapter({
     const currentSlide = chapter.slides?.[activeSlideIndex] || chapter.slides?.[0];
     
     console.log("Current Slide for debugging:", currentSlide);
+
+    // Navigate carousel to a specific slide when triggered by marker click
+    useEffect(() => {
+        if (targetSlideIndex !== undefined && targetSlideIndex !== null && carouselScrollToRef.current) {
+            carouselScrollToRef.current(targetSlideIndex);
+        }
+    }, [targetSlideIndex]);
 
     // Notify parent of initial slide when chapter or isActive changes
     useEffect(() => {
@@ -96,9 +105,10 @@ export default function StoryChapter({
                             {/* Carousel for all media types */}
                             {chapter.slides && chapter.slides.length > 0 && (
                                 <div className="mb-6 pointer-events-auto">
-                                    <ChapterCarousel 
-                                        slides={chapter.slides} 
+                                    <ChapterCarousel
+                                        slides={chapter.slides}
                                         onSlideChange={handleSlideChange}
+                                        scrollToRef={carouselScrollToRef}
                                         onImageClick={(index) => {
                                             console.log('🔍 StoryChapter: Image clicked, opening fullscreen viewer');
                                             setFullScreenImageIndex(index);
@@ -221,9 +231,10 @@ export default function StoryChapter({
                     {/* Carousel for all media types */}
                     {chapter.slides && chapter.slides.length > 0 && (
                         <div className="pointer-events-auto">
-                            <ChapterCarousel 
-                                slides={chapter.slides} 
+                            <ChapterCarousel
+                                slides={chapter.slides}
                                 onSlideChange={handleSlideChange}
+                                scrollToRef={carouselScrollToRef}
                                 onImageClick={(index) => {
                                     console.log('🔍 StoryChapter: Image clicked (full_background), opening fullscreen viewer');
                                     setFullScreenImageIndex(index);
