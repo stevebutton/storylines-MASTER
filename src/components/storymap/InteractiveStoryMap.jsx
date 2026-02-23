@@ -13,7 +13,7 @@ const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
-// v3 removed dead marker-lines code
+// v3 claude removed dead marker-lines code
 export default function InteractiveStoryMap({ 
   stories = [], 
   initialCenter = [26.33845, 21.32637],
