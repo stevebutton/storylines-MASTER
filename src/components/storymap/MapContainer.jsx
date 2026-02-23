@@ -35,7 +35,7 @@ export default function MapBackground({
     const previousLayerId = useRef(null);
     const prevRouteLength = useRef(0);
 
-    // Initialize map — v2 route animation fix
+    // Initialize map — v3 route animation fix
     useEffect(() => {
         if (map.current || !mapContainer.current) return;
         

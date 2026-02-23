@@ -16,7 +16,7 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23J
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
-// v2 CSS stem lines replace GeoJSON
+// v3 CSS stem lines replace GeoJSON
 export default function HomeTest() {
   const navigate = useNavigate();
   const [mainStory, setMainStory] = useState(null);

@@ -15,7 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 
-// v2 clearRoute race condition fix
+// v3 clearRoute race condition fix
 export default function StoryMapView() {
     const urlParams = new URLSearchParams(window.location.search);
     const storyId = urlParams.get('id');
