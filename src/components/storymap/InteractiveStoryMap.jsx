@@ -13,7 +13,6 @@ const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
-// v3 claude removed dead marker-lines code
 export default function InteractiveStoryMap({ 
   stories = [], 
   initialCenter = [26.33845, 21.32637],
@@ -157,6 +156,28 @@ export default function InteractiveStoryMap({
           });
         }
       }
+
+      map.current.addSource('marker-lines', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+
+      map.current.addLayer({
+        id: 'marker-lines-layer',
+        type: 'line',
+        source: 'marker-lines',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#00ff00',
+          'line-width': 8
+        }
+      });
 
       // Add stories source with clustering
       map.current.addSource('stories', {

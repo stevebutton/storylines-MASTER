@@ -16,7 +16,6 @@ const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23J
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
-// v3 CSS stem lines replace GeoJSON
 export default function HomeTest() {
   const navigate = useNavigate();
   const [mainStory, setMainStory] = useState(null);
@@ -93,6 +92,27 @@ export default function HomeTest() {
       addMarkers();
     }
   }, [selectedCategory]);
+
+  useEffect(() => {
+    if (!map.current || !mapInitialized) return;
+
+    const handleMapMove = () => {
+      const filteredStories = selectedCategory === 'all' 
+        ? allStories 
+        : allStories.filter(s => s.category === selectedCategory);
+      updateConnectionLines(filteredStories);
+    };
+
+    map.current.on('move', handleMapMove);
+    map.current.on('zoom', handleMapMove);
+
+    return () => {
+      if (map.current) {
+        map.current.off('move', handleMapMove);
+        map.current.off('zoom', handleMapMove);
+      }
+    };
+  }, [selectedCategory, allStories, mapInitialized]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -186,6 +206,29 @@ export default function HomeTest() {
         });
       }
 
+      // Add source and layer for connection lines
+      map.current.addSource('marker-lines', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+
+      map.current.addLayer({
+        id: 'marker-lines-layer',
+        type: 'line',
+        source: 'marker-lines',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#00ff00',
+          'line-width': 8
+        }
+      });
+
       addMarkers();
       setMapInitialized(true);
     });
@@ -216,18 +259,59 @@ export default function HomeTest() {
       filteredStories.forEach((story) => {
         createMarker(story, initialZoom, initialCenter);
       });
+
+      // Update line features
+      updateConnectionLines(filteredStories);
     }, 500);
+  };
+
+  const updateConnectionLines = (stories) => {
+    if (!map.current) return;
+
+    const features = stories.map(story => {
+      if (!story.coordinates) return null;
+      
+      // The actual geo-coordinate (center of marker)
+      const geoLngLat = [story.coordinates[1], story.coordinates[0]];
+      const geoScreenPoint = map.current.project(geoLngLat);
+      
+      // Thumbnail is 135px tall, centered on the geo-coordinate
+      // Bottom-center of thumbnail is 67.5px below the center
+      const thumbnailBottomY = geoScreenPoint.y + 67.5;
+      const lineStartLngLat = map.current.unproject([geoScreenPoint.x, thumbnailBottomY]);
+      
+      // Line extends 50px down from thumbnail bottom to the geo-coordinate
+      const lineEndY = thumbnailBottomY + 50;
+      const lineEndLngLat = map.current.unproject([geoScreenPoint.x, lineEndY]);
+      
+      return {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [lineStartLngLat.lng, lineStartLngLat.lat],
+            [lineEndLngLat.lng, lineEndLngLat.lat]
+          ]
+        }
+      };
+    }).filter(Boolean);
+
+    const source = map.current.getSource('marker-lines');
+    if (source) {
+      source.setData({
+        type: 'FeatureCollection',
+        features
+      });
+    }
   };
 
   const createMarker = (story, initialZoom, initialCenter) => {
       if (!story.coordinates) return;
 
       const el = document.createElement('div');
-      el.className = 'marker-stem';
       el.style.cssText = `
         width: 240px;
         height: 135px;
-        position: relative;
       `;
 
       const inner = document.createElement('div');
@@ -518,18 +602,6 @@ export default function HomeTest() {
       />
 
       <style>{`
-        .marker-stem::after {
-          content: '';
-          position: absolute;
-          bottom: -50px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 8px;
-          height: 50px;
-          background: #00ff00;
-          border-radius: 4px;
-          pointer-events: none;
-        }
         .mapboxgl-popup-content {
           padding: 16px !important;
           border-radius: 12px !important;

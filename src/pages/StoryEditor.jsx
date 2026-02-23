@@ -31,43 +31,6 @@ export default function StoryEditor() {
         loadData();
     }, [currentStoryId]);
 
-    // Restore selected item and apply location data from URL parameters (after returning from LocationPicker)
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const chapterId = urlParams.get('chapterId');
-        const slideId = urlParams.get('slideId');
-        const pickedLat = urlParams.get('pickedLat');
-        const pickedLng = urlParams.get('pickedLng');
-        const pickedZoom = urlParams.get('pickedZoom');
-        const pickedBearing = urlParams.get('pickedBearing');
-        const pickedPitch = urlParams.get('pickedPitch');
-        const pickedName = urlParams.get('pickedName');
-        
-        // If location data exists, update the slide
-        if (slideId && pickedLat && pickedLng) {
-            console.log('DEBUG: StoryEditor - Slides State on URL param check:', slides);
-            const slide = slides.find(s => s.id === slideId);
-            if (slide) {
-                const updatedSlide = {
-                    ...slide,
-                    coordinates: [parseFloat(pickedLat), parseFloat(pickedLng)],
-                    zoom: pickedZoom ? parseFloat(pickedZoom) : slide.zoom,
-                    bearing: pickedBearing ? parseFloat(pickedBearing) : slide.bearing,
-                    pitch: pickedPitch ? parseFloat(pickedPitch) : slide.pitch,
-                    location: pickedName || slide.location
-                };
-                updateSlide(updatedSlide);
-            }
-        }
-        
-        // Set selected item
-        if (slideId) {
-            setSelectedItem({ type: 'slide', id: slideId });
-        } else if (chapterId) {
-            setSelectedItem({ type: 'chapter', id: chapterId });
-        }
-    }, [location.search]);
-
     const loadData = async () => {
         setIsLoading(true);
         try {
@@ -198,31 +161,12 @@ export default function StoryEditor() {
         setStory(updatedStory);
     };
 
-    const updateChapter = async (updatedChapter) => {
+    const updateChapter = (updatedChapter) => {
         setChapters(chapters.map(c => c.id === updatedChapter.id ? updatedChapter : c));
-        
-        // Auto-save if chapter has a real ID (not temp)
-        if (!updatedChapter.id.startsWith('temp-')) {
-            try {
-                await base44.entities.Chapter.update(updatedChapter.id, updatedChapter);
-            } catch (error) {
-                console.error('Auto-save failed:', error);
-            }
-        }
     };
 
-    const updateSlide = async (updatedSlide) => {
-        console.log('DEBUG: StoryEditor - updateSlide called with:', updatedSlide);
+    const updateSlide = (updatedSlide) => {
         setSlides(slides.map(s => s.id === updatedSlide.id ? updatedSlide : s));
-        
-        // Auto-save if slide has a real ID (not temp)
-        if (!updatedSlide.id.startsWith('temp-')) {
-            try {
-                await base44.entities.Slide.update(updatedSlide.id, updatedSlide);
-            } catch (error) {
-                console.error('Auto-save failed:', error);
-            }
-        }
     };
 
     const deleteChapter = async (chapterId) => {
