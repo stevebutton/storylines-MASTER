@@ -266,9 +266,10 @@ export default function MapBackground({
     useEffect(() => {
         if (!map.current || !mapContainer.current) return;
 
-        // Remove existing markers
+        // Remove existing markers and any orphaned tooltips
         markersRef.current.forEach(marker => marker.remove());
         markersRef.current = [];
+        document.querySelectorAll('[data-marker-tooltip]').forEach(el => el.remove());
 
         // Add new markers
         markers.forEach((markerData, index) => {
@@ -291,36 +292,53 @@ export default function MapBackground({
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
                 .addTo(map.current);
 
-            // Previous markers: popup on hover with thumbnail + title, click to navigate
+            // Previous markers: tooltip on hover with thumbnail + title, click to navigate
             if (!isActive) {
-                const popupContent = `
-                    <div style="min-width: 160px; font-family: system-ui, sans-serif; cursor: pointer;" class="mapbox-marker-popup" data-marker-index="${index}">
-                        ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 6px;" />` : ''}
-                        <h3 style="font-weight: 600; font-size: 13px; color: #1e293b; margin: 0; line-height: 1.3;">${markerData.title}</h3>
-                    </div>
-                `;
-
-                const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
-                    .setHTML(popupContent);
+                let tooltipEl = null;
 
                 el.addEventListener('mouseenter', () => {
-                    popup.setLngLat([markerData.coordinates[1], markerData.coordinates[0]]).addTo(map.current);
-                    // Attach click handler to popup content
-                    const popupEl = popup.getElement();
-                    if (popupEl) {
-                        popupEl.style.cursor = 'pointer';
-                        popupEl.addEventListener('click', () => {
-                            if (onMarkerClickRef.current) onMarkerClickRef.current(index);
-                        });
-                    }
+                    if (tooltipEl) return;
+                    const rect = el.getBoundingClientRect();
+                    tooltipEl = document.createElement('div');
+                    tooltipEl.setAttribute('data-marker-tooltip', '');
+                    tooltipEl.style.cssText = `
+                        position: fixed;
+                        z-index: 9999;
+                        left: ${rect.left + rect.width / 2}px;
+                        top: ${rect.top - 8}px;
+                        transform: translateX(-50%) translateY(-100%);
+                        min-width: 160px;
+                        max-width: 220px;
+                        background: white;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+                        overflow: hidden;
+                        cursor: pointer;
+                        pointer-events: auto;
+                        font-family: system-ui, sans-serif;
+                    `;
+                    tooltipEl.innerHTML = `
+                        ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover;" />` : ''}
+                        <div style="padding: 8px 10px;">
+                            <div style="font-weight: 600; font-size: 13px; color: #1e293b; line-height: 1.3;">${markerData.title}</div>
+                        </div>
+                    `;
+                    tooltipEl.addEventListener('click', () => {
+                        if (onMarkerClickRef.current) onMarkerClickRef.current(index);
+                    });
+                    tooltipEl.addEventListener('mouseleave', () => {
+                        if (tooltipEl) { tooltipEl.remove(); tooltipEl = null; }
+                    });
+                    document.body.appendChild(tooltipEl);
                 });
-                el.addEventListener('mouseleave', (e) => {
-                    // Delay removal so user can hover into popup
+
+                el.addEventListener('mouseleave', () => {
                     setTimeout(() => {
-                        const popupEl = popup.getElement();
-                        if (popupEl && popupEl.matches(':hover')) return;
-                        popup.remove();
-                    }, 100);
+                        if (tooltipEl && !tooltipEl.matches(':hover')) {
+                            tooltipEl.remove();
+                            tooltipEl = null;
+                        }
+                    }, 150);
                 });
 
                 el.addEventListener('click', (e) => {
