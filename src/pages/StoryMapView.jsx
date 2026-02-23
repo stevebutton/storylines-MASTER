@@ -48,7 +48,9 @@ export default function StoryMapView() {
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     const [hasExplored, setHasExplored] = useState(false);
     const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
-    
+    const [storyMarkers, setStoryMarkers] = useState([]);
+    const [activeMarkerIdx, setActiveMarkerIdx] = useState(-1);
+
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
 
@@ -213,6 +215,8 @@ export default function StoryMapView() {
                             
                             previousChapterRef.current = index;
                             setActiveChapter(index);
+                            setStoryMarkers([]);
+                            setActiveMarkerIdx(-1);
                             const chapter = chapters[index];
                             
                             // Build initial route for new chapter with first slide coordinates
@@ -355,6 +359,12 @@ export default function StoryMapView() {
                 landingMarkers={landingMarkers}
                 clearLandingMarkers={clearLandingMarkers}
                 activeLayerId={activeLayerId}
+                markers={storyMarkers}
+                activeMarkerIndex={activeMarkerIdx}
+                onMarkerClick={(markerIndex) => {
+                    const marker = storyMarkers[markerIndex];
+                    if (marker) navigateToChapter(marker.chapterIndex);
+                }}
             />
             
             {/* Story Content */}
@@ -448,6 +458,26 @@ export default function StoryMapView() {
                                     mapStyle: chapter.map_style || 'light',
                                     shouldRotate: false,
                                     flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 12)
+                                });
+
+                                // Build interactive marker for this slide
+                                setStoryMarkers(prev => {
+                                    const exists = prev.findIndex(m => areCoordinatesEqual(m.coordinates, normalizedCoords));
+                                    if (exists === -1) {
+                                        const newMarkers = [...prev, {
+                                            coordinates: normalizedCoords,
+                                            title: slide.title || '',
+                                            location: slide.location || '',
+                                            image: slide.image || '',
+                                            description: slide.description || '',
+                                            chapterIndex: index
+                                        }];
+                                        setActiveMarkerIdx(newMarkers.length - 1);
+                                        return newMarkers;
+                                    } else {
+                                        setActiveMarkerIdx(exists);
+                                        return prev;
+                                    }
                                 });
                             }}
                         />

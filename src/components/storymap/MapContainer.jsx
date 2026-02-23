@@ -271,23 +271,18 @@ export default function MapBackground({
         // Add new markers
         markers.forEach((markerData, index) => {
             const el = document.createElement('div');
-            el.className = 'mapbox-marker';
+            el.className = index === activeMarkerIndex ? 'mapbox-marker mapbox-marker-active' : 'mapbox-marker';
             el.style.cssText = `
-                width: 24px;
-                height: 24px;
+                width: ${index === activeMarkerIndex ? '32px' : '24px'};
+                height: ${index === activeMarkerIndex ? '32px' : '24px'};
                 border-radius: 50%;
                 background: ${index === activeMarkerIndex ? '#d97706' : '#475569'};
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: pointer;
-                transition: all 0.3s ease;
+                transition: background 0.3s ease, width 0.3s ease, height 0.3s ease;
+                z-index: ${index === activeMarkerIndex ? '10' : '1'};
             `;
-
-            if (index === activeMarkerIndex) {
-                el.style.width = '32px';
-                el.style.height = '32px';
-                el.style.zIndex = '10';
-            }
 
             const marker = new mapboxgl.Marker(el)
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
@@ -441,6 +436,19 @@ export default function MapBackground({
                 .mapboxgl-ctrl-group button + button {
                     border-top: none !important;
                     border-left: 1px solid rgba(226, 232, 240, 0.5) !important;
+                }
+                @keyframes marker-pulse {
+                    0%, 100% {
+                        transform: scale(1);
+                        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4);
+                    }
+                    50% {
+                        transform: scale(1.15);
+                        box-shadow: 0 0 12px 4px rgba(217, 119, 6, 0.2);
+                    }
+                }
+                .mapbox-marker-active {
+                    animation: marker-pulse 2s ease-in-out infinite;
                 }
             `}</style>
         </div>
