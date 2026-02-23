@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import TextPanelCarousel from './TextPanelCarousel';
 
 const VideoPlayer = ({ url }) => {
     if (!url) return null;
@@ -153,77 +154,20 @@ export default function FullScreenImageViewer({
                             </AnimatePresence>
                         </div>
 
-                        {/* Caption Overlay */}
-                        <motion.div 
-                            className="absolute top-0 left-0 h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 flex flex-col z-20 pointer-events-none"
-                            style={{ paddingTop: '150px' }}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 3 }}
-                        >
-                            <div className="w-full text-right">
-                                <AnimatePresence mode="wait">
-                                    <motion.div
-                                        key={currentIndex}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        {chapterName && (
-                                            <div className="font-bold tracking-[0.2em] uppercase text-amber-600 mb-3" style={{ fontSize: '1.3rem', lineHeight: '1.3rem', paddingBottom: '30px' }}>
-                                                {chapterName.split(':').map((part, i) => (
-                                                    <div key={i}>{part.trim()}</div>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <h3 className="text-2xl md:text-3xl font-medium text-slate-800 mb-3">
-                                            {currentSlide.title}
-                                        </h3>
-                                        {currentSlide.description && (
-                                            <div 
-                                                className="text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-right"
-                                                style={{ color: '#000000' }}
-                                                dangerouslySetInnerHTML={{ __html: currentSlide.description }}
-                                            />
-                                        )}
-                                        {currentSlide.location && (
-                                            <div className="flex items-center justify-end gap-2 text-sm" style={{ color: '#000000', marginTop: '40px' }}>
-                                                <span>{currentSlide.location}</span>
-                                                <div className="w-5 h-5 rounded-full bg-amber-500 border-2 border-white shadow-lg" />
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                </AnimatePresence>
-
-                                {/* Slide Counter */}
-                                {hasMultipleSlides && (
-                                    <div className="text-sm mt-4" style={{ color: '#000000' }}>
-                                        {currentIndex + 1} / {slides.length}
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-
-                        {/* Extended Content Overlay - Only on Desktop */}
-                        {currentSlide.extended_content && (
+                        {/* Text Panel Overlay — positioned top-left, above image */}
+                        <div className="absolute top-[120px] left-[40px] z-20 pointer-events-auto">
                             <AnimatePresence mode="wait">
-                                <motion.div 
-                                    key={`extended-${currentIndex}`}
-                                    className="hidden md:flex absolute top-0 left-[300px] h-screen w-[300px] bg-white/50 backdrop-blur-sm border-r border-slate-200 shadow-lg p-8 z-10 flex-col"
-                                    style={{ paddingTop: '150px' }}
-                                    initial={{ opacity: 0, y: '100%' }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: '100%' }}
-                                    transition={{ duration: 3, ease: "easeOut", delay: 5 }}
-                                >
-                                    <div 
-                                        className="text-slate-600 text-sm md:text-base leading-relaxed prose prose-sm max-w-none text-left"
-                                        dangerouslySetInnerHTML={{ __html: currentSlide.extended_content }}
-                                    />
-                                </motion.div>
+                                <TextPanelCarousel
+                                    key={currentIndex}
+                                    chapterTitle={chapterName}
+                                    slideTitle={currentSlide.title}
+                                    description={currentSlide.description || ''}
+                                    extendedContent={currentSlide.extended_content || ''}
+                                    location={currentSlide.location}
+                                    slideCounter={hasMultipleSlides ? `${currentIndex + 1} / ${slides.length}` : null}
+                                />
                             </AnimatePresence>
-                        )}
+                        </div>
                     </motion.div>
                 </>
             )}
