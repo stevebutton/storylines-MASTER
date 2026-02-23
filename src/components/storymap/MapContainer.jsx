@@ -270,25 +270,26 @@ export default function MapBackground({
 
         // Add new markers
         markers.forEach((markerData, index) => {
+            const isActive = index === activeMarkerIndex;
             const el = document.createElement('div');
-            el.className = index === activeMarkerIndex ? 'mapbox-marker mapbox-marker-active' : 'mapbox-marker';
+            el.className = isActive ? 'mapbox-marker mapbox-marker-active' : 'mapbox-marker';
             el.style.cssText = `
-                width: ${index === activeMarkerIndex ? '32px' : '24px'};
-                height: ${index === activeMarkerIndex ? '32px' : '24px'};
+                width: ${isActive ? '32px' : '24px'};
+                height: ${isActive ? '32px' : '24px'};
                 border-radius: 50%;
-                background: ${index === activeMarkerIndex ? '#d97706' : '#475569'};
+                background: ${isActive ? '#d97706' : '#475569'};
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: pointer;
                 transition: background 0.3s ease, width 0.3s ease, height 0.3s ease;
-                z-index: ${index === activeMarkerIndex ? '10' : '1'};
+                z-index: ${isActive ? '10' : '1'};
             `;
 
             const marker = new mapboxgl.Marker(el)
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
                 .addTo(map.current);
 
-            // Add popup
+            // Show popup on hover (not click) so click is free for navigation
             const popupContent = `
                 <div style="min-width: 200px; font-family: system-ui, sans-serif;">
                     ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;" />` : ''}
@@ -298,12 +299,18 @@ export default function MapBackground({
                 </div>
             `;
 
-            const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
+            const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
                 .setHTML(popupContent);
 
-            marker.setPopup(popup);
+            el.addEventListener('mouseenter', () => {
+                popup.setLngLat([markerData.coordinates[1], markerData.coordinates[0]]).addTo(map.current);
+            });
+            el.addEventListener('mouseleave', () => {
+                popup.remove();
+            });
 
-            el.addEventListener('click', () => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
                 if (onMarkerClick) onMarkerClick(index);
             });
 
@@ -439,16 +446,14 @@ export default function MapBackground({
                 }
                 @keyframes marker-pulse {
                     0%, 100% {
-                        transform: scale(1);
-                        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4);
+                        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.5), 0 2px 8px rgba(0,0,0,0.3);
                     }
                     50% {
-                        transform: scale(1.15);
-                        box-shadow: 0 0 12px 4px rgba(217, 119, 6, 0.2);
+                        box-shadow: 0 0 16px 8px rgba(217, 119, 6, 0.25), 0 2px 8px rgba(0,0,0,0.3);
                     }
                 }
                 .mapbox-marker-active {
-                    animation: marker-pulse 2s ease-in-out infinite;
+                    animation: marker-pulse 2s ease-in-out infinite !important;
                 }
             `}</style>
         </div>
