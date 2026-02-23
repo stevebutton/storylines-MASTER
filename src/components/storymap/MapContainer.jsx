@@ -34,6 +34,8 @@ export default function MapBackground({
     const lineAnimationRef = useRef(null);
     const previousLayerId = useRef(null);
     const prevRouteLength = useRef(0);
+    const onMarkerClickRef = useRef(onMarkerClick);
+    onMarkerClickRef.current = onMarkerClick;
 
     // Initialize map
     useEffect(() => {
@@ -308,7 +310,7 @@ export default function MapBackground({
                     if (popupEl) {
                         popupEl.style.cursor = 'pointer';
                         popupEl.addEventListener('click', () => {
-                            if (onMarkerClick) onMarkerClick(index);
+                            if (onMarkerClickRef.current) onMarkerClickRef.current(index);
                         });
                     }
                 });
@@ -323,13 +325,13 @@ export default function MapBackground({
 
                 el.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (onMarkerClick) onMarkerClick(index);
+                    if (onMarkerClickRef.current) onMarkerClickRef.current(index);
                 });
             }
 
             markersRef.current.push(marker);
         });
-    }, [markers, activeMarkerIndex, onMarkerClick]);
+    }, [markers, activeMarkerIndex]);
 
     // ============================================
     // LANDING MARKERS: Display circular markers at visited locations
