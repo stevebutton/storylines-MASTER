@@ -7,18 +7,19 @@ const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
-export default function MapBackground({ 
-    center, 
-    zoom, 
+export default function MapBackground({
+    center,
+    zoom,
     bearing = 0,
-    pitch = 0, 
-    markers = [], 
+    pitch = 0,
+    markers = [],
     activeMarkerIndex = -1,
     onMarkerClick,
     shouldRotate = false,
     flyDuration = 12,
     routeCoordinates = [],
     clearRoute = false,
+    onRouteCleared,
     offset = [0, 0],
     landingMarkers = [],
     clearLandingMarkers = false,
@@ -32,6 +33,7 @@ export default function MapBackground({
     const landingMarkersRef = useRef([]);
     const lineAnimationRef = useRef(null);
     const previousLayerId = useRef(null);
+    const prevRouteLength = useRef(0);
 
     // Initialize map
     useEffect(() => {
@@ -107,7 +109,7 @@ export default function MapBackground({
                 easing: (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
             });
         } catch (error) {
-            console.warn('Map flyTo error (map may be destroyed):', error);
+            // Map may have been destroyed during navigation
         }
 
         return () => {
@@ -120,7 +122,7 @@ export default function MapBackground({
 
     // ============================================
     // ROUTE LINE RENDERING: Draw and animate route line on map
-    // Validates coordinates and removes duplicates before drawing
+    // Only animates the new segment (from prevRouteLength to current length)
     // ============================================
     useEffect(() => {
         if (!map.current || !map.current.isStyleLoaded() || !mapContainer.current) return;
@@ -133,7 +135,6 @@ export default function MapBackground({
 
         // Clear route if requested
         if (clearRoute) {
-            console.log('🗺️ [MAP ROUTE] Clearing route line');
             if (map.current.getLayer('route-line')) {
                 map.current.removeLayer('route-line');
             }
@@ -141,110 +142,104 @@ export default function MapBackground({
                 map.current.removeSource('route');
             }
             routeSourceAdded.current = false;
+            prevRouteLength.current = 0;
+            if (onRouteCleared) onRouteCleared();
             return;
         }
 
-        // Add or update route
-        if (routeCoordinates.length >= 2) {
-            console.log('🗺️ [MAP ROUTE] Processing route coordinates:', { 
-                totalCoordinates: routeCoordinates.length,
-                coordinates: routeCoordinates 
-            });
-            
-            // Validate and normalize route coordinates
-            const validCoords = routeCoordinates
-                .map(coord => normalizeCoordinatePair(coord))
-                .filter(coord => coord !== null);
-            
-            console.log('🗺️ [MAP ROUTE] After validation:', { 
-                validCount: validCoords.length,
-                coordinates: validCoords 
-            });
-            
-            if (validCoords.length < 2) {
-                console.warn('⚠️ [MAP ROUTE] Not enough valid coordinates to draw route');
-                return;
-            }
-            
-            const fullGeojson = {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                    type: 'LineString',
-                    coordinates: validCoords.map(coord => [coord[1], coord[0]])
-                }
-            };
+        // Coordinates are already normalized by StoryMapView — just filter out nulls/invalids
+        const validCoords = routeCoordinates.filter(coord =>
+            coord && Array.isArray(coord) && coord.length === 2 &&
+            !isNaN(coord[0]) && !isNaN(coord[1]) &&
+            isFinite(coord[0]) && isFinite(coord[1])
+        );
 
-            if (!routeSourceAdded.current) {
-                // Add source and layer for the first time
-                if (!map.current.getSource('route')) {
-                    map.current.addSource('route', {
-                        type: 'geojson',
-                        data: {
-                            type: 'Feature',
-                            properties: {},
-                            geometry: {
-                                type: 'LineString',
-                                coordinates: []
-                            }
-                        }
-                    });
-                }
+        if (validCoords.length < 2) return;
 
-                if (!map.current.getLayer('route-line')) {
-                    map.current.addLayer({
-                        id: 'route-line',
-                        type: 'line',
-                        source: 'route',
-                        layout: {
-                            'line-join': 'round',
-                            'line-cap': 'round'
-                        },
-                        paint: {
-                            'line-color': '#d97706',
-                            'line-width': 3,
-                            'line-opacity': 0.8
-                        }
-                    });
-                }
-                routeSourceAdded.current = true;
-            }
+        const allLngLat = validCoords.map(coord => [coord[1], coord[0]]);
 
-            // Animate line drawing
-            const source = map.current.getSource('route');
-            if (source) {
-                const animationDuration = (flyDuration || 12) * 1000 - 1000; // 1 second shorter than flyTo
-                const startTime = performance.now();
-                
-                const animateLine = (currentTime) => {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(elapsed / animationDuration, 1);
-                    
-                    // Calculate how many coordinates to show based on progress
-                    const totalCoords = fullGeojson.geometry.coordinates.length;
-                    const coordsToShow = Math.max(2, Math.floor(totalCoords * progress));
-                    
-                    const partialGeojson = {
+        if (!routeSourceAdded.current) {
+            if (!map.current.getSource('route')) {
+                map.current.addSource('route', {
+                    type: 'geojson',
+                    data: {
                         type: 'Feature',
                         properties: {},
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: fullGeojson.geometry.coordinates.slice(0, coordsToShow)
-                        }
-                    };
-                    
-                    source.setData(partialGeojson);
-                    
-                    if (progress < 1) {
-                        lineAnimationRef.current = requestAnimationFrame(animateLine);
-                    } else {
-                        lineAnimationRef.current = null;
+                        geometry: { type: 'LineString', coordinates: [] }
                     }
-                };
-                
-                lineAnimationRef.current = requestAnimationFrame(animateLine);
+                });
             }
+
+            if (!map.current.getLayer('route-line')) {
+                map.current.addLayer({
+                    id: 'route-line',
+                    type: 'line',
+                    source: 'route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    paint: {
+                        'line-color': '#d97706',
+                        'line-width': 3,
+                        'line-opacity': 0.8
+                    }
+                });
+            }
+            routeSourceAdded.current = true;
         }
+
+        const source = map.current.getSource('route');
+        if (!source) return;
+
+        const prevLen = prevRouteLength.current;
+        const totalLen = allLngLat.length;
+
+        // If no new coordinates were added, just ensure source is up to date
+        if (totalLen <= prevLen) {
+            source.setData({
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'LineString', coordinates: allLngLat }
+            });
+            return;
+        }
+
+        // Immediately show the static portion (all previously drawn coords)
+        const staticCoords = allLngLat.slice(0, Math.max(prevLen, 1));
+        source.setData({
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'LineString', coordinates: staticCoords }
+        });
+
+        // Animate only the new segment
+        const animationDuration = (flyDuration || 12) * 1000 - 1000;
+        const newSegmentCoords = allLngLat.slice(Math.max(prevLen - 1, 0));
+        const startTime = performance.now();
+
+        const animateLine = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / animationDuration, 1);
+
+            const newCoordsToShow = Math.max(2, Math.floor(newSegmentCoords.length * progress));
+            const visibleCoords = [
+                ...allLngLat.slice(0, Math.max(prevLen, 1)),
+                ...newSegmentCoords.slice(1, newCoordsToShow)
+            ];
+
+            source.setData({
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'LineString', coordinates: visibleCoords }
+            });
+
+            if (progress < 1) {
+                lineAnimationRef.current = requestAnimationFrame(animateLine);
+            } else {
+                prevRouteLength.current = totalLen;
+                lineAnimationRef.current = null;
+            }
+        };
+
+        lineAnimationRef.current = requestAnimationFrame(animateLine);
 
         return () => {
             if (lineAnimationRef.current) {
@@ -319,9 +314,6 @@ export default function MapBackground({
 
         // Clear existing landing markers with fade out
         if (clearLandingMarkers) {
-            console.log('🎯 [MAP MARKERS] Clearing all landing markers:', { 
-                count: landingMarkersRef.current.length 
-            });
             landingMarkersRef.current.forEach(marker => {
                 const el = marker.getElement();
                 if (el) {
@@ -336,19 +328,11 @@ export default function MapBackground({
 
         // Add new landing markers - only process valid, non-null coordinates
         if (!landingMarkers || !Array.isArray(landingMarkers)) return;
-        
-        console.log('🎯 [MAP MARKERS] Processing landing markers:', { 
-            newMarkersCount: landingMarkers.length,
-            existingMarkersCount: landingMarkersRef.current.length 
-        });
-        
+
         landingMarkers.forEach((coord, idx) => {
             const normalized = normalizeCoordinatePair(coord);
             
-            if (!normalized) {
-                console.warn('⚠️ [MAP MARKERS] Invalid coordinate at index', idx, ':', coord);
-                return;
-            }
+            if (!normalized) return;
 
             // Check if marker already exists at this location (normalized comparison)
             const exists = landingMarkersRef.current.some(existingMarker => {
@@ -356,13 +340,9 @@ export default function MapBackground({
                 return areCoordinatesEqual([existingLngLat.lat, existingLngLat.lng], normalized);
             });
             
-            if (exists) {
-                console.log('🎯 [MAP MARKERS] Marker already exists at:', normalized);
-                return;
-            }
+            if (exists) return;
 
             try {
-                console.log('🎯 [MAP MARKERS] Creating new marker at:', normalized);
                 const el = document.createElement('div');
                 el.style.cssText = `
                     width: 120px;
@@ -387,9 +367,8 @@ export default function MapBackground({
                 }, (flyDuration || 12) * 1000 - 1000);
 
                 landingMarkersRef.current.push(marker);
-                console.log('🎯 [MAP MARKERS] Marker created successfully. Total markers:', landingMarkersRef.current.length);
             } catch (error) {
-                console.error('❌ [MAP MARKERS] Error creating landing marker:', error);
+                // Silently skip failed markers
             }
         });
     }, [landingMarkers, clearLandingMarkers, flyDuration]);
@@ -404,11 +383,10 @@ export default function MapBackground({
         if (previousLayerId.current && previousLayerId.current !== activeLayerId) {
             try {
                 if (map.current.getLayer(previousLayerId.current)) {
-                    console.log('🗺️ [LAYER] Hiding layer:', previousLayerId.current);
                     map.current.setLayoutProperty(previousLayerId.current, 'visibility', 'none');
                 }
             } catch (error) {
-                console.warn('⚠️ [LAYER] Error hiding layer:', previousLayerId.current, error);
+                // Layer may have been removed
             }
         }
 
@@ -416,13 +394,10 @@ export default function MapBackground({
         if (activeLayerId) {
             try {
                 if (map.current.getLayer(activeLayerId)) {
-                    console.log('🗺️ [LAYER] Showing layer:', activeLayerId);
                     map.current.setLayoutProperty(activeLayerId, 'visibility', 'visible');
-                } else {
-                    console.warn('⚠️ [LAYER] Layer not found in style:', activeLayerId);
                 }
             } catch (error) {
-                console.warn('⚠️ [LAYER] Error showing layer:', activeLayerId, error);
+                // Layer may not exist in style
             }
         }
 

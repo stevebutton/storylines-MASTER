@@ -157,28 +157,6 @@ export default function InteractiveStoryMap({
         }
       }
 
-      map.current.addSource('marker-lines', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: []
-        }
-      });
-
-      map.current.addLayer({
-        id: 'marker-lines-layer',
-        type: 'line',
-        source: 'marker-lines',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#00ff00',
-          'line-width': 8
-        }
-      });
-
       // Add stories source with clustering
       map.current.addSource('stories', {
         type: 'geojson',
