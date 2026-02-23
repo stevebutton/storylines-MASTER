@@ -280,7 +280,7 @@ export default function MapBackground({
                 background: ${isActive ? '#d97706' : '#475569'};
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                cursor: pointer;
+                cursor: ${isActive ? 'default' : 'pointer'};
                 transition: background 0.3s ease, width 0.3s ease, height 0.3s ease;
                 z-index: ${isActive ? '10' : '1'};
             `;
@@ -289,30 +289,43 @@ export default function MapBackground({
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
                 .addTo(map.current);
 
-            // Show popup on hover (not click) so click is free for navigation
-            const popupContent = `
-                <div style="min-width: 200px; font-family: system-ui, sans-serif;">
-                    ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;" />` : ''}
-                    <h3 style="font-weight: 600; color: #1e293b; margin: 0 0 4px 0;">${markerData.title}</h3>
-                    ${markerData.location ? `<p style="font-size: 12px; color: #64748b; margin: 0;">${markerData.location}</p>` : ''}
-                    ${markerData.description ? `<p style="font-size: 14px; color: #475569; margin: 8px 0 0 0; line-height: 1.4;">${markerData.description.substring(0, 100)}${markerData.description.length > 100 ? '...' : ''}</p>` : ''}
-                </div>
-            `;
+            // Previous markers: popup on hover with thumbnail + title, click to navigate
+            if (!isActive) {
+                const popupContent = `
+                    <div style="min-width: 160px; font-family: system-ui, sans-serif; cursor: pointer;" class="mapbox-marker-popup" data-marker-index="${index}">
+                        ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 6px;" />` : ''}
+                        <h3 style="font-weight: 600; font-size: 13px; color: #1e293b; margin: 0; line-height: 1.3;">${markerData.title}</h3>
+                    </div>
+                `;
 
-            const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
-                .setHTML(popupContent);
+                const popup = new mapboxgl.Popup({ offset: 25, closeButton: false, closeOnClick: false })
+                    .setHTML(popupContent);
 
-            el.addEventListener('mouseenter', () => {
-                popup.setLngLat([markerData.coordinates[1], markerData.coordinates[0]]).addTo(map.current);
-            });
-            el.addEventListener('mouseleave', () => {
-                popup.remove();
-            });
+                el.addEventListener('mouseenter', () => {
+                    popup.setLngLat([markerData.coordinates[1], markerData.coordinates[0]]).addTo(map.current);
+                    // Attach click handler to popup content
+                    const popupEl = popup.getElement();
+                    if (popupEl) {
+                        popupEl.style.cursor = 'pointer';
+                        popupEl.addEventListener('click', () => {
+                            if (onMarkerClick) onMarkerClick(index);
+                        });
+                    }
+                });
+                el.addEventListener('mouseleave', (e) => {
+                    // Delay removal so user can hover into popup
+                    setTimeout(() => {
+                        const popupEl = popup.getElement();
+                        if (popupEl && popupEl.matches(':hover')) return;
+                        popup.remove();
+                    }, 100);
+                });
 
-            el.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (onMarkerClick) onMarkerClick(index);
-            });
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (onMarkerClick) onMarkerClick(index);
+                });
+            }
 
             markersRef.current.push(marker);
         });
