@@ -97,6 +97,24 @@ export default function TabbedContentEditor({
                                 }}
                             />
                         </div>
+                        <div>
+                            <Label>Story Description</Label>
+                            <p className="text-xs text-slate-500 mb-1">Shown as a full panel between the hero and chapter one. Leave blank to skip.</p>
+                            <ReactQuill
+                                value={item.story_description || ''}
+                                onChange={(content) => onUpdate({ ...item, story_description: content })}
+                                placeholder="An overview of the project, its context and significance..."
+                                className="bg-white"
+                                style={{ height: '150px', marginBottom: '50px' }}
+                                modules={{
+                                    toolbar: [
+                                        ['bold', 'italic', 'underline'],
+                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                        ['link']
+                                    ]
+                                }}
+                            />
+                        </div>
 
                         {/* Opening Map View */}
                         <div>
