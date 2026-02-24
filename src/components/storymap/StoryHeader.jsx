@@ -29,6 +29,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
       {/* Hero Video or Image Background */}
       {heroType === 'video' && heroVideo ? (
         <motion.video
+          key={heroVideo}
           src={heroVideo}
           className="absolute inset-0 w-full h-full object-cover z-0"
           autoPlay
@@ -38,17 +39,24 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           onLoadedData={handleMediaLoad}
           initial={{ scale: 1.25, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 5, ease: "easeOut", delay: 1 }}
+          transition={{
+            scale: { duration: 5, ease: "easeOut", delay: 1 },
+            opacity: { duration: 1.5, ease: "easeOut", delay: 1 }
+          }}
         />
       ) : heroImage ? (
         <motion.img
+          key={heroImage}
           src={heroImage}
           alt={title}
           className="absolute inset-0 w-full h-full object-cover z-0"
           onLoad={handleMediaLoad}
           initial={{ scale: 1.25, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 5, ease: "easeOut", delay: 1 }}
+          transition={{
+            scale: { duration: 5, ease: "easeOut", delay: 1 },
+            opacity: { duration: 1.5, ease: "easeOut", delay: 1 }
+          }}
         />
       ) : null}
 
