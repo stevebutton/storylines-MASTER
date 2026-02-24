@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Ensure black background before React mounts — prevents white flash on navigation */
-body {
+html, body, #root {
   background: #000;
 }
 

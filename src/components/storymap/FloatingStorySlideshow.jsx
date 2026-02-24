@@ -117,7 +117,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                             initial={{ y: '100%' }}
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
-                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                            transition={{ duration: 2, ease: 'easeIn' }}
                             className="fixed bottom-0 left-0 right-0 z-[66] bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-2xl overflow-hidden"
                             style={{ height: '50vh' }}
                         >
@@ -180,9 +180,9 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                 <AnimatePresence>
                                 {!isLoading && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: 16 }}
+                                    initial={{ opacity: 0, y: 50 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                                    transition={{ duration: 1, ease: 'easeOut' }}
                                 >
                                 {filteredStories.length === 0 ? (
                                     <div className="text-center py-12 text-slate-500">
