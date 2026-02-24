@@ -435,6 +435,7 @@ export default function StoryMapView() {
                 landingMarkers={landingMarkers}
                 clearLandingMarkers={clearLandingMarkers}
                 activeLayerId={activeLayerId}
+                activeChapter={activeChapter}
                 markers={storyMarkers}
                 activeMarkerIndex={activeMarkerIdx}
                 onMarkerClick={(markerIndex) => {
@@ -563,8 +564,8 @@ export default function StoryMapView() {
 
                                 // Add landing marker (with duplicate check)
                                 setLandingMarkers(prev => {
-                                    const exists = prev.some(coord => areCoordinatesEqual(coord, normalizedCoords));
-                                    if (!exists) return [...prev, normalizedCoords];
+                                    const exists = prev.some(item => areCoordinatesEqual(item.coordinates, normalizedCoords));
+                                    if (!exists) return [...prev, { coordinates: normalizedCoords, chapterIndex: index }];
                                     return prev;
                                 });
                                 

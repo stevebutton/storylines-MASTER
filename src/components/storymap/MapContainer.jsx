@@ -5,6 +5,16 @@ import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } f
 
 const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
 
+// One colour per chapter, cycling if there are more than 6 chapters
+const CHAPTER_COLORS = [
+    { main: '#d97706', rgb: '217, 119, 6'   },  // 0 amber
+    { main: '#2563eb', rgb: '37,  99,  235' },  // 1 blue
+    { main: '#16a34a', rgb: '22,  163, 74'  },  // 2 green
+    { main: '#9333ea', rgb: '147, 51,  234' },  // 3 purple
+    { main: '#e11d48', rgb: '225, 29,  72'  },  // 4 rose
+    { main: '#0d9488', rgb: '13,  148, 136' },  // 5 teal
+];
+
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
 export default function MapBackground({
@@ -24,7 +34,8 @@ export default function MapBackground({
     offset = [0, 0],
     landingMarkers = [],
     clearLandingMarkers = false,
-    activeLayerId = null
+    activeLayerId = null,
+    activeChapter = 0
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
@@ -37,6 +48,8 @@ export default function MapBackground({
     const prevRouteLength = useRef(0);
     const onMarkerClickRef = useRef(onMarkerClick);
     onMarkerClickRef.current = onMarkerClick;
+    const activeChapterRef = useRef(activeChapter);
+    activeChapterRef.current = activeChapter;
 
     // Initialize map
     useEffect(() => {
@@ -208,13 +221,14 @@ export default function MapBackground({
             }
 
             if (!map.current.getLayer('route-line')) {
+                const routeColor = CHAPTER_COLORS[activeChapterRef.current % CHAPTER_COLORS.length].main;
                 map.current.addLayer({
                     id: 'route-line',
                     type: 'line',
                     source: 'route',
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
                     paint: {
-                        'line-color': '#d97706',
+                        'line-color': routeColor,
                         'line-width': 3,
                         'line-opacity': 0.8
                     }
@@ -309,13 +323,15 @@ export default function MapBackground({
         // Add new markers
         markers.forEach((markerData, index) => {
             const isActive = index === activeMarkerIndex;
+            const colorIdx = (markerData.chapterIndex ?? 0) % CHAPTER_COLORS.length;
+            const chapterColor = CHAPTER_COLORS[colorIdx];
             const el = document.createElement('div');
-            el.className = isActive ? 'mapbox-marker mapbox-marker-active' : 'mapbox-marker';
+            el.className = isActive ? `mapbox-marker mapbox-marker-active-${colorIdx}` : 'mapbox-marker';
             el.style.cssText = `
-                width: ${isActive ? '32px' : '24px'};
-                height: ${isActive ? '32px' : '24px'};
+                width: ${isActive ? '36px' : '24px'};
+                height: ${isActive ? '36px' : '24px'};
                 border-radius: 50%;
-                background: ${isActive ? '#d97706' : '#475569'};
+                background: ${chapterColor.main};
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: ${isActive ? 'default' : 'pointer'};
@@ -427,9 +443,12 @@ export default function MapBackground({
         // Add new landing markers - only process valid, non-null coordinates
         if (!landingMarkers || !Array.isArray(landingMarkers)) return;
 
-        landingMarkers.forEach((coord, idx) => {
+        landingMarkers.forEach((item, idx) => {
+            // Support both new { coordinates, chapterIndex } objects and legacy bare arrays
+            const coord = item?.coordinates ?? item;
+            const chapterIndex = item?.chapterIndex ?? 0;
             const normalized = normalizeCoordinatePair(coord);
-            
+
             if (!normalized) return;
 
             // Check if marker already exists at this location (normalized comparison)
@@ -437,18 +456,20 @@ export default function MapBackground({
                 const existingLngLat = existingMarker.getLngLat();
                 return areCoordinatesEqual([existingLngLat.lat, existingLngLat.lng], normalized);
             });
-            
+
             if (exists) return;
 
             try {
+                const colorIdx = chapterIndex % CHAPTER_COLORS.length;
+                const color = CHAPTER_COLORS[colorIdx];
                 const el = document.createElement('div');
                 el.style.cssText = `
                     width: 120px;
                     height: 120px;
                     border-radius: 50%;
-                    background: rgba(217, 119, 6, 0.15);
-                    border: 2px solid rgba(217, 119, 6, 0.4);
-                    box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
+                    background: rgba(${color.rgb}, 0.15);
+                    border: 2px solid rgba(${color.rgb}, 0.4);
+                    box-shadow: 0 0 20px rgba(${color.rgb}, 0.2);
                     opacity: 0;
                     transition: opacity 1000ms ease-in;
                     pointer-events: none;
@@ -529,17 +550,42 @@ export default function MapBackground({
                     border-top: none !important;
                     border-left: 1px solid rgba(226, 232, 240, 0.5) !important;
                 }
-                @keyframes marker-pulse {
-                    0%, 100% {
-                        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.5), 0 2px 8px rgba(0,0,0,0.3);
-                    }
-                    50% {
-                        box-shadow: 0 0 16px 8px rgba(217, 119, 6, 0.25), 0 2px 8px rgba(0,0,0,0.3);
-                    }
+                @keyframes marker-pulse-0 {
+                    0%   { box-shadow: 0 0 0 0px  rgba(217, 119,   6, 0.8), 0 2px 8px rgba(0,0,0,0.3); }
+                    70%  { box-shadow: 0 0 0 22px rgba(217, 119,   6, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                    100% { box-shadow: 0 0 0 0px  rgba(217, 119,   6, 0),   0 2px 8px rgba(0,0,0,0.3); }
                 }
-                .mapbox-marker-active {
-                    animation: marker-pulse 2s ease-in-out infinite !important;
+                @keyframes marker-pulse-1 {
+                    0%   { box-shadow: 0 0 0 0px  rgba( 37,  99, 235, 0.8), 0 2px 8px rgba(0,0,0,0.3); }
+                    70%  { box-shadow: 0 0 0 22px rgba( 37,  99, 235, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                    100% { box-shadow: 0 0 0 0px  rgba( 37,  99, 235, 0),   0 2px 8px rgba(0,0,0,0.3); }
                 }
+                @keyframes marker-pulse-2 {
+                    0%   { box-shadow: 0 0 0 0px  rgba( 22, 163,  74, 0.8), 0 2px 8px rgba(0,0,0,0.3); }
+                    70%  { box-shadow: 0 0 0 22px rgba( 22, 163,  74, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                    100% { box-shadow: 0 0 0 0px  rgba( 22, 163,  74, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                }
+                @keyframes marker-pulse-3 {
+                    0%   { box-shadow: 0 0 0 0px  rgba(147,  51, 234, 0.8), 0 2px 8px rgba(0,0,0,0.3); }
+                    70%  { box-shadow: 0 0 0 22px rgba(147,  51, 234, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                    100% { box-shadow: 0 0 0 0px  rgba(147,  51, 234, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                }
+                @keyframes marker-pulse-4 {
+                    0%   { box-shadow: 0 0 0 0px  rgba(225,  29,  72, 0.8), 0 2px 8px rgba(0,0,0,0.3); }
+                    70%  { box-shadow: 0 0 0 22px rgba(225,  29,  72, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                    100% { box-shadow: 0 0 0 0px  rgba(225,  29,  72, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                }
+                @keyframes marker-pulse-5 {
+                    0%   { box-shadow: 0 0 0 0px  rgba( 13, 148, 136, 0.8), 0 2px 8px rgba(0,0,0,0.3); }
+                    70%  { box-shadow: 0 0 0 22px rgba( 13, 148, 136, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                    100% { box-shadow: 0 0 0 0px  rgba( 13, 148, 136, 0),   0 2px 8px rgba(0,0,0,0.3); }
+                }
+                .mapbox-marker-active-0 { animation: marker-pulse-0 1.8s ease-out infinite !important; }
+                .mapbox-marker-active-1 { animation: marker-pulse-1 1.8s ease-out infinite !important; }
+                .mapbox-marker-active-2 { animation: marker-pulse-2 1.8s ease-out infinite !important; }
+                .mapbox-marker-active-3 { animation: marker-pulse-3 1.8s ease-out infinite !important; }
+                .mapbox-marker-active-4 { animation: marker-pulse-4 1.8s ease-out infinite !important; }
+                .mapbox-marker-active-5 { animation: marker-pulse-5 1.8s ease-out infinite !important; }
             `}</style>
         </div>
     );
