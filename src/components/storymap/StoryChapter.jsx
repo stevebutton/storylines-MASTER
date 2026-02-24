@@ -49,6 +49,14 @@ export default function StoryChapter({
         }
     }, [isActive, chapter.id]);
 
+    const handleFullScreenClose = () => {
+        setShowFullScreenViewer(false);
+        if (carouselScrollToRef.current) {
+            carouselScrollToRef.current(fullScreenImageIndex);
+        }
+        handleSlideChange(fullScreenImageIndex);
+    };
+
     const handleSlideChange = (slideIndex) => {
         setActiveSlideIndex(slideIndex);
         const slide = chapter.slides?.[slideIndex];
@@ -199,7 +207,7 @@ export default function StoryChapter({
                 {/* Full Screen Image Viewer */}
                 <FullScreenImageViewer
                     isOpen={showFullScreenViewer}
-                    onClose={() => setShowFullScreenViewer(false)}
+                    onClose={handleFullScreenClose}
                     slides={chapter.slides}
                     currentIndex={fullScreenImageIndex}
                     onNavigate={setFullScreenImageIndex}
@@ -335,7 +343,7 @@ export default function StoryChapter({
             {/* Full Screen Image Viewer */}
             <FullScreenImageViewer
                 isOpen={showFullScreenViewer}
-                onClose={() => setShowFullScreenViewer(false)}
+                onClose={handleFullScreenClose}
                 slides={chapter.slides}
                 currentIndex={fullScreenImageIndex}
                 onNavigate={setFullScreenImageIndex}
