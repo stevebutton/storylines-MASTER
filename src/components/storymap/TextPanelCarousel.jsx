@@ -202,7 +202,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
             exit: "exit"
           })}
         >
-          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide text-right flex-1">
+          <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide text-right flex-1 pb-[15px]">
             {chapterTitle}
           </h2>
           <button
@@ -299,7 +299,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
             {/* Location */}
             {location && (
               <motion.div
-                className="flex items-start justify-end gap-2 mt-6 mb-[30px]"
+                className="flex items-center justify-end gap-2 mt-6 mb-[30px]"
                 {...(!hasAnimatedIn && {
                   variants: locationVariants,
                   initial: "hidden",

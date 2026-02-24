@@ -362,9 +362,9 @@ export default function MapBackground({
                         transition: opacity 1000ms ease, transform 1000ms ease;
                     `;
                     tooltipEl.innerHTML = `
-                        ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block;" />` : ''}
+                        ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block;" />` : ''}
                         <div style="padding: 8px 10px;">
-                            <div style="font-weight: 600; font-size: 13px; color: #1e293b; line-height: 1.3;">${markerData.title}</div>
+                            <div style="font-weight: 600; font-size: 15px; color: #1e293b; line-height: 1.3;">${markerData.title}</div>
                         </div>
                     `;
                     tooltipEl.addEventListener('click', () => {
