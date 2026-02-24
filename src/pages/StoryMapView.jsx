@@ -9,6 +9,7 @@ import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
+import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -54,6 +55,7 @@ export default function StoryMapView() {
 
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
+    const projectDescriptionRef = useRef(null);
 
     useEffect(() => {
         loadStory();
@@ -293,6 +295,14 @@ export default function StoryMapView() {
 
 
 
+    const scrollToProjectDescription = () => {
+        const element = projectDescriptionRef.current;
+        if (!element) return;
+        const rect = element.getBoundingClientRect();
+        const absoluteTop = rect.top + window.scrollY;
+        window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
+    };
+
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -385,26 +395,28 @@ export default function StoryMapView() {
                     heroVideoLoop={story.hero_video_loop}
                     onExplore={() => {
                         setHasExplored(true);
-                        navigateToChapter(0);
-                        
-                        // Animate from story opening view to first chapter
-                        if (chapters.length > 0 && chapters[0].slides?.length > 0) {
-                            const firstSlide = chapters[0].slides[0];
-                            let validCenter = [0, 0];
-                            if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
-                                !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
-                                validCenter = firstSlide.coordinates;
+                        if (story.story_description) {
+                            scrollToProjectDescription();
+                        } else {
+                            navigateToChapter(0);
+                            if (chapters.length > 0 && chapters[0].slides?.length > 0) {
+                                const firstSlide = chapters[0].slides[0];
+                                let validCenter = [0, 0];
+                                if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
+                                    !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                    validCenter = firstSlide.coordinates;
+                                }
+                                setMapConfig({
+                                    center: validCenter,
+                                    offset: [-200, 0],
+                                    zoom: firstSlide.zoom || 12,
+                                    bearing: firstSlide.bearing || 0,
+                                    pitch: firstSlide.pitch || 0,
+                                    mapStyle: story.map_style || 'light',
+                                    shouldRotate: true,
+                                    flyDuration: firstSlide.fly_duration || 12
+                                });
                             }
-                            setMapConfig({
-                                center: validCenter,
-                                offset: [-200, 0],
-                                zoom: firstSlide.zoom || 12,
-                                bearing: firstSlide.bearing || 0,
-                                pitch: firstSlide.pitch || 0,
-                                mapStyle: story.map_style || 'light',
-                                shouldRotate: true,
-                                flyDuration: firstSlide.fly_duration || 12
-                            });
                         }
                     }}
                     onHeroLoaded={() => {
@@ -414,6 +426,21 @@ export default function StoryMapView() {
                 />
                 </div>
                 
+                {/* Project Description */}
+                {story.story_description && (
+                    <div
+                        ref={projectDescriptionRef}
+                        className="pointer-events-none"
+                        data-name="project-description-wrapper"
+                    >
+                        <ProjectDescriptionSection
+                            storyTitle={story.title}
+                            description={story.story_description}
+                            onContinue={() => navigateToChapter(0)}
+                        />
+                    </div>
+                )}
+
                 {/* Chapters */}
                 {chapters.map((chapter, index) => (
                     <div 
