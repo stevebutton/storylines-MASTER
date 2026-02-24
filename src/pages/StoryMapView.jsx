@@ -32,7 +32,7 @@ export default function StoryMapView() {
         bearing: 0,
         pitch: 0,
         shouldRotate: false,
-        flyDuration: 12,
+        flyDuration: 8,
         offset: [-200, 0]
     });
     const [activeLayerId, setActiveLayerId] = useState(null);
@@ -235,23 +235,21 @@ export default function StoryMapView() {
 
                             setRouteCoordinates(initialRoute);
                             
-                            // Use first slide coordinates if available
-                            let validCenter = [0, 0];
-                            if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
+                            // Only update map if first slide has valid coordinates
+                            if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) &&
+                                firstSlide.coordinates.length === 2 &&
                                 !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
-                                validCenter = firstSlide.coordinates;
+                                setMapConfig({
+                                    center: firstSlide.coordinates,
+                                    offset: [-200, 0],
+                                    zoom: firstSlide?.zoom || 12,
+                                    bearing: firstSlide?.bearing || 0,
+                                    pitch: firstSlide?.pitch || 0,
+                                    mapStyle: story.map_style || 'light',
+                                    shouldRotate: true,
+                                    flyDuration: firstSlide?.fly_duration || 8
+                                });
                             }
-                            
-                            setMapConfig({
-                                center: validCenter,
-                                offset: [-200, 0],
-                                zoom: firstSlide?.zoom || 12,
-                                bearing: firstSlide?.bearing || 0,
-                                pitch: firstSlide?.pitch || 0,
-                                mapStyle: story.map_style || 'light',
-                                shouldRotate: true,
-                                flyDuration: firstSlide?.fly_duration || 12
-                            });
                         }
                     }
                 }
@@ -413,21 +411,20 @@ export default function StoryMapView() {
                             navigateToChapter(0);
                             if (chapters.length > 0 && chapters[0].slides?.length > 0) {
                                 const firstSlide = chapters[0].slides[0];
-                                let validCenter = [0, 0];
-                                if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) && firstSlide.coordinates.length === 2 &&
+                                if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) &&
+                                    firstSlide.coordinates.length === 2 &&
                                     !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
-                                    validCenter = firstSlide.coordinates;
+                                    setMapConfig({
+                                        center: firstSlide.coordinates,
+                                        offset: [-200, 0],
+                                        zoom: firstSlide.zoom || 12,
+                                        bearing: firstSlide.bearing || 0,
+                                        pitch: firstSlide.pitch || 0,
+                                        mapStyle: story.map_style || 'light',
+                                        shouldRotate: true,
+                                        flyDuration: firstSlide.fly_duration || 8
+                                    });
                                 }
-                                setMapConfig({
-                                    center: validCenter,
-                                    offset: [-200, 0],
-                                    zoom: firstSlide.zoom || 12,
-                                    bearing: firstSlide.bearing || 0,
-                                    pitch: firstSlide.pitch || 0,
-                                    mapStyle: story.map_style || 'light',
-                                    shouldRotate: true,
-                                    flyDuration: firstSlide.fly_duration || 12
-                                });
                             }
                         }
                     }}
@@ -501,7 +498,7 @@ export default function StoryMapView() {
                                     pitch: slide.pitch !== undefined ? slide.pitch : 0,
                                     mapStyle: chapter.map_style || 'light',
                                     shouldRotate: false,
-                                    flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 12)
+                                    flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 8)
                                 });
 
                                 // Build interactive marker for this slide

@@ -497,9 +497,25 @@ export default function TabbedContentEditor({
                             />
                             
                             <div className="pt-4 border-t">
+                                <Label>Fly Duration (seconds)</Label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    max="60"
+                                    value={item.fly_duration ?? ''}
+                                    onChange={(e) => onUpdate({ ...item, fly_duration: e.target.value ? parseFloat(e.target.value) : undefined })}
+                                    placeholder="8"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                                />
+                                <p className="text-xs text-slate-500 mt-1">
+                                    How long the map takes to fly to this location. Defaults to 8 seconds.
+                                </p>
+                            </div>
+
+                            <div className="pt-4 border-t">
                                 <Label>Mapbox Layer ID (Optional)</Label>
-                                <Input 
-                                    value={item.mapbox_layer_id || ''} 
+                                <Input
+                                    value={item.mapbox_layer_id || ''}
                                     onChange={(e) => onUpdate({ ...item, mapbox_layer_id: e.target.value })}
                                     placeholder="e.g., my-custom-layer"
                                     style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
