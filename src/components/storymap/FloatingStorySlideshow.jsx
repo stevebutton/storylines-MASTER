@@ -124,9 +124,14 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                             <div className="max-w-7xl mx-auto p-6">
                                 {/* Header */}
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-2xl font-light text-slate-800">
+                                    <motion.h3
+                                        className="text-2xl font-light text-slate-800"
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
+                                    >
                                         Explore Other Stories
-                                    </h3>
+                                    </motion.h3>
                                     <button
                                         onClick={onClose}
                                         className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
@@ -137,7 +142,12 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
 
                                 {/* Category filter pills */}
                                 {categories.length > 0 && (
-                                    <div className="flex items-center gap-2 mb-4 flex-wrap">
+                                    <motion.div
+                                        className="flex items-center gap-2 mb-4 flex-wrap"
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.55, duration: 0.4, ease: 'easeOut' }}
+                                    >
                                         <button
                                             onClick={() => setSelectedCategory(null)}
                                             className={cn(
@@ -163,15 +173,18 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                                 {cat}
                                             </button>
                                         ))}
-                                    </div>
+                                    </motion.div>
                                 )}
 
-                                {/* Stories Carousel */}
-                                {isLoading ? (
-                                    <div className="flex items-center justify-center py-12">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600" />
-                                    </div>
-                                ) : filteredStories.length === 0 ? (
+                                {/* Stories Carousel — slides in once data is ready */}
+                                <AnimatePresence>
+                                {!isLoading && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                                >
+                                {filteredStories.length === 0 ? (
                                     <div className="text-center py-12 text-slate-500">
                                         No stories available
                                     </div>
@@ -242,6 +255,9 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                         </div>
                                     </div>
                                 )}
+                                </motion.div>
+                                )}
+                                </AnimatePresence>
                             </div>
                         </motion.div>
                     </>

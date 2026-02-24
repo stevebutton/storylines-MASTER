@@ -347,16 +347,22 @@ export default function StoryMapView() {
 
     return (
         <div ref={containerRef} className="relative" data-name="main-container">
-            {/* Black Overlay - Fades out when hero loads */}
+            {/* Black Overlay - Fades out when hero loads; shows spinner while story data loads */}
             <AnimatePresence>
                 {showBlackOverlay && (
                     <motion.div
                         data-name="black-overlay"
-                        className="fixed inset-0 bg-black z-[50] pointer-events-none"
+                        className="fixed inset-0 bg-black z-[50] pointer-events-none flex items-center justify-center"
                         initial={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
-                    />
+                    >
+                        {isLoading && (
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                            </div>
+                        )}
+                    </motion.div>
                 )}
             </AnimatePresence>
 
