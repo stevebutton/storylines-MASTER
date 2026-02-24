@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
 import TabbedContentEditor from '@/components/editor/TabbedContentEditor';
@@ -14,8 +14,10 @@ import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 
 export default function StoryEditor() {
     const location = useLocation();
+    const navigate = useNavigate();
     const urlParams = new URLSearchParams(location.search);
     const [currentStoryId, setCurrentStoryId] = useState(urlParams.get('id'));
+    const [isBackTransitioning, setIsBackTransitioning] = useState(false);
 
     const [story, setStory] = useState({ title: '', subtitle: '', author: '' });
     const [chapters, setChapters] = useState([]);
@@ -283,16 +285,30 @@ export default function StoryEditor() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
         >
+        {/* Back-to-Stories slide panel — sweeps in from the left over the editor */}
+        <AnimatePresence>
+            {isBackTransitioning && (
+                <motion.div
+                    className="fixed inset-0 bg-white z-[9999] pointer-events-all"
+                    initial={{ x: '-100%' }}
+                    animate={{ x: 0 }}
+                    transition={{ duration: 2, ease: 'easeIn' }}
+                    onAnimationComplete={() => navigate(createPageUrl('Stories'))}
+                />
+            )}
+        </AnimatePresence>
             <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
                 <div className="px-4 py-3">
                     <div className="flex items-center gap-4 mb-4">
-                        <Link to={createPageUrl('Stories')}>
-                            <Button variant="ghost" size="icon">
-                                <ArrowLeft className="w-5 h-5" />
-                            </Button>
-                        </Link>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsBackTransitioning(true)}
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
                         <Link to={createPageUrl('ProjectInterface')}>
                             <img 
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png" 
