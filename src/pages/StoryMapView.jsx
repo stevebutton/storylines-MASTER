@@ -56,6 +56,9 @@ export default function StoryMapView() {
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
     const projectDescriptionRef = useRef(null);
+    // Prevents the onSlideChange isActive-effect call from restarting a flyTo
+    // that onContinue/onExplore already started for the initial chapter activation.
+    const suppressNextOnSlideChangeMapConfig = useRef(false);
 
     useEffect(() => {
         loadStory();
@@ -211,19 +214,22 @@ export default function StoryMapView() {
                     
                     if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
                         if (activeChapter !== index) {
+                            // Save BEFORE overwriting so we can check if this is the initial activation
+                            const prevChapterIdx = previousChapterRef.current;
+
                             // Check if we're moving to a new chapter
-                            if (previousChapterRef.current !== -1 && previousChapterRef.current !== index) {
+                            if (prevChapterIdx !== -1 && prevChapterIdx !== index) {
                                 // Clear route when moving to a new chapter (but keep landing markers)
                                 setClearRoute(true);
                                 setRouteCoordinates([]);
                             }
-                            
+
                             previousChapterRef.current = index;
                             setActiveChapter(index);
                             setStoryMarkers([]);
                             setActiveMarkerIdx(-1);
                             const chapter = chapters[index];
-                            
+
                             // Build initial route for new chapter with first slide coordinates
                             const initialRoute = [];
                             const firstSlide = chapter.slides?.[0];
@@ -236,9 +242,13 @@ export default function StoryMapView() {
                             }
 
                             setRouteCoordinates(initialRoute);
-                            
-                            // Only update map if first slide has valid coordinates
-                            if (firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) &&
+
+                            // Only update map for chapter-to-chapter transitions.
+                            // The initial hero/description→chapter0 activation is already
+                            // handled by onExplore/onContinue — skip it here to avoid
+                            // restarting the flyTo mid-flight (double jump).
+                            if (prevChapterIdx !== -1 &&
+                                firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) &&
                                 firstSlide.coordinates.length === 2 &&
                                 !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
                                 setMapConfig({
@@ -417,6 +427,9 @@ export default function StoryMapView() {
                                 if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) &&
                                     firstSlide.coordinates.length === 2 &&
                                     !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                    // Suppress the redundant setMapConfig that fires via
+                                    // the isActive effect → onSlideChange when chapter 0 activates
+                                    suppressNextOnSlideChangeMapConfig.current = true;
                                     setMapConfig({
                                         center: firstSlide.coordinates,
                                         offset: [-200, 0],
@@ -455,6 +468,9 @@ export default function StoryMapView() {
                                     if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) &&
                                         firstSlide.coordinates.length === 2 &&
                                         !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                        // Suppress the redundant setMapConfig that fires via
+                                        // the isActive effect → onSlideChange when chapter 0 activates
+                                        suppressNextOnSlideChangeMapConfig.current = true;
                                         setMapConfig({
                                             center: firstSlide.coordinates,
                                             offset: [-200, 0],
@@ -511,17 +527,23 @@ export default function StoryMapView() {
                                 
                                 // Set active Mapbox layer
                                 setActiveLayerId(slide.mapbox_layer_id || null);
-                                
-                                setMapConfig({
-                                    center: slide.coordinates,
-                                    offset: [-200, 0],
-                                    zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
-                                    bearing: slide.bearing !== undefined ? slide.bearing : 0,
-                                    pitch: slide.pitch !== undefined ? slide.pitch : 0,
-                                    mapStyle: chapter.map_style || 'light',
-                                    shouldRotate: false,
-                                    flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 8)
-                                });
+
+                                // Skip setMapConfig if onContinue/onExplore already fired it for
+                                // this initial chapter activation (avoids restarting the flyTo).
+                                if (suppressNextOnSlideChangeMapConfig.current) {
+                                    suppressNextOnSlideChangeMapConfig.current = false;
+                                } else {
+                                    setMapConfig({
+                                        center: slide.coordinates,
+                                        offset: [-200, 0],
+                                        zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
+                                        bearing: slide.bearing !== undefined ? slide.bearing : 0,
+                                        pitch: slide.pitch !== undefined ? slide.pitch : 0,
+                                        mapStyle: chapter.map_style || 'light',
+                                        shouldRotate: false,
+                                        flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 8)
+                                    });
+                                }
 
                                 // Build interactive marker for this slide
                                 const slideIdx = chapter.slides?.findIndex(s =>
