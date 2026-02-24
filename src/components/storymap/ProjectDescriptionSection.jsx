@@ -51,39 +51,35 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
     const goToPage = (index) => setCurrentPage(index);
 
     const handleNext = () => {
-        if (currentPage < pages.length - 1) {
-            setCurrentPage(currentPage + 1);
-        }
+        if (currentPage < pages.length - 1) setCurrentPage(currentPage + 1);
     };
 
     const handlePrev = () => {
-        if (currentPage > 0) {
-            setCurrentPage(currentPage - 1);
-        }
+        if (currentPage > 0) setCurrentPage(currentPage - 1);
     };
 
     return (
         <div
-            className="relative w-full pointer-events-none"
+            className="relative w-full flex justify-center pointer-events-none"
             style={{ minHeight: '85vh', paddingTop: '50px' }}
         >
             <motion.div
-                initial={{ opacity: 0, x: 100 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 2, ease: 'easeOut' }}
-                viewport={{ once: false, amount: 0.5 }}
-                className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[550px]"
+                initial={{ opacity: 0, y: 100 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 3, ease: 'easeOut' }}
+                viewport={{ once: false, amount: 0.3 }}
+                className="w-[500px] max-w-[90vw]"
             >
                 <div className="relative bg-white/80 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 pointer-events-auto group">
                     {/* Story title as section label */}
                     {storyTitle && (
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4 text-right">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4 text-center">
                             {storyTitle}
                         </p>
                     )}
 
                     {/* Section heading */}
-                    <h2 className="text-2xl font-bold text-black text-right mb-6">
+                    <h2 className="text-2xl font-bold text-black text-center mb-6">
                         Project Description
                     </h2>
 
@@ -103,7 +99,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                                 className={index === currentPage ? 'block' : 'hidden'}
                             >
                                 <div
-                                    className="text-gray-900 leading-relaxed text-base space-y-4 text-right prose prose-sm max-w-none"
+                                    className="text-gray-900 leading-relaxed text-base space-y-4 text-center prose prose-sm max-w-none"
                                     dangerouslySetInnerHTML={{ __html: page }}
                                 />
                             </motion.div>

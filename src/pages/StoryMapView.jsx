@@ -300,7 +300,19 @@ export default function StoryMapView() {
         if (!element) return;
         const rect = element.getBoundingClientRect();
         const absoluteTop = rect.top + window.scrollY;
-        window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
+        const startPosition = window.scrollY;
+        const distance = absoluteTop - startPosition;
+        const duration = 3000;
+        let startTime = null;
+        const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const animateScroll = (currentTime) => {
+            if (!startTime) startTime = currentTime;
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            window.scrollTo(0, startPosition + (distance * easeInOutCubic(progress)));
+            if (progress < 1) requestAnimationFrame(animateScroll);
+        };
+        requestAnimationFrame(animateScroll);
     };
 
     const scrollToTop = () => {
