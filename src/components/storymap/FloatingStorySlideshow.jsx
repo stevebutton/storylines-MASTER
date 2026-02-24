@@ -89,12 +89,19 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
             <AnimatePresence>
                 {isTransitioning && (
                     <motion.div
-                        className="fixed inset-0 bg-black z-[9999] pointer-events-none"
+                        className="fixed inset-0 bg-black z-[10001] pointer-events-none"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 1, ease: 'easeInOut' }}
                         onAnimationComplete={() => {
-                            if (targetUrl) window.location.href = targetUrl;
+                            if (targetUrl) {
+                                // Append a raw DOM overlay that survives React unmounting,
+                                // bridging the gap between React teardown and browser navigation.
+                                const el = document.createElement('div');
+                                el.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;pointer-events:none;';
+                                document.body.appendChild(el);
+                                window.location.href = targetUrl;
+                            }
                         }}
                     />
                 )}

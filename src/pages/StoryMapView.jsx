@@ -352,7 +352,7 @@ export default function StoryMapView() {
                 {showBlackOverlay && (
                     <motion.div
                         data-name="black-overlay"
-                        className="fixed inset-0 bg-black z-[50] pointer-events-none flex items-center justify-center"
+                        className="fixed inset-0 bg-black z-[10001] pointer-events-none flex items-center justify-center"
                         initial={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
