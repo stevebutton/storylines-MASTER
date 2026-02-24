@@ -155,7 +155,7 @@ export default function FullScreenImageViewer({
                         </div>
 
                         {/* Text Panel Overlay — positioned top-left, above image */}
-                        <div className="absolute top-[120px] left-[40px] z-20 pointer-events-auto">
+                        <div className="absolute top-[120px] left-[25px] z-20 pointer-events-auto">
                             <AnimatePresence mode="wait">
                                 <TextPanelCarousel
                                     key={currentIndex}

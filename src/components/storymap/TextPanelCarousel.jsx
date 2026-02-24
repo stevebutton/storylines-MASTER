@@ -185,7 +185,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
 
   return (
     <motion.div
-      className="relative bg-white/70 backdrop-blur-md rounded-lg p-8 w-[400px] group shadow-lg"
+      className="relative bg-white/60 backdrop-blur-md rounded-lg p-8 w-[400px] group shadow-lg"
       variants={panelVariants}
       initial="hidden"
       animate="visible"
@@ -249,7 +249,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
                   exit: "exit"
                 })}
               >
-                <h3 className="text-black text-right" style={{ fontSize: '1.5rem', fontWeight: 500 }}>
+                <h3 className="text-black text-right" style={{ fontSize: '1.5rem', fontWeight: 500, lineHeight: 1.1 }}>
                   {slideTitle}
                 </h3>
               </motion.div>
@@ -299,7 +299,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
             {/* Location */}
             {location && (
               <motion.div
-                className="flex items-center justify-end gap-2 mt-6 mb-[30px]"
+                className="flex items-start justify-end gap-2 mt-6 mb-[30px]"
                 {...(!hasAnimatedIn && {
                   variants: locationVariants,
                   initial: "hidden",
@@ -307,8 +307,15 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
                   exit: "exit"
                 })}
               >
-                <span className="text-sm text-gray-600 text-right">{location}</span>
-                <div className="w-10 h-10 rounded-full bg-orange-500"></div>
+                <span className="text-sm text-gray-600 text-right min-w-0">{location}</span>
+                <div
+                  className="flex-shrink-0 w-10 h-10 rounded-full"
+                  style={{
+                    background: '#d97706',
+                    border: '3px solid white',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                  }}
+                />
               </motion.div>
             )}
 
