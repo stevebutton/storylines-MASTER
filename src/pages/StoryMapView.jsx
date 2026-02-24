@@ -24,7 +24,7 @@ export default function StoryMapView() {
     const [chapters, setChapters] = useState([]);
     const [relatedStories, setRelatedStories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeChapter, setActiveChapter] = useState(0);
+    const [activeChapter, setActiveChapter] = useState(-1);
     const [mapConfig, setMapConfig] = useState({
         center: [0, 0],
         zoom: 2,
