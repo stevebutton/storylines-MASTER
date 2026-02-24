@@ -16,7 +16,7 @@ export default function MapBackground({
     activeMarkerIndex = -1,
     onMarkerClick,
     shouldRotate = false,
-    flyDuration = 12,
+    flyDuration = 8,
     routeCoordinates = [],
     clearRoute = false,
     onRouteCleared,
@@ -76,11 +76,11 @@ export default function MapBackground({
 
     // Update map position
     useEffect(() => {
-        if (!map.current || !map.current.isStyleLoaded() || !mapContainer.current) return;
-        
+        if (!map.current || !mapContainer.current) return;
+
         // Validate center coordinates
-        if (!center || !Array.isArray(center) || center.length !== 2 || 
-            isNaN(center[0]) || isNaN(center[1]) || 
+        if (!center || !Array.isArray(center) || center.length !== 2 ||
+            isNaN(center[0]) || isNaN(center[1]) ||
             !isFinite(center[0]) || !isFinite(center[1])) {
             return;
         }
@@ -94,9 +94,29 @@ export default function MapBackground({
         const flyMs = (flyDuration || 12) * 1000;
 
         // Validate pitch value
-        const validPitch = (typeof pitch === 'number' && !isNaN(pitch) && isFinite(pitch) && pitch >= 0 && pitch <= 85) 
-            ? pitch 
+        const validPitch = (typeof pitch === 'number' && !isNaN(pitch) && isFinite(pitch) && pitch >= 0 && pitch <= 85)
+            ? pitch
             : 0;
+
+        // If style not loaded yet, jump to position instantly when it loads
+        // (covers stories with no hero image where user can interact before style is ready)
+        if (!map.current.isStyleLoaded()) {
+            const applyPosition = () => {
+                if (!map.current) return;
+                try {
+                    map.current.jumpTo({
+                        center: [center[1], center[0]],
+                        zoom: zoom || 12,
+                        bearing: bearing || 0,
+                        pitch: validPitch
+                    });
+                } catch (e) {}
+            };
+            map.current.once('load', applyPosition);
+            return () => {
+                if (map.current) map.current.off('load', applyPosition);
+            };
+        }
 
         // Always just fly to position without rotation
         try {
