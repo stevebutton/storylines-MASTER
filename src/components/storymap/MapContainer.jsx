@@ -17,6 +17,7 @@ export default function MapBackground({
     onMarkerClick,
     shouldRotate = false,
     flyDuration = 8,
+    instant = false,
     routeCoordinates = [],
     clearRoute = false,
     onRouteCleared,
@@ -118,7 +119,21 @@ export default function MapBackground({
             };
         }
 
-        // Always just fly to position without rotation
+        // Instant positioning — jumpTo with no animation (used for initial story location
+        // while the black overlay is covering the map)
+        if (instant) {
+            try {
+                map.current.jumpTo({
+                    center: [center[1], center[0]],
+                    zoom: zoom || 12,
+                    bearing: bearing || 0,
+                    pitch: validPitch
+                });
+            } catch (e) {}
+            return;
+        }
+
+        // Animated flyTo for all user-triggered navigation
         try {
             map.current.flyTo({
                 center: [center[1], center[0]],
@@ -140,7 +155,7 @@ export default function MapBackground({
                 rotationRef.current = null;
             }
         };
-    }, [center, zoom, bearing, pitch, shouldRotate, flyDuration]);
+    }, [center, zoom, bearing, pitch, shouldRotate, flyDuration, instant]);
 
     // ============================================
     // ROUTE LINE RENDERING: Draw and animate route line on map
