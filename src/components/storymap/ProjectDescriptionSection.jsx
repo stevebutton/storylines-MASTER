@@ -60,8 +60,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
 
     return (
         <div
-            className="relative w-full flex justify-center pointer-events-none"
-            style={{ minHeight: '85vh', paddingTop: '50px' }}
+            className="relative w-full min-h-screen flex items-center justify-center pointer-events-none"
         >
             <motion.div
                 initial={{ opacity: 0, y: 100 }}
@@ -70,7 +69,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                 viewport={{ once: false, amount: 0.3 }}
                 className="w-[500px] max-w-[90vw]"
             >
-                <div className="relative bg-white/80 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 pointer-events-auto group">
+                <div className="relative bg-white/70 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 pointer-events-auto group">
                     {/* Story title as section label */}
                     {storyTitle && (
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4 text-center">
@@ -156,26 +155,27 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                             </button>
                         </>
                     )}
-                </div>
 
-                {/* Scroll-down arrow */}
-                <div className="flex justify-center mt-10 pointer-events-auto">
-                    <motion.button
-                        onClick={onContinue}
-                        className="cursor-pointer"
-                        whileHover={{
-                            scale: 1.1,
-                            filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
-                            transition: { duration: 0.2, ease: 'easeInOut' }
-                        }}
-                    >
-                        <img
-                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
-                            alt="Continue to story"
-                            width="74"
-                            height="50"
-                        />
-                    </motion.button>
+                    {/* Scroll-down arrow — inside panel */}
+                    <div className="flex justify-center mt-8 pointer-events-auto">
+                        <motion.button
+                            onClick={onContinue}
+                            className="cursor-pointer"
+                            style={{ filter: 'brightness(0) opacity(0.5)' }}
+                            whileHover={{
+                                filter: 'brightness(0) opacity(1)',
+                                scale: 1.1,
+                                transition: { duration: 0.2, ease: 'easeInOut' }
+                            }}
+                        >
+                            <img
+                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
+                                alt="Continue to story"
+                                width="74"
+                                height="50"
+                            />
+                        </motion.button>
+                    </div>
                 </div>
             </motion.div>
         </div>

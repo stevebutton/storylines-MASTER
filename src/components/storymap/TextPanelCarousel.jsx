@@ -185,7 +185,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
 
   return (
     <motion.div
-      className="relative bg-white/80 backdrop-blur-md rounded-lg p-8 w-[400px] group shadow-lg"
+      className="relative bg-white/70 backdrop-blur-md rounded-lg p-8 w-[400px] group shadow-lg"
       variants={panelVariants}
       initial="hidden"
       animate="visible"
@@ -249,7 +249,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
                   exit: "exit"
                 })}
               >
-                <h3 className="text-2xl font-bold text-black text-right">
+                <h3 className="text-black text-right" style={{ fontSize: '1.5rem', fontWeight: 500 }}>
                   {slideTitle}
                 </h3>
               </motion.div>
@@ -308,7 +308,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
                 })}
               >
                 <span className="text-sm text-gray-600 text-right">{location}</span>
-                <div className="w-5 h-5 rounded-full bg-orange-500"></div>
+                <div className="w-10 h-10 rounded-full bg-orange-500"></div>
               </motion.div>
             )}
 

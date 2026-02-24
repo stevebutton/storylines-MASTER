@@ -50,9 +50,9 @@ export default function StoryMapBanner({
             )}
         >
             {/* Logo - Left */}
-            <Link 
+            <Link
                 to={createPageUrl('ProjectInterface')}
-                className="hidden md:block flex-shrink-0"
+                className="hidden md:block flex-shrink-0 ml-[100px]"
             >
                 <img 
                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png" 
