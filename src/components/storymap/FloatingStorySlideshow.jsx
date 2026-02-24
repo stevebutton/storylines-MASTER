@@ -4,6 +4,7 @@ import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 const stripHtml = (html) => {
     if (!html) return '';
@@ -13,6 +14,7 @@ const stripHtml = (html) => {
 };
 
 export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId }) {
+    const navigate = useNavigate();
     const [stories, setStories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [scrollPosition, setScrollPosition] = useState(0);
@@ -20,6 +22,14 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [targetUrl, setTargetUrl] = useState(null);
     const scrollContainerRef = React.useRef(null);
+
+    // When the panel closes (including after an in-page navigation), clear transition state
+    useEffect(() => {
+        if (!isOpen) {
+            setIsTransitioning(false);
+            setTargetUrl(null);
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (isOpen) {
@@ -95,18 +105,10 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                         transition={{ duration: 1, ease: 'easeInOut' }}
                         onAnimationComplete={() => {
                             if (targetUrl) {
-                                // Append a raw DOM overlay that survives React unmounting,
-                                // bridging the gap between React teardown and browser navigation.
-                                const el = document.createElement('div');
-                                el.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;pointer-events:none;';
-                                document.body.appendChild(el);
-                                // Double RAF ensures the browser paints the overlay
-                                // before we trigger navigation, preventing a 1-frame grey flash.
-                                requestAnimationFrame(() => {
-                                    requestAnimationFrame(() => {
-                                        window.location.href = targetUrl;
-                                    });
-                                });
+                                // SPA navigation — no page reload, no grey flash.
+                                // StoryMapView's reset effect will show its own black overlay
+                                // the moment the storyId changes in useSearchParams.
+                                navigate(targetUrl);
                             }
                         }}
                     />
