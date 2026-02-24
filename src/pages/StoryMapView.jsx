@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapBackground from '@/components/storymap/MapContainer';
@@ -15,10 +15,11 @@ import DocumentManagerContent from '@/components/documents/DocumentManagerConten
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
+import { useSearchParams } from 'react-router-dom';
 
 export default function StoryMapView() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const storyId = urlParams.get('id');
+    const [searchParams] = useSearchParams();
+    const storyId = searchParams.get('id');
 
     const [story, setStory] = useState(null);
     const [chapters, setChapters] = useState([]);
@@ -59,6 +60,45 @@ export default function StoryMapView() {
     // Prevents the onSlideChange isActive-effect call from restarting a flyTo
     // that onContinue/onExplore already started for the initial chapter activation.
     const suppressNextOnSlideChangeMapConfig = useRef(false);
+    // Tracks the previous storyId so we can detect a story switch.
+    const prevStoryIdRef = useRef(null);
+    // Holds the pending setShowBlackOverlay(false) timeout so we can cancel it on story switch.
+    const overlayTimeoutRef = useRef(null);
+
+    // When storyId changes (SPA story switch via navigate()), immediately raise
+    // the black overlay and reset all per-story visual state so the old story
+    // is never visible through the overlay. useLayoutEffect fires synchronously
+    // before the browser paints, closing any gap between the overlay disappearing
+    // in FloatingStorySlideshow and it appearing here.
+    useLayoutEffect(() => {
+        if (prevStoryIdRef.current !== null && prevStoryIdRef.current !== storyId) {
+            // Cancel any pending overlay-fade from the previous story
+            if (overlayTimeoutRef.current) {
+                clearTimeout(overlayTimeoutRef.current);
+                overlayTimeoutRef.current = null;
+            }
+            setShowBlackOverlay(true);
+            setActiveChapter(-1);
+            setHasExplored(false);
+            setHeroMediaLoaded(false);
+            setIsBannerVisible(false);
+            setIsStorySlideshowOpen(false);
+            setIsFullScreenOpen(false);
+            setStoryMarkers([]);
+            setActiveMarkerIdx(-1);
+            setTargetSlide(null);
+            setActiveLayerId(null);
+            setRouteCoordinates([]);
+            setClearRoute(false);
+            setLandingMarkers([]);
+            setIsChapterMenuOpen(false);
+            previousChapterRef.current = -1;
+            suppressNextOnSlideChangeMapConfig.current = false;
+            chapterRefs.current = [];
+            window.scrollTo(0, 0);
+        }
+        prevStoryIdRef.current = storyId;
+    }, [storyId]);
 
     useEffect(() => {
         loadStory();
@@ -448,7 +488,8 @@ export default function StoryMapView() {
                     }}
                     onHeroLoaded={() => {
                         setHeroMediaLoaded(true);
-                        setTimeout(() => setShowBlackOverlay(false), 6000);
+                        if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
+                        overlayTimeoutRef.current = setTimeout(() => setShowBlackOverlay(false), 6000);
                     }}
                 />
                 </div>
