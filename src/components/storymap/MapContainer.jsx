@@ -285,13 +285,19 @@ export default function MapBackground({
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: ${isActive ? 'default' : 'pointer'};
                 pointer-events: auto;
-                transition: background 0.3s ease, width 0.3s ease, height 0.3s ease;
+                opacity: 0;
+                transition: background 0.3s ease, width 0.3s ease, height 0.3s ease, opacity 500ms ease;
                 z-index: ${isActive ? '10' : '8'};
             `;
 
             const marker = new mapboxgl.Marker(el)
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
                 .addTo(map.current);
+
+            // Fade in after marker is in the DOM
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => { if (el) el.style.opacity = '1'; });
+            });
 
             // Previous markers: tooltip on hover with thumbnail + title, click to navigate
             if (!isActive) {
@@ -307,7 +313,7 @@ export default function MapBackground({
                         z-index: 9999;
                         left: ${rect.left + rect.width / 2}px;
                         top: ${rect.top - 8}px;
-                        transform: translateX(-50%) translateY(-100%);
+                        transform: translateX(-50%) translateY(calc(-100% + 10px));
                         min-width: 160px;
                         max-width: 220px;
                         background: white;
@@ -317,6 +323,8 @@ export default function MapBackground({
                         cursor: pointer;
                         pointer-events: auto;
                         font-family: system-ui, sans-serif;
+                        opacity: 0;
+                        transition: opacity 1000ms ease, transform 1000ms ease;
                     `;
                     tooltipEl.innerHTML = `
                         ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block;" />` : ''}
@@ -331,6 +339,14 @@ export default function MapBackground({
                         if (tooltipEl) { tooltipEl.remove(); tooltipEl = null; }
                     });
                     document.body.appendChild(tooltipEl);
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            if (tooltipEl) {
+                                tooltipEl.style.opacity = '1';
+                                tooltipEl.style.transform = 'translateX(-50%) translateY(-100%)';
+                            }
+                        });
+                    });
                 });
 
                 el.addEventListener('mouseleave', () => {
