@@ -14,8 +14,7 @@ import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsP
 
 export default function Stories() {
   const [stories, setStories] = useState([]);
-  const [storyThumbnails, setStoryThumbnails] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingStories, setIsLoadingStories] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -38,41 +37,24 @@ export default function Stories() {
   }, []);
 
   const loadStories = async () => {
-    setIsLoading(true);
+    setIsLoadingStories(true);
     try {
-      const user = await base44.auth.me();
+      // Fire all independent requests in parallel
+      const [user, data] = await Promise.all([
+        base44.auth.me(),
+        base44.entities.Story.list('-created_date')
+      ]);
       setCurrentUser(user);
-      
-      // Load all stories
-      const data = await base44.entities.Story.list('-created_date');
       setStories(data);
-      
-      // Load all users if admin
-      if (user.role === 'admin') {
-        const users = await base44.entities.User.list('full_name');
-        setAllUsers(users);
-      }
+      setIsLoadingStories(false);
 
-      // Load thumbnails for each story - prioritize hero_image, then first slide
-      const thumbnails = {};
-      for (const story of data) {
-        if (story.hero_image) {
-          thumbnails[story.id] = story.hero_image;
-        } else {
-          const chapters = await base44.entities.Chapter.filter({ story_id: story.id }, 'order', 1);
-          if (chapters.length > 0) {
-            const slides = await base44.entities.Slide.filter({ chapter_id: chapters[0].id }, 'order', 1);
-            if (slides.length > 0 && slides[0].image) {
-              thumbnails[story.id] = slides[0].image;
-            }
-          }
-        }
+      // Admin user list is secondary — load after stories are shown
+      if (user.role === 'admin') {
+        base44.entities.User.list('full_name').then(setAllUsers).catch(() => {});
       }
-      setStoryThumbnails(thumbnails);
     } catch (error) {
       console.error('Failed to load stories:', error);
-    } finally {
-      setIsLoading(false);
+      setIsLoadingStories(false);
     }
   };
 
@@ -231,12 +213,12 @@ export default function Stories() {
     }
   };
 
-  if (isLoading) {
+  if (isLoadingStories) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
-            </div>);
-
+        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+      </div>
+    );
   }
 
   return (
@@ -396,20 +378,20 @@ export default function Stories() {
                         {filteredAndSortedStories.map((story) =>
           <Card key={story.id} className="group hover:shadow-lg transition-shadow overflow-hidden">
                                 <CardContent className="p-0">
-                                    {/* Thumbnail */}
-                                    {storyThumbnails[story.id] ?
-              <div className="h-20 md:h-32 w-full overflow-hidden">
+                                    {/* Thumbnail — uses dedicated thumbnail field, falls back to hero image */}
+                                    {(story.thumbnail || story.hero_image) ? (
+                                        <div className="h-20 md:h-32 w-full overflow-hidden">
                                             <img
-                  src={storyThumbnails[story.id]}
-                  alt={story.title}
-                  className="w-full h-full object-cover" />
-
-                                        </div> :
-
-              <div className="h-20 md:h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                                src={story.thumbnail || story.hero_image}
+                                                alt={story.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="h-20 md:h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
                                             <Map className="w-5 h-5 md:w-8 md:h-8 text-slate-300" />
                                         </div>
-              }
+                                    )}
 
                                     {/* Status bar */}
                                     <div className={`px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between ${story.is_main_story ? 'bg-purple-50' : story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
