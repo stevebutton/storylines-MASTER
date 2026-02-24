@@ -5,13 +5,15 @@ import { ChevronDown } from 'lucide-react';
 export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines, onHeroLoaded }) {
   const [mediaLoaded, setMediaLoaded] = useState(false);
 
-  // Call onHeroLoaded immediately if no hero media
+  // Call onHeroLoaded immediately if no hero media.
+  // Deps include heroImage/heroVideo so this re-fires on SPA story switches
+  // where StoryHeader stays mounted but receives new props.
   React.useEffect(() => {
     if (!heroImage && !heroVideo && onHeroLoaded) {
       setMediaLoaded(true);
       onHeroLoaded();
     }
-  }, []);
+  }, [heroImage, heroVideo]);
 
   const handleMediaLoad = () => {
     setMediaLoaded(true);
