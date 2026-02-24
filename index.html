@@ -9,6 +9,22 @@
     <title>Base44 APP</title>
   </head>
   <body style="background: #000; margin: 0;">
+    <!-- Pre-React loader: visible from first browser paint, removed once React mounts -->
+    <style>
+      @keyframes _pl-spin { to { transform: rotate(360deg); } }
+      #page-loader {
+        position: fixed; inset: 0; background: #000;
+        z-index: 99999; pointer-events: none;
+        display: flex; align-items: center; justify-content: center;
+      }
+      #page-loader-spinner {
+        width: 40px; height: 40px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-top-color: #fff;
+        animation: _pl-spin 0.8s linear infinite;
+      }
+    </style>
+    <div id="page-loader"><div id="page-loader-spinner"></div></div>
     <div id="root" style="background: #000;"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
