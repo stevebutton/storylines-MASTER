@@ -109,13 +109,13 @@ export default function FullScreenImageViewer({
                         className="fixed inset-0 z-[9998] bg-white overflow-y-auto pointer-events-auto"
                     >
                         {/* Consolidated controls: back · close · next */}
-                        <div className="absolute bottom-[80px] left-1/2 -translate-x-1/2 z-50 w-[300px] flex items-center justify-between">
+                        <div className="absolute bottom-[80px] left-1/2 -translate-x-1/2 z-50 w-[240px] flex items-center justify-between">
                             <button
                                 onClick={handlePrevious}
                                 disabled={!hasMultipleSlides}
                                 className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                             >
-                                <ChevronLeft className="w-8 h-8 text-slate-700" />
+                                <ChevronLeft className="w-6 h-6 text-slate-700" />
                             </button>
                             <button
                                 onClick={onClose}
@@ -128,7 +128,7 @@ export default function FullScreenImageViewer({
                                 disabled={!hasMultipleSlides}
                                 className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                             >
-                                <ChevronRight className="w-8 h-8 text-slate-700" />
+                                <ChevronRight className="w-6 h-6 text-slate-700" />
                             </button>
                         </div>
 
