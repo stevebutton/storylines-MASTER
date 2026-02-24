@@ -108,31 +108,29 @@ export default function FullScreenImageViewer({
                         transition={{ duration: 1.5, ease: "easeOut" }}
                         className="fixed inset-0 z-[9998] bg-white overflow-y-auto pointer-events-auto"
                     >
-                        {/* Close Button */}
-                        <button
-                            onClick={onClose}
-                            className="absolute top-[144px] right-6 z-50 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
-                        >
-                            <X className="w-6 h-6 text-slate-700" />
-                        </button>
-
-                        {/* Navigation Buttons */}
-                        {hasMultipleSlides && (
-                            <>
-                                <button
-                                    onClick={handlePrevious}
-                                    className="absolute left-6 bottom-[20vh] z-50 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
-                                >
-                                    <ChevronLeft className="w-8 h-8 text-slate-700" />
-                                </button>
-                                <button
-                                    onClick={handleNext}
-                                    className="absolute right-6 bottom-[20vh] z-50 bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
-                                >
-                                    <ChevronRight className="w-8 h-8 text-slate-700" />
-                                </button>
-                            </>
-                        )}
+                        {/* Consolidated controls: back · close · next */}
+                        <div className="absolute bottom-[80px] left-1/2 -translate-x-1/2 z-50 w-[300px] flex items-center justify-between">
+                            <button
+                                onClick={handlePrevious}
+                                disabled={!hasMultipleSlides}
+                                className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronLeft className="w-8 h-8 text-slate-700" />
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                            >
+                                <X className="w-6 h-6 text-slate-700" />
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                disabled={!hasMultipleSlides}
+                                className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronRight className="w-8 h-8 text-slate-700" />
+                            </button>
+                        </div>
 
                         {/* Image or Video Display */}
                         <div className="relative w-full h-full flex items-center justify-center z-10">
