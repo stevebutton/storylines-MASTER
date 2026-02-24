@@ -32,7 +32,29 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
         try {
             const allStories = await base44.entities.Story.filter({ is_published: true });
             const otherStories = allStories.filter(s => s.id !== currentStoryId);
-            setStories(otherStories);
+
+            // For stories without a hero image, fetch chapter 1 slide 1 as fallback
+            const needFallback = otherStories.filter(s => !s.hero_image);
+            const fallbackImages = {};
+
+            await Promise.all(needFallback.map(async (story) => {
+                try {
+                    const chapters = await base44.entities.Chapter.filter({ story_id: story.id });
+                    if (!chapters.length) return;
+                    const firstChapter = chapters.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0];
+                    const slides = await base44.entities.Slide.filter({ chapter_id: firstChapter.id });
+                    if (!slides.length) return;
+                    const firstSlide = slides.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0];
+                    if (firstSlide.image) fallbackImages[story.id] = firstSlide.image;
+                } catch {
+                    // silently skip — thumbnail will just be absent
+                }
+            }));
+
+            setStories(otherStories.map(s => ({
+                ...s,
+                display_image: s.hero_image || fallbackImages[s.id] || null
+            })));
         } catch (error) {
             console.error('Failed to load stories:', error);
         } finally {
@@ -188,11 +210,11 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                                     className="flex-shrink-0 w-60 bg-white rounded-xl border border-slate-200 overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-shadow"
                                                     onClick={() => handleStoryClick(story.id)}
                                                 >
-                                                    {/* Thumbnail */}
-                                                    {story.hero_image && (
+                                                    {/* Thumbnail — hero image with chapter 1 slide 1 as fallback */}
+                                                    {story.display_image && (
                                                         <div className="w-full h-32 bg-slate-200 overflow-hidden">
                                                             <img
-                                                                src={story.hero_image}
+                                                                src={story.display_image}
                                                                 alt={story.title}
                                                                 className="w-full h-full object-cover"
                                                             />
