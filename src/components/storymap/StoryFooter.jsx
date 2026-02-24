@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp, LogIn, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 
 export default function StoryFooter({ onRestart, onViewOtherStories, storyId, isVisible = true, onOpenLibrary, relatedStories = [], currentCategory }) {
+    const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEditTransitioning, setIsEditTransitioning] = useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -33,7 +35,28 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
         base44.auth.logout();
     };
 
+    const handleEditStory = () => {
+        setIsEditTransitioning(true);
+    };
+
     return (
+        <>
+        {/* White dissolve overlay — sits below both fixed chrome bars (z-9999, z-10000)
+            so they appear to hold their positions while only map/content fades away */}
+        <AnimatePresence>
+            {isEditTransitioning && (
+                <motion.div
+                    className="fixed inset-0 bg-white pointer-events-all"
+                    style={{ zIndex: 9998 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    onAnimationComplete={() => {
+                        navigate(`${createPageUrl('StoryEditor')}?id=${storyId}`);
+                    }}
+                />
+            )}
+        </AnimatePresence>
         <div className="min-h-screen flex items-center justify-center relative">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
             
@@ -150,17 +173,17 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
 
                 {/* Edit Story Button */}
                 {storyId && (
-                    <Link
-                        to={`${createPageUrl('StoryEditor')}?id=${storyId}`}
+                    <button
+                        onClick={handleEditStory}
                         className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                     >
-                        <img 
+                        <img
                             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/44e8e4095_EditStory.png"
                             alt="Edit Story"
                             width="50"
                             height="100"
                         />
-                    </Link>
+                    </button>
                 )}
 
                 {/* Library Button */}
@@ -202,5 +225,6 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
                 )}
             </div>
         </div>
+        </>
     );
 }

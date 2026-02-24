@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -276,7 +277,12 @@ export default function StoryEditor() {
     }
 
     return (
-        <div className="min-h-screen bg-white p-0 md:p-[50px]">
+        <motion.div
+            className="min-h-screen bg-white p-0 md:p-[50px]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+        >
             <div className="min-h-screen bg-slate-50 flex flex-col">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
@@ -518,6 +524,6 @@ export default function StoryEditor() {
                 }}
             />
         </div>
-        </div>
+        </motion.div>
     );
 }
