@@ -357,11 +357,7 @@ export default function StoryMapView() {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
                     >
-                        {isLoading && (
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-                            </div>
-                        )}
+                        <div className="w-10 h-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
                     </motion.div>
                 )}
             </AnimatePresence>

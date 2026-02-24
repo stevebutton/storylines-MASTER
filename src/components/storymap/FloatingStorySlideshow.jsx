@@ -100,7 +100,13 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                 const el = document.createElement('div');
                                 el.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;pointer-events:none;';
                                 document.body.appendChild(el);
-                                window.location.href = targetUrl;
+                                // Double RAF ensures the browser paints the overlay
+                                // before we trigger navigation, preventing a 1-frame grey flash.
+                                requestAnimationFrame(() => {
+                                    requestAnimationFrame(() => {
+                                        window.location.href = targetUrl;
+                                    });
+                                });
                             }
                         }}
                     />
