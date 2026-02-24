@@ -489,7 +489,7 @@ export default function StoryMapView() {
                     onHeroLoaded={() => {
                         setHeroMediaLoaded(true);
                         if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
-                        overlayTimeoutRef.current = setTimeout(() => setShowBlackOverlay(false), 6000);
+                        overlayTimeoutRef.current = setTimeout(() => setShowBlackOverlay(false), 1000);
                     }}
                 />
                 </div>
