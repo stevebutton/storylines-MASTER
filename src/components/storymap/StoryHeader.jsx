@@ -5,10 +5,12 @@ import { ChevronDown } from 'lucide-react';
 export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines, onHeroLoaded }) {
   const [mediaLoaded, setMediaLoaded] = useState(false);
 
-  // Call onHeroLoaded immediately if no hero media.
-  // Deps include heroImage/heroVideo so this re-fires on SPA story switches
-  // where StoryHeader stays mounted but receives new props.
+  // When hero props change (including on SPA story switches where this component
+  // stays mounted), reset mediaLoaded so the content panel unmounts and its
+  // Framer Motion animations replay from scratch for the incoming story.
+  // For no-hero stories, immediately re-set to true and fire onHeroLoaded.
   React.useEffect(() => {
+    setMediaLoaded(false);
     if (!heroImage && !heroVideo && onHeroLoaded) {
       setMediaLoaded(true);
       onHeroLoaded();
