@@ -38,7 +38,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           onLoadedData={handleMediaLoad}
           initial={{ scale: 1.25, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 3, ease: "easeOut" }}
+          transition={{ duration: 5, ease: "easeOut", delay: 1 }}
         />
       ) : heroImage ? (
         <motion.img
@@ -48,7 +48,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           onLoad={handleMediaLoad}
           initial={{ scale: 1.25, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 3, ease: "easeOut" }}
+          transition={{ duration: 5, ease: "easeOut", delay: 1 }}
         />
       ) : null}
 
@@ -61,7 +61,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           data-name="content-panel"
           initial={{ translateY: '-100%', opacity: 0 }}
           animate={{ translateY: '0', opacity: 1 }}
-          transition={{ duration: 3, ease: [0.42, 0, 1, 1], delay: 2 }}
+          transition={{ duration: 3, ease: [0.42, 0, 1, 1], delay: 3 }}
         >
           {/* Pin Icon */}
           <motion.img
@@ -71,7 +71,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             data-name="pin-icon"
             initial={{ translateY: '-50px', opacity: 0 }}
             animate={{ translateY: '0', opacity: 1 }}
-            transition={{ duration: 2, delay: 6 }}
+            transition={{ duration: 2, delay: 7 }}
           />
 
           {/* Title and Description Container */}
@@ -83,7 +83,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
               data-name="story-title"
               initial={{ translateX: '100px', opacity: 0 }}
               animate={{ translateX: '0', opacity: 1 }}
-              transition={{ duration: 2, delay: 5 }}
+              transition={{ duration: 2, delay: 6 }}
             >
               {title}
             </motion.h1>
@@ -95,7 +95,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
               data-name="story-description"
               initial={{ translateY: '100px', opacity: 0 }}
               animate={{ translateY: '0', opacity: 1 }}
-              transition={{ duration: 1, delay: 5 }}
+              transition={{ duration: 1, delay: 6 }}
               dangerouslySetInnerHTML={{ __html: subtitle }}
             />
           </div>
@@ -107,8 +107,8 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             data-name="scroll-arrow"
             initial={{ translateY: '50px', opacity: 0 }}
             animate={{ translateY: '0', opacity: 1 }}
-            transition={{ duration: 2, delay: 6 }}
-            whileHover={{ 
+            transition={{ duration: 2, delay: 7 }}
+            whileHover={{
               scale: 1.1,
               filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
               transition: { duration: 0.2, ease: 'easeInOut' }
