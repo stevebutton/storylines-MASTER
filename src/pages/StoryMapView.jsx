@@ -448,7 +448,26 @@ export default function StoryMapView() {
                         <ProjectDescriptionSection
                             storyTitle={story.title}
                             description={story.story_description}
-                            onContinue={() => navigateToChapter(0)}
+                            onContinue={() => {
+                                navigateToChapter(0);
+                                if (chapters.length > 0 && chapters[0].slides?.length > 0) {
+                                    const firstSlide = chapters[0].slides[0];
+                                    if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) &&
+                                        firstSlide.coordinates.length === 2 &&
+                                        !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                        setMapConfig({
+                                            center: firstSlide.coordinates,
+                                            offset: [-200, 0],
+                                            zoom: firstSlide.zoom || 12,
+                                            bearing: firstSlide.bearing || 0,
+                                            pitch: firstSlide.pitch || 0,
+                                            mapStyle: story.map_style || 'light',
+                                            shouldRotate: true,
+                                            flyDuration: firstSlide.fly_duration || 8
+                                        });
+                                    }
+                                }
+                            }}
                         />
                     </div>
                 )}
