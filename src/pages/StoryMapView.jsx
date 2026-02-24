@@ -61,7 +61,8 @@ export default function StoryMapView() {
         loadStory();
     }, [storyId]);
 
-    // Set initial map config from story opening view
+    // Set initial map config from story opening view — jump instantly (no animation)
+    // because the black overlay is covering the map at this point
     useEffect(() => {
         if (story && story.coordinates) {
             setMapConfig(prev => ({
@@ -70,7 +71,8 @@ export default function StoryMapView() {
                 zoom: story.zoom || 2,
                 mapStyle: story.map_style || 'light',
                 bearing: story.bearing || 0,
-                pitch: story.pitch || 0
+                pitch: story.pitch || 0,
+                instant: true
             }));
         }
     }, [story]);
@@ -373,6 +375,7 @@ export default function StoryMapView() {
                 mapStyle={mapConfig.mapStyle}
                 shouldRotate={mapConfig.shouldRotate}
                 flyDuration={mapConfig.flyDuration}
+                instant={mapConfig.instant}
                 routeCoordinates={routeCoordinates}
                 clearRoute={clearRoute}
                 onRouteCleared={() => setClearRoute(false)}
