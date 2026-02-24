@@ -28,6 +28,7 @@ export default function TabbedContentEditor({
     const [isUploadingVideo, setIsUploadingVideo] = useState(false);
     const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
     const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
+    const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
     const [showDocumentPicker, setShowDocumentPicker] = useState(false);
 
     // Handle missing item
@@ -64,6 +65,18 @@ export default function TabbedContentEditor({
                 onUpdate({ ...item, hero_video: file_url, hero_type: 'video' });
             } finally {
                 setIsUploadingHeroVideo(false);
+            }
+        };
+
+        const handleThumbnailUpload = async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setIsUploadingThumbnail(true);
+            try {
+                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                onUpdate({ ...item, thumbnail: file_url });
+            } finally {
+                setIsUploadingThumbnail(false);
             }
         };
 
@@ -244,6 +257,32 @@ export default function TabbedContentEditor({
                                     </label>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Story Thumbnail */}
+                        <div>
+                            <Label>Story Thumbnail</Label>
+                            <p className="text-xs text-slate-500 mt-0.5 mb-2">
+                                Shown in story browser cards. Use a still image even if the hero is a video.
+                            </p>
+                            {item.thumbnail && (
+                                <div className="relative w-full h-32 rounded-lg overflow-hidden border mb-2">
+                                    <img src={item.thumbnail} alt="Thumbnail" className="w-full h-full object-cover" />
+                                    <button
+                                        onClick={() => onUpdate({ ...item, thumbnail: '' })}
+                                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+                            <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="hidden" id="story-thumbnail" />
+                            <label htmlFor="story-thumbnail">
+                                <Button type="button" variant="outline" disabled={isUploadingThumbnail} onClick={() => document.getElementById('story-thumbnail').click()}>
+                                    {isUploadingThumbnail ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                                    {item.thumbnail ? 'Replace Thumbnail' : 'Upload Thumbnail'}
+                                </Button>
+                            </label>
                         </div>
 
                         <div className="space-y-3">
