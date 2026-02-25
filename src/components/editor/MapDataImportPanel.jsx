@@ -34,7 +34,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
             // Upload zip file
             const { file_url } = await base44.integrations.Core.UploadFile({ file: file });
 
-            // Process zip and create story structure
+            // Process zip: extract images, create Story/Chapter/Slide entities, return story_id
             const { data: response } = await base44.functions.invoke('processZipForStory', {
                 zip_url: file_url
             });
@@ -56,29 +56,27 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         setStep('generating_descriptions');
 
         try {
-            console.log('Calling generateStoryDescriptions with:', { story_id: currentStoryId, config });
-            const response = await base44.functions.invoke('generateStoryDescriptions', {
+            const { data: response } = await base44.functions.invoke('generateStoryDescriptions', {
                 story_id: currentStoryId,
                 caption_voice: config.caption_voice,
                 custom_caption_voice_description: config.custom_caption_voice_description,
                 story_context: config.story_context
             });
 
-            console.log('Response from generateStoryDescriptions:', response);
-
-            if (response.data?.overview) {
-                setStoryOverview(response.data.overview);
+            if (response?.overview) {
+                setStoryOverview(response.overview);
                 setStep('overview');
-                setIsProcessing(false);
             } else {
-                throw new Error('Invalid response format - missing overview data');
+                throw new Error('Invalid response — missing overview data');
             }
         } catch (error) {
             console.error('Failed to generate descriptions:', error);
             toast.error(`Failed to generate descriptions: ${error.message}`);
+            // Return to upload so the user can start fresh — don't loop back to voice selection
             setStep('upload');
             setZipFile(null);
             setCurrentStoryId(null);
+        } finally {
             setIsProcessing(false);
         }
     };
@@ -86,6 +84,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
     const resetPanel = () => {
         setZipFile(null);
         setCurrentStoryId(null);
+        setStoryOverview(null);
         setStep('upload');
         setIsProcessing(false);
     };
@@ -138,6 +137,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
 
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6">
+
                             {/* Upload Step */}
                             {step === 'upload' && (
                                 <div className="space-y-6">
@@ -173,7 +173,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                         Processing Field Documentation...
                                     </h3>
                                     <p className="text-sm text-slate-600">
-                                        Extracting location data, uploading images, and organizing into chapters
+                                        Extracting location data, uploading images, and organising into chapters
                                     </p>
                                 </div>
                             )}
@@ -256,14 +256,11 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 )}
             </AnimatePresence>
 
-            {/* Voice Selection Modal */}
+            {/* Voice Selection Modal — rendered outside the panel so it layers correctly */}
             {step === 'voice_selection' && (
                 <VoiceSelectionPanel
                     isOpen={true}
-                    onClose={() => {
-                        resetPanel();
-                        onClose();
-                    }}
+                    onClose={handleClose}
                     onContinue={handleVoiceContinue}
                 />
             )}
