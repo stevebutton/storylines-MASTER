@@ -331,13 +331,13 @@ export default function MapBackground({
                 width: ${isActive ? '36px' : '24px'};
                 height: ${isActive ? '36px' : '24px'};
                 border-radius: 50%;
-                background: ${isActive ? chapterColor.main : 'rgba(0,0,0,0.5)'};
+                background: ${chapterColor.main};
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: ${isActive ? 'default' : 'pointer'};
                 pointer-events: auto;
                 opacity: 0;
-                transition: background 0.3s ease, width 0.3s ease, height 0.3s ease, opacity 500ms ease;
+                transition: opacity 300ms ease, width 0.3s ease, height 0.3s ease;
                 z-index: ${isActive ? '10' : '8'};
             `;
 
@@ -345,9 +345,9 @@ export default function MapBackground({
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
                 .addTo(map.current);
 
-            // Fade in after marker is in the DOM
+            // Fade in after marker is in the DOM — inactive markers rest at 50% opacity
             requestAnimationFrame(() => {
-                requestAnimationFrame(() => { if (el) el.style.opacity = '1'; });
+                requestAnimationFrame(() => { if (el) el.style.opacity = isActive ? '1' : '0.5'; });
             });
 
             // Previous markers: tooltip on hover with thumbnail + title, click to navigate
@@ -355,6 +355,7 @@ export default function MapBackground({
                 let tooltipEl = null;
 
                 el.addEventListener('mouseenter', () => {
+                    el.style.opacity = '1';
                     if (tooltipEl) return;
                     const rect = el.getBoundingClientRect();
                     tooltipEl = document.createElement('div');
@@ -401,6 +402,7 @@ export default function MapBackground({
                 });
 
                 el.addEventListener('mouseleave', () => {
+                    el.style.opacity = '0.5';
                     setTimeout(() => {
                         if (tooltipEl && !tooltipEl.matches(':hover')) {
                             tooltipEl.remove();

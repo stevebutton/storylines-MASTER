@@ -75,7 +75,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
 
     if (!slides || slides.length === 0) return null;
 
-    // Single slide — no nav controls, just the expand button
+    // Single slide — no nav controls needed
     if (slides.length === 1) {
         return (
             <div>
@@ -126,15 +126,6 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
 
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-
-            {/* Explicit expand button — top-right corner */}
-            <button
-                onClick={() => onImageClick?.(selectedIndex)}
-                className="absolute top-2 right-2 z-10 w-7 h-7 rounded-md bg-black/30 backdrop-blur-sm hover:bg-black/50 flex items-center justify-center transition-colors"
-                aria-label="View fullscreen"
-            >
-                <Maximize2 className="w-3.5 h-3.5 text-white" />
-            </button>
 
             {/* Navigation strip — overlaid at bottom of image with 30% opacity background */}
             <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-3 py-2 bg-black/30 backdrop-blur-sm">
