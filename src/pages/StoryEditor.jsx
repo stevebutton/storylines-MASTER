@@ -205,17 +205,28 @@ export default function StoryEditor() {
             try {
                 const resp = await fetch(
                     `https://api.mapbox.com/directions/v5/mapbox/driving/${waypoints}` +
-                    `?geometries=geojson&overview=full&access_token=${token}`
+                    `?geometries=geojson&overview=simplified&access_token=${token}`
                 );
                 const data = await resp.json();
                 if (data.routes?.[0]?.geometry?.coordinates) {
+                    let coords = data.routes[0].geometry.coordinates;
+                    // Cap at 300 points to stay well within DB field size limits
+                    if (coords.length > 300) {
+                        const step = Math.ceil(coords.length / 300);
+                        const sampled = coords.filter((_, i) => i % step === 0);
+                        if (sampled[sampled.length - 1] !== coords[coords.length - 1]) {
+                            sampled.push(coords[coords.length - 1]);
+                        }
+                        coords = sampled;
+                    }
                     // Convert Directions API [lng,lat] → internal [lat,lng]
-                    const routeGeometry = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                    // Use the full chapter object so we never risk wiping other fields
+                    const routeGeometry = coords.map(c => [c[1], c[0]]);
+                    console.log(`[route-debug] chapter ${chapter.id}: saving ${routeGeometry.length} pts`);
                     await base44.entities.Chapter.update(chapter.id, { ...chapter, route_geometry: routeGeometry });
                     successCount++;
                 }
             } catch (e) {
+                console.error('[route-debug] chapter update failed:', e);
                 // Skip failed chapter (sea crossing, remote area, etc.) — continue
             }
         }
