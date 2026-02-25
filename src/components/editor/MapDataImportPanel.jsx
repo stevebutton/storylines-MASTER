@@ -13,9 +13,9 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [zipFile, setZipFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [step, setStep] = useState('upload'); // upload, voice, processing, preview, creating
+    const [step, setStep] = useState('upload'); // upload, uploading, preview, voice, generating, complete
     const [extractedData, setExtractedData] = useState(null);
-    const [storyTitle, setStoryTitle] = useState('');
+    const [storyId, setStoryId] = useState(null);
     const [voiceConfig, setVoiceConfig] = useState(null);
 
     const handleFileUpload = (e) => {
@@ -27,62 +27,70 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         }
     };
 
-    const handleVoiceContinue = (config) => {
-        setVoiceConfig(config);
-        setStep('upload');
-        processFiles(config);
-    };
-
-    const processFiles = async (config) => {
-        if (!zipFile || !config) return;
+    const handleUploadZip = async () => {
+        if (!zipFile) return;
 
         setIsProcessing(true);
-        setStep('processing');
+        setStep('uploading');
 
         try {
             // Upload zip file
             const { file_url } = await base44.integrations.Core.UploadFile({ file: zipFile });
 
-            // Process zip file with backend function
+            // Process zip file to extract images and structure
             const { data: response } = await base44.functions.invoke('processZipForStory', {
-                zip_url: file_url,
-                caption_voice: config.caption_voice,
-                custom_caption_voice_description: config.custom_caption_voice_description,
-                story_context: config.story_context
+                zip_url: file_url
             });
 
             setExtractedData(response);
-            setStoryTitle(response.title);
             setStep('preview');
         } catch (error) {
-            console.error('Failed to process zip file:', error);
-            alert('Failed to process zip file. Please try again.');
+            console.error('Failed to upload zip file:', error);
+            alert('Failed to upload zip file. Please try again.');
             setStep('upload');
         } finally {
             setIsProcessing(false);
         }
     };
 
-    const createStory = async () => {
+    const handleVoiceContinue = async (config) => {
+        setVoiceConfig(config);
         setIsProcessing(true);
-        setStep('creating');
+        setStep('generating');
 
         try {
-            // Truncate title if exceeds limit
-            let finalTitle = storyTitle || extractedData.title;
-            if (finalTitle.length > 34) {
-                finalTitle = finalTitle.substring(0, 34);
-            }
+            // Generate descriptions using the separate function
+            const { data: response } = await base44.functions.invoke('generateStoryDescriptions', {
+                story_id: storyId,
+                caption_voice: config.caption_voice,
+                custom_caption_voice_description: config.custom_caption_voice_description,
+                story_context: config.story_context
+            });
 
-            // Create story
+            setStep('complete');
+            
+            setTimeout(() => {
+                navigate(`${createPageUrl('StoryEditor')}?id=${storyId}`);
+            }, 1500);
+        } catch (error) {
+            console.error('Failed to generate descriptions:', error);
+            alert('Failed to generate descriptions. Please try again.');
+            setStep('preview');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const createStoryStructure = async () => {
+        setIsProcessing(true);
+
+        try {
+            // Create story with placeholder title
             const newStory = await base44.entities.Story.create({
-                title: finalTitle,
-                subtitle: extractedData.subtitle,
+                title: 'Untitled Story',
+                subtitle: '',
                 category: 'travel',
-                is_published: false,
-                caption_voice: voiceConfig?.caption_voice,
-                custom_caption_voice_description: voiceConfig?.custom_caption_voice_description,
-                story_context: voiceConfig?.story_context
+                is_published: false
             });
 
             // Create chapters and slides
@@ -95,15 +103,13 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                     alignment: 'left'
                 });
 
-                // Create slides for this chapter
+                // Create slides for this chapter (without descriptions yet)
                 for (let j = 0; j < chapterData.slides.length; j++) {
                     const slideData = chapterData.slides[j];
                     await base44.entities.Slide.create({
                         chapter_id: newChapter.id,
                         order: j,
-                        title: slideData.title,
-                        description: slideData.description,
-                        location: slideData.location,
+                        title: 'Slide ' + (j + 1),
                         image: slideData.image_url,
                         coordinates: slideData.coordinates,
                         zoom: 12
@@ -111,11 +117,13 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 }
             }
 
-            setTimeout(() => {
-                navigate(`${createPageUrl('StoryEditor')}?id=${newStory.id}`);
-            }, 1000);
+            setStoryId(newStory.id);
+            setStep('voice');
         } catch (error) {
-            console.error('Failed to create story:', error);
+            console.error('Failed to create story structure:', error);
+            alert('Failed to create story structure. Please try again.');
+            setStep('preview');
+        } finally {
             setIsProcessing(false);
         }
     };
@@ -123,7 +131,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
     const resetPanel = () => {
         setZipFile(null);
         setExtractedData(null);
-        setStoryTitle('');
+        setStoryId(null);
         setVoiceConfig(null);
         setStep('upload');
         setIsProcessing(false);
@@ -210,25 +218,26 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                                 </div>
                                             </div>
                                             <Button 
-                                               onClick={() => setStep('voice')}
+                                                onClick={handleUploadZip}
                                                 className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
+                                                disabled={isProcessing}
                                             >
-                                                Continue to Caption Voice Selection
+                                                Upload and Extract Images
                                             </Button>
-                                            </div>
-                                            )}
-                                            </div>
-                                            )}
+                                        </div>
+                                    )}
+                                    </div>
+                                    )}
 
-                            {/* Processing Step */}
-                            {step === 'processing' && (
+                            {/* Uploading Step */}
+                            {step === 'uploading' && (
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <Loader2 className="w-16 h-16 animate-spin text-blue-600 mb-4" />
                                     <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                                        Processing Field Documentation...
+                                        Uploading and Extracting Images...
                                     </h3>
                                     <p className="text-sm text-slate-600">
-                                        We're extracting location data and organizing content into chapters
+                                        We're extracting location data and organizing images into chapters
                                     </p>
                                 </div>
                             )}
@@ -236,13 +245,14 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                             {/* Preview Step */}
                             {step === 'preview' && extractedData && (
                                 <div className="space-y-6">
-                                    <div>
-                                        <Label>Story Title</Label>
-                                        <Input
-                                            value={storyTitle}
-                                            onChange={(e) => setStoryTitle(e.target.value)}
-                                            className="mt-2"
-                                        />
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <CheckCircle className="w-5 h-5 text-green-600" />
+                                            <h3 className="font-semibold text-green-800">Upload Complete</h3>
+                                        </div>
+                                        <p className="text-sm text-green-700">
+                                            All images have been successfully uploaded and organized.
+                                        </p>
                                     </div>
 
                                     <div>
@@ -254,22 +264,15 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                                 <div key={idx} className="border rounded-lg p-4">
                                                     <div className="flex items-start gap-4">
                                                         <div className="w-20 h-20 rounded bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                                            <MapPin className="w-6 h-6 text-blue-600" />
+                                                            <Image className="w-6 h-6 text-blue-600" />
                                                         </div>
                                                         <div className="flex-1">
                                                             <h4 className="font-semibold text-slate-800 mb-1">
                                                                 Chapter {idx + 1}: {chapter.folder_name}
                                                             </h4>
                                                             <p className="text-sm text-slate-600 mb-2">
-                                                                {chapter.slides.length} slide{chapter.slides.length !== 1 ? 's' : ''}
+                                                                {chapter.slides.length} image{chapter.slides.length !== 1 ? 's' : ''}
                                                             </p>
-                                                            <div className="mt-2 space-y-1">
-                                                                {chapter.slides.map((slide, slideIdx) => (
-                                                                    <div key={slideIdx} className="text-xs text-slate-500 pl-4 border-l-2 border-slate-200">
-                                                                        {slide.title} - {slide.location}
-                                                                    </div>
-                                                                ))}
-                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -286,24 +289,38 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                             Start Over
                                         </Button>
                                         <Button
-                                            onClick={createStory}
+                                            onClick={createStoryStructure}
                                             className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                            disabled={isProcessing}
                                         >
-                                            Create Story
+                                            Continue to Voice Selection
                                         </Button>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Creating Step */}
-                            {step === 'creating' && (
+                            {/* Generating Step */}
+                            {step === 'generating' && (
+                                <div className="flex flex-col items-center justify-center py-20">
+                                    <Loader2 className="w-16 h-16 animate-spin text-blue-600 mb-4" />
+                                    <h3 className="text-xl font-semibold text-slate-800 mb-2">
+                                        Generating Captions and Descriptions...
+                                    </h3>
+                                    <p className="text-sm text-slate-600">
+                                        AI is analyzing your images and creating contextual narratives
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Complete Step */}
+                            {step === 'complete' && (
                                 <div className="flex flex-col items-center justify-center py-20">
                                     <CheckCircle className="w-16 h-16 text-green-600 mb-4" />
                                     <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                                        Building Your Narrative...
+                                        Story Created Successfully!
                                     </h3>
                                     <p className="text-sm text-slate-600">
-                                        We're organizing chapters and integrating your documentation
+                                        Redirecting to the story editor...
                                     </p>
                                 </div>
                             )}

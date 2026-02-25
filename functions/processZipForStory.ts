@@ -110,18 +110,14 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { zip_url, caption_voice, custom_caption_voice_description, story_context } = await req.json();
+        const { zip_url } = await req.json();
 
         if (!zip_url) {
             return Response.json({ error: 'zip_url is required' }, { status: 400 });
         }
 
-        // Default to 'berger' voice if not specified
-        const selectedVoice = caption_voice || 'berger';
-
         console.log('📦 Processing zip file:', zip_url);
-        console.log('🎤 Voice config:', { caption_voice: selectedVoice, has_custom_description: !!custom_caption_voice_description, has_context: !!story_context });
-        console.log('⏱️ Process started at:', new Date().toISOString());
+        console.log('⏱️ Upload process started at:', new Date().toISOString());
         
         // Extract folder structure
         console.log('⏱️ Starting folder extraction...');
@@ -174,9 +170,20 @@ Deno.serve(async (req) => {
         }
         
         console.log(`✅ Processed ${chapters.length} chapters with total ${chapters.reduce((sum, c) => sum + c.slides.length, 0)} slides`);
-        console.log('⏱️ Image processing completed at:', new Date().toISOString());
+        console.log('⏱️ Image upload completed at:', new Date().toISOString());
         
-        // Get voice system prompt
+        return Response.json({
+            chapters: chapters
+        });
+        
+    } catch (error) {
+        console.error('❌ Error processing zip file:', error);
+        console.error('❌ Error occurred at:', new Date().toISOString());
+        return Response.json({ error: error.message }, { status: 500 });
+    }
+});
+
+/* REMOVED - moved to generateStoryDescriptions function
         const getVoiceSystemPrompt = (voice, customDescription) => {
             const voicePrompts = {
                 berger: `You are analyzing photographs for a map-based storytelling application. Generate captions that embody John Berger's critical approach from "Ways of Seeing."
@@ -306,136 +313,4 @@ Apply this perspective consistently across all captions while remaining attentiv
 
             return voicePrompts[voice] || voicePrompts.berger;
         };
-
-        const voiceSystemPrompt = getVoiceSystemPrompt(selectedVoice, custom_caption_voice_description);
-
-        // Build story context string
-        let contextString = '';
-        if (story_context) {
-            contextString = `
-STORY CONTEXT:
-${story_context.story_title ? `Title: ${story_context.story_title}` : ''}
-${story_context.story_description ? `Description: ${story_context.story_description}` : ''}
-${story_context.locations ? `Locations: ${story_context.locations}` : ''}
-${story_context.date_range ? `Date Range: ${story_context.date_range}` : ''}
-${story_context.additional_context ? `Additional Context: ${story_context.additional_context}` : ''}
-`;
-        }
-
-        // Generate descriptions using LLM
-        console.log('🤖 Generating descriptions with AI...');
-        console.log('📝 Using voice:', selectedVoice);
-        console.log('⏱️ LLM processing started at:', new Date().toISOString());
-        
-        const chaptersWithDescriptions = [];
-        
-        for (let chapterIdx = 0; chapterIdx < chapters.length; chapterIdx++) {
-            const chapter = chapters[chapterIdx];
-            console.log(`⏱️ [${chapterIdx + 1}/${chapters.length}] Processing chapter: ${chapter.folder_name}...`);
-            // Build coordinate context for this chapter
-            const coordinateContext = chapter.slides
-                .map((slide, idx) => {
-                    if (slide.has_gps_data) {
-                        return `Image ${idx + 1} (${slide.filename}): GPS coordinates [${slide.coordinates[0]}, ${slide.coordinates[1]}]`;
-                    }
-                    return `Image ${idx + 1} (${slide.filename}): No GPS data available`;
-                })
-                .join('\n');
-            
-            // Get all image URLs for this chapter
-            const imageUrls = chapter.slides.map(s => s.image_url);
-            console.log(`⏱️ [${chapterIdx + 1}/${chapters.length}] Calling LLM with ${imageUrls.length} images...`);
-            
-            // Generate descriptions for all slides in this chapter
-            const llmStartTime = Date.now();
-            const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `${voiceSystemPrompt}
-
-${contextString}
-
-FOLDER NAME: ${chapter.folder_name}
-
-EXTRACTED GPS COORDINATES (Decimal Degrees):
-${coordinateContext}
-
-For each image provided:
-1. Use the EXACT GPS coordinates listed above (already in decimal degree format: [latitude, longitude]).
-2. Identify the location name based on the coordinates and image content.
-3. Create a title and description following the voice approach described above.
-4. Include the exact image_url that corresponds to this slide.
-
-If an image has no GPS data, analyze the image to identify the location visually and provide estimated coordinates.
-
-Return structured data for each slide with: image_url, title, location name, description, and coordinates in [latitude, longitude] format.`,
-                file_urls: imageUrls,
-                add_context_from_internet: false,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        slides: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    title: { type: "string" },
-                                    location: { type: "string" },
-                                    description: { type: "string" },
-                                    coordinates: {
-                                        type: "array",
-                                        items: { type: "number" }
-                                    },
-                                    image_url: { type: "string" }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            
-            const llmDuration = ((Date.now() - llmStartTime) / 1000).toFixed(2);
-            console.log(`⏱️ [${chapterIdx + 1}/${chapters.length}] LLM call completed in ${llmDuration}s`);
-            
-            chaptersWithDescriptions.push({
-                folder_name: chapter.folder_name,
-                slides: response.slides
-            });
-            
-            console.log(`  ✅ [${chapterIdx + 1}/${chapters.length}] Generated descriptions for: ${chapter.folder_name}`);
-        }
-        
-        console.log('⏱️ All LLM processing completed at:', new Date().toISOString());
-        
-        // Generate overall story title and subtitle
-        console.log('⏱️ Generating story metadata...');
-        const storyResponse = await base44.integrations.Core.InvokeLLM({
-            prompt: `Based on the following chapters from a professional field documentation project, create a concise story title (maximum 34 characters) and subtitle suitable for NGO or consulting organization audiences.
-
-CHAPTERS:
-${chaptersWithDescriptions.map(c => `- ${c.folder_name}`).join('\n')}
-
-The title should be professional and descriptive.`,
-            add_context_from_internet: false,
-            response_json_schema: {
-                type: "object",
-                properties: {
-                    title: { type: "string" },
-                    subtitle: { type: "string" }
-                }
-            }
-        });
-        
-        console.log('⏱️ Story metadata generated');
-        console.log('⏱️ Total process completed at:', new Date().toISOString());
-        
-        return Response.json({
-            title: storyResponse.title,
-            subtitle: storyResponse.subtitle,
-            chapters: chaptersWithDescriptions
-        });
-        
-    } catch (error) {
-        console.error('❌ Error processing zip file:', error);
-        console.error('❌ Error occurred at:', new Date().toISOString());
-        return Response.json({ error: error.message }, { status: 500 });
-    }
-});
+REMOVED - moved to generateStoryDescriptions function */
