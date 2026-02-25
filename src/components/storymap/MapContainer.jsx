@@ -326,7 +326,9 @@ export default function MapBackground({
             const colorIdx = (markerData.chapterIndex ?? 0) % CHAPTER_COLORS.length;
             const chapterColor = CHAPTER_COLORS[colorIdx];
             const el = document.createElement('div');
-            el.className = isActive ? `mapbox-marker mapbox-marker-active-${colorIdx}` : 'mapbox-marker';
+            el.className = isActive
+                ? `mapbox-marker mapbox-marker-active-${colorIdx}`
+                : 'mapbox-marker mapbox-marker-inactive';
             el.style.cssText = `
                 width: ${isActive ? '36px' : '24px'};
                 height: ${isActive ? '36px' : '24px'};
@@ -336,8 +338,8 @@ export default function MapBackground({
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: ${isActive ? 'default' : 'pointer'};
                 pointer-events: auto;
-                opacity: 0;
-                transition: opacity 300ms ease, width 0.3s ease, height 0.3s ease;
+                ${isActive ? 'opacity: 0;' : ''}
+                transition: width 0.3s ease, height 0.3s ease;
                 z-index: ${isActive ? '10' : '8'};
             `;
 
@@ -345,17 +347,18 @@ export default function MapBackground({
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
                 .addTo(map.current);
 
-            // Fade in after marker is in the DOM — inactive markers rest at 50% opacity
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => { if (el) el.style.opacity = isActive ? '1' : '0.5'; });
-            });
+            // Fade active marker in from opacity 0 — inactive opacity is handled by CSS class
+            if (isActive) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => { if (el) el.style.opacity = '1'; });
+                });
+            }
 
             // Previous markers: tooltip on hover with thumbnail + title, click to navigate
             if (!isActive) {
                 let tooltipEl = null;
 
                 el.addEventListener('mouseenter', () => {
-                    el.style.opacity = '1';
                     if (tooltipEl) return;
                     const rect = el.getBoundingClientRect();
                     tooltipEl = document.createElement('div');
@@ -402,7 +405,6 @@ export default function MapBackground({
                 });
 
                 el.addEventListener('mouseleave', () => {
-                    el.style.opacity = '0.5';
                     setTimeout(() => {
                         if (tooltipEl && !tooltipEl.matches(':hover')) {
                             tooltipEl.remove();
@@ -588,6 +590,8 @@ export default function MapBackground({
                 .mapbox-marker-active-3 { animation: marker-pulse-3 1.8s ease-out infinite !important; }
                 .mapbox-marker-active-4 { animation: marker-pulse-4 1.8s ease-out infinite !important; }
                 .mapbox-marker-active-5 { animation: marker-pulse-5 1.8s ease-out infinite !important; }
+                .mapbox-marker-inactive { opacity: 0.5; transition: opacity 300ms ease; }
+                .mapbox-marker-inactive:hover { opacity: 1; }
             `}</style>
         </div>
     );
