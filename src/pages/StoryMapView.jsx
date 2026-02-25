@@ -17,6 +17,18 @@ import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 import { useSearchParams } from 'react-router-dom';
 
+// Straight-line distance in metres between two [lat, lng] points (Haversine formula).
+function haversineMetres([lat1, lng1], [lat2, lng2]) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2
+            + Math.cos(lat1 * Math.PI / 180)
+            * Math.cos(lat2 * Math.PI / 180)
+            * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.asin(Math.sqrt(a));
+}
+
 // Build a cumulative route array from an ordered list of visited coordinates,
 // stitching in cached road segments where available and falling back to
 // straight-line steps for any segment not yet fetched.
@@ -613,13 +625,19 @@ export default function StoryMapView() {
                                             (async () => {
                                                 try {
                                                     const resp = await fetch(
-                                                        `https://api.mapbox.com/directions/v5/mapbox/driving/${waypoints}` +
+                                                        `https://api.mapbox.com/directions/v5/mapbox/walking/${waypoints}` +
                                                         `?geometries=geojson&overview=simplified&access_token=${token}`
                                                     );
                                                     const data = await resp.json();
-                                                    segmentCacheRef.current[segKey] = data.routes?.[0]?.geometry?.coordinates
-                                                        ? data.routes[0].geometry.coordinates.map(c => [c[1], c[0]])
-                                                        : [from, to]; // straight-line fallback on no-route
+                                                    const route = data.routes?.[0];
+                                                    // Discard routes that are more than 2.5× the straight-line
+                                                    // distance — these are routing around impassable terrain
+                                                    // (fields, off-road gaps) and a straight line looks better.
+                                                    const straightDist = haversineMetres(from, to);
+                                                    const tooDetoured = !route || route.distance > straightDist * 2.5;
+                                                    segmentCacheRef.current[segKey] = tooDetoured
+                                                        ? [from, to]
+                                                        : route.geometry.coordinates.map(c => [c[1], c[0]]);
                                                 } catch (e) {
                                                     segmentCacheRef.current[segKey] = [from, to];
                                                 }
