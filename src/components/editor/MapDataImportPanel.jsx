@@ -220,18 +220,6 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                             </div>
                                             )}
 
-                                            {/* Voice Selection Step - Inline */}
-                                            {step === 'voice' && (
-                                            <VoiceSelectionPanel
-                                            isOpen={true}
-                                            onClose={() => {
-                                            setStep('upload');
-                                            setZipFile(null);
-                                            }}
-                                            onContinue={handleVoiceContinue}
-                                            />
-                                            )}
-
                             {/* Processing Step */}
                             {step === 'processing' && (
                                 <div className="flex flex-col items-center justify-center py-20">
