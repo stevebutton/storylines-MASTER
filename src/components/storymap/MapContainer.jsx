@@ -331,7 +331,7 @@ export default function MapBackground({
                 width: ${isActive ? '36px' : '24px'};
                 height: ${isActive ? '36px' : '24px'};
                 border-radius: 50%;
-                background: ${chapterColor.main};
+                background: ${isActive ? chapterColor.main : '#000000'};
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: ${isActive ? 'default' : 'pointer'};
