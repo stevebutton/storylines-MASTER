@@ -455,8 +455,17 @@ export default function MapBackground({
             return;
         }
 
+        // If the landing markers list has been emptied (e.g. story switch), remove
+        // any markers still held in the ref — they were added imperatively and won't
+        // be cleaned up automatically when React state becomes [].
+        if (!landingMarkers || landingMarkers.length === 0) {
+            landingMarkersRef.current.forEach(marker => marker.remove());
+            landingMarkersRef.current = [];
+            return;
+        }
+
         // Add new landing markers - only process valid, non-null coordinates
-        if (!landingMarkers || !Array.isArray(landingMarkers)) return;
+        if (!Array.isArray(landingMarkers)) return;
 
         landingMarkers.forEach((item, idx) => {
             // Support both new { coordinates, chapterIndex } objects and legacy bare arrays
