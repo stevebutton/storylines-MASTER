@@ -287,21 +287,39 @@ The title should be professional and descriptive.`,
             }
         });
 
-        // Update story with generated metadata
-        await base44.asServiceRole.entities.Story.update(story_id, {
-            title: storyResponse.title.substring(0, 34),
-            subtitle: storyResponse.subtitle
-        });
+        // Update story with generated metadata and context
+        const updateData = {
+            title: story_context?.story_title || storyResponse.title.substring(0, 34),
+            subtitle: storyResponse.subtitle,
+            story_description: story_context?.story_description || null,
+            caption_voice,
+            custom_caption_voice_description: caption_voice === 'custom' ? custom_caption_voice_description : null,
+            story_context: story_context || null
+        };
 
-        console.log('⏱️ Story metadata generated and updated');
+        await base44.asServiceRole.entities.Story.update(story_id, updateData);
+
+        console.log('⏱️ Story metadata and context saved');
         console.log('⏱️ Total description generation completed at:', new Date().toISOString());
+
+        // Prepare overview data
+        const overview = {
+            chapter_count: chapters.length,
+            slide_count: slides.length,
+            slides_with_gps: slides.filter(s => s.coordinates && s.coordinates.length === 2).length,
+            chapters: chapters.map(ch => ({
+                name: ch.name,
+                slide_count: slides.filter(s => s.chapter_id === ch.id).length
+            }))
+        };
 
         return Response.json({
             success: true,
             story_id,
             title: storyResponse.title,
             subtitle: storyResponse.subtitle,
-            chapters_processed: chaptersWithDescriptions
+            chapters_processed: chaptersWithDescriptions,
+            overview
         });
 
     } catch (error) {
