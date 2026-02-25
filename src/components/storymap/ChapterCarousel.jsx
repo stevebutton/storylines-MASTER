@@ -76,14 +76,17 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
     if (slides.length === 1) {
         return (
             <div>
-                <div className="relative h-[300px] overflow-hidden group">
+                <div
+                    className="relative h-[300px] overflow-hidden cursor-zoom-in"
+                    onClick={() => onImageClick?.(0)}
+                >
                     {slides[0].video_url ? (
                         <VideoEmbed url={slides[0].video_url} />
                     ) : (
                         <img
                             src={slides[0].image}
                             alt={slides[0].title}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
@@ -107,7 +110,8 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                     {slides.map((slide, index) => (
                         <div
                             key={index}
-                            className="flex-[0_0_100%] min-w-0 h-full relative"
+                            className="flex-[0_0_100%] min-w-0 h-full relative cursor-zoom-in"
+                            onClick={() => onImageClick?.(index)}
                         >
                             {slide.video_url ? (
                                 <VideoEmbed url={slide.video_url} />
@@ -115,7 +119,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                                 <img
                                     src={slide.image}
                                     alt={slide.title}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                                 />
                             )}
                         </div>
@@ -135,8 +139,8 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                 <Maximize2 className="w-3.5 h-3.5 text-white" />
             </button>
 
-            {/* Navigation strip — overlaid at bottom of image with 40% opacity background */}
-            <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-3 py-2 bg-black/40 backdrop-blur-sm">
+            {/* Navigation strip — overlaid at bottom of image with 30% opacity background */}
+            <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-3 py-2 bg-black/30 backdrop-blur-sm">
                 <button
                     onClick={scrollPrev}
                     className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors flex-shrink-0"
