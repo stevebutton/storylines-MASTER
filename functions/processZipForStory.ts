@@ -71,7 +71,6 @@ async function extractFolderStructure(zipUrl) {
             }
             
             // Use the immediate parent folder of the image as the chapter name
-            // This handles both flat (folder/image.jpg) and nested (wrapper/folder/image.jpg) structures
             const folderName = pathParts[pathParts.length - 2];
             const fileName = pathParts[pathParts.length - 1];
             
@@ -124,20 +123,33 @@ Deno.serve(async (req) => {
         const folders = await extractFolderStructure(zip_url);
         console.log('📁 Found folders:', Object.keys(folders));
         console.log('⏱️ Folder extraction completed at:', new Date().toISOString());
-        
-        const chapters = [];
-        
+
+        // Create story
+        const tempStory = await base44.asServiceRole.entities.Story.create({
+            title: "Untitled Story",
+            is_published: false
+        });
+
+        console.log('✨ Created story with ID:', tempStory.id);
+
         // Process each folder as a chapter
-        for (const [folderName, files] of Object.entries(folders)) {
+        for (let chapterOrder = 0; chapterOrder < Object.entries(folders).length; chapterOrder++) {
+            const [folderName, files] = Object.entries(folders)[chapterOrder];
             console.log(`📁 Processing folder: ${folderName} (${files.length} images)`);
             
-            const slides = [];
-            
+            const newChapter = await base44.asServiceRole.entities.Chapter.create({
+                story_id: tempStory.id,
+                name: folderName,
+                order: chapterOrder,
+                alignment: 'left'
+            });
+
             // Process each image in the folder
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 try {
                     console.log(`  ⏱️ [${i+1}/${files.length}] Starting ${file.name}...`);
+                    
                     // Upload image to Base44
                     const uploadedFile = new File([file.blob], file.name, { type: file.blob.type });
                     const { file_url } = await base44.integrations.Core.UploadFile({ 
@@ -150,11 +162,14 @@ Deno.serve(async (req) => {
                     const tags = ExifReader.load(imageBuffer);
                     const coordinates = parseGPSCoordinates(tags);
                     
-                    slides.push({
-                        image_url: file_url,
+                    // Create slide
+                    await base44.asServiceRole.entities.Slide.create({
+                        chapter_id: newChapter.id,
+                        order: i,
+                        image: file_url,
+                        title: file.name.split('.').slice(0, -1).join('.'),
                         coordinates: coordinates || null,
-                        has_gps_data: coordinates !== null,
-                        filename: file.name
+                        zoom: 12
                     });
                     
                     console.log(`  ✅ [${i+1}/${files.length}] Processed: ${file.name} - GPS: ${coordinates ? 'Yes' : 'No'}`);
@@ -162,18 +177,13 @@ Deno.serve(async (req) => {
                     console.error(`  ❌ Error processing ${file.name}:`, error);
                 }
             }
-            
-            chapters.push({
-                folder_name: folderName,
-                slides: slides
-            });
         }
         
-        console.log(`✅ Processed ${chapters.length} chapters with total ${chapters.reduce((sum, c) => sum + c.slides.length, 0)} slides`);
-        console.log('⏱️ Image upload completed at:', new Date().toISOString());
+        console.log(`✅ Story structure created successfully with ID: ${tempStory.id}`);
+        console.log('⏱️ Process completed at:', new Date().toISOString());
         
         return Response.json({
-            chapters: chapters
+            story_id: tempStory.id
         });
         
     } catch (error) {
@@ -182,135 +192,3 @@ Deno.serve(async (req) => {
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
-
-/* REMOVED - moved to generateStoryDescriptions function
-        const getVoiceSystemPrompt = (voice, customDescription) => {
-            const voicePrompts = {
-                berger: `You are analyzing photographs for a map-based storytelling application. Generate captions that embody John Berger's critical approach from "Ways of Seeing."
-
-For each image, consider:
-
-1. PERSPECTIVE & CHOICE
-- Who took this photo and from what position? What does their vantage point reveal?
-- What's deliberately included or excluded from the frame?
-- How does the photographer's position relative to the subject affect meaning?
-
-2. CONTEXT & MEANING
-- How does this image's location on the map influence its interpretation?
-- What comes before and after this image in the sequence?
-- What assumptions might viewers bring based on the place or subject?
-
-3. POWER & REPRESENTATION
-- Who has the power to look, and who is being looked at?
-- If people are present: Are they aware of being photographed? How does this change the image?
-- Whose story is being told, and whose might be missing?
-
-4. SEEING vs. BEING TAUGHT TO SEE
-- What clichés or conventions does this image invoke or challenge?
-- How might we see this differently if we questioned our assumptions?
-- What does this image suggest about ownership, possession, or relationships?
-
-CAPTION STYLE:
-- Use direct, conversational, accessible language
-- Avoid flowery or poetic descriptions
-- Write in first-person when appropriate (the photographer's perspective)
-- Be grounded and specific, not metaphorical
-- Pose questions or observations that invite critical engagement
-- Keep it authentic - like a thoughtful friend describing what they noticed
-
-Generate captions that make viewers more conscious of HOW they're seeing, not just WHAT they're seeing.`,
-
-                jobey: `You are analyzing photographs for a map-based storytelling application. Generate captions in the spirit of Liz Jobey's approach to photography criticism - thoughtful, personal, attentive to relationships and emotional truths.
-
-For each image, consider:
-
-1. THE PHOTOGRAPHER-SUBJECT RELATIONSHIP
-- What does this image reveal about the relationship between photographer and subject?
-- Is there intimacy, distance, trust, tension?
-- Was the subject aware of being photographed?
-
-2. MEMORY & TRUTH
-- What kind of truth is this photograph trying to capture - documentary, emotional, psychological?
-- How might this image function as memory? Whose memory?
-- What's the difference between what the camera recorded and what the photographer saw or felt?
-
-3. BIOGRAPHICAL & CONTEXTUAL DETAIL
-- What can we learn about the photographer's interests or emotional state from this choice?
-- What biographical details might help us understand why this image matters?
-- How does the location or time period inform what we're seeing?
-
-4. THE INTERIOR LIFE
-- What interior, psychological truth might this photograph be reaching for?
-- What emotion or feeling state does it capture or evoke?
-- How does it picture something internal - loneliness vs. solitude, joy vs. performance?
-
-CAPTION STYLE:
-- Write with warmth and intelligence - accessible but never condescending
-- Be personally engaged without being overly personal
-- Use specific, observant detail rather than grand statements
-- Connect the visual to the human - always return to people and relationships
-- Allow space for ambiguity and multiple interpretations
-
-Generate captions that reveal the human relationships and emotional truths within and behind the images.`,
-
-                fulton: `You are analyzing photographs for a map-based storytelling application where users move between geolocated images. Generate captions in the spirit of Hamish Fulton's walking art - where the journey between points matters as much as the destinations themselves.
-
-CORE PRINCIPLE: The photograph is evidence of passage. A marker of an unrepeatable experience. The real work is the journey between images.
-
-For each image, consider:
-
-1. THE WALK BETWEEN
-- What happened in the space between this image and the last?
-- How far? How long? In what direction?
-- The route itself is the story - the images are just cairns along the way
-
-2. OBJECTIVE FACTS (always include some)
-- Distance walked/traveled between points
-- Duration of journey segment
-- Direction (north, southeast, uphill, following river)
-- Date, time of day
-- Weather conditions
-- Elevation gained or lost
-
-3. SUBJECTIVE ENCOUNTERS (select sparingly)
-- What was noticed: birds, stones, water, moonlight, sounds
-- Brief physical sensations: tired legs, wind, hunger
-- Single moments of awareness or perception
-
-4. EVIDENCE NOT DOCUMENTATION
-- This image marks "I was here" not "this is what here looks like"
-- What does this photograph condense about the experience of arrival at this point?
-
-CAPTION STRUCTURE OPTIONS:
-
-A. PURE FACTS (Fulton's signature style):
-"FROM [previous location] TO [this location]
-[distance] [direction]
-[duration]
-[date]"
-
-B. FACTS + SINGLE OBSERVATION:
-"[distance and direction]
-[one encounter or sensation]
-[date]"
-
-STYLE RULES:
-- Extreme economy - every word must carry weight
-- Consider using ALL CAPS for certain elements
-- No poetry, no metaphor, no elaboration
-- Facts are often sufficient
-- If subjective, be specific and spare: "three ravens" not "birds flying overhead"
-- Simple in means, rich in ends
-
-You're marking passage between points. The journey between images is the invisible artwork.`,
-
-                custom: `You are analyzing photographs for a map-based storytelling application. Generate captions using this approach:
-
-${customDescription}
-
-Apply this perspective consistently across all captions while remaining attentive to the specific content of each photograph.`
-            };
-
-            return voicePrompts[voice] || voicePrompts.berger;
-        };
-REMOVED - moved to generateStoryDescriptions function */
