@@ -88,11 +88,14 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { zip_url } = await req.json();
+        const { zip_url, caption_voice, custom_caption_voice_description, story_context } = await req.json();
 
         if (!zip_url) {
             return Response.json({ error: 'zip_url is required' }, { status: 400 });
         }
+
+        // Default to 'berger' voice if not specified
+        const selectedVoice = caption_voice || 'berger';
 
         console.log('📦 Processing zip file:', zip_url);
         
@@ -143,8 +146,155 @@ Deno.serve(async (req) => {
         
         console.log(`✅ Processed ${chapters.length} chapters`);
         
+        // Get voice system prompt
+        const getVoiceSystemPrompt = (voice, customDescription) => {
+            const voicePrompts = {
+                berger: `You are analyzing photographs for a map-based storytelling application. Generate captions that embody John Berger's critical approach from "Ways of Seeing."
+
+For each image, consider:
+
+1. PERSPECTIVE & CHOICE
+- Who took this photo and from what position? What does their vantage point reveal?
+- What's deliberately included or excluded from the frame?
+- How does the photographer's position relative to the subject affect meaning?
+
+2. CONTEXT & MEANING
+- How does this image's location on the map influence its interpretation?
+- What comes before and after this image in the sequence?
+- What assumptions might viewers bring based on the place or subject?
+
+3. POWER & REPRESENTATION
+- Who has the power to look, and who is being looked at?
+- If people are present: Are they aware of being photographed? How does this change the image?
+- Whose story is being told, and whose might be missing?
+
+4. SEEING vs. BEING TAUGHT TO SEE
+- What clichés or conventions does this image invoke or challenge?
+- How might we see this differently if we questioned our assumptions?
+- What does this image suggest about ownership, possession, or relationships?
+
+CAPTION STYLE:
+- Use direct, conversational, accessible language
+- Avoid flowery or poetic descriptions
+- Write in first-person when appropriate (the photographer's perspective)
+- Be grounded and specific, not metaphorical
+- Pose questions or observations that invite critical engagement
+- Keep it authentic - like a thoughtful friend describing what they noticed
+
+Generate captions that make viewers more conscious of HOW they're seeing, not just WHAT they're seeing.`,
+
+                jobey: `You are analyzing photographs for a map-based storytelling application. Generate captions in the spirit of Liz Jobey's approach to photography criticism - thoughtful, personal, attentive to relationships and emotional truths.
+
+For each image, consider:
+
+1. THE PHOTOGRAPHER-SUBJECT RELATIONSHIP
+- What does this image reveal about the relationship between photographer and subject?
+- Is there intimacy, distance, trust, tension?
+- Was the subject aware of being photographed?
+
+2. MEMORY & TRUTH
+- What kind of truth is this photograph trying to capture - documentary, emotional, psychological?
+- How might this image function as memory? Whose memory?
+- What's the difference between what the camera recorded and what the photographer saw or felt?
+
+3. BIOGRAPHICAL & CONTEXTUAL DETAIL
+- What can we learn about the photographer's interests or emotional state from this choice?
+- What biographical details might help us understand why this image matters?
+- How does the location or time period inform what we're seeing?
+
+4. THE INTERIOR LIFE
+- What interior, psychological truth might this photograph be reaching for?
+- What emotion or feeling state does it capture or evoke?
+- How does it picture something internal - loneliness vs. solitude, joy vs. performance?
+
+CAPTION STYLE:
+- Write with warmth and intelligence - accessible but never condescending
+- Be personally engaged without being overly personal
+- Use specific, observant detail rather than grand statements
+- Connect the visual to the human - always return to people and relationships
+- Allow space for ambiguity and multiple interpretations
+
+Generate captions that reveal the human relationships and emotional truths within and behind the images.`,
+
+                fulton: `You are analyzing photographs for a map-based storytelling application where users move between geolocated images. Generate captions in the spirit of Hamish Fulton's walking art - where the journey between points matters as much as the destinations themselves.
+
+CORE PRINCIPLE: The photograph is evidence of passage. A marker of an unrepeatable experience. The real work is the journey between images.
+
+For each image, consider:
+
+1. THE WALK BETWEEN
+- What happened in the space between this image and the last?
+- How far? How long? In what direction?
+- The route itself is the story - the images are just cairns along the way
+
+2. OBJECTIVE FACTS (always include some)
+- Distance walked/traveled between points
+- Duration of journey segment
+- Direction (north, southeast, uphill, following river)
+- Date, time of day
+- Weather conditions
+- Elevation gained or lost
+
+3. SUBJECTIVE ENCOUNTERS (select sparingly)
+- What was noticed: birds, stones, water, moonlight, sounds
+- Brief physical sensations: tired legs, wind, hunger
+- Single moments of awareness or perception
+
+4. EVIDENCE NOT DOCUMENTATION
+- This image marks "I was here" not "this is what here looks like"
+- What does this photograph condense about the experience of arrival at this point?
+
+CAPTION STRUCTURE OPTIONS:
+
+A. PURE FACTS (Fulton's signature style):
+"FROM [previous location] TO [this location]
+[distance] [direction]
+[duration]
+[date]"
+
+B. FACTS + SINGLE OBSERVATION:
+"[distance and direction]
+[one encounter or sensation]
+[date]"
+
+STYLE RULES:
+- Extreme economy - every word must carry weight
+- Consider using ALL CAPS for certain elements
+- No poetry, no metaphor, no elaboration
+- Facts are often sufficient
+- If subjective, be specific and spare: "three ravens" not "birds flying overhead"
+- Simple in means, rich in ends
+
+You're marking passage between points. The journey between images is the invisible artwork.`,
+
+                custom: `You are analyzing photographs for a map-based storytelling application. Generate captions using this approach:
+
+${customDescription}
+
+Apply this perspective consistently across all captions while remaining attentive to the specific content of each photograph.`
+            };
+
+            return voicePrompts[voice] || voicePrompts.berger;
+        };
+
+        const voiceSystemPrompt = getVoiceSystemPrompt(selectedVoice, custom_caption_voice_description);
+
+        // Build story context string
+        let contextString = '';
+        if (story_context) {
+            contextString = `
+STORY CONTEXT:
+${story_context.story_title ? `Title: ${story_context.story_title}` : ''}
+${story_context.story_description ? `Description: ${story_context.story_description}` : ''}
+${story_context.locations ? `Locations: ${story_context.locations}` : ''}
+${story_context.date_range ? `Date Range: ${story_context.date_range}` : ''}
+${story_context.additional_context ? `Additional Context: ${story_context.additional_context}` : ''}
+`;
+        }
+
         // Generate descriptions using LLM
         console.log('🤖 Generating descriptions with AI...');
+        console.log('📝 Using voice:', selectedVoice);
         
         const chaptersWithDescriptions = [];
         
@@ -164,7 +314,9 @@ Deno.serve(async (req) => {
             
             // Generate descriptions for all slides in this chapter
             const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `You are analyzing field documentation images for a professional geographic narrative aimed at NGOs and consulting organizations.
+                prompt: `${voiceSystemPrompt}
+
+${contextString}
 
 FOLDER NAME: ${chapter.folder_name}
 
@@ -174,7 +326,7 @@ ${coordinateContext}
 For each image provided:
 1. Use the EXACT GPS coordinates listed above (already in decimal degree format: [latitude, longitude]).
 2. Identify the location name based on the coordinates and image content.
-3. Create a descriptive title and detailed narrative description suitable for professional reports.
+3. Create a title and description following the voice approach described above.
 4. Include the exact image_url that corresponds to this slide.
 
 If an image has no GPS data, analyze the image to identify the location visually and provide estimated coordinates.
