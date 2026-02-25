@@ -7,14 +7,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, Loader2, MapPin, Image, FileText, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import VoiceSelectionPanel from './VoiceSelectionPanel';
 
 export default function MapDataImportPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [zipFile, setZipFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [step, setStep] = useState('upload'); // upload, processing, preview, creating
+    const [step, setStep] = useState('upload'); // upload, voice, processing, preview, creating
     const [extractedData, setExtractedData] = useState(null);
     const [storyTitle, setStoryTitle] = useState('');
+    const [voiceConfig, setVoiceConfig] = useState(null);
 
     const handleFileUpload = (e) => {
         const uploadedFile = e.target.files[0];
@@ -25,8 +27,14 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         }
     };
 
-    const processFiles = async () => {
-        if (!zipFile) return;
+    const handleVoiceContinue = (config) => {
+        setVoiceConfig(config);
+        setStep('upload');
+        processFiles(config);
+    };
+
+    const processFiles = async (config) => {
+        if (!zipFile || !config) return;
 
         setIsProcessing(true);
         setStep('processing');
@@ -37,7 +45,10 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
 
             // Process zip file with backend function
             const { data: response } = await base44.functions.invoke('processZipForStory', {
-                zip_url: file_url
+                zip_url: file_url,
+                caption_voice: config.caption_voice,
+                custom_caption_voice_description: config.custom_caption_voice_description,
+                story_context: config.story_context
             });
 
             setExtractedData(response);
@@ -68,7 +79,10 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 title: finalTitle,
                 subtitle: extractedData.subtitle,
                 category: 'travel',
-                is_published: false
+                is_published: false,
+                caption_voice: voiceConfig?.caption_voice,
+                custom_caption_voice_description: voiceConfig?.custom_caption_voice_description,
+                story_context: voiceConfig?.story_context
             });
 
             // Create chapters and slides
@@ -110,6 +124,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         setZipFile(null);
         setExtractedData(null);
         setStoryTitle('');
+        setVoiceConfig(null);
         setStep('upload');
         setIsProcessing(false);
     };
@@ -195,15 +210,27 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                                 </div>
                                             </div>
                                             <Button 
-                                                onClick={processFiles}
+                                               onClick={() => setStep('voice')}
                                                 className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
                                             >
-                                                Process Archive & Extract Locations
+                                                Continue to Caption Voice Selection
                                             </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                                            </div>
+                                            )}
+                                            </div>
+                                            )}
+
+                                            {/* Voice Selection Step - Inline */}
+                                            {step === 'voice' && (
+                                            <VoiceSelectionPanel
+                                            isOpen={true}
+                                            onClose={() => {
+                                            setStep('upload');
+                                            setZipFile(null);
+                                            }}
+                                            onContinue={handleVoiceContinue}
+                                            />
+                                            )}
 
                             {/* Processing Step */}
                             {step === 'processing' && (
@@ -296,6 +323,18 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Separate Voice Selection Modal */}
+            {step === 'voice' && (
+                <VoiceSelectionPanel
+                    isOpen={step === 'voice'}
+                    onClose={() => {
+                        setStep('upload');
+                        setZipFile(null);
+                    }}
+                    onContinue={handleVoiceContinue}
+                />
+            )}
         </>
     );
 }
