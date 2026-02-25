@@ -101,51 +101,48 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
     }
 
     return (
-        <div>
-            {/* Image area — no onClick, fullscreen only via expand button */}
-            <div className="relative h-[300px] overflow-hidden">
-                <div ref={emblaRef} className="h-full">
-                    <div className="flex h-full">
-                        {slides.map((slide, index) => (
-                            <div
-                                key={index}
-                                className="flex-[0_0_100%] min-w-0 h-full relative"
-                            >
-                                {slide.video_url ? (
-                                    <VideoEmbed url={slide.video_url} />
-                                ) : (
-                                    <img
-                                        src={slide.image}
-                                        alt={slide.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                )}
-                            </div>
-                        ))}
-                    </div>
+        <div className="relative h-[300px] overflow-hidden">
+            <div ref={emblaRef} className="h-full">
+                <div className="flex h-full">
+                    {slides.map((slide, index) => (
+                        <div
+                            key={index}
+                            className="flex-[0_0_100%] min-w-0 h-full relative"
+                        >
+                            {slide.video_url ? (
+                                <VideoEmbed url={slide.video_url} />
+                            ) : (
+                                <img
+                                    src={slide.image}
+                                    alt={slide.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            )}
+                        </div>
+                    ))}
                 </div>
-
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-
-                {/* Explicit expand button — top-right corner */}
-                <button
-                    onClick={() => onImageClick?.(selectedIndex)}
-                    className="absolute top-2 right-2 z-10 w-7 h-7 rounded-md bg-black/30 backdrop-blur-sm hover:bg-black/50 flex items-center justify-center transition-colors"
-                    aria-label="View fullscreen"
-                >
-                    <Maximize2 className="w-3.5 h-3.5 text-white" />
-                </button>
             </div>
 
-            {/* Navigation strip — arrows bookending the dots, below the image */}
-            <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-t border-slate-100">
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+
+            {/* Explicit expand button — top-right corner */}
+            <button
+                onClick={() => onImageClick?.(selectedIndex)}
+                className="absolute top-2 right-2 z-10 w-7 h-7 rounded-md bg-black/30 backdrop-blur-sm hover:bg-black/50 flex items-center justify-center transition-colors"
+                aria-label="View fullscreen"
+            >
+                <Maximize2 className="w-3.5 h-3.5 text-white" />
+            </button>
+
+            {/* Navigation strip — overlaid at bottom of image with 40% opacity background */}
+            <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-3 py-2 bg-black/40 backdrop-blur-sm">
                 <button
                     onClick={scrollPrev}
-                    className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 transition-colors flex-shrink-0"
+                    className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors flex-shrink-0"
                     aria-label="Previous slide"
                 >
-                    <ChevronLeft className="w-4 h-4 text-slate-600" />
+                    <ChevronLeft className="w-4 h-4 text-white" />
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -159,8 +156,8 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                             <span className={cn(
                                 "block rounded-full transition-all duration-200",
                                 selectedIndex === index
-                                    ? "w-4 h-2 bg-amber-500"
-                                    : "w-2 h-2 bg-slate-300 hover:bg-slate-400"
+                                    ? "w-4 h-2 bg-white"
+                                    : "w-2 h-2 bg-white/40 hover:bg-white/70"
                             )} />
                         </button>
                     ))}
@@ -168,10 +165,10 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
 
                 <button
                     onClick={scrollNext}
-                    className="w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 transition-colors flex-shrink-0"
+                    className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors flex-shrink-0"
                     aria-label="Next slide"
                 >
-                    <ChevronRight className="w-4 h-4 text-slate-600" />
+                    <ChevronRight className="w-4 h-4 text-white" />
                 </button>
             </div>
         </div>
