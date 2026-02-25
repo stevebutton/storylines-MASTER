@@ -43,6 +43,9 @@ const VideoEmbed = ({ url }) => {
     );
 };
 
+// Maximize2 icon as a white SVG data URI — used as the custom fullscreen cursor
+const FULLSCREEN_CURSOR = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cpolyline points='9 21 3 21 3 15'/%3E%3Cline x1='21' y1='3' x2='14' y2='10'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E\") 12 12, pointer";
+
 export default function ChapterCarousel({ slides, onSlideChange, onImageClick, scrollToRef }) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
     const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -77,7 +80,8 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
         return (
             <div>
                 <div
-                    className="relative h-[300px] overflow-hidden cursor-zoom-in"
+                    className="relative h-[300px] overflow-hidden"
+                    style={{ cursor: FULLSCREEN_CURSOR }}
                     onClick={() => onImageClick?.(0)}
                 >
                     {slides[0].video_url ? (
@@ -110,7 +114,8 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                     {slides.map((slide, index) => (
                         <div
                             key={index}
-                            className="flex-[0_0_100%] min-w-0 h-full relative cursor-zoom-in"
+                            className="flex-[0_0_100%] min-w-0 h-full relative"
+                            style={{ cursor: FULLSCREEN_CURSOR }}
                             onClick={() => onImageClick?.(index)}
                         >
                             {slide.video_url ? (
