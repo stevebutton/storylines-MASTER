@@ -76,7 +76,9 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         } catch (error) {
             console.error('Failed to generate descriptions:', error);
             toast.error(`Failed to generate descriptions: ${error.message}`);
-            setStep('voice_selection');
+            setStep('upload');
+            setZipFile(null);
+            setCurrentStoryId(null);
             setIsProcessing(false);
         }
     };

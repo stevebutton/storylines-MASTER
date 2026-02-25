@@ -172,10 +172,12 @@ ${story_context.additional_context ? `Additional Context: ${story_context.additi
         console.log(`📚 Found ${chapters.length} chapters`);
 
         const chaptersWithDescriptions = [];
+        const allSlides = []; // accumulate across chapters for overview stats
 
         for (let chapterIdx = 0; chapterIdx < chapters.length; chapterIdx++) {
             const chapter = chapters[chapterIdx];
             const slides = await base44.asServiceRole.entities.Slide.filter({ chapter_id: chapter.id }, 'order');
+            allSlides.push(...slides);
             
             console.log(`⏱️ [${chapterIdx + 1}/${chapters.length}] Processing chapter: ${chapter.name} (${slides.length} slides)...`);
 
@@ -305,11 +307,11 @@ The title should be professional and descriptive.`,
         // Prepare overview data
         const overview = {
             chapter_count: chapters.length,
-            slide_count: slides.length,
-            slides_with_gps: slides.filter(s => s.coordinates && s.coordinates.length === 2).length,
+            slide_count: allSlides.length,
+            slides_with_gps: allSlides.filter(s => s.coordinates && s.coordinates.length === 2).length,
             chapters: chapters.map(ch => ({
                 name: ch.name,
-                slide_count: slides.filter(s => s.chapter_id === ch.id).length
+                slide_count: allSlides.filter(s => s.chapter_id === ch.id).length
             }))
         };
 
