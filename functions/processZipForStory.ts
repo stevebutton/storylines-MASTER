@@ -98,10 +98,14 @@ Deno.serve(async (req) => {
         const selectedVoice = caption_voice || 'berger';
 
         console.log('📦 Processing zip file:', zip_url);
+        console.log('🎤 Voice config:', { caption_voice: selectedVoice, has_custom_description: !!custom_caption_voice_description, has_context: !!story_context });
+        console.log('⏱️ Process started at:', new Date().toISOString());
         
         // Extract folder structure
+        console.log('⏱️ Starting folder extraction...');
         const folders = await extractFolderStructure(zip_url);
         console.log('📁 Found folders:', Object.keys(folders));
+        console.log('⏱️ Folder extraction completed at:', new Date().toISOString());
         
         const chapters = [];
         
@@ -112,13 +116,16 @@ Deno.serve(async (req) => {
             const slides = [];
             
             // Process each image in the folder
-            for (const file of files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 try {
+                    console.log(`  ⏱️ [${i+1}/${files.length}] Starting ${file.name}...`);
                     // Upload image to Base44
                     const uploadedFile = new File([file.blob], file.name, { type: file.blob.type });
                     const { file_url } = await base44.integrations.Core.UploadFile({ 
                         file: uploadedFile 
                     });
+                    console.log(`  ⏱️ [${i+1}/${files.length}] Uploaded ${file.name}`);
                     
                     // Extract EXIF coordinates
                     const imageBuffer = await file.blob.arrayBuffer();
@@ -132,7 +139,7 @@ Deno.serve(async (req) => {
                         filename: file.name
                     });
                     
-                    console.log(`  ✅ Processed: ${file.name} - GPS: ${coordinates ? 'Yes' : 'No'}`);
+                    console.log(`  ✅ [${i+1}/${files.length}] Processed: ${file.name} - GPS: ${coordinates ? 'Yes' : 'No'}`);
                 } catch (error) {
                     console.error(`  ❌ Error processing ${file.name}:`, error);
                 }
@@ -144,7 +151,8 @@ Deno.serve(async (req) => {
             });
         }
         
-        console.log(`✅ Processed ${chapters.length} chapters`);
+        console.log(`✅ Processed ${chapters.length} chapters with total ${chapters.reduce((sum, c) => sum + c.slides.length, 0)} slides`);
+        console.log('⏱️ Image processing completed at:', new Date().toISOString());
         
         // Get voice system prompt
         const getVoiceSystemPrompt = (voice, customDescription) => {
@@ -295,10 +303,13 @@ ${story_context.additional_context ? `Additional Context: ${story_context.additi
         // Generate descriptions using LLM
         console.log('🤖 Generating descriptions with AI...');
         console.log('📝 Using voice:', selectedVoice);
+        console.log('⏱️ LLM processing started at:', new Date().toISOString());
         
         const chaptersWithDescriptions = [];
         
-        for (const chapter of chapters) {
+        for (let chapterIdx = 0; chapterIdx < chapters.length; chapterIdx++) {
+            const chapter = chapters[chapterIdx];
+            console.log(`⏱️ [${chapterIdx + 1}/${chapters.length}] Processing chapter: ${chapter.folder_name}...`);
             // Build coordinate context for this chapter
             const coordinateContext = chapter.slides
                 .map((slide, idx) => {
@@ -311,8 +322,10 @@ ${story_context.additional_context ? `Additional Context: ${story_context.additi
             
             // Get all image URLs for this chapter
             const imageUrls = chapter.slides.map(s => s.image_url);
+            console.log(`⏱️ [${chapterIdx + 1}/${chapters.length}] Calling LLM with ${imageUrls.length} images...`);
             
             // Generate descriptions for all slides in this chapter
+            const llmStartTime = Date.now();
             const response = await base44.integrations.Core.InvokeLLM({
                 prompt: `${voiceSystemPrompt}
 
@@ -357,15 +370,21 @@ Return structured data for each slide with: image_url, title, location name, des
                 }
             });
             
+            const llmDuration = ((Date.now() - llmStartTime) / 1000).toFixed(2);
+            console.log(`⏱️ [${chapterIdx + 1}/${chapters.length}] LLM call completed in ${llmDuration}s`);
+            
             chaptersWithDescriptions.push({
                 folder_name: chapter.folder_name,
                 slides: response.slides
             });
             
-            console.log(`  ✅ Generated descriptions for: ${chapter.folder_name}`);
+            console.log(`  ✅ [${chapterIdx + 1}/${chapters.length}] Generated descriptions for: ${chapter.folder_name}`);
         }
         
+        console.log('⏱️ All LLM processing completed at:', new Date().toISOString());
+        
         // Generate overall story title and subtitle
+        console.log('⏱️ Generating story metadata...');
         const storyResponse = await base44.integrations.Core.InvokeLLM({
             prompt: `Based on the following chapters from a professional field documentation project, create a concise story title (maximum 34 characters) and subtitle suitable for NGO or consulting organization audiences.
 
@@ -383,6 +402,9 @@ The title should be professional and descriptive.`,
             }
         });
         
+        console.log('⏱️ Story metadata generated');
+        console.log('⏱️ Total process completed at:', new Date().toISOString());
+        
         return Response.json({
             title: storyResponse.title,
             subtitle: storyResponse.subtitle,
@@ -390,7 +412,8 @@ The title should be professional and descriptive.`,
         });
         
     } catch (error) {
-        console.error('Error processing zip file:', error);
+        console.error('❌ Error processing zip file:', error);
+        console.error('❌ Error occurred at:', new Date().toISOString());
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
