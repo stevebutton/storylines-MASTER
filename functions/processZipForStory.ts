@@ -42,28 +42,42 @@ function parseGPSCoordinates(exifData) {
 
 // Extract image files from folder structure
 async function extractFolderStructure(zipUrl) {
+    console.log('📦 Fetching zip file from:', zipUrl);
     const response = await fetch(zipUrl);
     const zipData = await response.arrayBuffer();
+    console.log('📦 Zip file size:', (zipData.byteLength / 1024 / 1024).toFixed(2), 'MB');
+    
     const { entries } = await unzip(zipData);
+    console.log('📦 Total entries in zip:', Object.keys(entries).length);
     
     const folders = {};
     
     for (const [path, entry] of Object.entries(entries)) {
         // Skip hidden files and __MACOSX
-        if (path.includes('__MACOSX') || path.startsWith('.')) continue;
+        if (path.includes('__MACOSX') || path.startsWith('.')) {
+            console.log('⏩ Skipping hidden/system file:', path);
+            continue;
+        }
         
         // Only process image files
         if (!entry.isDirectory && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
-            const pathParts = path.split('/').filter(p => p);
+            const pathParts = path.split('/').filter(p => p && p.trim());
+            console.log('📄 Processing path:', path, '-> Parts:', pathParts);
             
             // If image is in root, skip (we only want folders)
-            if (pathParts.length === 1) continue;
+            if (pathParts.length === 1) {
+                console.log('⏩ Skipping root-level image:', path);
+                continue;
+            }
             
             const folderName = pathParts[0];
             const fileName = pathParts[pathParts.length - 1];
             
+            console.log(`📁 Assigning to folder "${folderName}": ${fileName}`);
+            
             if (!folders[folderName]) {
                 folders[folderName] = [];
+                console.log(`✨ Created new folder: "${folderName}"`);
             }
             
             // Get the file content
@@ -73,8 +87,14 @@ async function extractFolderStructure(zipUrl) {
                 blob: fileBlob,
                 path: path
             });
+        } else if (entry.isDirectory) {
+            console.log('📂 Directory entry:', path);
+        } else {
+            console.log('⏩ Skipping non-image file:', path);
         }
     }
+    
+    console.log('📊 Final folder structure:', Object.keys(folders).map(k => `${k}: ${folders[k].length} images`));
     
     return folders;
 }
