@@ -17,6 +17,26 @@ import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 import { useSearchParams } from 'react-router-dom';
 
+// Build a cumulative route array from an ordered list of visited coordinates,
+// stitching in cached road segments where available and falling back to
+// straight-line steps for any segment not yet fetched.
+function buildRouteFromVisited(visited, segCache) {
+    if (!visited || visited.length === 0) return [];
+    let route = [visited[0]];
+    for (let i = 1; i < visited.length; i++) {
+        const f = visited[i - 1];
+        const t = visited[i];
+        const sk = `${f[1].toFixed(5)},${f[0].toFixed(5)}→${t[1].toFixed(5)},${t[0].toFixed(5)}`;
+        const seg = segCache[sk];
+        if (Array.isArray(seg) && seg.length >= 2) {
+            route = [...route, ...seg.slice(1)]; // road-following; skip duplicate start point
+        } else {
+            route = [...route, t]; // straight-line fallback
+        }
+    }
+    return route;
+}
+
 export default function StoryMapView() {
     const [searchParams] = useSearchParams();
     const storyId = searchParams.get('id');
@@ -57,9 +77,12 @@ export default function StoryMapView() {
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
     const projectDescriptionRef = useRef(null);
-    // Per-session road route cache: { [chapterId]: [[lat,lng],...] | null }
-    // null = fetch completed with no route; undefined (missing key) = not yet fetched
-    const chapterRouteCache = useRef({});
+    // Per-chapter ordered list of slide coordinates the user has visited.
+    // Reset to [] each time the chapter activates. Used to rebuild route progressively.
+    const visitedSlideCoordsRef = useRef({});  // { [chKey]: [[lat,lng],...] }
+    // Road segment cache keyed by "lng1,lat1→lng2,lat2" (5dp).
+    // null = fetch in-progress or failed (straight-line used); Array = road geometry
+    const segmentCacheRef = useRef({});
     // Tracks the currently active chapter index so async route callbacks can
     // check whether the chapter is still active before applying the result
     const currentActiveChapterRef = useRef(-1);
@@ -100,7 +123,8 @@ export default function StoryMapView() {
             setIsChapterMenuOpen(false);
             previousChapterRef.current = -1;
             currentActiveChapterRef.current = -1;
-            chapterRouteCache.current = {};
+            visitedSlideCoordsRef.current = {};
+            segmentCacheRef.current = {};
             suppressNextOnSlideChangeMapConfig.current = false;
             chapterRefs.current = [];
             window.scrollTo(0, 0);
@@ -285,49 +309,9 @@ export default function StoryMapView() {
 
                             if (story.show_route !== false) {
                                 const cacheKey = chapter.id || `ch-${index}`;
-                                const cached = chapterRouteCache.current[cacheKey];
-
-                                if (Array.isArray(cached)) {
-                                    // Previously fetched road route — use immediately
-                                    setRouteCoordinates(cached);
-                                } else if (cached === undefined) {
-                                    // Not yet fetched — seed with first slide coord while we wait
-                                    chapterRouteCache.current[cacheKey] = null; // mark in-progress
-                                    if (firstSlide?.coordinates) {
-                                        const normalized = normalizeCoordinatePair(firstSlide.coordinates);
-                                        if (normalized) setRouteCoordinates([normalized]);
-                                    }
-                                    // Fetch road route async and apply when ready
-                                    const token = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
-                                    const validCoords = (chapter.slides || [])
-                                        .map(s => normalizeCoordinatePair(s.coordinates))
-                                        .filter(Boolean);
-                                    if (validCoords.length >= 2) {
-                                        const capped = validCoords.length > 25
-                                            ? [validCoords[0], ...validCoords.slice(1, 24), validCoords[validCoords.length - 1]]
-                                            : validCoords;
-                                        const waypoints = capped.map(c => `${c[1]},${c[0]}`).join(';');
-                                        (async () => {
-                                            try {
-                                                const resp = await fetch(
-                                                    `https://api.mapbox.com/directions/v5/mapbox/driving/${waypoints}` +
-                                                    `?geometries=geojson&overview=simplified&access_token=${token}`
-                                                );
-                                                const data = await resp.json();
-                                                if (data.routes?.[0]?.geometry?.coordinates) {
-                                                    const routeGeometry = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                                                    chapterRouteCache.current[cacheKey] = routeGeometry;
-                                                    if (currentActiveChapterRef.current === index) {
-                                                        setRouteCoordinates(routeGeometry);
-                                                    }
-                                                }
-                                            } catch (e) {
-                                                // No road available — straight-line fallback remains
-                                            }
-                                        })();
-                                    }
-                                }
-                                // cached === null: fetch in-progress or failed; existing coords stay
+                                // Reset visited coords so the route re-draws progressively from
+                                // the first slide. Previously cached road segments are reused.
+                                visitedSlideCoordsRef.current[cacheKey] = [];
                             }
 
                             // Only update map for chapter-to-chapter transitions.
@@ -600,17 +584,52 @@ export default function StoryMapView() {
 
                                 const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
 
-                                // Don't accumulate if a road route is already cached for this chapter
                                 if (story.show_route !== false) {
-                                    const cacheKey = chapters[index]?.id || `ch-${index}`;
-                                    if (!Array.isArray(chapterRouteCache.current[cacheKey])) {
-                                        setRouteCoordinates(prev => {
-                                            const lastCoord = prev[prev.length - 1];
-                                            if (!lastCoord || !areCoordinatesEqual(lastCoord, normalizedCoords)) {
-                                                return [...prev, normalizedCoords];
-                                            }
-                                            return prev;
-                                        });
+                                    const chKey = chapters[index]?.id || `ch-${index}`;
+
+                                    // Append this slide to the visited list for this chapter
+                                    const prevVisited = visitedSlideCoordsRef.current[chKey] || [];
+                                    const lastVisited = prevVisited[prevVisited.length - 1];
+                                    if (!lastVisited || !areCoordinatesEqual(lastVisited, normalizedCoords)) {
+                                        visitedSlideCoordsRef.current[chKey] = [...prevVisited, normalizedCoords];
+                                    }
+                                    const currentVisited = visitedSlideCoordsRef.current[chKey];
+
+                                    // Draw route immediately (straight-line fallback for unfetched segments)
+                                    setRouteCoordinates(buildRouteFromVisited(currentVisited, segmentCacheRef.current));
+
+                                    // Fetch road segment for the latest step if not yet cached
+                                    if (currentVisited.length >= 2) {
+                                        const from = currentVisited[currentVisited.length - 2];
+                                        const to   = currentVisited[currentVisited.length - 1];
+                                        const segKey = `${from[1].toFixed(5)},${from[0].toFixed(5)}→${to[1].toFixed(5)},${to[0].toFixed(5)}`;
+
+                                        if (segmentCacheRef.current[segKey] === undefined) {
+                                            segmentCacheRef.current[segKey] = null; // mark in-progress
+                                            const token = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
+                                            const waypoints = `${from[1]},${from[0]};${to[1]},${to[0]}`;
+                                            const capturedChKey = chKey;
+                                            const capturedChIdx = index;
+                                            (async () => {
+                                                try {
+                                                    const resp = await fetch(
+                                                        `https://api.mapbox.com/directions/v5/mapbox/driving/${waypoints}` +
+                                                        `?geometries=geojson&overview=simplified&access_token=${token}`
+                                                    );
+                                                    const data = await resp.json();
+                                                    segmentCacheRef.current[segKey] = data.routes?.[0]?.geometry?.coordinates
+                                                        ? data.routes[0].geometry.coordinates.map(c => [c[1], c[0]])
+                                                        : [from, to]; // straight-line fallback on no-route
+                                                } catch (e) {
+                                                    segmentCacheRef.current[segKey] = [from, to];
+                                                }
+                                                // Rebuild route with newly cached segment if chapter still active
+                                                if (currentActiveChapterRef.current === capturedChIdx) {
+                                                    const latestVisited = visitedSlideCoordsRef.current[capturedChKey] || [];
+                                                    setRouteCoordinates(buildRouteFromVisited(latestVisited, segmentCacheRef.current));
+                                                }
+                                            })();
+                                        }
                                     }
                                 }
 
