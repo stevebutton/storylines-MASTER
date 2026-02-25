@@ -182,6 +182,9 @@ export default function StoryEditor() {
         let successCount = 0;
 
         for (const chapter of chapters) {
+            // Skip unsaved chapters — they have no DB record to update
+            if (chapter.id.startsWith('temp-')) continue;
+
             const chapterSlides = slides
                 .filter(s => s.chapter_id === chapter.id)
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -208,10 +211,8 @@ export default function StoryEditor() {
                 if (data.routes?.[0]?.geometry?.coordinates) {
                     // Convert Directions API [lng,lat] → internal [lat,lng]
                     const routeGeometry = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                    await base44.entities.Chapter.update(chapter.id, { route_geometry: routeGeometry });
-                    setChapters(prev => prev.map(ch =>
-                        ch.id === chapter.id ? { ...ch, route_geometry: routeGeometry } : ch
-                    ));
+                    // Use the full chapter object so we never risk wiping other fields
+                    await base44.entities.Chapter.update(chapter.id, { ...chapter, route_geometry: routeGeometry });
                     successCount++;
                 }
             } catch (e) {
@@ -220,14 +221,17 @@ export default function StoryEditor() {
         }
 
         setIsComputingRoutes(false);
-        setRouteComputeStatus(`${successCount} of ${chapters.length} chapter routes computed`);
+        // Reload from DB so chapterRouteCount reflects what actually persisted
+        await loadData();
+        setRouteComputeStatus(`${successCount} of ${chapters.filter(c => !c.id.startsWith('temp-')).length} chapter routes computed`);
     };
 
     const clearRoutes = async () => {
         for (const chapter of chapters) {
-            await base44.entities.Chapter.update(chapter.id, { route_geometry: null });
+            if (chapter.id.startsWith('temp-')) continue;
+            await base44.entities.Chapter.update(chapter.id, { ...chapter, route_geometry: null });
         }
-        setChapters(prev => prev.map(ch => ({ ...ch, route_geometry: null })));
+        await loadData();
         setRouteComputeStatus('Routes cleared');
     };
 
