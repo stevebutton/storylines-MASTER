@@ -70,7 +70,9 @@ async function extractFolderStructure(zipUrl) {
                 continue;
             }
             
-            const folderName = pathParts[0];
+            // Use the immediate parent folder of the image as the chapter name
+            // This handles both flat (folder/image.jpg) and nested (wrapper/folder/image.jpg) structures
+            const folderName = pathParts[pathParts.length - 2];
             const fileName = pathParts[pathParts.length - 1];
             
             console.log(`📁 Assigning to folder "${folderName}": ${fileName}`);
