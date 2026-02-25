@@ -1,6 +1,6 @@
 import React from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const VideoEmbed = ({ url }) => {
@@ -44,7 +44,7 @@ const VideoEmbed = ({ url }) => {
 };
 
 // Maximize2 icon as a white SVG data URI — used as the custom fullscreen cursor
-const FULLSCREEN_CURSOR = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cpolyline points='9 21 3 21 3 15'/%3E%3Cline x1='21' y1='3' x2='14' y2='10'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E\") 12 12, pointer";
+const FULLSCREEN_CURSOR = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cpolyline points='9 21 3 21 3 15'/%3E%3Cline x1='21' y1='3' x2='14' y2='10'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E\") 6 6, pointer";
 
 export default function ChapterCarousel({ slides, onSlideChange, onImageClick, scrollToRef }) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
@@ -94,14 +94,6 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                         />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-                    {/* Explicit expand button — top-right corner */}
-                    <button
-                        onClick={() => onImageClick?.(0)}
-                        className="absolute top-2 right-2 z-10 w-7 h-7 rounded-md bg-black/30 backdrop-blur-sm hover:bg-black/50 flex items-center justify-center transition-colors"
-                        aria-label="View fullscreen"
-                    >
-                        <Maximize2 className="w-3.5 h-3.5 text-white" />
-                    </button>
                 </div>
             </div>
         );
