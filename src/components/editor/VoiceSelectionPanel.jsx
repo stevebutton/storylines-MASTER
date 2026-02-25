@@ -293,7 +293,7 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue }) {
                                 disabled={selectedVoice === 'custom' && !customVoiceDescription.trim()}
                                 className="bg-amber-600 hover:bg-amber-700"
                             >
-                                Continue to Upload Photos
+                                Generate Descriptions
                             </Button>
                         </div>
                     </motion.div>
