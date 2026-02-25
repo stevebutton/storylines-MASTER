@@ -42,39 +42,61 @@ function parseGPSCoordinates(exifData) {
 
 // Extract image files from folder structure
 async function extractFolderStructure(zipUrl) {
+    console.log('📦 Fetching zip file from:', zipUrl);
     const response = await fetch(zipUrl);
     const zipData = await response.arrayBuffer();
+    console.log('📦 Zip file size:', (zipData.byteLength / 1024 / 1024).toFixed(2), 'MB');
+    
     const { entries } = await unzip(zipData);
-
+    console.log('📦 Total entries in zip:', Object.keys(entries).length);
+    
     const folders = {};
-
+    
     for (const [path, entry] of Object.entries(entries)) {
         // Skip hidden files and __MACOSX
-        if (path.includes('__MACOSX') || path.startsWith('.')) continue;
-
+        if (path.includes('__MACOSX') || path.startsWith('.')) {
+            console.log('⏩ Skipping hidden/system file:', path);
+            continue;
+        }
+        
         // Only process image files
         if (!entry.isDirectory && /\.(jpg|jpeg|png|gif|webp)$/i.test(path)) {
-            const pathParts = path.split('/').filter(p => p);
-
+            const pathParts = path.split('/').filter(p => p && p.trim());
+            console.log('📄 Processing path:', path, '-> Parts:', pathParts);
+            
             // If image is in root, skip (we only want folders)
-            if (pathParts.length === 1) continue;
-
-            const folderName = pathParts[0];
+            if (pathParts.length === 1) {
+                console.log('⏩ Skipping root-level image:', path);
+                continue;
+            }
+            
+            // Use the immediate parent folder of the image as the chapter name
+            const folderName = pathParts[pathParts.length - 2];
             const fileName = pathParts[pathParts.length - 1];
-
+            
+            console.log(`📁 Assigning to folder "${folderName}": ${fileName}`);
+            
             if (!folders[folderName]) {
                 folders[folderName] = [];
+                console.log(`✨ Created new folder: "${folderName}"`);
             }
-
+            
+            // Get the file content
             const fileBlob = await entry.blob();
             folders[folderName].push({
                 name: fileName,
                 blob: fileBlob,
                 path: path
             });
+        } else if (entry.isDirectory) {
+            console.log('📂 Directory entry:', path);
+        } else {
+            console.log('⏩ Skipping non-image file:', path);
         }
     }
-
+    
+    console.log('📊 Final folder structure:', Object.keys(folders).map(k => `${k}: ${folders[k].length} images`));
+    
     return folders;
 }
 
@@ -94,83 +116,79 @@ Deno.serve(async (req) => {
         }
 
         console.log('📦 Processing zip file:', zip_url);
-
-        // Extract folder/image structure from zip
+        console.log('⏱️ Upload process started at:', new Date().toISOString());
+        
+        // Extract folder structure
+        console.log('⏱️ Starting folder extraction...');
         const folders = await extractFolderStructure(zip_url);
         console.log('📁 Found folders:', Object.keys(folders));
+        console.log('⏱️ Folder extraction completed at:', new Date().toISOString());
 
-        // Create Story entity with a placeholder title.
-        // generateStoryDescriptions will update the title once the voice + LLM pass runs.
-        const story = await base44.asServiceRole.entities.Story.create({
-            title: 'Untitled Story',
-            subtitle: '',
-            category: 'travel',
+        // Create story
+        const tempStory = await base44.asServiceRole.entities.Story.create({
+            title: "Untitled Story",
             is_published: false
         });
-        console.log('📖 Created story:', story.id);
 
-        let totalSlides = 0;
-        let slidesWithGps = 0;
-        const chapterOverviews = [];
-        let chapterOrder = 0;
+        console.log('✨ Created story with ID:', tempStory.id);
 
-        // Process each folder as a chapter — upload images and extract EXIF coordinates.
-        // No LLM calls here; descriptions are generated later by generateStoryDescriptions.
-        for (const [folderName, files] of Object.entries(folders)) {
+        // Process each folder as a chapter
+        for (let chapterOrder = 0; chapterOrder < Object.entries(folders).length; chapterOrder++) {
+            const [folderName, files] = Object.entries(folders)[chapterOrder];
             console.log(`📁 Processing folder: ${folderName} (${files.length} images)`);
-
-            const chapter = await base44.asServiceRole.entities.Chapter.create({
-                story_id: story.id,
+            
+            const newChapter = await base44.asServiceRole.entities.Chapter.create({
+                story_id: tempStory.id,
                 name: folderName,
-                order: chapterOrder++,
+                order: chapterOrder,
                 alignment: 'left'
             });
 
-            let slideOrder = 0;
-            for (const file of files) {
+            // Process each image in the folder
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 try {
-                    // Upload image
+                    console.log(`  ⏱️ [${i+1}/${files.length}] Starting ${file.name}...`);
+                    
+                    // Upload image to Base44
                     const uploadedFile = new File([file.blob], file.name, { type: file.blob.type });
-                    const { file_url } = await base44.integrations.Core.UploadFile({ file: uploadedFile });
-
-                    // Extract GPS from EXIF
+                    const { file_url } = await base44.integrations.Core.UploadFile({ 
+                        file: uploadedFile 
+                    });
+                    console.log(`  ⏱️ [${i+1}/${files.length}] Uploaded ${file.name}`);
+                    
+                    // Extract EXIF coordinates
                     const imageBuffer = await file.blob.arrayBuffer();
                     const tags = ExifReader.load(imageBuffer);
                     const coordinates = parseGPSCoordinates(tags);
-
+                    
+                    // Create slide
                     await base44.asServiceRole.entities.Slide.create({
-                        chapter_id: chapter.id,
-                        order: slideOrder++,
+                        chapter_id: newChapter.id,
+                        order: i,
                         image: file_url,
+                        title: file.name.split('.').slice(0, -1).join('.'),
                         coordinates: coordinates || null,
                         zoom: 12
                     });
-
-                    totalSlides++;
-                    if (coordinates) slidesWithGps++;
-                    console.log(`  ✅ Created slide: ${file.name} - GPS: ${coordinates ? 'Yes' : 'No'}`);
+                    
+                    console.log(`  ✅ [${i+1}/${files.length}] Processed: ${file.name} - GPS: ${coordinates ? 'Yes' : 'No'}`);
                 } catch (error) {
                     console.error(`  ❌ Error processing ${file.name}:`, error);
                 }
             }
-
-            chapterOverviews.push({ name: folderName, slide_count: slideOrder });
         }
-
-        console.log(`✅ Created ${chapterOverviews.length} chapters, ${totalSlides} slides`);
-
+        
+        console.log(`✅ Story structure created successfully with ID: ${tempStory.id}`);
+        console.log('⏱️ Process completed at:', new Date().toISOString());
+        
         return Response.json({
-            story_id: story.id,
-            overview: {
-                chapter_count: chapterOverviews.length,
-                slide_count: totalSlides,
-                slides_with_gps: slidesWithGps,
-                chapters: chapterOverviews
-            }
+            story_id: tempStory.id
         });
-
+        
     } catch (error) {
-        console.error('Error processing zip file:', error);
+        console.error('❌ Error processing zip file:', error);
+        console.error('❌ Error occurred at:', new Date().toISOString());
         return Response.json({ error: error.message }, { status: 500 });
     }
 });
