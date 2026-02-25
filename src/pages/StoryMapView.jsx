@@ -229,6 +229,10 @@ export default function StoryMapView() {
             }));
 
             setChapters(chaptersWithSlides);
+            // DEBUG: verify route_geometry loaded from DB
+            console.log('[route-debug] chapters loaded:', chaptersWithSlides.map(c => ({
+                id: c.id, routePts: c.route_geometry?.length ?? 'NONE'
+            })));
         } catch (error) {
             console.error('Failed to load story:', error);
         } finally {
@@ -272,6 +276,8 @@ export default function StoryMapView() {
 
                             const firstSlide = chapter.slides?.[0];
 
+                            // DEBUG: log which route branch is taken
+                            console.log('[route-debug] ch', index, 'activating — show_route:', story.show_route, '| route_geometry pts:', chapter.route_geometry?.length ?? 'NONE');
                             if (story.show_route === false) {
                                 // Route disabled for this story — leave routeCoordinates empty
                             } else if (chapter.route_geometry?.length >= 2) {
