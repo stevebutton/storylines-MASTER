@@ -63,7 +63,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 story_context: config.story_context
             });
 
-            // base44.functions.invoke may wrap the body in { data: ... } or return it directly
+            // Handle both wrapped ({ data: ... }) and direct response formats
             const response = result?.data ?? result;
             console.log('[generateStoryDescriptions] response:', JSON.stringify(response));
 
@@ -76,8 +76,10 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 throw new Error(`Unexpected response: ${JSON.stringify(response)}`);
             }
         } catch (error) {
-            console.error('Failed to generate descriptions:', error);
-            toast.error(`Failed to generate descriptions: ${error.message}`);
+            // Surface the actual server error if available (Axios wraps it in error.response.data)
+            const msg = error.response?.data?.error || error.message;
+            console.error('Failed to generate descriptions:', msg, error);
+            toast.error(`Failed to generate descriptions: ${msg}`, { duration: 8000 });
             setStep('upload');
             setZipFile(null);
             setCurrentStoryId(null);
