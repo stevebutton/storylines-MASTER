@@ -335,7 +335,6 @@ export default function MapBackground({
                 height: ${isActive ? '36px' : '24px'};
                 cursor: ${isActive ? 'default' : 'pointer'};
                 pointer-events: auto;
-                position: relative;
                 transition: width 0.3s ease, height 0.3s ease;
                 z-index: ${isActive ? '10' : '8'};
             `;
@@ -346,6 +345,7 @@ export default function MapBackground({
             inner.style.cssText = `
                 width: 100%;
                 height: 100%;
+                box-sizing: border-box;
                 border-radius: 50%;
                 background: ${isActive ? chapterColor.main : '#000000'};
                 border: 3px solid white;
@@ -601,7 +601,7 @@ export default function MapBackground({
                 .mapbox-marker-active-3 { animation: marker-pulse-3 1.8s ease-out infinite !important; }
                 .mapbox-marker-active-4 { animation: marker-pulse-4 1.8s ease-out infinite !important; }
                 .mapbox-marker-active-5 { animation: marker-pulse-5 1.8s ease-out infinite !important; }
-                .mapbox-marker-inactive { opacity: 0.5; transition: opacity 300ms ease; }
+                .mapbox-marker-inactive { opacity: 0.35; transition: opacity 300ms ease; }
                 .mapbox-marker-inactive:hover { opacity: 1; }
             `}</style>
         </div>
