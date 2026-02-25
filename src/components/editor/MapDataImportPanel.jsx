@@ -12,8 +12,9 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [zipFile, setZipFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [step, setStep] = useState('upload'); // upload, processing_zip, voice_selection, generating_descriptions, success
+    const [step, setStep] = useState('upload'); // upload, processing_zip, voice_selection, generating_descriptions, overview
     const [currentStoryId, setCurrentStoryId] = useState(null);
+    const [storyOverview, setStoryOverview] = useState(null);
 
     const handleFileUpload = (e) => {
         const uploadedFile = e.target.files[0];
@@ -62,12 +63,8 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 story_context: config.story_context
             });
 
-            setStep('success');
-            
-            // Redirect to editor after brief success display
-            setTimeout(() => {
-                navigate(`${createPageUrl('StoryEditor')}?id=${currentStoryId}`);
-            }, 1500);
+            setStoryOverview(response.overview);
+            setStep('overview');
         } catch (error) {
             console.error('Failed to generate descriptions:', error);
             toast.error('Failed to generate descriptions. Please try again.');
@@ -185,17 +182,65 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                 </div>
                             )}
 
-                            {/* Success Step */}
-                            {step === 'success' && (
-                                <div className="flex flex-col items-center justify-center py-20">
-                                    <CheckCircle className="w-16 h-16 text-green-600 mb-4" />
-                                    <h3 className="text-xl font-semibold text-slate-800 mb-2">
-                                        Story Created Successfully!
-                                    </h3>
-                                    <p className="text-sm text-slate-600">
-                                        Redirecting to the story editor...
-                                    </p>
-                                </div>
+                            {/* Overview Step */}
+                            {step === 'overview' && storyOverview && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <CheckCircle className="w-8 h-8 text-green-600" />
+                                        <div>
+                                            <h3 className="text-2xl font-bold text-slate-800">
+                                                Story Created Successfully
+                                            </h3>
+                                            <p className="text-sm text-slate-600">
+                                                Review your story structure below
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-6 space-y-4">
+                                        <div className="grid grid-cols-3 gap-4 text-center">
+                                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                                                <div className="text-3xl font-bold text-blue-600">{storyOverview.chapter_count}</div>
+                                                <div className="text-sm text-slate-600">Chapters</div>
+                                            </div>
+                                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                                                <div className="text-3xl font-bold text-cyan-600">{storyOverview.slide_count}</div>
+                                                <div className="text-sm text-slate-600">Slides</div>
+                                            </div>
+                                            <div className="bg-white rounded-lg p-4 shadow-sm">
+                                                <div className="text-3xl font-bold text-green-600">{storyOverview.slides_with_gps}</div>
+                                                <div className="text-sm text-slate-600">With GPS</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                                        {storyOverview.chapters.map((chapter, idx) => (
+                                            <div key={idx} className="bg-white rounded-lg border border-slate-200 p-4">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-sm">
+                                                        {idx + 1}
+                                                    </div>
+                                                    <h4 className="font-semibold text-slate-800">{chapter.name}</h4>
+                                                    <span className="text-xs text-slate-500 ml-auto">{chapter.slide_count} slides</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex justify-end pt-4">
+                                        <Button
+                                            onClick={() => navigate(`${createPageUrl('StoryEditor')}?id=${currentStoryId}`)}
+                                            className="bg-blue-600 hover:bg-blue-700"
+                                        >
+                                            Open in Editor
+                                        </Button>
+                                    </div>
+                                </motion.div>
                             )}
                         </div>
                     </motion.div>
