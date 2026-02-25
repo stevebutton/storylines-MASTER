@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { normalizeCoordinatePair } from '@/components/utils/coordinateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,8 @@ export default function StoryEditor() {
     const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(false);
     const [showTitleValidationDialog, setShowTitleValidationDialog] = useState(false);
     const [pendingTitle, setPendingTitle] = useState('');
+    const [isComputingRoutes, setIsComputingRoutes] = useState(false);
+    const [routeComputeStatus, setRouteComputeStatus] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -170,6 +173,62 @@ export default function StoryEditor() {
 
     const updateSlide = (updatedSlide) => {
         setSlides(slides.map(s => s.id === updatedSlide.id ? updatedSlide : s));
+    };
+
+    const computeRoutes = async () => {
+        const token = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
+        setIsComputingRoutes(true);
+        setRouteComputeStatus(null);
+        let successCount = 0;
+
+        for (const chapter of chapters) {
+            const chapterSlides = slides
+                .filter(s => s.chapter_id === chapter.id)
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+            const validCoords = chapterSlides
+                .map(s => normalizeCoordinatePair(s.coordinates))
+                .filter(Boolean);
+
+            if (validCoords.length < 2) continue;
+
+            // Mapbox Directions max 25 waypoints — cap if needed
+            const capped = validCoords.length > 25
+                ? [validCoords[0], ...validCoords.slice(1, 24), validCoords[validCoords.length - 1]]
+                : validCoords;
+
+            const waypoints = capped.map(c => `${c[1]},${c[0]}`).join(';');
+
+            try {
+                const resp = await fetch(
+                    `https://api.mapbox.com/directions/v5/mapbox/driving/${waypoints}` +
+                    `?geometries=geojson&overview=full&access_token=${token}`
+                );
+                const data = await resp.json();
+                if (data.routes?.[0]?.geometry?.coordinates) {
+                    // Convert Directions API [lng,lat] → internal [lat,lng]
+                    const routeGeometry = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                    await base44.entities.Chapter.update(chapter.id, { route_geometry: routeGeometry });
+                    setChapters(prev => prev.map(ch =>
+                        ch.id === chapter.id ? { ...ch, route_geometry: routeGeometry } : ch
+                    ));
+                    successCount++;
+                }
+            } catch (e) {
+                // Skip failed chapter (sea crossing, remote area, etc.) — continue
+            }
+        }
+
+        setIsComputingRoutes(false);
+        setRouteComputeStatus(`${successCount} of ${chapters.length} chapter routes computed`);
+    };
+
+    const clearRoutes = async () => {
+        for (const chapter of chapters) {
+            await base44.entities.Chapter.update(chapter.id, { route_geometry: null });
+        }
+        setChapters(prev => prev.map(ch => ({ ...ch, route_geometry: null })));
+        setRouteComputeStatus('Routes cleared');
     };
 
     const deleteChapter = async (chapterId) => {
@@ -434,6 +493,12 @@ export default function StoryEditor() {
                             }
                             onAddChapter={addChapter}
                             onAddSlide={addSlide}
+                            onComputeRoutes={computeRoutes}
+                            onClearRoutes={clearRoutes}
+                            isComputingRoutes={isComputingRoutes}
+                            routeComputeStatus={routeComputeStatus}
+                            chapterRouteCount={chapters.filter(c => c.route_geometry?.length).length}
+                            totalChapterCount={chapters.length}
                         />
                     </div>
                 </div>
