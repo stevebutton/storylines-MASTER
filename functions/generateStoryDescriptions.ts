@@ -207,12 +207,15 @@ ${coordinateContext}
 For each image provided:
 1. Use the EXACT GPS coordinates listed above (already in decimal degree format: [latitude, longitude]).
 2. Identify the location name based on the coordinates and image content.
-3. Create a title and description following the voice approach described above.
-4. Include the exact image_url that corresponds to this slide.
+3. Create a title following the voice approach described above.
+4. Create TWO pieces of text:
+   - description: A concise introduction (maximum 380 characters)
+   - extended_content: A continuation that elaborates and provides deeper context (maximum 900 characters)
+5. Include the exact image_url that corresponds to this slide.
 
 If an image has no GPS data, analyze the image to identify the location visually and provide estimated coordinates.
 
-Return structured data for each slide with: image_url, title, location name, description, and coordinates in [latitude, longitude] format.`,
+Return structured data for each slide with: image_url, title, location name, description (max 380 chars), extended_content (max 900 chars), and coordinates in [latitude, longitude] format.`,
                 file_urls: imageUrls,
                 add_context_from_internet: true,
                 response_json_schema: {
@@ -226,6 +229,7 @@ Return structured data for each slide with: image_url, title, location name, des
                                     title: { type: "string" },
                                     location: { type: "string" },
                                     description: { type: "string" },
+                                    extended_content: { type: "string" },
                                     coordinates: {
                                         type: "array",
                                         items: { type: "number" }
@@ -249,6 +253,7 @@ Return structured data for each slide with: image_url, title, location name, des
                 await base44.asServiceRole.entities.Slide.update(slide.id, {
                     title: slideData.title,
                     description: slideData.description,
+                    extended_content: slideData.extended_content,
                     location: slideData.location,
                     coordinates: slideData.coordinates
                 });
