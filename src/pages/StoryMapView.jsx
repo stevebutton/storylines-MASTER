@@ -57,6 +57,12 @@ export default function StoryMapView() {
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
     const projectDescriptionRef = useRef(null);
+    // Per-session road route cache: { [chapterId]: [[lat,lng],...] | null }
+    // null = fetch completed with no route; undefined (missing key) = not yet fetched
+    const chapterRouteCache = useRef({});
+    // Tracks the currently active chapter index so async route callbacks can
+    // check whether the chapter is still active before applying the result
+    const currentActiveChapterRef = useRef(-1);
     // Prevents the onSlideChange isActive-effect call from restarting a flyTo
     // that onContinue/onExplore already started for the initial chapter activation.
     const suppressNextOnSlideChangeMapConfig = useRef(false);
@@ -93,6 +99,8 @@ export default function StoryMapView() {
             setLandingMarkers([]);
             setIsChapterMenuOpen(false);
             previousChapterRef.current = -1;
+            currentActiveChapterRef.current = -1;
+            chapterRouteCache.current = {};
             suppressNextOnSlideChangeMapConfig.current = false;
             chapterRefs.current = [];
             window.scrollTo(0, 0);
@@ -229,10 +237,6 @@ export default function StoryMapView() {
             }));
 
             setChapters(chaptersWithSlides);
-            // DEBUG: verify route_geometry loaded from DB
-            console.log('[route-debug] chapters loaded:', chaptersWithSlides.map(c => ({
-                id: c.id, routePts: c.route_geometry?.length ?? 'NONE'
-            })));
         } catch (error) {
             console.error('Failed to load story:', error);
         } finally {
@@ -276,21 +280,54 @@ export default function StoryMapView() {
 
                             const firstSlide = chapter.slides?.[0];
 
-                            // DEBUG: log which route branch is taken
-                            console.log('[route-debug] ch', index, 'activating — show_route:', story.show_route, '| route_geometry pts:', chapter.route_geometry?.length ?? 'NONE');
-                            if (story.show_route === false) {
-                                // Route disabled for this story — leave routeCoordinates empty
-                            } else if (chapter.route_geometry?.length >= 2) {
-                                // Use full pre-computed road route
-                                setRouteCoordinates(chapter.route_geometry);
-                            } else {
-                                // Fallback: seed with first slide coordinate (straight-line behaviour)
-                                const initialRoute = [];
-                                if (firstSlide?.coordinates) {
-                                    const normalized = normalizeCoordinatePair(firstSlide.coordinates);
-                                    if (normalized) initialRoute.push(normalized);
+                            // Track active chapter for async route callbacks
+                            currentActiveChapterRef.current = index;
+
+                            if (story.show_route !== false) {
+                                const cacheKey = chapter.id || `ch-${index}`;
+                                const cached = chapterRouteCache.current[cacheKey];
+
+                                if (Array.isArray(cached)) {
+                                    // Previously fetched road route — use immediately
+                                    setRouteCoordinates(cached);
+                                } else if (cached === undefined) {
+                                    // Not yet fetched — seed with first slide coord while we wait
+                                    chapterRouteCache.current[cacheKey] = null; // mark in-progress
+                                    if (firstSlide?.coordinates) {
+                                        const normalized = normalizeCoordinatePair(firstSlide.coordinates);
+                                        if (normalized) setRouteCoordinates([normalized]);
+                                    }
+                                    // Fetch road route async and apply when ready
+                                    const token = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
+                                    const validCoords = (chapter.slides || [])
+                                        .map(s => normalizeCoordinatePair(s.coordinates))
+                                        .filter(Boolean);
+                                    if (validCoords.length >= 2) {
+                                        const capped = validCoords.length > 25
+                                            ? [validCoords[0], ...validCoords.slice(1, 24), validCoords[validCoords.length - 1]]
+                                            : validCoords;
+                                        const waypoints = capped.map(c => `${c[1]},${c[0]}`).join(';');
+                                        (async () => {
+                                            try {
+                                                const resp = await fetch(
+                                                    `https://api.mapbox.com/directions/v5/mapbox/driving/${waypoints}` +
+                                                    `?geometries=geojson&overview=simplified&access_token=${token}`
+                                                );
+                                                const data = await resp.json();
+                                                if (data.routes?.[0]?.geometry?.coordinates) {
+                                                    const routeGeometry = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                                                    chapterRouteCache.current[cacheKey] = routeGeometry;
+                                                    if (currentActiveChapterRef.current === index) {
+                                                        setRouteCoordinates(routeGeometry);
+                                                    }
+                                                }
+                                            } catch (e) {
+                                                // No road available — straight-line fallback remains
+                                            }
+                                        })();
+                                    }
                                 }
-                                setRouteCoordinates(initialRoute);
+                                // cached === null: fetch in-progress or failed; existing coords stay
                             }
 
                             // Only update map for chapter-to-chapter transitions.
@@ -563,15 +600,18 @@ export default function StoryMapView() {
 
                                 const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
 
-                                // Don't accumulate individual coords when a full route is already loaded
-                                if (story.show_route !== false && !(chapters[index]?.route_geometry?.length >= 2)) {
-                                    setRouteCoordinates(prev => {
-                                        const lastCoord = prev[prev.length - 1];
-                                        if (!lastCoord || !areCoordinatesEqual(lastCoord, normalizedCoords)) {
-                                            return [...prev, normalizedCoords];
-                                        }
-                                        return prev;
-                                    });
+                                // Don't accumulate if a road route is already cached for this chapter
+                                if (story.show_route !== false) {
+                                    const cacheKey = chapters[index]?.id || `ch-${index}`;
+                                    if (!Array.isArray(chapterRouteCache.current[cacheKey])) {
+                                        setRouteCoordinates(prev => {
+                                            const lastCoord = prev[prev.length - 1];
+                                            if (!lastCoord || !areCoordinatesEqual(lastCoord, normalizedCoords)) {
+                                                return [...prev, normalizedCoords];
+                                            }
+                                            return prev;
+                                        });
+                                    }
                                 }
 
                                 // Add landing marker (with duplicate check)
