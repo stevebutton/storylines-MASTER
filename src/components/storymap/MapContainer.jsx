@@ -325,30 +325,43 @@ export default function MapBackground({
             const isActive = index === activeMarkerIndex;
             const colorIdx = (markerData.chapterIndex ?? 0) % CHAPTER_COLORS.length;
             const chapterColor = CHAPTER_COLORS[colorIdx];
+
+            // Outer wrapper: passed to Mapbox, which may set transform/opacity on it.
+            // We keep it transparent so Mapbox's opacity resets don't affect our visuals.
             const el = document.createElement('div');
-            el.className = isActive ? `mapbox-marker mapbox-marker-active-${colorIdx}` : 'mapbox-marker';
+            el.className = 'mapbox-marker';
             el.style.cssText = `
                 width: ${isActive ? '36px' : '24px'};
                 height: ${isActive ? '36px' : '24px'};
+                cursor: ${isActive ? 'default' : 'pointer'};
+                pointer-events: auto;
+                position: relative;
+                transition: width 0.3s ease, height 0.3s ease;
+                z-index: ${isActive ? '10' : '8'};
+            `;
+
+            // Inner visual element: Mapbox never touches this, so our opacity is safe here.
+            const inner = document.createElement('div');
+            inner.className = isActive ? `mapbox-marker-active-${colorIdx}` : 'mapbox-marker-inactive';
+            inner.style.cssText = `
+                width: 100%;
+                height: 100%;
                 border-radius: 50%;
                 background: ${isActive ? chapterColor.main : '#000000'};
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                cursor: ${isActive ? 'default' : 'pointer'};
-                pointer-events: auto;
-                opacity: ${isActive ? '0' : '0.5'};
-                transition: opacity 300ms ease, width 0.3s ease, height 0.3s ease;
-                z-index: ${isActive ? '10' : '8'};
+                ${isActive ? 'opacity: 0; transition: opacity 300ms ease;' : ''}
             `;
+            el.appendChild(inner);
 
             const marker = new mapboxgl.Marker(el)
                 .setLngLat([markerData.coordinates[1], markerData.coordinates[0]])
                 .addTo(map.current);
 
-            // Fade active marker in from opacity 0 — inactive opacity is handled by CSS class
+            // Fade active marker in — inactive opacity handled entirely by CSS class
             if (isActive) {
                 requestAnimationFrame(() => {
-                    requestAnimationFrame(() => { if (el) el.style.opacity = '1'; });
+                    requestAnimationFrame(() => { if (inner) inner.style.opacity = '1'; });
                 });
             }
 
@@ -357,7 +370,6 @@ export default function MapBackground({
                 let tooltipEl = null;
 
                 el.addEventListener('mouseenter', () => {
-                    el.style.opacity = '1';
                     if (tooltipEl) return;
                     const rect = el.getBoundingClientRect();
                     tooltipEl = document.createElement('div');
@@ -404,7 +416,6 @@ export default function MapBackground({
                 });
 
                 el.addEventListener('mouseleave', () => {
-                    el.style.opacity = '0.5';
                     setTimeout(() => {
                         if (tooltipEl && !tooltipEl.matches(':hover')) {
                             tooltipEl.remove();
@@ -590,6 +601,8 @@ export default function MapBackground({
                 .mapbox-marker-active-3 { animation: marker-pulse-3 1.8s ease-out infinite !important; }
                 .mapbox-marker-active-4 { animation: marker-pulse-4 1.8s ease-out infinite !important; }
                 .mapbox-marker-active-5 { animation: marker-pulse-5 1.8s ease-out infinite !important; }
+                .mapbox-marker-inactive { opacity: 0.5; transition: opacity 300ms ease; }
+                .mapbox-marker-inactive:hover { opacity: 1; }
             `}</style>
         </div>
     );
