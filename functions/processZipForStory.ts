@@ -368,7 +368,7 @@ If an image has no GPS data, analyze the image to identify the location visually
 
 Return structured data for each slide with: image_url, title, location name, description, and coordinates in [latitude, longitude] format.`,
                 file_urls: imageUrls,
-                add_context_from_internet: true,
+                add_context_from_internet: false,
                 response_json_schema: {
                     type: "object",
                     properties: {
