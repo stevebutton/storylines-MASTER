@@ -248,6 +248,10 @@ Return structured data for each slide with: image_url, title, location name, des
             console.log(`⏱️ [${chapterIdx + 1}/${chapters.length}] LLM call completed in ${llmDuration}s`);
 
             // Update slides with generated descriptions
+            if (!response?.slides?.length) {
+                console.error(`⚠️ No slides returned by LLM for chapter: ${chapter.name}`);
+                continue;
+            }
             for (let i = 0; i < response.slides.length; i++) {
                 const slideData = response.slides[i];
                 const slide = slides[i];
@@ -291,15 +295,20 @@ The title should be professional and descriptive.`,
 
         // Update story with generated metadata and context
         const updateData = {
-            title: story_context?.story_title || storyResponse.title.substring(0, 34),
-            subtitle: storyResponse.subtitle,
+            title: (story_context?.story_title || storyResponse?.title || 'Untitled Story').substring(0, 34),
+            subtitle: storyResponse?.subtitle || '',
             story_description: story_context?.story_description || null,
-            caption_voice,
+            caption_voice: caption_voice || null,
             custom_caption_voice_description: caption_voice === 'custom' ? custom_caption_voice_description : null,
             story_context: story_context || null
         };
 
-        await base44.asServiceRole.entities.Story.update(story_id, updateData);
+        try {
+            await base44.asServiceRole.entities.Story.update(story_id, updateData);
+        } catch (updateError) {
+            // Story metadata update failed (possibly schema fields missing) — log but continue
+            console.error('⚠️ Story metadata update failed (non-fatal):', updateError.message);
+        }
 
         console.log('⏱️ Story metadata and context saved');
         console.log('⏱️ Total description generation completed at:', new Date().toISOString());
