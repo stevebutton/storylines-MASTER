@@ -56,23 +56,28 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         setStep('generating_descriptions');
 
         try {
-            const { data: response } = await base44.functions.invoke('generateStoryDescriptions', {
+            const result = await base44.functions.invoke('generateStoryDescriptions', {
                 story_id: currentStoryId,
                 caption_voice: config.caption_voice,
                 custom_caption_voice_description: config.custom_caption_voice_description,
                 story_context: config.story_context
             });
 
+            // base44.functions.invoke may wrap the body in { data: ... } or return it directly
+            const response = result?.data ?? result;
+            console.log('[generateStoryDescriptions] response:', JSON.stringify(response));
+
             if (response?.overview) {
                 setStoryOverview(response.overview);
                 setStep('overview');
+            } else if (response?.error) {
+                throw new Error(response.error);
             } else {
-                throw new Error('Invalid response — missing overview data');
+                throw new Error(`Unexpected response: ${JSON.stringify(response)}`);
             }
         } catch (error) {
             console.error('Failed to generate descriptions:', error);
             toast.error(`Failed to generate descriptions: ${error.message}`);
-            // Return to upload so the user can start fresh — don't loop back to voice selection
             setStep('upload');
             setZipFile(null);
             setCurrentStoryId(null);
