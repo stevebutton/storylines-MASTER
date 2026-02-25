@@ -56,20 +56,27 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         setStep('generating_descriptions');
 
         try {
-            const { data: response } = await base44.functions.invoke('generateStoryDescriptions', {
+            console.log('Calling generateStoryDescriptions with:', { story_id: currentStoryId, config });
+            const response = await base44.functions.invoke('generateStoryDescriptions', {
                 story_id: currentStoryId,
                 caption_voice: config.caption_voice,
                 custom_caption_voice_description: config.custom_caption_voice_description,
                 story_context: config.story_context
             });
 
-            setStoryOverview(response.overview);
-            setStep('overview');
+            console.log('Response from generateStoryDescriptions:', response);
+
+            if (response.data?.overview) {
+                setStoryOverview(response.data.overview);
+                setStep('overview');
+                setIsProcessing(false);
+            } else {
+                throw new Error('Invalid response format - missing overview data');
+            }
         } catch (error) {
             console.error('Failed to generate descriptions:', error);
-            toast.error('Failed to generate descriptions. Please try again.');
+            toast.error(`Failed to generate descriptions: ${error.message}`);
             setStep('voice_selection');
-        } finally {
             setIsProcessing(false);
         }
     };
