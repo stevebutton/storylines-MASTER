@@ -331,7 +331,7 @@ export default function MapBackground({
                 width: ${isActive ? '36px' : '24px'};
                 height: ${isActive ? '36px' : '24px'};
                 border-radius: 50%;
-                background: ${chapterColor.main};
+                background: ${isActive ? chapterColor.main : 'rgba(0,0,0,0.5)'};
                 border: 3px solid white;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 cursor: ${isActive ? 'default' : 'pointer'};
@@ -467,9 +467,9 @@ export default function MapBackground({
                     width: 120px;
                     height: 120px;
                     border-radius: 50%;
-                    background: rgba(${color.rgb}, 0.15);
-                    border: 2px solid rgba(${color.rgb}, 0.4);
-                    box-shadow: 0 0 20px rgba(${color.rgb}, 0.2);
+                    background: rgba(${color.rgb}, 0.05);
+                    border: 2px solid rgba(${color.rgb}, 0.3);
+                    box-shadow: 0 0 20px rgba(${color.rgb}, 0.1);
                     opacity: 0;
                     transition: opacity 1000ms ease-in;
                     pointer-events: none;
