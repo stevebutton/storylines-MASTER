@@ -14,14 +14,20 @@ import DocumentPicker from '@/components/editor/DocumentPicker';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-export default function TabbedContentEditor({ 
-    itemType, 
-    item, 
+export default function TabbedContentEditor({
+    itemType,
+    item,
     storyId,
     onUpdate,
     onDelete,
     onAddChapter,
-    onAddSlide 
+    onAddSlide,
+    onComputeRoutes,
+    onClearRoutes,
+    isComputingRoutes,
+    routeComputeStatus,
+    chapterRouteCount,
+    totalChapterCount
 }) {
     const [activeTab, setActiveTab] = useState('content');
     const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -300,6 +306,45 @@ export default function TabbedContentEditor({
                                 />
                                 <Label>Allow social media sharing</Label>
                             </div>
+                        </div>
+
+                        {/* Route Settings */}
+                        <div className="border-t pt-4 mt-4 space-y-3">
+                            <div className="flex items-center gap-3">
+                                <Switch
+                                    checked={item.show_route !== false}
+                                    onCheckedChange={(checked) => onUpdate({ ...item, show_route: checked })}
+                                />
+                                <Label>Show Route Line</Label>
+                            </div>
+
+                            {item.show_route !== false && (
+                                <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={onComputeRoutes}
+                                            disabled={isComputingRoutes}
+                                        >
+                                            {isComputingRoutes ? 'Computing...' : 'Compute Routes'}
+                                        </Button>
+                                        {chapterRouteCount > 0 && (
+                                            <Button size="sm" variant="ghost" onClick={onClearRoutes}>
+                                                Clear
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {routeComputeStatus && (
+                                        <p className="text-xs text-slate-500">{routeComputeStatus}</p>
+                                    )}
+                                    {chapterRouteCount > 0 && !routeComputeStatus && (
+                                        <p className="text-xs text-slate-500">
+                                            {chapterRouteCount}/{totalChapterCount} chapters have routes
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div className="pt-4 border-t">

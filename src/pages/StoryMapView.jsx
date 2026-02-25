@@ -270,18 +270,22 @@ export default function StoryMapView() {
                             setActiveMarkerIdx(-1);
                             const chapter = chapters[index];
 
-                            // Build initial route for new chapter with first slide coordinates
-                            const initialRoute = [];
                             const firstSlide = chapter.slides?.[0];
 
-                            if (firstSlide?.coordinates) {
-                                const normalized = normalizeCoordinatePair(firstSlide.coordinates);
-                                if (normalized) {
-                                    initialRoute.push(normalized);
+                            if (story.show_route === false) {
+                                // Route disabled for this story — leave routeCoordinates empty
+                            } else if (chapter.route_geometry?.length >= 2) {
+                                // Use full pre-computed road route
+                                setRouteCoordinates(chapter.route_geometry);
+                            } else {
+                                // Fallback: seed with first slide coordinate (straight-line behaviour)
+                                const initialRoute = [];
+                                if (firstSlide?.coordinates) {
+                                    const normalized = normalizeCoordinatePair(firstSlide.coordinates);
+                                    if (normalized) initialRoute.push(normalized);
                                 }
+                                setRouteCoordinates(initialRoute);
                             }
-
-                            setRouteCoordinates(initialRoute);
 
                             // Only update map for chapter-to-chapter transitions.
                             // The initial hero/description→chapter0 activation is already
@@ -553,14 +557,16 @@ export default function StoryMapView() {
 
                                 const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
 
-                                // Add to route (with duplicate check)
-                                setRouteCoordinates(prev => {
-                                    const lastCoord = prev[prev.length - 1];
-                                    if (!lastCoord || !areCoordinatesEqual(lastCoord, normalizedCoords)) {
-                                        return [...prev, normalizedCoords];
-                                    }
-                                    return prev;
-                                });
+                                // Don't accumulate individual coords when a full route is already loaded
+                                if (story.show_route !== false && !(chapters[index]?.route_geometry?.length >= 2)) {
+                                    setRouteCoordinates(prev => {
+                                        const lastCoord = prev[prev.length - 1];
+                                        if (!lastCoord || !areCoordinatesEqual(lastCoord, normalizedCoords)) {
+                                            return [...prev, normalizedCoords];
+                                        }
+                                        return prev;
+                                    });
+                                }
 
                                 // Add landing marker (with duplicate check)
                                 setLandingMarkers(prev => {
