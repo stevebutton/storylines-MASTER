@@ -109,24 +109,24 @@ export default function FullScreenImageViewer({
                         className="fixed inset-0 z-[9998] bg-white overflow-y-auto pointer-events-auto"
                     >
                         {/* Consolidated controls: back · close · next */}
-                        <div className="absolute bottom-[80px] left-[225px] -translate-x-1/2 z-50 w-[240px] flex items-center justify-between">
+                        <div className="absolute bottom-[80px] left-[225px] -translate-x-1/2 z-50 w-[400px] bg-white/60 backdrop-blur-md rounded-lg shadow-lg flex items-center justify-between py-[15px] px-8">
                             <button
                                 onClick={handlePrevious}
                                 disabled={!hasMultipleSlides}
-                                className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 <ChevronLeft className="w-6 h-6 text-slate-700" />
                             </button>
                             <button
                                 onClick={onClose}
-                                className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                                className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all"
                             >
                                 <X className="w-6 h-6 text-slate-700" />
                             </button>
                             <button
                                 onClick={handleNext}
                                 disabled={!hasMultipleSlides}
-                                className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                                 <ChevronRight className="w-6 h-6 text-slate-700" />
                             </button>
