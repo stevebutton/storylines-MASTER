@@ -109,7 +109,7 @@ export default function FullScreenImageViewer({
                         className="fixed inset-0 z-[9998] bg-white overflow-y-auto pointer-events-auto"
                     >
                         {/* Consolidated controls: back · close · next */}
-                        <div className="absolute bottom-[80px] left-1/2 -translate-x-1/2 z-50 w-[240px] flex items-center justify-between">
+                        <div className="absolute bottom-[80px] left-[225px] -translate-x-1/2 z-50 w-[240px] flex items-center justify-between">
                             <button
                                 onClick={handlePrevious}
                                 disabled={!hasMultipleSlides}

@@ -191,7 +191,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                     initial={{ opacity: 0, x: -20, y: '-50%' }}
                     animate={{ opacity: 1, x: 0, y: '-50%' }}
                     exit={{ opacity: 0, x: -20, y: '-50%' }}
-                    transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+                    transition={{ type: 'tween', duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="fixed top-1/2 left-[40px] z-[9990] w-[300px] bg-white/97 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60"
                 >
                     {/* Header */}
