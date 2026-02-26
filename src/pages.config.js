@@ -47,8 +47,6 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import AboutContentThatMoves from './pages/AboutContentThatMoves';
-import AboutStorylines from './pages/AboutStorylines';
 import AudioRecorder from './pages/AudioRecorder';
 import AudioTest from './pages/AudioTest';
 import ChapterPreview from './pages/ChapterPreview';
@@ -57,7 +55,6 @@ import ExitStory from './pages/ExitStory';
 import LocationPickerPage from './pages/LocationPickerPage';
 import MediaLibrary from './pages/MediaLibrary';
 import MobileStoryCapture from './pages/MobileStoryCapture';
-import PageTest from './pages/PageTest';
 import ProjectInterface from './pages/ProjectInterface';
 import Stories from './pages/Stories';
 import StoriesDebug from './pages/StoriesDebug';
@@ -71,8 +68,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AboutContentThatMoves": AboutContentThatMoves,
-    "AboutStorylines": AboutStorylines,
     "AudioRecorder": AudioRecorder,
     "AudioTest": AudioTest,
     "ChapterPreview": ChapterPreview,
@@ -81,7 +76,6 @@ export const PAGES = {
     "LocationPickerPage": LocationPickerPage,
     "MediaLibrary": MediaLibrary,
     "MobileStoryCapture": MobileStoryCapture,
-    "PageTest": PageTest,
     "ProjectInterface": ProjectInterface,
     "Stories": Stories,
     "StoriesDebug": StoriesDebug,
