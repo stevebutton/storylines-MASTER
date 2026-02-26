@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 
 // The horizontal offset the story viewer applies so the slide location sits
 // to the right of the chapter text panel. Must match StoryMapView's flyTo offset.
-const STORY_OFFSET = [-200, 0];
+const STORY_OFFSET = [0, 0];  // TEST: offset disabled — was [-200, 0]
 
 export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanceRef, onSlideSave }) {
     const [zoom, setZoom] = useState(12);
