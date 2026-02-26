@@ -1,0 +1,94 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
+export default function StoryMapBanner({ 
+    isVisible = true,
+    storyTitle = '',
+    hasExplored = false,
+    storyId = '',
+    isShareable = false,
+    isChapterMenuOpen, 
+    onToggleChapterMenu,
+    hasChapters = false
+}) {
+    const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                const currentUser = await base44.auth.me();
+                setUser(currentUser);
+            } catch (error) {
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        checkAuth();
+    }, []);
+
+    const handleLogin = () => {
+        base44.auth.redirectToLogin();
+    };
+
+    const handleLogout = () => {
+        base44.auth.logout();
+    };
+
+    return (
+        <div 
+            className={cn(
+                "fixed top-0 left-0 right-0 z-[10000] h-[100px] transition-all duration-700",
+                "bg-white/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50",
+                "flex items-center justify-between px-6 md:px-12",
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
+            )}
+        >
+            {/* Logo - Left */}
+            <Link
+                to={createPageUrl('ProjectInterface')}
+                className="hidden md:block flex-shrink-0 ml-[100px]"
+            >
+                <img 
+                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png" 
+                    alt="Storylines" 
+                    width="250"
+                    height="100"
+                    className="hover:scale-110 transition-transform duration-500 cursor-pointer"
+                />
+            </Link>
+
+            {/* Story Title - Left */}
+            {storyTitle && (
+                <motion.div 
+                    className="text-slate-800 flex-grow text-left font-light text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mx-4 md:mx-8"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+                    transition={{ duration: 1.5, delay: hasExplored ? 3 : 0, ease: "easeOut" }}
+                >
+                    {storyTitle}
+                </motion.div>
+            )}
+
+            {/* Chapters Toggle Button - Right */}
+            {hasChapters && (
+                <button
+                    onClick={onToggleChapterMenu}
+                    className="flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
+                >
+                    <img 
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
+                        alt="Story Chapters"
+                        width="50"
+                        height="100"
+                    />
+                </button>
+            )}
+        </div>
+    );
+}
