@@ -188,11 +188,11 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
+                    exit={{ opacity: 0, x: -20 }}
                     transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-                    className="fixed bottom-[76px] right-6 z-[9990] w-[300px] bg-white/97 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60"
+                    className="fixed bottom-[130px] left-[40px] z-[9990] w-[300px] bg-white/97 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
@@ -233,10 +233,10 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                                 <Crosshair className="w-4 h-4" />
                                 {justCaptured ? 'Captured ✓' : 'Capture View'}
                             </button>
-                            <p className="text-[10px] text-slate-400 text-center mt-0.5">
+                            <p className="text-xs text-slate-600 text-center mt-1 leading-snug">
                                 {justCaptured
                                     ? `zoom ${zoom.toFixed(1)}  bearing ${bearing}°  pitch ${pitch}°`
-                                    : 'Captures zoom, bearing & pitch — use Pin Location to move the target'}
+                                    : 'Captures zoom, bearing & pitch. Use Pin Location to move the map target.'}
                             </p>
                         </div>
 
@@ -259,7 +259,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                                     Pin Location
                                 </button>
                             )}
-                            <p className="text-[10px] text-slate-400 text-center mt-0.5">
+                            <p className="text-xs text-slate-600 text-center mt-1 leading-snug">
                                 {isPickingLocation
                                     ? 'Click the exact spot on the map'
                                     : 'Click a precise point as the flyTo target'}
@@ -267,7 +267,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                         </div>
 
                         {coordinates && (
-                            <p className="text-[10px] text-slate-400 text-center font-mono pt-0.5">
+                            <p className="text-xs text-slate-500 text-center font-mono pt-0.5">
                                 {coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}
                                 {coordinatesModified && <span className="text-amber-500"> *</span>}
                             </p>
