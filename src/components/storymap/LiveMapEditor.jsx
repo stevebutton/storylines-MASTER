@@ -112,8 +112,8 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         previewOnMap(z, b, p, coordinates);
     };
 
-    // Capture View: reads zoom, bearing & pitch from the live map.
-    // Does NOT update coordinates — use Pin Location to move the flyTo target.
+    // Capture View: reads zoom, bearing, pitch AND map centre (flyTo target).
+    // The amber dot moves to the new centre — use Pin Location to set a precise point instead.
     const captureMapPosition = () => {
         // Update state immediately so the button reacts even if map calls fail
         setJustCaptured(true);
@@ -129,10 +129,15 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
             const z = Math.round(map.getZoom() * 10) / 10;
             const b = Math.round(map.getBearing());
             const p = Math.round(map.getPitch());
+            const mc = map.getCenter();
+            const newCoords = [mc.lat, mc.lng];
             setZoom(z);
             setBearing(b);
             setPitch(p);
-            // Coordinates intentionally NOT updated here — marker stays at EXIF location
+            setCoordinates(newCoords);
+            setCoordinatesModified(true);
+            // Move amber dot to show the new flyTo centre
+            try { updateMarker(map, newCoords); } catch (_) {}
             toast.success(`Captured — zoom ${z}, bearing ${b}°, pitch ${p}°`);
         } catch (err) {
             toast.error('Capture failed: ' + (err?.message || 'unknown error'));
@@ -237,7 +242,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                             <p className="text-[10px] text-slate-400 text-center mt-0.5">
                                 {justCaptured
                                     ? `zoom ${zoom.toFixed(1)}  bearing ${bearing}°  pitch ${pitch}°`
-                                    : 'Captures zoom, bearing & pitch only'}
+                                    : 'Captures zoom, bearing, pitch & map centre (dot moves)'}
                             </p>
                         </div>
 
