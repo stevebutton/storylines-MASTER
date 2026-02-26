@@ -1,11 +1,21 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
 
-const VOICE_PROMPTS = {
-    berger: 'Write a caption in the style of John Berger (Ways of Seeing): critical, questioning power and context, asking how we are taught to see this image. 2–3 sentences.',
-    jobey:  'Write a caption in the style of Liz Jobey: human, relational, focused on memory and emotional truth. 2–3 sentences.',
-    fulton: 'Write a caption in the style of Hamish Fulton: sparse, focused on passage, distance, and the physical experience of movement. 1–2 sentences.',
+const VOICE_STYLES = {
+    berger: 'in the style of John Berger (Ways of Seeing): critical, questioning power and context, asking how we are taught to see this image',
+    jobey:  'in the style of Liz Jobey: human, relational, focused on memory and emotional truth',
+    fulton: 'in the style of Hamish Fulton: sparse, focused on passage, distance, and the physical experience of movement',
 };
+
+// Split text at a word boundary at or before maxChars
+function splitAtBoundary(text, maxChars) {
+    if (!text) return ['', ''];
+    if (text.length <= maxChars) return [text, ''];
+    const slice = text.slice(0, maxChars);
+    const lastBreak = Math.max(slice.lastIndexOf(' '), slice.lastIndexOf('\n'));
+    const splitPoint = lastBreak > 0 ? lastBreak : maxChars;
+    return [text.slice(0, splitPoint).trim(), text.slice(splitPoint).trim()];
+}
 
 exports.handler = async (event) => {
     if (event.httpMethod !== 'POST')
@@ -22,9 +32,9 @@ exports.handler = async (event) => {
     );
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const voiceInstruction = caption_voice === 'custom'
-        ? `Write a caption according to this approach: ${custom_caption_voice_description}. 2–3 sentences.`
-        : (VOICE_PROMPTS[caption_voice] || VOICE_PROMPTS.berger);
+    const voiceStyle = caption_voice === 'custom'
+        ? `according to this approach: ${custom_caption_voice_description}`
+        : (VOICE_STYLES[caption_voice] || VOICE_STYLES.berger);
 
     const contextBlock = story_context
         ? ` Story context — title: "${story_context.story_title}". ${story_context.story_description || ''} Locations: ${story_context.locations || ''}. Date: ${story_context.date_range || ''}.${story_context.additional_context ? ' ' + story_context.additional_context : ''}`
@@ -39,16 +49,44 @@ exports.handler = async (event) => {
     let updatedCount = 0;
     for (const slide of (slides || [])) {
         const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
-        const prompt = `Chapter: "${chapter?.name || ''}". Slide: "${slide.title || ''}". ${voiceInstruction}${contextBlock}`;
+
+        const prompt = `You are writing ${voiceStyle}.
+
+Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${contextBlock}
+
+Respond with valid JSON only, no other text:
+{
+  "title": "A compelling slide title in this voice style. 4–8 words.",
+  "text": "Up to 1440 characters total. Begin with a self-contained lead-in of no more than 340 characters that works as a standalone caption, then continue with extended description for the remaining characters. The total must exceed 340 characters."
+}`;
+
         try {
             const msg = await anthropic.messages.create({
                 model: 'claude-haiku-4-5-20251001',
-                max_tokens: 200,
+                max_tokens: 600,
                 messages: [{ role: 'user', content: prompt }],
             });
-            const description = msg.content[0]?.text?.trim();
+
+            const raw = msg.content[0]?.text?.trim();
+            if (!raw) continue;
+
+            let parsed;
+            try {
+                parsed = JSON.parse(raw);
+            } catch {
+                // If JSON parse fails, skip this slide
+                continue;
+            }
+
+            const title = parsed.title?.trim() || slide.title;
+            const [description, extended_content] = splitAtBoundary(parsed.text?.trim() || '', 340);
+
             if (description) {
-                await supabase.from('slides').update({ description }).eq('id', slide.id);
+                await supabase.from('slides').update({
+                    title,
+                    description,
+                    extended_content: extended_content || null,
+                }).eq('id', slide.id);
                 updatedCount++;
             }
         } catch { /* skip individual failures */ }

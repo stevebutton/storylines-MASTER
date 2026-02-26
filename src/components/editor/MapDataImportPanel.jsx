@@ -36,13 +36,15 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         try {
             const zip = await JSZip.loadAsync(file);
 
-            // Group files by top-level folder → chapters
+            // Group image files by their immediate parent folder → chapters
             const folderMap = {};
             zip.forEach((relativePath, entry) => {
                 if (entry.dir) return;
+                if (!/\.(jpe?g|heic|png|webp)$/i.test(relativePath)) return;
                 const parts = relativePath.split('/');
                 if (parts.length < 2) return; // skip root-level files
-                const folder = parts[0];
+                // Use immediate parent directory so nested ZIPs (root/chapter/image.jpg) work correctly
+                const folder = parts[parts.length - 2];
                 if (!folderMap[folder]) folderMap[folder] = [];
                 folderMap[folder].push({ relativePath, entry });
             });
@@ -64,9 +66,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
 
             for (let ci = 0; ci < sortedFolders.length; ci++) {
                 const folderName = sortedFolders[ci];
-                const images = folderMap[folderName].filter(f =>
-                    /\.(jpe?g|heic|png|webp)$/i.test(f.relativePath)
-                );
+                const images = folderMap[folderName];
                 if (images.length === 0) continue;
 
                 const chapterId = generateId();
