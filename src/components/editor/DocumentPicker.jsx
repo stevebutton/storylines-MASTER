@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +18,13 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
         queryKey: ['documents', storyId],
         queryFn: async () => {
             if (!storyId) return [];
-            const allDocs = await base44.entities.Document.list('-created_date');
-            return allDocs.filter(doc => doc.story_id === storyId);
+            const { data, error } = await supabase
+                .from('documents')
+                .select('*')
+                .eq('story_id', storyId)
+                .order('created_date', { ascending: false });
+            if (error) throw error;
+            return data || [];
         },
         enabled: isOpen && !!storyId
     });
@@ -32,15 +39,32 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
 
         setIsUploading(true);
         try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            const newDoc = await base44.entities.Document.create({
-                title: file.name.replace(/\.pdf$/i, ''),
-                file_url,
-                story_id: storyId,
-                category: 'other',
-                file_size: file.size,
-                description: 'Uploaded from slide editor'
-            });
+            // Upload to Supabase Storage — requires a public 'documents' bucket
+            const filePath = `${generateId()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('documents')
+                .upload(filePath, file, { contentType: file.type, upsert: false });
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl: file_url } } = supabase.storage
+                .from('documents')
+                .getPublicUrl(filePath);
+
+            const docId = generateId();
+            const { data: newDoc, error: insertError } = await supabase
+                .from('documents')
+                .insert({
+                    id: docId,
+                    title: file.name.replace(/\.pdf$/i, ''),
+                    file_url,
+                    story_id: storyId,
+                    category: 'other',
+                    file_size: file.size,
+                    description: 'Uploaded from slide editor'
+                })
+                .select()
+                .single();
+            if (insertError) throw insertError;
             onSelect(newDoc);
             onClose();
         } catch (error) {

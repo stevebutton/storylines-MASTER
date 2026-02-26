@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,29 +41,27 @@ export default function Stories() {
   const loadStories = async () => {
     setIsLoadingStories(true);
     try {
-      // Fire all independent requests in parallel
-      const [user, data] = await Promise.all([
-        base44.auth.me(),
-        base44.entities.Story.list('-created_date')
-      ]);
-      setCurrentUser(user);
-      setStories(data);
-      setIsLoadingStories(false);
-
-      // Admin user list is secondary — load after stories are shown
-      if (user.role === 'admin') {
-        base44.entities.User.list('full_name').then(setAllUsers).catch(() => {});
-      }
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*')
+        .order('created_date', { ascending: false });
+      if (error) throw error;
+      setStories(data || []);
     } catch (error) {
       console.error('Failed to load stories:', error);
+    } finally {
       setIsLoadingStories(false);
     }
   };
 
   const loadCategories = async () => {
     try {
-      const data = await base44.entities.Category.list('name');
-      setCategories(data);
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+      if (error) throw error;
+      setCategories(data || []);
     } catch (error) {
       console.error('Failed to load categories:', error);
     }
@@ -118,7 +118,11 @@ export default function Stories() {
 
   const togglePublishStatus = async (story) => {
     try {
-      await base44.entities.Story.update(story.id, { is_published: !story.is_published });
+      const { error } = await supabase
+        .from('stories')
+        .update({ is_published: !story.is_published })
+        .eq('id', story.id);
+      if (error) throw error;
       loadStories();
     } catch (error) {
       console.error('Failed to update story:', error);
@@ -130,10 +134,18 @@ export default function Stories() {
       // Unset any current main story
       const currentMainStories = stories.filter((s) => s.is_main_story);
       for (const mainStory of currentMainStories) {
-        await base44.entities.Story.update(mainStory.id, { is_main_story: false });
+        const { error } = await supabase
+          .from('stories')
+          .update({ is_main_story: false })
+          .eq('id', mainStory.id);
+        if (error) throw error;
       }
       // Set new main story
-      await base44.entities.Story.update(story.id, { is_main_story: true });
+      const { error } = await supabase
+        .from('stories')
+        .update({ is_main_story: true })
+        .eq('id', story.id);
+      if (error) throw error;
       loadStories();
     } catch (error) {
       console.error('Failed to set main story:', error);
@@ -149,16 +161,9 @@ export default function Stories() {
     if (!confirm('Are you sure you want to delete this story?')) return;
 
     try {
-      // Delete all chapters and slides
-      const chapters = await base44.entities.Chapter.filter({ story_id: storyId });
-      for (const chapter of chapters) {
-        const slides = await base44.entities.Slide.filter({ chapter_id: chapter.id });
-        for (const slide of slides) {
-          await base44.entities.Slide.delete(slide.id);
-        }
-        await base44.entities.Chapter.delete(chapter.id);
-      }
-      await base44.entities.Story.delete(storyId);
+      // ON DELETE CASCADE handles chapters and slides automatically
+      const { error } = await supabase.from('stories').delete().eq('id', storyId);
+      if (error) throw error;
       loadStories();
     } catch (error) {
       console.error('Failed to delete story:', error);
@@ -167,9 +172,13 @@ export default function Stories() {
 
   const updateStoryCategory = async () => {
     if (!editingStory || !newCategory.trim()) return;
-    
+
     try {
-      await base44.entities.Story.update(editingStory.id, { category: newCategory.toLowerCase() });
+      const { error } = await supabase
+        .from('stories')
+        .update({ category: newCategory.toLowerCase() })
+        .eq('id', editingStory.id);
+      if (error) throw error;
       setEditingStory(null);
       setNewCategory('');
       loadStories();
@@ -183,15 +192,16 @@ export default function Stories() {
 
     try {
       if (editingCategory) {
-        await base44.entities.Category.update(editingCategory.id, {
-          name: categoryName.toLowerCase(),
-          color: categoryColor
-        });
+        const { error } = await supabase
+          .from('categories')
+          .update({ name: categoryName.toLowerCase(), color: categoryColor })
+          .eq('id', editingCategory.id);
+        if (error) throw error;
       } else {
-        await base44.entities.Category.create({
-          name: categoryName.toLowerCase(),
-          color: categoryColor
-        });
+        const { error } = await supabase
+          .from('categories')
+          .insert({ id: generateId(), name: categoryName.toLowerCase(), color: categoryColor });
+        if (error) throw error;
       }
       setCategoryName('');
       setCategoryColor('bg-slate-100 text-slate-800');
@@ -204,9 +214,10 @@ export default function Stories() {
 
   const deleteCategory = async (categoryId) => {
     if (!confirm('Delete this category? Stories with this category will keep it.')) return;
-    
+
     try {
-      await base44.entities.Category.delete(categoryId);
+      const { error } = await supabase.from('categories').delete().eq('id', categoryId);
+      if (error) throw error;
       loadCategories();
     } catch (error) {
       console.error('Failed to delete category:', error);
