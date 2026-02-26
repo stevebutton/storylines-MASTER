@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, FileText, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
@@ -99,89 +101,14 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
 
         try {
             // Upload the document
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            const filePath = `${generateId()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('documents')
+                .upload(filePath, file, { contentType: file.type, upsert: false });
+            if (uploadError) throw uploadError;
 
-            // Extract story structure from document
-            const storyData = await base44.integrations.Core.ExtractDataFromUploadedFile({
-                file_url,
-                json_schema: {
-                    type: "object",
-                    properties: {
-                        title: { type: "string" },
-                        subtitle: { type: "string" },
-                        author: { type: "string" },
-                        chapters: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    title: { type: "string" },
-                                    location: { type: "string" },
-                                    description: { type: "string" },
-                                    slides: {
-                                        type: "array",
-                                        items: {
-                                            type: "object",
-                                            properties: {
-                                                title: { type: "string" },
-                                                description: { type: "string" },
-                                                location: { type: "string" }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            if (storyData.status === 'error') {
-                throw new Error(storyData.details);
-            }
-
-            // Truncate title if exceeds limit
-            let storyTitle = storyData.output.title;
-            if (storyTitle.length > 34) {
-                storyTitle = storyTitle.substring(0, 34);
-            }
-
-            // Create the story
-            const newStory = await base44.entities.Story.create({
-                title: storyTitle,
-                subtitle: storyData.output.subtitle,
-                author: storyData.output.author,
-                is_published: false
-            });
-
-            // Create chapters and slides
-            for (let i = 0; i < storyData.output.chapters.length; i++) {
-                const chapterData = storyData.output.chapters[i];
-                const newChapter = await base44.entities.Chapter.create({
-                    story_id: newStory.id,
-                    order: i,
-                    coordinates: [0, 0],
-                    zoom: 12,
-                    map_style: 'light',
-                    alignment: 'left'
-                });
-
-                for (let j = 0; j < (chapterData.slides || []).length; j++) {
-                    const slideData = chapterData.slides[j];
-                    await base44.entities.Slide.create({
-                        chapter_id: newChapter.id,
-                        order: j,
-                        title: slideData.title,
-                        description: slideData.description,
-                        location: slideData.location || chapterData.location
-                    });
-                }
-            }
-
-            setStep('success');
-            setTimeout(() => {
-                navigate(`${createPageUrl('StoryEditor')}?id=${newStory.id}`);
-            }, 1500);
+            // Extract story structure from document (not yet available)
+            throw new Error('Document parsing requires LLM API key — not yet configured');
 
         } catch (error) {
             console.error('Failed to process document:', error);

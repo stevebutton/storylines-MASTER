@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, Loader2, MapPin, FileText, CheckCircle } from 'lucide-react';
@@ -32,15 +34,16 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
 
         try {
             // Upload zip file
-            const { file_url } = await base44.integrations.Core.UploadFile({ file: file });
+            const filePath = `${generateId()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('media')
+                .upload(filePath, file, { contentType: file.type, upsert: false });
+            if (uploadError) throw uploadError;
+            // eslint-disable-next-line no-unused-vars
+            const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
 
             // Process zip: extract images, create Story/Chapter/Slide entities, return story_id
-            const { data: response } = await base44.functions.invoke('processZipForStory', {
-                zip_url: file_url
-            });
-
-            setCurrentStoryId(response.story_id);
-            setStep('voice_selection');
+            throw new Error('Cloud functions not yet available in Supabase migration');
         } catch (error) {
             console.error('Failed to process zip file:', error);
             toast.error('Failed to process zip file. Please try again.');
@@ -56,25 +59,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         setStep('generating_descriptions');
 
         try {
-            const result = await base44.functions.invoke('generateStoryDescriptions', {
-                story_id: currentStoryId,
-                caption_voice: config.caption_voice,
-                custom_caption_voice_description: config.custom_caption_voice_description,
-                story_context: config.story_context
-            });
-
-            // Handle both wrapped ({ data: ... }) and direct response formats
-            const response = result?.data ?? result;
-            console.log('[generateStoryDescriptions] response:', JSON.stringify(response));
-
-            if (response?.overview) {
-                setStoryOverview(response.overview);
-                setStep('overview');
-            } else if (response?.error) {
-                throw new Error(response.error);
-            } else {
-                throw new Error(`Unexpected response: ${JSON.stringify(response)}`);
-            }
+            throw new Error('Cloud functions not yet available in Supabase migration');
         } catch (error) {
             // Surface the actual server error if available (Axios wraps it in error.response.data)
             const msg = error.response?.data?.error || error.message;

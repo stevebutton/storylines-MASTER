@@ -10,7 +10,6 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
 
 const validateCoordinate = (value, type) => {
     if (value === '' || value === undefined || value === null) return null;

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,58 +25,11 @@ export default function AIAssistant({
 
     const generateOutline = async () => {
         if (!prompt.trim()) return;
-        
+
         setIsGenerating(true);
         setResult(null);
         try {
-            const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `You are a creative storytelling assistant for an interactive story map application. 
-                
-Generate a detailed story outline for the following theme/location: "${prompt}"
-
-The outline should include:
-1. A compelling title and subtitle
-2. 3-5 chapters, each representing a different location or phase of the journey
-3. For each chapter, provide:
-   - A suggested location name and approximate coordinates (latitude, longitude)
-   - 2-3 slides with titles and brief descriptions
-   - Mood/atmosphere suggestions
-
-Make it engaging, visual, and suitable for a map-based storytelling experience.`,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        title: { type: "string" },
-                        subtitle: { type: "string" },
-                        chapters: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    location: { type: "string" },
-                                    coordinates: { 
-                                        type: "array", 
-                                        items: { type: "number" } 
-                                    },
-                                    mood: { type: "string" },
-                                    slides: {
-                                        type: "array",
-                                        items: {
-                                            type: "object",
-                                            properties: {
-                                                title: { type: "string" },
-                                                description: { type: "string" },
-                                                imageIdea: { type: "string" }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            setResult({ type: 'outline', data: response });
+            throw new Error('AI generation requires LLM API key — not yet configured');
         } catch (error) {
             console.error('Failed to generate outline:', error);
         } finally {
@@ -87,49 +39,11 @@ Make it engaging, visual, and suitable for a map-based storytelling experience.`
 
     const generateSlideContent = async () => {
         if (!selectedChapterId) return;
-        
-        const chapter = chapters.find(c => c.id === selectedChapterId);
-        const chapterSlides = slides.filter(s => s.chapter_id === selectedChapterId);
-        
+
         setIsGenerating(true);
         setResult(null);
         try {
-            const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `You are a creative writing assistant for an interactive story map.
-
-Story context:
-- Story title: ${story?.title || 'Untitled'}
-- Story subtitle: ${story?.subtitle || 'No subtitle'}
-
-Current chapter has ${chapterSlides.length} slides. ${chapterSlides.length > 0 ? `Existing slide titles: ${chapterSlides.map(s => s.title).filter(Boolean).join(', ')}` : ''}
-
-Additional context from user: ${prompt || 'None provided'}
-
-Generate compelling content for ${chapterSlides.length > 0 ? 'improving existing slides' : '3 new slides'} that would fit this chapter. For each slide provide:
-1. An engaging title
-2. A descriptive paragraph (2-3 sentences) that paints a vivid picture
-3. A suggested image description for what photo would work well
-4. A suggested location label`,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        slides: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    title: { type: "string" },
-                                    description: { type: "string" },
-                                    imageIdea: { type: "string" },
-                                    location: { type: "string" }
-                                }
-                            }
-                        },
-                        chapterMood: { type: "string" }
-                    }
-                }
-            });
-            setResult({ type: 'slides', data: response, chapterId: selectedChapterId });
+            throw new Error('AI generation requires LLM API key — not yet configured');
         } catch (error) {
             console.error('Failed to generate slide content:', error);
         } finally {

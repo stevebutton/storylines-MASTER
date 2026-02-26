@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
 import DocumentPicker from '@/components/editor/DocumentPicker';
 import ReactQuill from 'react-quill';
@@ -55,7 +57,12 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingHeroImage(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const filePath = `${generateId()}-${file.name}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, hero_image: file_url, hero_type: 'image' });
             } finally {
                 setIsUploadingHeroImage(false);
@@ -67,7 +74,12 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingHeroVideo(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const filePath = `${generateId()}-${file.name}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, hero_video: file_url, hero_type: 'video' });
             } finally {
                 setIsUploadingHeroVideo(false);
@@ -79,7 +91,12 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingThumbnail(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const filePath = `${generateId()}-${file.name}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, thumbnail: file_url });
             } finally {
                 setIsUploadingThumbnail(false);
@@ -439,7 +456,12 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingImage(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const filePath = `${generateId()}-${file.name}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, image: file_url });
             } finally {
                 setIsUploadingImage(false);
@@ -451,7 +473,12 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingVideo(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const filePath = `${generateId()}-${file.name}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, video_url: file_url });
             } finally {
                 setIsUploadingVideo(false);

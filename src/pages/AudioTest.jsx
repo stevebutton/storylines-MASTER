@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Mic, Square, Loader2 } from 'lucide-react';
 
@@ -62,15 +64,14 @@ export default function AudioTest() {
         setIsProcessing(true);
         try {
             const file = new File([blob], 'recording.webm', { type: 'audio/webm' });
-            
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-            const result = await base44.integrations.Core.InvokeLLM({
-                prompt: 'Transcribe the audio in this file. Return only the transcribed text, nothing else.',
-                file_urls: [file_url]
-            });
+            const filePath = `${generateId()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('media')
+                .upload(filePath, file, { contentType: file.type, upsert: false });
+            if (uploadError) throw uploadError;
 
-            setTranscription(result);
+            throw new Error('AI generation requires LLM API key — not yet configured');
         } catch (err) {
             setError(`Transcription failed: ${err.message}`);
             console.error('Transcription error:', err);
