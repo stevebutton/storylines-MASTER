@@ -781,6 +781,7 @@ export default function StoryMapView() {
                             slide.id === slideId ? { ...slide, ...values } : slide
                         )
                     })));
+                    setActiveSlide(prev => prev?.id === slideId ? { ...prev, ...values } : prev);
                 }}
             />
 
