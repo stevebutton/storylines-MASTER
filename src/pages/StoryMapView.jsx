@@ -52,9 +52,13 @@ function buildRouteFromVisited(visited, segCache) {
 
 export default function StoryMapView() {
     const [searchParams] = useSearchParams();
-    const storyId = searchParams.get('id');
+    const storyIdParam = searchParams.get('id');
 
     const [story, setStory] = useState(null);
+    // Effective story ID — URL param when navigating to a specific story,
+    // falls back to the loaded story's own ID (e.g. when landing as main page
+    // without a ?id= param).
+    const storyId = storyIdParam ?? story?.id ?? null;
     const [chapters, setChapters] = useState([]);
     const [relatedStories, setRelatedStories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -122,7 +126,7 @@ export default function StoryMapView() {
     // before the browser paints, closing any gap between the overlay disappearing
     // in FloatingStorySlideshow and it appearing here.
     useLayoutEffect(() => {
-        if (prevStoryIdRef.current !== null && prevStoryIdRef.current !== storyId) {
+        if (prevStoryIdRef.current !== null && prevStoryIdRef.current !== storyIdParam) {
             // Cancel any pending overlay-fade from the previous story
             if (overlayTimeoutRef.current) {
                 clearTimeout(overlayTimeoutRef.current);
@@ -151,12 +155,12 @@ export default function StoryMapView() {
             chapterRefs.current = [];
             window.scrollTo(0, 0);
         }
-        prevStoryIdRef.current = storyId;
-    }, [storyId]);
+        prevStoryIdRef.current = storyIdParam;
+    }, [storyIdParam]);
 
     useEffect(() => {
         loadStory();
-    }, [storyId]);
+    }, [storyIdParam]);
 
     // Set initial map config from story opening view — jump instantly (no animation)
     // because the black overlay is covering the map at this point
@@ -226,8 +230,8 @@ export default function StoryMapView() {
     const loadStory = async () => {
         try {
             // If no storyId in URL, fall back to the main story
-            const query = storyId
-                ? supabase.from('stories').select('*').eq('id', storyId).limit(1)
+            const query = storyIdParam
+                ? supabase.from('stories').select('*').eq('id', storyIdParam).limit(1)
                 : supabase.from('stories').select('*').eq('is_main_story', true).limit(1);
 
             const { data: storyData, error: storyErr } = await query;
