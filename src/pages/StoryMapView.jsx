@@ -91,6 +91,11 @@ export default function StoryMapView() {
     const [isLiveEditorOpen, setIsLiveEditorOpen] = useState(false);
     const mapInstanceRef = useRef(null);
 
+    // Close the live map editor when fullscreen carousel opens
+    useEffect(() => {
+        if (isFullScreenOpen) setIsLiveEditorOpen(false);
+    }, [isFullScreenOpen]);
+
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
     const projectDescriptionRef = useRef(null);
@@ -730,7 +735,7 @@ export default function StoryMapView() {
                     onOpenLibrary={() => setShowLibraryModal(true)}
                     relatedStories={relatedStories}
                     currentCategory={story?.category}
-                    onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
+                    onOpenMapEditor={isFullScreenOpen ? null : () => setIsLiveEditorOpen(prev => !prev)}
                     isOwner={true}
                 />
                 </div>
