@@ -35,7 +35,8 @@ export default function MapBackground({
     landingMarkers = [],
     clearLandingMarkers = false,
     activeLayerId = null,
-    activeChapter = 0
+    activeChapter = 0,
+    onMapReady = null
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
@@ -79,6 +80,13 @@ export default function MapBackground({
         map.current.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true
         }), 'bottom-left');
+
+        // Expose the map instance to parent via onMapReady callback
+        if (onMapReady) {
+            map.current.once('load', () => {
+                if (onMapReady) onMapReady(map.current);
+            });
+        }
 
         return () => {
             if (map.current) {

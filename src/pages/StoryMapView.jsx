@@ -10,6 +10,7 @@ import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
+import LiveMapEditor from '@/components/storymap/LiveMapEditor';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -85,6 +86,10 @@ export default function StoryMapView() {
     const [storyMarkers, setStoryMarkers] = useState([]);
     const [activeMarkerIdx, setActiveMarkerIdx] = useState(-1);
     const [targetSlide, setTargetSlide] = useState(null);
+
+    const [activeSlide, setActiveSlide] = useState(null);
+    const [isLiveEditorOpen, setIsLiveEditorOpen] = useState(false);
+    const mapInstanceRef = useRef(null);
 
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -255,6 +260,7 @@ export default function StoryMapView() {
                     .filter(s => s.chapter_id === chapter.id)
                     .sort((a, b) => a.order - b.order)
                     .map(s => ({
+                        id: s.id,
                         image: s.image,
                         title: s.title,
                         description: s.description,
@@ -488,6 +494,7 @@ export default function StoryMapView() {
                         setTargetSlide({ chapter: marker.chapterIndex, slide: marker.slideIndex });
                     }
                 }}
+                onMapReady={(mapInstance) => { mapInstanceRef.current = mapInstance; }}
             />
             
             {/* Story Content */}
@@ -592,6 +599,7 @@ export default function StoryMapView() {
                             onFullScreenChange={setIsFullScreenOpen}
                             targetSlideIndex={targetSlide?.chapter === index ? targetSlide.slide : undefined}
                             onSlideChange={(slide) => {
+                                setActiveSlide(slide);
                                 if (!isValidCoordinatePair(slide.coordinates)) return;
 
                                 const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
@@ -712,7 +720,7 @@ export default function StoryMapView() {
                 
                 {/* Footer */}
                 <div className="pointer-events-auto" data-name="footer-wrapper">
-                <StoryFooter 
+                <StoryFooter
                     onRestart={scrollToTop}
                     onViewOtherStories={() => setIsStorySlideshowOpen(true)}
                     storyId={storyId}
@@ -720,6 +728,8 @@ export default function StoryMapView() {
                     onOpenLibrary={() => setShowLibraryModal(true)}
                     relatedStories={relatedStories}
                     currentCategory={story?.category}
+                    onOpenMapEditor={() => setIsLiveEditorOpen(true)}
+                    isOwner={true}
                 />
                 </div>
             </div>
@@ -757,6 +767,31 @@ export default function StoryMapView() {
                 currentStoryId={storyId}
             />
             </div>
+
+            {/* Live Map Editor */}
+            <LiveMapEditor
+                isOpen={isLiveEditorOpen}
+                onClose={() => setIsLiveEditorOpen(false)}
+                activeSlide={activeSlide}
+                mapInstanceRef={mapInstanceRef}
+                onSlideUpdate={(values) => {
+                    setMapConfig(prev => ({
+                        ...prev,
+                        zoom: values.zoom ?? prev.zoom,
+                        bearing: values.bearing ?? prev.bearing,
+                        pitch: values.pitch ?? prev.pitch,
+                        instant: true
+                    }));
+                }}
+                onSlideSave={(slideId, values) => {
+                    setChapters(prev => prev.map(chapter => ({
+                        ...chapter,
+                        slides: chapter.slides?.map(slide =>
+                            slide.id === slideId ? { ...slide, ...values } : slide
+                        )
+                    })));
+                }}
+            />
 
             {/* Document Library Sheet */}
             <Sheet 
