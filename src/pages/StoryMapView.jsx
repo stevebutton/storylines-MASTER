@@ -266,7 +266,6 @@ export default function StoryMapView() {
                         description: s.description,
                         location: s.location,
                         coordinates: s.coordinates,
-                        camera_center: s.camera_center,
                         zoom: s.zoom,
                         bearing: s.bearing,
                         pitch: s.pitch,
@@ -342,7 +341,7 @@ export default function StoryMapView() {
                                 firstSlide.coordinates.length === 2 &&
                                 !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
                                 setMapConfig({
-                                    center: firstSlide.camera_center || firstSlide.coordinates,
+                                    center: firstSlide.coordinates,
                                     offset: [0, 0],
                                     zoom: firstSlide?.zoom || 12,
                                     bearing: firstSlide?.bearing || 0,
@@ -525,7 +524,7 @@ export default function StoryMapView() {
                                     // the isActive effect → onSlideChange when chapter 0 activates
                                     suppressNextOnSlideChangeMapConfig.current = true;
                                     setMapConfig({
-                                        center: firstSlide.camera_center || firstSlide.coordinates,
+                                        center: firstSlide.coordinates,
                                         offset: [0, 0],
                                         zoom: firstSlide.zoom || 12,
                                         bearing: firstSlide.bearing || 0,
@@ -567,7 +566,7 @@ export default function StoryMapView() {
                                         // the isActive effect → onSlideChange when chapter 0 activates
                                         suppressNextOnSlideChangeMapConfig.current = true;
                                         setMapConfig({
-                                            center: firstSlide.camera_center || firstSlide.coordinates,
+                                            center: firstSlide.coordinates,
                                             offset: [0, 0],
                                             zoom: firstSlide.zoom || 12,
                                             bearing: firstSlide.bearing || 0,
@@ -676,7 +675,7 @@ export default function StoryMapView() {
                                     suppressNextOnSlideChangeMapConfig.current = false;
                                 } else {
                                     setMapConfig({
-                                        center: slide.camera_center || slide.coordinates,
+                                        center: slide.coordinates,
                                         offset: [0, 0],
                                         zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
                                         bearing: slide.bearing !== undefined ? slide.bearing : 0,
