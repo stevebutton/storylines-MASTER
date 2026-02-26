@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,8 +38,9 @@ export default function MediaLibrary() {
     const loadMedia = async () => {
         setIsLoading(true);
         try {
-            const data = await base44.entities.Media.list('-created_date');
-            setMedia(data);
+            const { data, error } = await supabase.from('media').select('*').order('created_date', { ascending: false });
+            if (error) throw error;
+            setMedia(data || []);
         } catch (error) {
             console.error('Failed to load media:', error);
         } finally {
@@ -52,17 +55,19 @@ export default function MediaLibrary() {
         setIsUploading(true);
         try {
             for (const file of files) {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const filePath = `${generateId()}-${file.name}`;
+                const { error: upErr } = await supabase.storage.from('media').upload(filePath, file, { contentType: file.type, upsert: false });
+                if (upErr) throw upErr;
+                const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+                const file_url = publicUrl;
                 
                 // Create media record first
-                const mediaRecord = await base44.entities.Media.create({
-                    url: file_url,
-                    filename: file.name,
-                    title: file.name.split('.')[0],
-                    file_size: file.size,
-                    category: 'other',
-                    tags: []
-                });
+                const mediaId = generateId();
+                const { data: mediaRecord, error: insertErr } = await supabase
+                    .from('media')
+                    .insert({ id: mediaId, url: file_url, filename: file.name, title: file.name.split('.')[0], file_size: file.size, category: 'other', tags: [] })
+                    .select().single();
+                if (insertErr) throw insertErr;
 
                 // Generate AI description in background
                 generateImageDescription(mediaRecord.id, file_url);
@@ -76,40 +81,13 @@ export default function MediaLibrary() {
     };
 
     const generateImageDescription = async (mediaId, imageUrl) => {
-        try {
-            const response = await base44.integrations.Core.InvokeLLM({
-                prompt: `Analyze this image and provide a brief, engaging description suitable for a story map. Also suggest 3-5 relevant tags and a category.`,
-                file_urls: [imageUrl],
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        title: { type: "string" },
-                        description: { type: "string" },
-                        tags: { type: "array", items: { type: "string" } },
-                        category: { 
-                            type: "string",
-                            enum: ["landscape", "portrait", "architecture", "nature", "people", "food", "travel", "other"]
-                        }
-                    }
-                }
-            });
-            
-            await base44.entities.Media.update(mediaId, {
-                title: response.title,
-                description: response.description,
-                tags: response.tags || [],
-                category: response.category || 'other'
-            });
-            
-            loadMedia();
-        } catch (error) {
-            console.error('Failed to generate description:', error);
-        }
+        // AI description generation not yet configured
     };
 
     const handleDelete = async (id) => {
         if (!confirm('Delete this image?')) return;
-        await base44.entities.Media.delete(id);
+        const { error } = await supabase.from('media').delete().eq('id', id);
+        if (error) throw error;
         loadMedia();
         setIsPreviewOpen(false);
     };
@@ -121,7 +99,9 @@ export default function MediaLibrary() {
     };
 
     const handleSaveEdit = async () => {
-        await base44.entities.Media.update(editForm.id, editForm);
+        const { id: _id, ...updateData } = editForm;
+        const { error } = await supabase.from('media').update(updateData).eq('id', editForm.id);
+        if (error) throw error;
         loadMedia();
         setIsEditDialogOpen(false);
     };

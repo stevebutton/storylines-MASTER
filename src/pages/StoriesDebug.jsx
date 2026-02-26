@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,18 +18,24 @@ export default function StoriesDebug() {
 
   const { data: stories = [], isLoading } = useQuery({
     queryKey: ['stories', sortBy],
-    queryFn: () => base44.entities.Story.list(sortBy)
+    queryFn: async () => {
+        const ascending = !sortBy.startsWith('-');
+        const field = sortBy.replace(/^-/, '');
+        const { data, error } = await supabase.from('stories').select('*').order(field, { ascending });
+        if (error) throw error;
+        return data || [];
+    }
   });
 
   const updateStoryMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Story.update(id, data),
+    mutationFn: async ({ id, data }) => { const { error } = await supabase.from('stories').update(data).eq('id', id); if (error) throw error; },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stories', sortBy] });
     }
   });
 
   const bulkDeleteMutation = useMutation({
-    mutationFn: (ids) => Promise.all(ids.map(id => base44.entities.Story.delete(id))),
+    mutationFn: async (ids) => { const { error } = await supabase.from('stories').delete().in('id', ids); if (error) throw error; },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stories', sortBy] });
       setSelectedStoryIds([]);

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';\n\nconst generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
@@ -62,7 +62,11 @@ export default function MobileStoryCapture() {
                     }
                 }
 
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const filePath = `${generateId()}-${file.name}`;
+                const { error: upErr } = await supabase.storage.from('media').upload(filePath, file, { contentType: file.type, upsert: false });
+                if (upErr) throw upErr;
+                const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+                const file_url = publicUrl;
 
                 setPhotos(prev => [...prev, {
                     id: Date.now() + Math.random(),
@@ -129,30 +133,25 @@ export default function MobileStoryCapture() {
     const handleSaveDraft = async () => {
         setIsSaving(true);
         try {
-            const user = await base44.auth.me();
-            
-            const storyData = {
-                title: `Field Story ${new Date().toLocaleDateString()}`,
-                subtitle: 'Draft from mobile capture',
-                author: user.full_name || user.email,
-                is_published: false
-            };
-
-            const story = await base44.entities.Story.create(storyData);
+            const storyId = generateId();
+            const { data: story, error: storyErr } = await supabase
+                .from('stories')
+                .insert({ id: storyId, title: `Field Story ${new Date().toLocaleDateString()}`, subtitle: 'Draft from mobile capture', is_published: false })
+                .select().single();
+            if (storyErr) throw storyErr;
 
             if (locations.length > 0) {
-                const chapter = await base44.entities.Chapter.create({
-                    story_id: story.id,
-                    order: 0,
-                    coordinates: [locations[0].lat, locations[0].lng],
-                    zoom: 12,
-                    map_style: 'light',
-                    alignment: 'left'
-                });
+                const chapterId = generateId();
+                const { data: chapter, error: chapErr } = await supabase
+                    .from('chapters')
+                    .insert({ id: chapterId, story_id: story.id, order: 0, coordinates: [locations[0].lat, locations[0].lng], zoom: 12, map_style: 'light', alignment: 'left' })
+                    .select().single();
+                if (chapErr) throw chapErr;
 
                 for (let i = 0; i < photos.length; i++) {
                     const photo = photos[i];
-                    await base44.entities.Slide.create({
+                    const { error: slideErr } = await supabase.from('slides').insert({
+                        id: generateId(),
                         chapter_id: chapter.id,
                         order: i,
                         title: photo.name.replace(/\.[^/.]+$/, ''),
@@ -161,6 +160,7 @@ export default function MobileStoryCapture() {
                         coordinates: photo.location ? [photo.location.lat, photo.location.lng] : undefined,
                         location: photo.location ? `${photo.location.lat.toFixed(4)}, ${photo.location.lng.toFixed(4)}` : undefined
                     });
+                    if (slideErr) throw slideErr;
                 }
             }
 

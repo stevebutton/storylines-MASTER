@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,25 +36,15 @@ export default function DocumentManager() {
         tags: ''
     });
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const currentUser = await base44.auth.me();
-                setUser(currentUser);
-            } catch (error) {
-                setUser(null);
-            }
-        };
-        checkAuth();
-    }, []);
+    useEffect(() => { setUser(null); }, []);
 
     const { data: documents = [] } = useQuery({
         queryKey: ['documents'],
-        queryFn: () => base44.entities.Document.list('-created_date')
+        queryFn: async () => { const { data, error } = await supabase.from('documents').select('*').order('created_date', { ascending: false }); if (error) throw error; return data || []; }
     });
 
     const createDocMutation = useMutation({
-        mutationFn: (data) => base44.entities.Document.create(data),
+        mutationFn: async (data) => { const { error } = await supabase.from('documents').insert({ id: generateId(), ...data }); if (error) throw error; },
         onSuccess: () => {
             queryClient.invalidateQueries(['documents']);
             setShowUploadDialog(false);
@@ -61,7 +53,7 @@ export default function DocumentManager() {
     });
 
     const updateDocMutation = useMutation({
-        mutationFn: ({ id, data }) => base44.entities.Document.update(id, data),
+        mutationFn: async ({ id, data }) => { const { id: _id, ...updateData } = data; const { error } = await supabase.from('documents').update(updateData).eq('id', id); if (error) throw error; },
         onSuccess: () => {
             queryClient.invalidateQueries(['documents']);
             setShowEditDialog(false);
@@ -69,7 +61,7 @@ export default function DocumentManager() {
     });
 
     const deleteDocMutation = useMutation({
-        mutationFn: (id) => base44.entities.Document.delete(id),
+        mutationFn: async (id) => { const { error } = await supabase.from('documents').delete().eq('id', id); if (error) throw error; },
         onSuccess: () => {
             queryClient.invalidateQueries(['documents']);
         }
@@ -82,7 +74,11 @@ export default function DocumentManager() {
             return;
         }
 
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        const filePath = `${generateId()}-${file.name}`;
+        const { error: upErr } = await supabase.storage.from('documents').upload(filePath, file, { contentType: file.type, upsert: false });
+        if (upErr) throw upErr;
+        const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(filePath);
+        const file_url = publicUrl;
         
         createDocMutation.mutate({
             ...uploadData,
