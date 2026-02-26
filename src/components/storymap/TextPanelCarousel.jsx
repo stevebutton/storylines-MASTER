@@ -99,8 +99,8 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
       opacity: 0,
       y: 100,
       transition: {
-        duration: 0.8,
-        delay: 2.2
+        duration: 0.4,
+        delay: 0.2
       }
     }
   };
@@ -115,7 +115,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
     exit: {
       opacity: 0,
       y: -10,
-      transition: { duration: 0.4, delay: 1.8 }
+      transition: { duration: 0.3, delay: 0.15 }
     }
   };
 
@@ -129,7 +129,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
     exit: {
       opacity: 0,
       y: -10,
-      transition: { duration: 0.4, delay: 1.2 }
+      transition: { duration: 0.3, delay: 0.1 }
     }
   };
 
@@ -143,7 +143,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
     exit: {
       opacity: 0,
       y: -10,
-      transition: { duration: 0.4, delay: 0.6 }
+      transition: { duration: 0.3, delay: 0.05 }
     }
   };
 
@@ -157,7 +157,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
     exit: {
       opacity: 0,
       y: -10,
-      transition: { duration: 0.4 }
+      transition: { duration: 0.3 }
     }
   };
 
@@ -321,7 +321,7 @@ const TextPanelCarousel = ({ chapterTitle, slideTitle, description, extendedCont
 
             {/* Slide Counter */}
             {slideCounter && (
-              <div className="text-sm text-gray-500 text-right mt-2">{slideCounter}</div>
+              <div className="text-sm text-gray-500 text-right mt-2 mb-5">{slideCounter}</div>
             )}
 
             {/* Page indicators */}

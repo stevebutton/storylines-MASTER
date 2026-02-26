@@ -730,7 +730,7 @@ export default function StoryMapView() {
                     onOpenLibrary={() => setShowLibraryModal(true)}
                     relatedStories={relatedStories}
                     currentCategory={story?.category}
-                    onOpenMapEditor={() => setIsLiveEditorOpen(true)}
+                    onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
                     isOwner={true}
                 />
                 </div>
