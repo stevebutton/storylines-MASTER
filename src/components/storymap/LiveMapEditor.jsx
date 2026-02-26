@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 
-export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanceRef, onSlideUpdate, onSlideSave }) {
+// The horizontal offset the story viewer applies so the slide location sits
+// to the right of the chapter text panel. Must match StoryMapView's flyTo offset.
+const STORY_OFFSET = [-200, 0];
+
+export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanceRef, onSlideSave }) {
     const [zoom, setZoom] = useState(12);
     const [bearing, setBearing] = useState(0);
     const [pitch, setPitch] = useState(0);
@@ -14,32 +18,61 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     const [coordinates, setCoordinates] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Sync panel values from active slide when it changes
+    // Helper: call easeTo directly on the Mapbox instance with the STORY_OFFSET,
+    // bypassing React / setMapConfig entirely. This guarantees the preview uses
+    // the exact same camera calculation as the story's flyTo.
+    const previewOnMap = (z, b, p, coords) => {
+        const map = mapInstanceRef?.current;
+        const c = coords || activeSlide?.coordinates;
+        if (!map || !c) return;
+        map.easeTo({
+            center: [c[1], c[0]],   // Mapbox expects [lng, lat]
+            zoom: z,
+            bearing: b,
+            pitch: p,
+            offset: STORY_OFFSET,
+            duration: 0
+        });
+    };
+
+    // When editor opens or the active slide changes: sync sliders AND snap the
+    // map to the exact saved state so the preview matches story playback.
     useEffect(() => {
-        if (!activeSlide) return;
-        setZoom(activeSlide.zoom ?? 12);
-        setBearing(activeSlide.bearing ?? 0);
-        setPitch(activeSlide.pitch ?? 0);
-        setFlyDuration(activeSlide.fly_duration ?? 8);
-        setCoordinates(activeSlide.coordinates ?? null);
-    }, [activeSlide?.id]);
+        if (!isOpen || !activeSlide) return;
+        const z = activeSlide.zoom ?? 12;
+        const b = activeSlide.bearing ?? 0;
+        const p = activeSlide.pitch ?? 0;
+        const fd = activeSlide.fly_duration ?? 8;
+        const c = activeSlide.coordinates ?? null;
+        setZoom(z);
+        setBearing(b);
+        setPitch(p);
+        setFlyDuration(fd);
+        setCoordinates(c);
+        previewOnMap(z, b, p, c);
+    }, [isOpen, activeSlide?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleSliderChange = (field, value) => {
-        const updates = { zoom, bearing, pitch, fly_duration: flyDuration };
-        if (field === 'zoom')        { setZoom(value);        updates.zoom = value; }
-        if (field === 'bearing')     { setBearing(value);     updates.bearing = value; }
-        if (field === 'pitch')       { setPitch(value);       updates.pitch = value; }
-        if (field === 'flyDuration') { setFlyDuration(value); updates.fly_duration = value; }
-        if (onSlideUpdate) onSlideUpdate(updates);
+        // Update local slider state and resolve all current values with the new one
+        let z = zoom, b = bearing, p = pitch;
+        if (field === 'zoom')        { setZoom(value);    z = value; }
+        if (field === 'bearing')     { setBearing(value); b = value; }
+        if (field === 'pitch')       { setPitch(value);   p = value; }
+        if (field === 'flyDuration') { setFlyDuration(value); }
+        // Live preview: call Mapbox directly — no setMapConfig intermediary
+        previewOnMap(z, b, p, null);
     };
 
     const captureMapPosition = () => {
         const map = mapInstanceRef?.current;
         if (!map) { toast.error('Map not ready'); return; }
-        setZoom(Math.round(map.getZoom() * 10) / 10);
-        setBearing(Math.round(map.getBearing()));
-        setPitch(Math.round(map.getPitch()));
-        // Deliberately does NOT capture coordinates — those are set via "Set Flyto Location"
+        const z = Math.round(map.getZoom() * 10) / 10;
+        const b = Math.round(map.getBearing());
+        const p = Math.round(map.getPitch());
+        setZoom(z);
+        setBearing(b);
+        setPitch(p);
+        // Deliberately does NOT capture coordinates — set those via "Set Flyto Location"
         toast.success('Zoom, bearing & pitch captured');
     };
 
@@ -48,7 +81,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         if (!map) { toast.error('Map not ready'); return; }
         const center = map.getCenter();
         setCoordinates([center.lat, center.lng]);
-        toast.success('Coordinates set');
+        toast.success('Flyto location set');
     };
 
     const handleSave = async () => {

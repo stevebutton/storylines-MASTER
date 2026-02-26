@@ -774,15 +774,6 @@ export default function StoryMapView() {
                 onClose={() => setIsLiveEditorOpen(false)}
                 activeSlide={activeSlide}
                 mapInstanceRef={mapInstanceRef}
-                onSlideUpdate={(values) => {
-                    setMapConfig(prev => ({
-                        ...prev,
-                        zoom: values.zoom ?? prev.zoom,
-                        bearing: values.bearing ?? prev.bearing,
-                        pitch: values.pitch ?? prev.pitch,
-                        instant: true
-                    }));
-                }}
                 onSlideSave={(slideId, values) => {
                     setChapters(prev => prev.map(chapter => ({
                         ...chapter,
