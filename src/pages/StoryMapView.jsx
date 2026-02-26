@@ -126,7 +126,7 @@ export default function StoryMapView() {
     // before the browser paints, closing any gap between the overlay disappearing
     // in FloatingStorySlideshow and it appearing here.
     useLayoutEffect(() => {
-        if (prevStoryIdRef.current !== null && prevStoryIdRef.current !== storyIdParam) {
+        if (prevStoryIdRef.current !== storyIdParam) {
             // Cancel any pending overlay-fade from the previous story
             if (overlayTimeoutRef.current) {
                 clearTimeout(overlayTimeoutRef.current);
