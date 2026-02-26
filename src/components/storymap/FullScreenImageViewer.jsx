@@ -142,6 +142,7 @@ export default function FullScreenImageViewer({
                                     onNextSlide={handleNext}
                                     onClose={onClose}
                                     hasMultipleSlides={hasMultipleSlides}
+                                    defaultOpen={!currentSlide.video_url}
                                 />
                             </AnimatePresence>
                         </div>
