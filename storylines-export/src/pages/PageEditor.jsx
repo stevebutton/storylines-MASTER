@@ -1,0 +1,772 @@
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, GripVertical, Trash2, Save, Image as ImageIcon, Video, Loader2, MapPin, X, Layout } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Link, useLocation } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
+export default function PageEditor() {
+  const location = useLocation();
+  const [sections, setSections] = useState([]);
+  const [stories, setStories] = useState([]);
+  const [media, setMedia] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [editingSection, setEditingSection] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [currentPageName, setCurrentPageName] = useState('ProjectInterface');
+  const [availablePages, setAvailablePages] = useState(['ProjectInterface', 'Home', 'HomeTest']);
+  const [isCreatingPage, setIsCreatingPage] = useState(false);
+  const [newPageName, setNewPageName] = useState('');
+  const [heroSlides, setHeroSlides] = useState([]);
+  const [editingSlide, setEditingSlide] = useState(null);
+
+  useEffect(() => {
+    loadData();
+    loadAvailablePages();
+  }, [currentPageName]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const pickedLat = urlParams.get('pickedLat');
+    const pickedLng = urlParams.get('pickedLng');
+    const pickedZoom = urlParams.get('pickedZoom');
+    const pickedBearing = urlParams.get('pickedBearing');
+    const pickedPitch = urlParams.get('pickedPitch');
+    const sectionId = urlParams.get('sectionId');
+
+    if (pickedLat && pickedLng && sectionId && editingSection?.id === sectionId) {
+      setEditingSection({
+        ...editingSection,
+        coordinates: [parseFloat(pickedLat), parseFloat(pickedLng)],
+        zoom: pickedZoom ? parseFloat(pickedZoom) : editingSection.zoom,
+        bearing: pickedBearing ? parseFloat(pickedBearing) : editingSection.bearing,
+        pitch: pickedPitch ? parseFloat(pickedPitch) : editingSection.pitch
+      });
+      window.history.replaceState({}, '', createPageUrl('PageEditor'));
+    }
+  }, [location.search]);
+
+  const loadAvailablePages = async () => {
+    try {
+      const allSections = await base44.entities.HomePageSection.list();
+      const pageNames = [...new Set(allSections.map(s => s.pageName).filter(Boolean))];
+      setAvailablePages(['ProjectInterface', 'Home', 'HomeTest', ...pageNames.filter(p => !['ProjectInterface', 'Home', 'HomeTest'].includes(p))]);
+    } catch (error) {
+      console.error('Failed to load pages:', error);
+    }
+  };
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [sectionsData, storiesData, mediaData] = await Promise.all([
+        base44.entities.HomePageSection.filter({ pageName: currentPageName }, 'order'),
+        base44.entities.Story.filter({ is_published: true }),
+        base44.entities.Media.list('-created_date')
+      ]);
+      setSections(sectionsData);
+      setStories(storiesData);
+      setMedia(mediaData);
+      
+      if (editingSection?.id) {
+        loadHeroSlides(editingSection.id);
+      }
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadHeroSlides = async (sectionId) => {
+    try {
+      const slides = await base44.entities.HeroSlide.filter({ section_id: sectionId }, 'order');
+      setHeroSlides(slides);
+    } catch (error) {
+      console.error('Failed to load hero slides:', error);
+    }
+  };
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(sections);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setSections(items);
+
+    for (let i = 0; i < items.length; i++) {
+      await base44.entities.HomePageSection.update(items[i].id, { order: i });
+    }
+  };
+
+  const createSection = () => {
+    setEditingSection({
+      title: '',
+      content: '',
+      image_url: '',
+      video_url: '',
+      order: sections.length,
+      layout_type: 'single_column',
+      component_type: '',
+      linked_story_id: '',
+      show_gradient: false,
+      tagline: '',
+      cta_text: '',
+      cta_link: '',
+      pageName: currentPageName
+    });
+    setHeroSlides([]);
+  };
+
+  const saveSection = async () => {
+    if (!editingSection.title) return;
+
+    setIsSaving(true);
+    try {
+      const sectionData = {
+        ...editingSection,
+        show_gradient: !!editingSection.show_gradient,
+        pageName: currentPageName
+      };
+      
+      if (editingSection.id) {
+        await base44.entities.HomePageSection.update(editingSection.id, sectionData);
+      } else {
+        await base44.entities.HomePageSection.create(sectionData);
+      }
+      await loadData();
+      setEditingSection(null);
+    } catch (error) {
+      console.error('Failed to save section:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const deleteSection = async (id) => {
+    if (!confirm('Delete this section?')) return;
+    try {
+      await base44.entities.HomePageSection.delete(id);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to delete section:', error);
+    }
+  };
+
+  const createNewPage = async () => {
+    if (!newPageName.trim()) return;
+    
+    const pageName = newPageName.trim().replace(/\s+/g, '');
+    if (!availablePages.includes(pageName)) {
+      setAvailablePages([...availablePages, pageName]);
+      setCurrentPageName(pageName);
+    }
+    setNewPageName('');
+    setIsCreatingPage(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setEditingSection({ ...editingSection, image_url: file_url });
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingVideo(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setEditingSection({ ...editingSection, video_url: file_url });
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Page Editor</h1>
+            <p className="text-slate-500 mt-1">Create and manage section-based scrolling pages</p>
+          </div>
+          <div className="flex gap-3 items-center">
+            {isCreatingPage ? (
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={newPageName}
+                  onChange={(e) => setNewPageName(e.target.value)}
+                  placeholder="Page name (e.g., AboutUs)"
+                  className="w-[200px]"
+                  onKeyDown={(e) => e.key === 'Enter' && createNewPage()}
+                />
+                <Button onClick={createNewPage} size="sm">Create</Button>
+                <Button onClick={() => { setIsCreatingPage(false); setNewPageName(''); }} variant="outline" size="sm">Cancel</Button>
+              </div>
+            ) : (
+              <>
+                <Select value={currentPageName} onValueChange={setCurrentPageName}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePages.map(page => (
+                      <SelectItem key={page} value={page}>{page}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button onClick={() => setIsCreatingPage(true)} variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-2" /> New Page
+                </Button>
+              </>
+            )}
+            <Link to={createPageUrl(currentPageName)} target="_blank">
+              <Button variant="outline">Preview Page</Button>
+            </Link>
+            <Button onClick={createSection} className="bg-amber-600 hover:bg-amber-700">
+              <Plus className="w-4 h-4 mr-2" /> Add Section
+            </Button>
+          </div>
+        </div>
+
+        {editingSection && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>{editingSection.id ? 'Edit Section' : 'New Section'}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Title</Label>
+                <Input
+                  value={editingSection.title}
+                  onChange={(e) => setEditingSection({ ...editingSection, title: e.target.value })}
+                  placeholder="Section title"
+                />
+              </div>
+
+              <div>
+                <Label>Content (Rich Text)</Label>
+                <ReactQuill
+                  theme="snow"
+                  value={editingSection.content || ''}
+                  onChange={(value) => setEditingSection({ ...editingSection, content: value })}
+                  className="bg-white rounded-md"
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      [{ 'align': [] }],
+                      ['link', 'image'],
+                      [{ 'color': [] }, { 'background': [] }],
+                      ['clean']
+                    ]
+                  }}
+                />
+              </div>
+
+              <div>
+                <Label>Layout Template</Label>
+                <Select
+                  value={editingSection.layout_type}
+                  onValueChange={(value) => setEditingSection({ ...editingSection, layout_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single_column">Single Column</SelectItem>
+                    <SelectItem value="two_column">Two Column</SelectItem>
+                    <SelectItem value="text_left_image_right">Text Left, Image Right</SelectItem>
+                    <SelectItem value="text_right_image_left">Text Right, Image Left</SelectItem>
+                    <SelectItem value="full_width_image">Full Width Image</SelectItem>
+                    <SelectItem value="full_width_video">Full Width Video</SelectItem>
+                    <SelectItem value="centered_text">Centered Text</SelectItem>
+                    <SelectItem value="hero_image_text_overlay">Hero Image with Text Overlay</SelectItem>
+                    <SelectItem value="hero_with_slides">Hero with Slides Panel</SelectItem>
+                    <SelectItem value="component">Component (Globe, etc.)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {editingSection.layout_type === 'component' && (
+                <div>
+                  <Label>Component Type</Label>
+                  <Select
+                    value={editingSection.component_type || ''}
+                    onValueChange={(value) => setEditingSection({ ...editingSection, component_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select component" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rotating_globe">Rotating Globe with Thumbnails</SelectItem>
+                      <SelectItem value="interactive_story_map">Interactive Story Map</SelectItem>
+                      <SelectItem value="custom">Custom Component</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div>
+                <Label>Image</Label>
+                <div className="space-y-2">
+                  {editingSection.image_url && (
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                      <img src={editingSection.image_url} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => setEditingSection({ ...editingSection, image_url: '' })}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="section-image-upload"
+                      disabled={isUploadingImage}
+                    />
+                    <label htmlFor="section-image-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isUploadingImage}
+                        onClick={() => document.getElementById('section-image-upload').click()}
+                      >
+                        {isUploadingImage ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><ImageIcon className="w-4 h-4 mr-2" /> Upload Image</>
+                        )}
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Video</Label>
+                <div className="space-y-2">
+                  {editingSection.video_url && (
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                      <video src={editingSection.video_url} className="w-full h-full object-cover" autoPlay muted loop />
+                      <button
+                        onClick={() => setEditingSection({ ...editingSection, video_url: '' })}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                      id="section-video-upload"
+                      disabled={isUploadingVideo}
+                    />
+                    <label htmlFor="section-video-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isUploadingVideo}
+                        onClick={() => document.getElementById('section-video-upload').click()}
+                      >
+                        {isUploadingVideo ? (
+                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                        ) : (
+                          <><Video className="w-4 h-4 mr-2" /> Upload Video</>
+                        )}
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Map Location (optional)</Label>
+                <div className="space-y-2">
+                  {editingSection.coordinates && editingSection.coordinates.length === 2 && editingSection.coordinates[0] !== undefined && (
+                    <p className="text-sm text-slate-600">
+                      Coordinates: {editingSection.coordinates[0].toFixed(4)}, {editingSection.coordinates[1].toFixed(4)}
+                      {editingSection.zoom && ` | Zoom: ${editingSection.zoom}`}
+                    </p>
+                  )}
+                  <Link
+                    to={`${createPageUrl('LocationPickerPage')}?sectionId=${editingSection.id || 'new'}${editingSection.coordinates && editingSection.coordinates.length === 2 ? `&lat=${editingSection.coordinates[0]}&lng=${editingSection.coordinates[1]}&zoom=${editingSection.zoom || 12}&bearing=${editingSection.bearing || 0}&pitch=${editingSection.pitch || 0}` : ''}`}
+                  >
+                    <Button type="button" variant="outline">
+                      <MapPin className="w-4 h-4 mr-2" /> Pick Location
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <Label>Link to Story (optional)</Label>
+                <Select
+                  value={editingSection.linked_story_id}
+                  onValueChange={(value) => setEditingSection({ ...editingSection, linked_story_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a story" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>None</SelectItem>
+                    {stories.map((story) => (
+                      <SelectItem key={story.id} value={story.id}>
+                        {story.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {editingSection.layout_type === 'hero_with_slides' && (
+                <>
+                  <div>
+                    <Label>Tagline</Label>
+                    <Input
+                      value={editingSection.tagline || ''}
+                      onChange={(e) => setEditingSection({ ...editingSection, tagline: e.target.value })}
+                      placeholder="Hero tagline"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Call to Action Button Text</Label>
+                    <Input
+                      value={editingSection.cta_text || ''}
+                      onChange={(e) => setEditingSection({ ...editingSection, cta_text: e.target.value })}
+                      placeholder="e.g., Get Started"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Call to Action Link</Label>
+                    <Input
+                      value={editingSection.cta_link || ''}
+                      onChange={(e) => setEditingSection({ ...editingSection, cta_link: e.target.value })}
+                      placeholder="e.g., /contact or https://example.com"
+                    />
+                  </div>
+
+                  {editingSection.id && (
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <Label className="text-base">Slides ({heroSlides.length})</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => setEditingSlide({
+                            section_id: editingSection.id,
+                            title: '',
+                            description: '',
+                            image_url: '',
+                            link: '',
+                            order: heroSlides.length
+                          })}
+                        >
+                          <Plus className="w-4 h-4 mr-2" /> Add Slide
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {heroSlides.map((slide, index) => (
+                          <div key={slide.id} className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                            <span className="text-sm font-medium text-slate-600">#{index + 1}</span>
+                            <span className="flex-1 text-sm text-slate-800">{slide.title}</span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditingSlide(slide)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-500"
+                              onClick={async () => {
+                                if (confirm('Delete this slide?')) {
+                                  await base44.entities.HeroSlide.delete(slide.id);
+                                  loadHeroSlides(editingSection.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!editingSection.id && (
+                    <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">
+                      Save the section first to add slides
+                    </p>
+                  )}
+                </>
+              )}
+
+              {(editingSection.layout_type === 'hero_image_text_overlay' || editingSection.layout_type === 'full_width_video' || editingSection.layout_type === 'full_width_image') && (
+                <div className="flex items-center gap-3">
+                  <Switch
+                    checked={!!editingSection.show_gradient}
+                    onCheckedChange={(checked) => setEditingSection(prev => ({ ...prev, show_gradient: checked }))}
+                  />
+                  <Label className="cursor-pointer">
+                    Show gradient overlay
+                  </Label>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4">
+                <Button onClick={saveSection} disabled={isSaving}>
+                  <Save className="w-4 h-4 mr-2" /> Save
+                </Button>
+                <Button variant="outline" onClick={() => setEditingSection(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {editingSlide && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>
+                {editingSlide.id ? 'Edit Slide' : 'New Slide'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Title</Label>
+                <Input
+                  value={editingSlide.title}
+                  onChange={(e) => setEditingSlide({ ...editingSlide, title: e.target.value })}
+                  placeholder="Slide title"
+                />
+              </div>
+
+              <div>
+                <Label>Description</Label>
+                <Input
+                  value={editingSlide.description || ''}
+                  onChange={(e) => setEditingSlide({ ...editingSlide, description: e.target.value })}
+                  placeholder="Slide description"
+                />
+              </div>
+
+              <div>
+                <Label>Link (optional)</Label>
+                <Input
+                  value={editingSlide.link || ''}
+                  onChange={(e) => setEditingSlide({ ...editingSlide, link: e.target.value })}
+                  placeholder="https://example.com"
+                />
+              </div>
+
+              <div>
+                <Label>Image</Label>
+                <div className="space-y-2">
+                  {editingSlide.image_url && (
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                      <img src={editingSlide.image_url} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => setEditingSlide({ ...editingSlide, image_url: '' })}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                          setEditingSlide({ ...editingSlide, image_url: file_url });
+                        } catch (error) {
+                          console.error('Upload failed:', error);
+                        }
+                      }}
+                      className="hidden"
+                      id="slide-image-upload"
+                    />
+                    <label htmlFor="slide-image-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('slide-image-upload').click()}
+                      >
+                        <ImageIcon className="w-4 h-4 mr-2" /> Upload Image
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={async () => {
+                    if (!editingSlide.title) return;
+                    try {
+                      if (editingSlide.id) {
+                        await base44.entities.HeroSlide.update(editingSlide.id, editingSlide);
+                      } else {
+                        await base44.entities.HeroSlide.create(editingSlide);
+                      }
+                      setEditingSlide(null);
+                      loadHeroSlides(editingSection.id);
+                    } catch (error) {
+                      console.error('Failed to save slide:', error);
+                    }
+                  }}
+                >
+                  <Save className="w-4 h-4 mr-2" /> Save Slide
+                </Button>
+                <Button variant="outline" onClick={() => setEditingSlide(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="sections">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                {sections.map((section, index) => (
+                  <Draggable key={section.id} draggableId={section.id} index={index}>
+                    {(provided) => (
+                      <Card
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className="hover:shadow-lg transition-shadow"
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <div {...provided.dragHandleProps} className="mt-2">
+                              <GripVertical className="w-5 h-5 text-slate-400" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg text-slate-800">{section.title}</h3>
+                              <p className="text-sm text-slate-500 mt-1">{section.layout_type}</p>
+                              {section.component_type && (
+                                <p className="text-xs text-amber-600 mt-1">
+                                  <Layout className="w-3 h-3 inline mr-1" />Component: {section.component_type}
+                                </p>
+                              )}
+                              {section.content && (
+                                <div className="text-sm text-slate-600 mt-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: section.content }} />
+                              )}
+                              <div className="flex gap-2 mt-2">
+                                {section.image_url && (
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                    <ImageIcon className="w-3 h-3 inline mr-1" />Image
+                                  </span>
+                                )}
+                                {section.video_url && (
+                                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                                    <Video className="w-3 h-3 inline mr-1" />Video
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={async () => {
+                                  setEditingSection({ ...section, show_gradient: section.show_gradient === true ? true : false });
+                                  if (section.layout_type === 'hero_with_slides') {
+                                    await loadHeroSlides(section.id);
+                                  }
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => deleteSection(section.id)}
+                                className="text-red-500 hover:text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+
+        {sections.length === 0 && (
+          <Card className="border-2 border-dashed">
+            <CardContent className="py-16 text-center">
+              <h3 className="text-lg font-medium text-slate-700 mb-2">No sections yet</h3>
+              <p className="text-slate-500 mb-6">Create your first section for {currentPageName}</p>
+              <Button onClick={createSection} className="bg-amber-600 hover:bg-amber-700">
+                <Plus className="w-4 h-4 mr-2" /> Add Section
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}
