@@ -100,7 +100,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "StoryMap",
+    mainPage: "StoryMapView",
     Pages: PAGES,
     Layout: __Layout,
 };

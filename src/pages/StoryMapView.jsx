@@ -224,17 +224,13 @@ export default function StoryMapView() {
     }, [story]);
 
     const loadStory = async () => {
-        if (!storyId) {
-            setIsLoading(false);
-            return;
-        }
-
         try {
-            const { data: storyData, error: storyErr } = await supabase
-                .from('stories')
-                .select('*')
-                .eq('id', storyId)
-                .limit(1);
+            // If no storyId in URL, fall back to the main story
+            const query = storyId
+                ? supabase.from('stories').select('*').eq('id', storyId).limit(1)
+                : supabase.from('stories').select('*').eq('is_main_story', true).limit(1);
+
+            const { data: storyData, error: storyErr } = await query;
             if (storyErr) throw storyErr;
 
             if (storyData.length > 0) {
@@ -257,7 +253,7 @@ export default function StoryMapView() {
             const { data: chaptersData, error: chapErr } = await supabase
                 .from('chapters')
                 .select('*')
-                .eq('story_id', storyId)
+                .eq('story_id', storyData[0]?.id ?? storyId)
                 .order('order');
             if (chapErr) throw chapErr;
 
