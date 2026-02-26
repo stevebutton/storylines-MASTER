@@ -31,7 +31,7 @@ exports.handler = async (event) => {
         : '';
 
     const { data: chapters } = await supabase
-        .from('chapters').select('id,title').eq('story_id', story_id).order('order');
+        .from('chapters').select('id,name').eq('story_id', story_id).order('order');
     const { data: slides } = await supabase
         .from('slides').select('id,title,chapter_id')
         .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
@@ -39,7 +39,7 @@ exports.handler = async (event) => {
     let updatedCount = 0;
     for (const slide of (slides || [])) {
         const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
-        const prompt = `Chapter: "${chapter?.title || ''}". Slide: "${slide.title || ''}". ${voiceInstruction}${contextBlock}`;
+        const prompt = `Chapter: "${chapter?.name || ''}". Slide: "${slide.title || ''}". ${voiceInstruction}${contextBlock}`;
         try {
             const msg = await anthropic.messages.create({
                 model: 'claude-haiku-4-5-20251001',

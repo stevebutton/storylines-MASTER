@@ -73,7 +73,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 const { error: chapterErr } = await supabase.from('chapters').insert({
                     id: chapterId,
                     story_id: storyId,
-                    title: folderName,
+                    name: folderName,
                     order: ci,
                 });
                 if (chapterErr) throw chapterErr;
@@ -108,7 +108,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                         chapter_id: chapterId,
                         order: si,
                         title: img.entry.name.replace(/\.[^.]+$/, ''),
-                        image_url,
+                        image: image_url,
                         coordinates,
                     });
                     if (slideErr) throw slideErr;

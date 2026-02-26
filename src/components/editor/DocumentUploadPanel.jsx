@@ -169,8 +169,8 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                 const chapterId = generateId();
                 await supabase.from('chapters').insert({
                     id: chapterId, story_id: storyId,
-                    title: ch.title, description: ch.description,
-                    order: ci, coordinates: chapterCoords,
+                    name: ch.title,
+                    order: ci,
                 });
                 for (let si = 0; si < ch.slides.length; si++) {
                     const sl = ch.slides[si];
