@@ -266,6 +266,7 @@ export default function StoryMapView() {
                         description: s.description,
                         location: s.location,
                         coordinates: s.coordinates,
+                        camera_center: s.camera_center,
                         zoom: s.zoom,
                         bearing: s.bearing,
                         pitch: s.pitch,
