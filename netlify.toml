@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Branch deploy context — applies to all non-production branches
+# The `supabase` branch will get its own deploy URL automatically:
+#   https://supabase--<your-site-name>.netlify.app
+[context.branch-deploy]
+  command = "npm run build"
+
+# Production context (main branch)
+[context.production]
+  command = "npm run build"
