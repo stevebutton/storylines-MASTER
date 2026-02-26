@@ -172,11 +172,13 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         if (!activeSlide?.id) { toast.error('No slide selected'); return; }
         setIsSaving(true);
         try {
-            const updateData = { zoom, bearing, pitch, fly_duration: flyDuration };
-            if (coordinatesModified && coordinates) updateData.coordinates = coordinates;
-            await base44.entities.Slide.update(activeSlide.id, updateData);
-            if (onSlideSave) onSlideSave(activeSlide.id, updateData);
-            toast.success('Slide saved');
+            const patchData = { zoom, bearing, pitch, fly_duration: flyDuration };
+            if (coordinatesModified && coordinates) patchData.coordinates = coordinates;
+            // Send the full slide object so base44 doesn't silently discard partial-update fields
+            const fullUpdateData = { ...activeSlide, ...patchData };
+            await base44.entities.Slide.update(activeSlide.id, fullUpdateData);
+            if (onSlideSave) onSlideSave(activeSlide.id, patchData);
+            toast.success(`Saved — zoom ${zoom.toFixed(1)}, bearing ${bearing}°, pitch ${pitch}°`);
         } catch {
             toast.error('Failed to save slide');
         } finally {
