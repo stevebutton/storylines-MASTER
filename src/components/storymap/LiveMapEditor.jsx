@@ -21,6 +21,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
 
     const [isPickingLocation, setIsPickingLocation] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [justCaptured, setJustCaptured] = useState(false);
 
     const markerRef = useRef(null);
     const clickHandlerRef = useRef(null);
@@ -114,20 +115,33 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     // Capture View: reads orientation AND map centre → stored as coordinates.
     // With offset [0,0], map.getCenter() is the correct flyTo target.
     const captureMapPosition = () => {
+        // Update state immediately so the button reacts even if map calls fail
+        setJustCaptured(true);
+        setTimeout(() => setJustCaptured(false), 1500);
+
         const map = mapInstanceRef?.current;
-        if (!map) { toast.error('Map not ready'); return; }
-        const z = Math.round(map.getZoom() * 10) / 10;
-        const b = Math.round(map.getBearing());
-        const p = Math.round(map.getPitch());
-        const mc = map.getCenter();
-        const newCoords = [mc.lat, mc.lng];
-        setZoom(z);
-        setBearing(b);
-        setPitch(p);
-        setCoordinates(newCoords);
-        setCoordinatesModified(true);
-        updateMarker(map, newCoords);
-        toast.success('View captured');
+        if (!map) {
+            toast.error('Map not ready — try scrolling the story first');
+            return;
+        }
+
+        try {
+            const z = Math.round(map.getZoom() * 10) / 10;
+            const b = Math.round(map.getBearing());
+            const p = Math.round(map.getPitch());
+            const mc = map.getCenter();
+            const newCoords = [mc.lat, mc.lng];
+            setZoom(z);
+            setBearing(b);
+            setPitch(p);
+            setCoordinates(newCoords);
+            setCoordinatesModified(true);
+            // Marker update is best-effort — don't let it block the save path
+            try { updateMarker(map, newCoords); } catch (_) {}
+            toast.success(`Captured — zoom ${z}, bearing ${b}°, pitch ${p}°`);
+        } catch (err) {
+            toast.error('Capture failed: ' + (err?.message || 'unknown error'));
+        }
     };
 
     // Pick mode: click a precise location on the map → becomes the flyTo target
@@ -212,13 +226,19 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                         <div>
                             <button
                                 onClick={captureMapPosition}
-                                className="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium text-white flex items-center justify-center gap-2 transition-colors"
+                                className={`w-full py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+                                    justCaptured
+                                        ? 'bg-green-100 text-green-800 border border-green-300'
+                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                }`}
                             >
                                 <Crosshair className="w-4 h-4" />
-                                Capture View
+                                {justCaptured ? 'Captured ✓' : 'Capture View'}
                             </button>
                             <p className="text-[10px] text-slate-400 text-center mt-0.5">
-                                Captures zoom, bearing, pitch &amp; map centre
+                                {justCaptured
+                                    ? `zoom ${zoom.toFixed(1)}  bearing ${bearing}°  pitch ${pitch}°`
+                                    : 'Captures zoom, bearing, pitch & map centre'}
                             </p>
                         </div>
 
