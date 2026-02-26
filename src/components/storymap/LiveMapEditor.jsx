@@ -13,15 +13,11 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     const [pitch, setPitch] = useState(0);
     const [flyDuration, setFlyDuration] = useState(8);
 
-    // Photo/EXIF location — drives the marker dot on the map.
-    // Only written to DB when user explicitly clicks "Set Marker Location".
+    // coordinates drives both the flyTo target and the amber marker dot.
+    // With no camera offset, map.getCenter() == the correct flyTo centre,
+    // so "Capture View" writes directly here.
     const [coordinates, setCoordinates] = useState(null);
     const [coordinatesModified, setCoordinatesModified] = useState(false);
-
-    // Camera center — where the map flies to during playback.
-    // Independent of the marker; captured automatically by "Capture View".
-    const [cameraCenter, setCameraCenter] = useState(null);
-    const [cameraCenterModified, setCameraCenterModified] = useState(false);
 
     const [isPickingLocation, setIsPickingLocation] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -29,7 +25,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     const markerRef = useRef(null);
     const clickHandlerRef = useRef(null);
 
-    // Place or move the amber marker dot at the photo/EXIF coordinate
+    // Place or move the amber dot at the current coordinates
     const updateMarker = (map, coords) => {
         if (!coords || !map) {
             markerRef.current?.remove();
@@ -52,7 +48,6 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         }
     };
 
-    // Cancel pick mode — removes the click listener and resets the cursor
     const cancelPickMode = () => {
         const map = mapInstanceRef?.current;
         if (clickHandlerRef.current && map) {
@@ -63,12 +58,13 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setIsPickingLocation(false);
     };
 
-    // Snap the map to a specific center + orientation (no offset — user composes freely)
-    const previewOnMap = (z, b, p, center) => {
+    // Snap the map to the current slide's saved state (no offset)
+    const previewOnMap = (z, b, p, coords) => {
         const map = mapInstanceRef?.current;
-        if (!map || !center) return;
+        const c = coords ?? activeSlide?.coordinates;
+        if (!map || !c) return;
         map.easeTo({
-            center: [center[1], center[0]],   // Mapbox expects [lng, lat]
+            center: [c[1], c[0]],
             zoom: z,
             bearing: b,
             pitch: p,
@@ -77,35 +73,27 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         });
     };
 
-    // When editor opens or slide changes: sync all state from the slide record
+    // Sync from slide record when editor opens or slide changes
     useEffect(() => {
         if (!isOpen || !activeSlide) return;
-        const z  = activeSlide.zoom          ?? 12;
-        const b  = activeSlide.bearing       ?? 0;
-        const p  = activeSlide.pitch         ?? 0;
-        const fd = activeSlide.fly_duration  ?? 8;
-        const coords = activeSlide.coordinates   ?? null;
-        const cc     = activeSlide.camera_center ?? null;
-
+        const z  = activeSlide.zoom         ?? 12;
+        const b  = activeSlide.bearing      ?? 0;
+        const p  = activeSlide.pitch        ?? 0;
+        const fd = activeSlide.fly_duration ?? 8;
+        const c  = activeSlide.coordinates  ?? null;
         setZoom(z);
         setBearing(b);
         setPitch(p);
         setFlyDuration(fd);
-        setCoordinates(coords);
+        setCoordinates(c);
         setCoordinatesModified(false);
-        setCameraCenter(cc);
-        setCameraCenterModified(false);
         cancelPickMode();
-
         const map = mapInstanceRef?.current;
-        updateMarker(map, coords);
-
-        // Preview using camera_center if stored, else fall back to photo coordinates
-        const previewCenter = cc ?? coords;
-        previewOnMap(z, b, p, previewCenter);
+        updateMarker(map, c);
+        previewOnMap(z, b, p, c);
     }, [isOpen, activeSlide?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Remove marker and cancel pick mode when the editor closes
+    // Clean up on close
     useEffect(() => {
         if (!isOpen) {
             cancelPickMode();
@@ -120,12 +108,11 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         if (field === 'bearing')     { setBearing(value); b = value; }
         if (field === 'pitch')       { setPitch(value);   p = value; }
         if (field === 'flyDuration') { setFlyDuration(value); }
-        // Preview re-uses whichever camera center is currently active
-        const center = cameraCenter ?? activeSlide?.camera_center ?? activeSlide?.coordinates;
-        previewOnMap(z, b, p, center);
+        previewOnMap(z, b, p, coordinates);
     };
 
-    // Capture View: reads orientation (zoom/bearing/pitch) AND map center → camera_center
+    // Capture View: reads orientation AND map centre → stored as coordinates.
+    // With offset [0,0], map.getCenter() is the correct flyTo target.
     const captureMapPosition = () => {
         const map = mapInstanceRef?.current;
         if (!map) { toast.error('Map not ready'); return; }
@@ -133,16 +120,17 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         const b = Math.round(map.getBearing());
         const p = Math.round(map.getPitch());
         const mc = map.getCenter();
-        const newCenter = [mc.lat, mc.lng];
+        const newCoords = [mc.lat, mc.lng];
         setZoom(z);
         setBearing(b);
         setPitch(p);
-        setCameraCenter(newCenter);
-        setCameraCenterModified(true);
+        setCoordinates(newCoords);
+        setCoordinatesModified(true);
+        updateMarker(map, newCoords);
         toast.success('View captured');
     };
 
-    // Enter pick mode: next map click pins the photo/marker location
+    // Pick mode: click a precise location on the map → becomes the flyTo target
     const startPickMode = () => {
         const map = mapInstanceRef?.current;
         if (!map) { toast.error('Map not ready'); return; }
@@ -159,7 +147,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
             map.getCanvas().style.cursor = '';
             clickHandlerRef.current = null;
             setIsPickingLocation(false);
-            toast.success('Marker location pinned');
+            toast.success('Location pinned');
         };
 
         clickHandlerRef.current = handler;
@@ -171,9 +159,6 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setIsSaving(true);
         try {
             const updateData = { zoom, bearing, pitch, fly_duration: flyDuration };
-            // camera_center: only write if captured in this session
-            if (cameraCenterModified && cameraCenter) updateData.camera_center = cameraCenter;
-            // coordinates (marker/EXIF): only write if user explicitly re-pinned it
             if (coordinatesModified && coordinates) updateData.coordinates = coordinates;
             await base44.entities.Slide.update(activeSlide.id, updateData);
             if (onSlideSave) onSlideSave(activeSlide.id, updateData);
@@ -186,9 +171,6 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     };
 
     const slideLabel = activeSlide?.title ? `"${activeSlide.title}"` : 'Current Slide';
-
-    // Which camera center are we currently using? (for display)
-    const activeCameraCenter = cameraCenter ?? activeSlide?.camera_center ?? null;
 
     return (
         <AnimatePresence>
@@ -206,10 +188,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                             <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Map Editor</div>
                             <div className="text-sm font-medium text-slate-800 truncate">{slideLabel}</div>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="ml-2 shrink-0 text-slate-400 hover:text-slate-700 transition-colors"
-                        >
+                        <button onClick={onClose} className="ml-2 shrink-0 text-slate-400 hover:text-slate-700 transition-colors">
                             <X className="w-4 h-4" />
                         </button>
                     </div>
@@ -217,23 +196,19 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                     {/* Sliders */}
                     <div className="px-4 py-3 space-y-3">
                         <SliderRow label="Zoom" value={zoom} min={1} max={20} step={0.5}
-                            display={zoom.toFixed(1)}
-                            onChange={v => handleSliderChange('zoom', v)} />
+                            display={zoom.toFixed(1)} onChange={v => handleSliderChange('zoom', v)} />
                         <SliderRow label="Bearing" value={bearing} min={-180} max={180} step={1}
-                            display={`${bearing}°`}
-                            onChange={v => handleSliderChange('bearing', v)} />
+                            display={`${bearing}°`} onChange={v => handleSliderChange('bearing', v)} />
                         <SliderRow label="Pitch" value={pitch} min={0} max={85} step={1}
-                            display={`${pitch}°`}
-                            onChange={v => handleSliderChange('pitch', v)} />
+                            display={`${pitch}°`} onChange={v => handleSliderChange('pitch', v)} />
                         <SliderRow label="Fly (s)" value={flyDuration} min={1} max={20} step={0.5}
-                            display={`${flyDuration}s`}
-                            onChange={v => handleSliderChange('flyDuration', v)} />
+                            display={`${flyDuration}s`} onChange={v => handleSliderChange('flyDuration', v)} />
                     </div>
 
-                    {/* Action buttons */}
+                    {/* Buttons */}
                     <div className="px-4 pb-3 space-y-2">
 
-                        {/* Capture View — orientation + camera center */}
+                        {/* Capture View — orientation + centre */}
                         <div>
                             <button
                                 onClick={captureMapPosition}
@@ -243,17 +218,11 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                                 Capture View
                             </button>
                             <p className="text-[10px] text-slate-400 text-center mt-0.5">
-                                Captures zoom, bearing, pitch &amp; camera centre
+                                Captures zoom, bearing, pitch &amp; map centre
                             </p>
-                            {activeCameraCenter && (
-                                <p className="text-[10px] text-slate-400 text-center font-mono">
-                                    cam: {activeCameraCenter[0].toFixed(4)}, {activeCameraCenter[1].toFixed(4)}
-                                    {cameraCenterModified && <span className="text-amber-500"> *</span>}
-                                </p>
-                            )}
                         </div>
 
-                        {/* Set Marker Location — pick-to-pin photo/EXIF point */}
+                        {/* Set Location — click-to-pin flyTo target */}
                         <div>
                             {isPickingLocation ? (
                                 <button
@@ -269,29 +238,27 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                                     className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
                                 >
                                     <MapPin className="w-4 h-4" />
-                                    Set Marker Location
+                                    Pin Location
                                 </button>
                             )}
                             <p className="text-[10px] text-slate-400 text-center mt-0.5">
                                 {isPickingLocation
                                     ? 'Click the exact spot on the map'
-                                    : 'Moves the amber marker dot (photo location)'}
+                                    : 'Click a precise point as the flyTo target'}
                             </p>
-                            {coordinates && (
-                                <p className="text-[10px] text-slate-400 text-center font-mono">
-                                    pin: {coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}
-                                    {coordinatesModified && <span className="text-amber-500"> *</span>}
-                                </p>
-                            )}
                         </div>
 
+                        {coordinates && (
+                            <p className="text-[10px] text-slate-400 text-center font-mono pt-0.5">
+                                {coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}
+                                {coordinatesModified && <span className="text-amber-500"> *</span>}
+                            </p>
+                        )}
                     </div>
 
                     {/* Footer */}
                     <div className="px-4 pb-4 flex gap-2 justify-end border-t border-slate-100 pt-3">
-                        <Button size="sm" variant="ghost" onClick={onClose}>
-                            Cancel
-                        </Button>
+                        <Button size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
                         <Button
                             size="sm"
                             onClick={handleSave}
@@ -311,14 +278,8 @@ function SliderRow({ label, value, min, max, step, display, onChange }) {
     return (
         <div className="flex items-center gap-3">
             <span className="text-xs text-slate-500 w-[52px] shrink-0">{label}</span>
-            <Slider
-                min={min}
-                max={max}
-                step={step}
-                value={[value]}
-                onValueChange={([v]) => onChange(v)}
-                className="flex-1"
-            />
+            <Slider min={min} max={max} step={step} value={[value]}
+                onValueChange={([v]) => onChange(v)} className="flex-1" />
             <span className="text-xs font-mono text-slate-700 w-[40px] text-right shrink-0">{display}</span>
         </div>
     );
