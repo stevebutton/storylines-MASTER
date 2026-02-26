@@ -1,44 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-export default function StoryMapBanner({ 
+export default function StoryMapBanner({
     isVisible = true,
     storyTitle = '',
     hasExplored = false,
     storyId = '',
     isShareable = false,
-    isChapterMenuOpen, 
+    isChapterMenuOpen,
     onToggleChapterMenu,
     hasChapters = false
 }) {
     const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const currentUser = await base44.auth.me();
-                setUser(currentUser);
-            } catch (error) {
-                setUser(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        checkAuth();
-    }, []);
-
-    const handleLogin = () => {
-        base44.auth.redirectToLogin();
-    };
-
-    const handleLogout = () => {
-        base44.auth.logout();
-    };
+    // Auth handled by Supabase — stubbed until Supabase Auth is wired up
+    const handleLogin = () => {};
+    const handleLogout = () => { setUser(null); };
 
     return (
         <div 
