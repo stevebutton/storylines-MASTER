@@ -36,12 +36,11 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     const captureMapPosition = () => {
         const map = mapInstanceRef?.current;
         if (!map) { toast.error('Map not ready'); return; }
-        const center = map.getCenter();
         setZoom(Math.round(map.getZoom() * 10) / 10);
         setBearing(Math.round(map.getBearing()));
         setPitch(Math.round(map.getPitch()));
-        setCoordinates([center.lat, center.lng]);
-        toast.success('Map position captured');
+        // Deliberately does NOT capture coordinates — those are set via "Set Flyto Location"
+        toast.success('Zoom, bearing & pitch captured');
     };
 
     const setSlideCoordinates = () => {
@@ -112,22 +111,28 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
 
                     {/* Action buttons */}
                     <div className="px-4 pb-3 space-y-2">
-                        <button
-                            onClick={captureMapPosition}
-                            className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
-                        >
-                            <Crosshair className="w-4 h-4" />
-                            Capture Map Position
-                        </button>
-                        <button
-                            onClick={setSlideCoordinates}
-                            className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
-                        >
-                            <MapPin className="w-4 h-4" />
-                            Set Slide Coordinates
-                        </button>
+                        <div>
+                            <button
+                                onClick={captureMapPosition}
+                                className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <Crosshair className="w-4 h-4" />
+                                Capture View
+                            </button>
+                            <p className="text-[10px] text-slate-400 text-center mt-0.5">Reads zoom, bearing &amp; pitch from the live map</p>
+                        </div>
+                        <div>
+                            <button
+                                onClick={setSlideCoordinates}
+                                className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <MapPin className="w-4 h-4" />
+                                Set Flyto Location
+                            </button>
+                            <p className="text-[10px] text-slate-400 text-center mt-0.5">Sets where the map flies to when this slide activates</p>
+                        </div>
                         {coordinates && (
-                            <p className="text-[11px] text-slate-400 text-center font-mono">
+                            <p className="text-[11px] text-slate-400 text-center font-mono pt-1">
                                 {coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}
                             </p>
                         )}
