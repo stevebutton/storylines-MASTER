@@ -112,8 +112,8 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         previewOnMap(z, b, p, coordinates);
     };
 
-    // Capture View: reads orientation AND map centre → stored as coordinates.
-    // With offset [0,0], map.getCenter() is the correct flyTo target.
+    // Capture View: reads zoom, bearing & pitch from the live map.
+    // Does NOT update coordinates — use Pin Location to move the flyTo target.
     const captureMapPosition = () => {
         // Update state immediately so the button reacts even if map calls fail
         setJustCaptured(true);
@@ -129,15 +129,10 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
             const z = Math.round(map.getZoom() * 10) / 10;
             const b = Math.round(map.getBearing());
             const p = Math.round(map.getPitch());
-            const mc = map.getCenter();
-            const newCoords = [mc.lat, mc.lng];
             setZoom(z);
             setBearing(b);
             setPitch(p);
-            setCoordinates(newCoords);
-            setCoordinatesModified(true);
-            // Marker update is best-effort — don't let it block the save path
-            try { updateMarker(map, newCoords); } catch (_) {}
+            // Coordinates intentionally NOT updated here — marker stays at EXIF location
             toast.success(`Captured — zoom ${z}, bearing ${b}°, pitch ${p}°`);
         } catch (err) {
             toast.error('Capture failed: ' + (err?.message || 'unknown error'));
@@ -176,7 +171,9 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
             if (coordinatesModified && coordinates) patchData.coordinates = coordinates;
             // Send the full slide object so base44 doesn't silently discard partial-update fields
             const fullUpdateData = { ...activeSlide, ...patchData };
-            await base44.entities.Slide.update(activeSlide.id, fullUpdateData);
+            console.log('[LiveMapEditor] Saving slide', activeSlide.id, patchData, 'chapter_id:', activeSlide.chapter_id);
+            const result = await base44.entities.Slide.update(activeSlide.id, fullUpdateData);
+            console.log('[LiveMapEditor] Save result:', result?.zoom, result?.bearing, result?.pitch);
             if (onSlideSave) onSlideSave(activeSlide.id, patchData);
             toast.success(`Saved — zoom ${zoom.toFixed(1)}, bearing ${bearing}°, pitch ${pitch}°`);
         } catch {
@@ -240,7 +237,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                             <p className="text-[10px] text-slate-400 text-center mt-0.5">
                                 {justCaptured
                                     ? `zoom ${zoom.toFixed(1)}  bearing ${bearing}°  pitch ${pitch}°`
-                                    : 'Captures zoom, bearing, pitch & map centre'}
+                                    : 'Captures zoom, bearing & pitch only'}
                             </p>
                         </div>
 

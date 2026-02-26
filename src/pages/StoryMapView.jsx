@@ -261,6 +261,8 @@ export default function StoryMapView() {
                     .sort((a, b) => a.order - b.order)
                     .map(s => ({
                         id: s.id,
+                        chapter_id: s.chapter_id,
+                        order: s.order,
                         image: s.image,
                         title: s.title,
                         description: s.description,
