@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import MapBackground from '@/components/storymap/MapContainer';
 import StoryChapter from '@/components/storymap/StoryChapter';
 import ChapterNavigation from '@/components/storymap/ChapterNavigation';
@@ -35,21 +35,35 @@ export default function StoryMap() {
 
   const loadMainStory = async () => {
     try {
-      // Find the main story
-      const stories = await base44.entities.Story.filter({ is_main_story: true });
-      
+      const { data: stories, error: storyErr } = await supabase
+        .from('stories')
+        .select('*')
+        .eq('is_main_story', true)
+        .limit(1);
+
+      if (storyErr) throw storyErr;
+
       if (stories.length > 0) {
         const mainStory = stories[0];
         setStory(mainStory);
 
-        // Load chapters and slides
-        const [chaptersData, slidesData] = await Promise.all([
-          base44.entities.Chapter.filter({ story_id: mainStory.id }, 'order'),
-          base44.entities.Slide.list('order')
-        ]);
+        const { data: chaptersData, error: chapErr } = await supabase
+          .from('chapters')
+          .select('*')
+          .eq('story_id', mainStory.id)
+          .order('order');
+
+        if (chapErr) throw chapErr;
 
         const chapterIds = chaptersData.map(c => c.id);
-        const relevantSlides = slidesData.filter(s => chapterIds.includes(s.chapter_id));
+
+        const { data: relevantSlides, error: slideErr } = await supabase
+          .from('slides')
+          .select('*')
+          .in('chapter_id', chapterIds)
+          .order('order');
+
+        if (slideErr) throw slideErr;
 
         const chaptersWithSlides = chaptersData.map(chapter => ({
           ...chapter,
