@@ -22,12 +22,13 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 const TextPanelCarousel = ({
   chapterTitle, slideTitle, description, extendedContent,
   location, slideCounter,
-  onPrevSlide, onNextSlide, onClose, hasMultipleSlides
+  onPrevSlide, onNextSlide, onClose, hasMultipleSlides,
+  defaultOpen = true
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [previousPage, setPreviousPage] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
   const [contentHeight, setContentHeight] = useState('auto');
   const pageRefs = useRef([]);
@@ -321,38 +322,38 @@ const TextPanelCarousel = ({
               </div>
             )}
 
-            {/* Slide navigation — generous gap above to separate from page nav */}
-            <div className="mt-10 flex items-center justify-between">
-              <button
-                onClick={onPrevSlide}
-                disabled={!hasMultipleSlides}
-                className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all
-                           disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-6 h-6 text-slate-700" />
-              </button>
-              <button
-                onClick={onClose}
-                className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all"
-                aria-label="Close"
-              >
-                <X className="w-6 h-6 text-slate-700" />
-              </button>
-              <button
-                onClick={onNextSlide}
-                disabled={!hasMultipleSlides}
-                className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all
-                           disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-6 h-6 text-slate-700" />
-              </button>
-            </div>
-
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Slide navigation — always visible, outside collapsible */}
+      <div className="mt-6 flex items-center justify-between">
+        <button
+          onClick={onPrevSlide}
+          disabled={!hasMultipleSlides}
+          className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all
+                     disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-6 h-6 text-slate-700" />
+        </button>
+        <button
+          onClick={onClose}
+          className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all"
+          aria-label="Close"
+        >
+          <X className="w-6 h-6 text-slate-700" />
+        </button>
+        <button
+          onClick={onNextSlide}
+          disabled={!hasMultipleSlides}
+          className="bg-black/10 hover:bg-black/20 rounded-full p-3 transition-all
+                     disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-6 h-6 text-slate-700" />
+        </button>
+      </div>
     </motion.div>
   );
 };
