@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
-
-const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
+import JSZip from 'jszip';
+import * as exifr from 'exifr';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, Loader2, MapPin, FileText, CheckCircle } from 'lucide-react';
@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import VoiceSelectionPanel from './VoiceSelectionPanel';
 import { toast } from "sonner";
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 
 export default function MapDataImportPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
@@ -31,19 +33,97 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
     const processZipAndCreateStructure = async (file) => {
         setIsProcessing(true);
         setStep('processing_zip');
-
         try {
-            // Upload zip file
-            const filePath = `${generateId()}-${file.name}`;
-            const { error: uploadError } = await supabase.storage
-                .from('media')
-                .upload(filePath, file, { contentType: file.type, upsert: false });
-            if (uploadError) throw uploadError;
-            // eslint-disable-next-line no-unused-vars
-            const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+            const zip = await JSZip.loadAsync(file);
 
-            // Process zip: extract images, create Story/Chapter/Slide entities, return story_id
-            throw new Error('Cloud functions not yet available in Supabase migration');
+            // Group files by top-level folder → chapters
+            const folderMap = {};
+            zip.forEach((relativePath, entry) => {
+                if (entry.dir) return;
+                const parts = relativePath.split('/');
+                if (parts.length < 2) return; // skip root-level files
+                const folder = parts[0];
+                if (!folderMap[folder]) folderMap[folder] = [];
+                folderMap[folder].push({ relativePath, entry });
+            });
+
+            const sortedFolders = Object.keys(folderMap).sort();
+
+            // Create Story
+            const storyId = generateId();
+            const { error: storyErr } = await supabase.from('stories').insert({
+                id: storyId,
+                title: file.name.replace(/\.zip$/i, ''),
+                subtitle: ''
+            });
+            if (storyErr) throw storyErr;
+
+            let totalSlides = 0;
+            let slidesWithGps = 0;
+            const chaptersOverview = [];
+
+            for (let ci = 0; ci < sortedFolders.length; ci++) {
+                const folderName = sortedFolders[ci];
+                const images = folderMap[folderName].filter(f =>
+                    /\.(jpe?g|heic|png|webp)$/i.test(f.relativePath)
+                );
+                if (images.length === 0) continue;
+
+                const chapterId = generateId();
+                await supabase.from('chapters').insert({
+                    id: chapterId,
+                    story_id: storyId,
+                    title: folderName,
+                    order: ci,
+                });
+
+                const sortedImages = images.sort((a, b) =>
+                    a.relativePath.localeCompare(b.relativePath)
+                );
+
+                for (let si = 0; si < sortedImages.length; si++) {
+                    const img = sortedImages[si];
+                    const blob = await img.entry.async('blob');
+                    const imageFile = new File([blob], img.entry.name, { type: 'image/jpeg' });
+
+                    const filePath = `${generateId()}-${img.entry.name}`;
+                    const { error: upErr } = await supabase.storage
+                        .from('media').upload(filePath, imageFile, { contentType: 'image/jpeg', upsert: false });
+                    if (upErr) throw upErr;
+                    const { data: { publicUrl: image_url } } = supabase.storage
+                        .from('media').getPublicUrl(filePath);
+
+                    let coordinates = null;
+                    try {
+                        const gps = await exifr.gps(blob);
+                        if (gps?.latitude && gps?.longitude) {
+                            coordinates = [gps.latitude, gps.longitude]; // internal [lat, lng]
+                            slidesWithGps++;
+                        }
+                    } catch { /* no EXIF — skip */ }
+
+                    await supabase.from('slides').insert({
+                        id: generateId(),
+                        chapter_id: chapterId,
+                        order: si,
+                        title: img.entry.name.replace(/\.[^.]+$/, ''),
+                        image_url,
+                        coordinates,
+                    });
+                    totalSlides++;
+                }
+                chaptersOverview.push({ name: folderName, slide_count: sortedImages.length });
+            }
+
+            setCurrentStoryId(storyId);
+            setStoryOverview({
+                chapter_count: chaptersOverview.length,
+                slide_count: totalSlides,
+                slides_with_gps: slidesWithGps,
+                chapters: chaptersOverview,
+            });
+            setStep('voice_selection');
+
         } catch (error) {
             console.error('Failed to process zip file:', error);
             toast.error('Failed to process zip file. Please try again.');
@@ -57,17 +137,23 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
     const handleVoiceContinue = async (config) => {
         setIsProcessing(true);
         setStep('generating_descriptions');
-
         try {
-            throw new Error('Cloud functions not yet available in Supabase migration');
+            const resp = await fetch('/.netlify/functions/generate-captions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ story_id: currentStoryId, ...config }),
+            });
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.error || 'Caption generation failed');
+            }
+            const result = await resp.json();
+            setStoryOverview(prev => ({ ...prev, captions_generated: result.updated_count }));
+            setStep('overview');
         } catch (error) {
-            // Surface the actual server error if available (Axios wraps it in error.response.data)
-            const msg = error.response?.data?.error || error.message;
-            console.error('Failed to generate descriptions:', msg, error);
-            toast.error(`Failed to generate descriptions: ${msg}`, { duration: 8000 });
-            setStep('upload');
-            setZipFile(null);
-            setCurrentStoryId(null);
+            console.error('Failed to generate descriptions:', error.message);
+            toast.error(`Caption generation failed: ${error.message}`, { duration: 8000 });
+            setStep('overview'); // Still show overview — captions are optional
         } finally {
             setIsProcessing(false);
         }

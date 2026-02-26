@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
-
-const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, FileText, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 
 const TEMPLATE_CONTENT = `# Project Chronicle: [Insert Project Name]
 Subtitle: [Brief, Professional Overview of Project]
@@ -95,24 +95,101 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
 
     const processDocument = async () => {
         if (!file) return;
-
         setIsProcessing(true);
         setStep('processing');
-
         try {
-            // Upload the document
-            const filePath = `${generateId()}-${file.name}`;
-            const { error: uploadError } = await supabase.storage
-                .from('documents')
-                .upload(filePath, file, { contentType: file.type, upsert: false });
-            if (uploadError) throw uploadError;
+            // Read file as text
+            const text = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
 
-            // Extract story structure from document (not yet available)
-            throw new Error('Document parsing requires LLM API key — not yet configured');
+            // Parse the structured template format
+            const lines = text.split('\n').map(l => l.trim());
+            let storyTitle = '';
+            let storySubtitle = '';
+            const parsedChapters = [];
+            let currentChapter = null;
+            let currentSlide = null;
+
+            for (const line of lines) {
+                if (!line) { currentSlide = null; continue; }
+                if (line.startsWith('# ') && !storyTitle) {
+                    storyTitle = line.replace(/^# /, '').trim();
+                } else if (/^subtitle:/i.test(line) && !storySubtitle) {
+                    storySubtitle = line.replace(/^subtitle:\s*/i, '').trim();
+                } else if (line.startsWith('## ')) {
+                    if (currentChapter) parsedChapters.push(currentChapter);
+                    currentSlide = null;
+                    const chapterTitle = line.replace(/^##\s+(Chapter\s+\d+:\s*)?/i, '').trim();
+                    currentChapter = { title: chapterTitle, location: '', description: '', slides: [] };
+                } else if (/^location:/i.test(line) && currentChapter && !currentSlide) {
+                    currentChapter.location = line.replace(/^location:\s*/i, '').trim();
+                } else if (/^description:/i.test(line) && currentChapter && !currentSlide) {
+                    currentChapter.description = line.replace(/^description:\s*/i, '').trim();
+                } else if (/^[*\-]\s+slide:/i.test(line) && currentChapter) {
+                    const slideTitle = line.replace(/^[*\-]\s+slide:\s*/i, '').trim();
+                    currentSlide = { title: slideTitle, description: '', location: '' };
+                    currentChapter.slides.push(currentSlide);
+                } else if (/^description:/i.test(line) && currentSlide) {
+                    currentSlide.description = line.replace(/^description:\s*/i, '').trim();
+                } else if (/^location:/i.test(line) && currentSlide) {
+                    currentSlide.location = line.replace(/^location:\s*/i, '').trim();
+                }
+            }
+            if (currentChapter) parsedChapters.push(currentChapter);
+
+            if (!storyTitle || parsedChapters.length === 0) {
+                throw new Error('Could not parse document. Please ensure it follows the template format.');
+            }
+
+            // Geocode locations via Mapbox
+            const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY;
+            const geocode = async (locationStr) => {
+                if (!locationStr || !MAPBOX_TOKEN) return null;
+                try {
+                    const r = await fetch(
+                        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationStr)}.json?limit=1&access_token=${MAPBOX_TOKEN}`
+                    );
+                    const d = await r.json();
+                    const [lng, lat] = d.features?.[0]?.center || [];
+                    return (lat && lng) ? [lat, lng] : null;
+                } catch { return null; }
+            };
+
+            // Create Story + Chapters + Slides
+            const storyId = generateId();
+            await supabase.from('stories').insert({ id: storyId, title: storyTitle, subtitle: storySubtitle });
+
+            for (let ci = 0; ci < parsedChapters.length; ci++) {
+                const ch = parsedChapters[ci];
+                const chapterCoords = await geocode(ch.location);
+                const chapterId = generateId();
+                await supabase.from('chapters').insert({
+                    id: chapterId, story_id: storyId,
+                    title: ch.title, description: ch.description,
+                    order: ci, coordinates: chapterCoords,
+                });
+                for (let si = 0; si < ch.slides.length; si++) {
+                    const sl = ch.slides[si];
+                    const slideCoords = await geocode(sl.location) || chapterCoords;
+                    await supabase.from('slides').insert({
+                        id: generateId(), chapter_id: chapterId,
+                        title: sl.title, description: sl.description,
+                        order: si, coordinates: slideCoords,
+                    });
+                }
+            }
+
+            setStep('success');
+            setTimeout(() => navigate(`${createPageUrl('StoryEditor')}?id=${storyId}`), 1500);
 
         } catch (error) {
             console.error('Failed to process document:', error);
             setStep('error');
+        } finally {
             setIsProcessing(false);
         }
     };
@@ -171,8 +248,8 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                                                     How It Works
                                                 </h3>
                                                 <p className="text-slate-700 leading-relaxed">
-                                                    Upload a structured document containing your project outline or report. We'll help transform 
-                                                    it into an interactive narrative with chapters and visual content sections. Your document should 
+                                                    Upload a structured document containing your project outline or report. We'll help transform
+                                                    it into an interactive narrative with chapters and visual content sections. Your document should
                                                     follow a clear format with a title, section headings, and descriptive content for each location or milestone.
                                                 </p>
                                             </div>
