@@ -16,6 +16,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     const [pitch, setPitch] = useState(0);
     const [flyDuration, setFlyDuration] = useState(8);
     const [coordinates, setCoordinates] = useState(null);
+    const [coordinatesModified, setCoordinatesModified] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
     // Helper: call easeTo directly on the Mapbox instance with the STORY_OFFSET,
@@ -49,6 +50,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setPitch(p);
         setFlyDuration(fd);
         setCoordinates(c);
+        setCoordinatesModified(false);
         previewOnMap(z, b, p, c);
     }, [isOpen, activeSlide?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -81,6 +83,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         if (!map) { toast.error('Map not ready'); return; }
         const center = map.getCenter();
         setCoordinates([center.lat, center.lng]);
+        setCoordinatesModified(true);
         toast.success('Flyto location set');
     };
 
@@ -89,7 +92,9 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setIsSaving(true);
         try {
             const updateData = { zoom, bearing, pitch, fly_duration: flyDuration };
-            if (coordinates) updateData.coordinates = coordinates;
+            // Only write coordinates back if the user explicitly set them via "Set Flyto Location".
+            // Prevents perpetuating stale/bad coordinates loaded from the database.
+            if (coordinatesModified && coordinates) updateData.coordinates = coordinates;
             await base44.entities.Slide.update(activeSlide.id, updateData);
             if (onSlideSave) onSlideSave(activeSlide.id, updateData);
             toast.success('Slide saved');
