@@ -7,25 +7,29 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 
-// The horizontal offset the story viewer applies so the slide location sits
-// to the right of the chapter text panel. Must match StoryMapView's flyTo offset.
-const STORY_OFFSET = [0, 0];  // TEST: offset disabled — was [-200, 0]
-
 export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanceRef, onSlideSave }) {
     const [zoom, setZoom] = useState(12);
     const [bearing, setBearing] = useState(0);
     const [pitch, setPitch] = useState(0);
     const [flyDuration, setFlyDuration] = useState(8);
+
+    // Photo/EXIF location — drives the marker dot on the map.
+    // Only written to DB when user explicitly clicks "Set Marker Location".
     const [coordinates, setCoordinates] = useState(null);
     const [coordinatesModified, setCoordinatesModified] = useState(false);
+
+    // Camera center — where the map flies to during playback.
+    // Independent of the marker; captured automatically by "Capture View".
+    const [cameraCenter, setCameraCenter] = useState(null);
+    const [cameraCenterModified, setCameraCenterModified] = useState(false);
+
     const [isPickingLocation, setIsPickingLocation] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Refs for the flyto marker and the active click-pick handler
     const markerRef = useRef(null);
     const clickHandlerRef = useRef(null);
 
-    // Place or move a small amber dot at the stored flyto coordinate
+    // Place or move the amber marker dot at the photo/EXIF coordinate
     const updateMarker = (map, coords) => {
         if (!coords || !map) {
             markerRef.current?.remove();
@@ -59,38 +63,46 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setIsPickingLocation(false);
     };
 
-    // Helper: snap the map to the saved slide state using the story offset
-    const previewOnMap = (z, b, p, coords) => {
+    // Snap the map to a specific center + orientation (no offset — user composes freely)
+    const previewOnMap = (z, b, p, center) => {
         const map = mapInstanceRef?.current;
-        const c = coords || activeSlide?.coordinates;
-        if (!map || !c) return;
+        if (!map || !center) return;
         map.easeTo({
-            center: [c[1], c[0]],   // Mapbox expects [lng, lat]
+            center: [center[1], center[0]],   // Mapbox expects [lng, lat]
             zoom: z,
             bearing: b,
             pitch: p,
-            offset: STORY_OFFSET,
+            offset: [0, 0],
             duration: 0
         });
     };
 
-    // When editor opens or the active slide changes: sync sliders, marker, and map view
+    // When editor opens or slide changes: sync all state from the slide record
     useEffect(() => {
         if (!isOpen || !activeSlide) return;
-        const z = activeSlide.zoom ?? 12;
-        const b = activeSlide.bearing ?? 0;
-        const p = activeSlide.pitch ?? 0;
-        const fd = activeSlide.fly_duration ?? 8;
-        const c = activeSlide.coordinates ?? null;
+        const z  = activeSlide.zoom          ?? 12;
+        const b  = activeSlide.bearing       ?? 0;
+        const p  = activeSlide.pitch         ?? 0;
+        const fd = activeSlide.fly_duration  ?? 8;
+        const coords = activeSlide.coordinates   ?? null;
+        const cc     = activeSlide.camera_center ?? null;
+
         setZoom(z);
         setBearing(b);
         setPitch(p);
         setFlyDuration(fd);
-        setCoordinates(c);
+        setCoordinates(coords);
         setCoordinatesModified(false);
+        setCameraCenter(cc);
+        setCameraCenterModified(false);
         cancelPickMode();
-        updateMarker(mapInstanceRef?.current, c);
-        previewOnMap(z, b, p, c);
+
+        const map = mapInstanceRef?.current;
+        updateMarker(map, coords);
+
+        // Preview using camera_center if stored, else fall back to photo coordinates
+        const previewCenter = cc ?? coords;
+        previewOnMap(z, b, p, previewCenter);
     }, [isOpen, activeSlide?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Remove marker and cancel pick mode when the editor closes
@@ -108,20 +120,29 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         if (field === 'bearing')     { setBearing(value); b = value; }
         if (field === 'pitch')       { setPitch(value);   p = value; }
         if (field === 'flyDuration') { setFlyDuration(value); }
-        previewOnMap(z, b, p, null);
+        // Preview re-uses whichever camera center is currently active
+        const center = cameraCenter ?? activeSlide?.camera_center ?? activeSlide?.coordinates;
+        previewOnMap(z, b, p, center);
     };
 
+    // Capture View: reads orientation (zoom/bearing/pitch) AND map center → camera_center
     const captureMapPosition = () => {
         const map = mapInstanceRef?.current;
         if (!map) { toast.error('Map not ready'); return; }
-        setZoom(Math.round(map.getZoom() * 10) / 10);
-        setBearing(Math.round(map.getBearing()));
-        setPitch(Math.round(map.getPitch()));
-        // Deliberately does NOT touch coordinates
-        toast.success('Zoom, bearing & pitch captured');
+        const z = Math.round(map.getZoom() * 10) / 10;
+        const b = Math.round(map.getBearing());
+        const p = Math.round(map.getPitch());
+        const mc = map.getCenter();
+        const newCenter = [mc.lat, mc.lng];
+        setZoom(z);
+        setBearing(b);
+        setPitch(p);
+        setCameraCenter(newCenter);
+        setCameraCenterModified(true);
+        toast.success('View captured');
     };
 
-    // Enter pick mode: next map click pins the flyto location
+    // Enter pick mode: next map click pins the photo/marker location
     const startPickMode = () => {
         const map = mapInstanceRef?.current;
         if (!map) { toast.error('Map not ready'); return; }
@@ -138,7 +159,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
             map.getCanvas().style.cursor = '';
             clickHandlerRef.current = null;
             setIsPickingLocation(false);
-            toast.success('Flyto location pinned');
+            toast.success('Marker location pinned');
         };
 
         clickHandlerRef.current = handler;
@@ -150,7 +171,9 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setIsSaving(true);
         try {
             const updateData = { zoom, bearing, pitch, fly_duration: flyDuration };
-            // Only write coordinates back if the user explicitly pinned a location
+            // camera_center: only write if captured in this session
+            if (cameraCenterModified && cameraCenter) updateData.camera_center = cameraCenter;
+            // coordinates (marker/EXIF): only write if user explicitly re-pinned it
             if (coordinatesModified && coordinates) updateData.coordinates = coordinates;
             await base44.entities.Slide.update(activeSlide.id, updateData);
             if (onSlideSave) onSlideSave(activeSlide.id, updateData);
@@ -163,6 +186,9 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     };
 
     const slideLabel = activeSlide?.title ? `"${activeSlide.title}"` : 'Current Slide';
+
+    // Which camera center are we currently using? (for display)
+    const activeCameraCenter = cameraCenter ?? activeSlide?.camera_center ?? null;
 
     return (
         <AnimatePresence>
@@ -206,17 +232,28 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
 
                     {/* Action buttons */}
                     <div className="px-4 pb-3 space-y-2">
+
+                        {/* Capture View — orientation + camera center */}
                         <div>
                             <button
                                 onClick={captureMapPosition}
-                                className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
+                                className="w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium text-white flex items-center justify-center gap-2 transition-colors"
                             >
                                 <Crosshair className="w-4 h-4" />
                                 Capture View
                             </button>
-                            <p className="text-[10px] text-slate-400 text-center mt-0.5">Reads zoom, bearing &amp; pitch from the live map</p>
+                            <p className="text-[10px] text-slate-400 text-center mt-0.5">
+                                Captures zoom, bearing, pitch &amp; camera centre
+                            </p>
+                            {activeCameraCenter && (
+                                <p className="text-[10px] text-slate-400 text-center font-mono">
+                                    cam: {activeCameraCenter[0].toFixed(4)}, {activeCameraCenter[1].toFixed(4)}
+                                    {cameraCenterModified && <span className="text-amber-500"> *</span>}
+                                </p>
+                            )}
                         </div>
 
+                        {/* Set Marker Location — pick-to-pin photo/EXIF point */}
                         <div>
                             {isPickingLocation ? (
                                 <button
@@ -232,21 +269,22 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                                     className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
                                 >
                                     <MapPin className="w-4 h-4" />
-                                    Set Flyto Location
+                                    Set Marker Location
                                 </button>
                             )}
                             <p className="text-[10px] text-slate-400 text-center mt-0.5">
                                 {isPickingLocation
                                     ? 'Click the exact spot on the map'
-                                    : 'Click to enter pick mode, then click a spot on the map'}
+                                    : 'Moves the amber marker dot (photo location)'}
                             </p>
+                            {coordinates && (
+                                <p className="text-[10px] text-slate-400 text-center font-mono">
+                                    pin: {coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}
+                                    {coordinatesModified && <span className="text-amber-500"> *</span>}
+                                </p>
+                            )}
                         </div>
 
-                        {coordinates && (
-                            <p className="text-[11px] text-slate-400 text-center font-mono pt-1">
-                                {coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}
-                            </p>
-                        )}
                     </div>
 
                     {/* Footer */}
