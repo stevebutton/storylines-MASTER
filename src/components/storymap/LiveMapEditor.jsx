@@ -188,11 +188,11 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -20, y: '-50%' }}
+                    animate={{ opacity: 1, x: 0, y: '-50%' }}
+                    exit={{ opacity: 0, x: -20, y: '-50%' }}
                     transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-                    className="fixed top-1/2 -translate-y-1/2 left-[40px] z-[9990] w-[300px] bg-white/97 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60"
+                    className="fixed top-1/2 left-[40px] z-[9990] w-[300px] bg-white/97 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
