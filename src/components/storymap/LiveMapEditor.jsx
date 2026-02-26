@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crosshair, MapPin, Save } from 'lucide-react';
@@ -17,11 +18,48 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     const [flyDuration, setFlyDuration] = useState(8);
     const [coordinates, setCoordinates] = useState(null);
     const [coordinatesModified, setCoordinatesModified] = useState(false);
+    const [isPickingLocation, setIsPickingLocation] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Helper: call easeTo directly on the Mapbox instance with the STORY_OFFSET,
-    // bypassing React / setMapConfig entirely. This guarantees the preview uses
-    // the exact same camera calculation as the story's flyTo.
+    // Refs for the flyto marker and the active click-pick handler
+    const markerRef = useRef(null);
+    const clickHandlerRef = useRef(null);
+
+    // Place or move a small amber dot at the stored flyto coordinate
+    const updateMarker = (map, coords) => {
+        if (!coords || !map) {
+            markerRef.current?.remove();
+            markerRef.current = null;
+            return;
+        }
+        if (markerRef.current) {
+            markerRef.current.setLngLat([coords[1], coords[0]]);
+        } else {
+            const el = document.createElement('div');
+            el.style.cssText = [
+                'width:14px', 'height:14px', 'border-radius:50%',
+                'background:#f59e0b', 'border:2px solid white',
+                'box-shadow:0 1px 4px rgba(0,0,0,0.5)',
+                'pointer-events:none'
+            ].join(';');
+            markerRef.current = new mapboxgl.Marker({ element: el })
+                .setLngLat([coords[1], coords[0]])
+                .addTo(map);
+        }
+    };
+
+    // Cancel pick mode — removes the click listener and resets the cursor
+    const cancelPickMode = () => {
+        const map = mapInstanceRef?.current;
+        if (clickHandlerRef.current && map) {
+            map.off('click', clickHandlerRef.current);
+            clickHandlerRef.current = null;
+            map.getCanvas().style.cursor = '';
+        }
+        setIsPickingLocation(false);
+    };
+
+    // Helper: snap the map to the saved slide state using the story offset
     const previewOnMap = (z, b, p, coords) => {
         const map = mapInstanceRef?.current;
         const c = coords || activeSlide?.coordinates;
@@ -36,8 +74,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         });
     };
 
-    // When editor opens or the active slide changes: sync sliders AND snap the
-    // map to the exact saved state so the preview matches story playback.
+    // When editor opens or the active slide changes: sync sliders, marker, and map view
     useEffect(() => {
         if (!isOpen || !activeSlide) return;
         const z = activeSlide.zoom ?? 12;
@@ -51,40 +88,61 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setFlyDuration(fd);
         setCoordinates(c);
         setCoordinatesModified(false);
+        cancelPickMode();
+        updateMarker(mapInstanceRef?.current, c);
         previewOnMap(z, b, p, c);
     }, [isOpen, activeSlide?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Remove marker and cancel pick mode when the editor closes
+    useEffect(() => {
+        if (!isOpen) {
+            cancelPickMode();
+            markerRef.current?.remove();
+            markerRef.current = null;
+        }
+    }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const handleSliderChange = (field, value) => {
-        // Update local slider state and resolve all current values with the new one
         let z = zoom, b = bearing, p = pitch;
         if (field === 'zoom')        { setZoom(value);    z = value; }
         if (field === 'bearing')     { setBearing(value); b = value; }
         if (field === 'pitch')       { setPitch(value);   p = value; }
         if (field === 'flyDuration') { setFlyDuration(value); }
-        // Live preview: call Mapbox directly — no setMapConfig intermediary
         previewOnMap(z, b, p, null);
     };
 
     const captureMapPosition = () => {
         const map = mapInstanceRef?.current;
         if (!map) { toast.error('Map not ready'); return; }
-        const z = Math.round(map.getZoom() * 10) / 10;
-        const b = Math.round(map.getBearing());
-        const p = Math.round(map.getPitch());
-        setZoom(z);
-        setBearing(b);
-        setPitch(p);
-        // Deliberately does NOT capture coordinates — set those via "Set Flyto Location"
+        setZoom(Math.round(map.getZoom() * 10) / 10);
+        setBearing(Math.round(map.getBearing()));
+        setPitch(Math.round(map.getPitch()));
+        // Deliberately does NOT touch coordinates
         toast.success('Zoom, bearing & pitch captured');
     };
 
-    const setSlideCoordinates = () => {
+    // Enter pick mode: next map click pins the flyto location
+    const startPickMode = () => {
         const map = mapInstanceRef?.current;
         if (!map) { toast.error('Map not ready'); return; }
-        const center = map.getCenter();
-        setCoordinates([center.lat, center.lng]);
-        setCoordinatesModified(true);
-        toast.success('Flyto location set');
+        cancelPickMode();
+        setIsPickingLocation(true);
+        map.getCanvas().style.cursor = 'crosshair';
+
+        const handler = (e) => {
+            const newCoords = [e.lngLat.lat, e.lngLat.lng];
+            setCoordinates(newCoords);
+            setCoordinatesModified(true);
+            updateMarker(map, newCoords);
+            map.off('click', handler);
+            map.getCanvas().style.cursor = '';
+            clickHandlerRef.current = null;
+            setIsPickingLocation(false);
+            toast.success('Flyto location pinned');
+        };
+
+        clickHandlerRef.current = handler;
+        map.on('click', handler);
     };
 
     const handleSave = async () => {
@@ -92,8 +150,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setIsSaving(true);
         try {
             const updateData = { zoom, bearing, pitch, fly_duration: flyDuration };
-            // Only write coordinates back if the user explicitly set them via "Set Flyto Location".
-            // Prevents perpetuating stale/bad coordinates loaded from the database.
+            // Only write coordinates back if the user explicitly pinned a location
             if (coordinatesModified && coordinates) updateData.coordinates = coordinates;
             await base44.entities.Slide.update(activeSlide.id, updateData);
             if (onSlideSave) onSlideSave(activeSlide.id, updateData);
@@ -159,16 +216,32 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                             </button>
                             <p className="text-[10px] text-slate-400 text-center mt-0.5">Reads zoom, bearing &amp; pitch from the live map</p>
                         </div>
+
                         <div>
-                            <button
-                                onClick={setSlideCoordinates}
-                                className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
-                            >
-                                <MapPin className="w-4 h-4" />
-                                Set Flyto Location
-                            </button>
-                            <p className="text-[10px] text-slate-400 text-center mt-0.5">Sets where the map flies to when this slide activates</p>
+                            {isPickingLocation ? (
+                                <button
+                                    onClick={cancelPickMode}
+                                    className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-sm font-medium text-white flex items-center justify-center gap-2 transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                    Cancel — click map to pin
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={startPickMode}
+                                    className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
+                                >
+                                    <MapPin className="w-4 h-4" />
+                                    Set Flyto Location
+                                </button>
+                            )}
+                            <p className="text-[10px] text-slate-400 text-center mt-0.5">
+                                {isPickingLocation
+                                    ? 'Click the exact spot on the map'
+                                    : 'Click to enter pick mode, then click a spot on the map'}
+                            </p>
                         </div>
+
                         {coordinates && (
                             <p className="text-[11px] text-slate-400 text-center font-mono pt-1">
                                 {coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}
