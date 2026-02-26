@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TextPanelCarousel from './TextPanelCarousel';
 
-const VideoPlayer = ({ url }) => {
+const VideoPlayer = ({ url, onVideoEnded }) => {
     if (!url) return null;
 
     let embedUrl = '';
@@ -19,6 +19,7 @@ const VideoPlayer = ({ url }) => {
                 controls
                 autoPlay
                 playsInline
+                onEnded={onVideoEnded}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -111,7 +112,7 @@ export default function FullScreenImageViewer({
                         <div className="relative w-full h-full flex items-center justify-center z-10">
                     <AnimatePresence mode="wait">
                         {currentSlide.video_url ? (
-                            <VideoPlayer url={currentSlide.video_url} key={currentIndex} />
+                            <VideoPlayer url={currentSlide.video_url} key={currentIndex} onVideoEnded={handleNext} />
                         ) : (
                             <motion.img
                                 key={currentIndex}
