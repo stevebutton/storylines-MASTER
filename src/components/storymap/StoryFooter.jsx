@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUp, LogIn, LogOut, User } from 'lucide-react';
+import { ArrowUp, LogIn, LogOut, User, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 
-export default function StoryFooter({ onRestart, onViewOtherStories, storyId, isVisible = true, onOpenLibrary, relatedStories = [], currentCategory }) {
+export default function StoryFooter({ onRestart, onViewOtherStories, storyId, isVisible = true, onOpenLibrary, relatedStories = [], currentCategory, onOpenMapEditor, isOwner = true }) {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -183,6 +183,17 @@ export default function StoryFooter({ onRestart, onViewOtherStories, storyId, is
                             width="50"
                             height="100"
                         />
+                    </button>
+                )}
+
+                {/* Map Editor Button */}
+                {storyId && isOwner && onOpenMapEditor && (
+                    <button
+                        onClick={onOpenMapEditor}
+                        title="Live Map Editor"
+                        className="opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer p-1"
+                    >
+                        <SlidersHorizontal className="w-5 h-5 text-slate-700" />
                     </button>
                 )}
 
