@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { supabase } from '@/api/supabaseClient';\n\nconst generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
