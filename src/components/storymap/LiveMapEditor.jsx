@@ -192,13 +192,13 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-                    className="fixed bottom-[130px] left-[40px] z-[9990] w-[300px] bg-white/97 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60"
+                    className="fixed top-1/2 -translate-y-1/2 left-[40px] z-[9990] w-[300px] bg-white/97 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                         <div className="min-w-0">
-                            <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Map Editor</div>
-                            <div className="text-sm font-medium text-slate-800 truncate">{slideLabel}</div>
+                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Map Editor</div>
+                            <div className="text-base font-semibold text-slate-800 truncate">{slideLabel}</div>
                         </div>
                         <button onClick={onClose} className="ml-2 shrink-0 text-slate-400 hover:text-slate-700 transition-colors">
                             <X className="w-4 h-4" />
