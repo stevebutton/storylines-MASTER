@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryHeader from '@/components/storymap/StoryHeader';
@@ -30,20 +30,20 @@ export default function ProjectInterface() {
 
   const loadData = async () => {
     try {
-      const [stories, chapters, sections] = await Promise.all([
-        base44.entities.Story.filter({ is_published: true }),
-        base44.entities.Chapter.list('order'),
-        base44.entities.HomePageSection.filter({ pageName: 'ProjectInterface' }, 'order')
+      const [{ data: stories }, { data: chapters }, { data: sections }] = await Promise.all([
+        supabase.from('stories').select('*').eq('is_published', true),
+        supabase.from('chapters').select('*').order('order'),
+        supabase.from('homepage_sections').select('*').eq('page_name', 'ProjectInterface').order('order')
       ]);
 
-      const mainStoryData = stories.find(s => s.is_main_story);
+      const mainStoryData = (stories || []).find(s => s.is_main_story);
       setMainStory(mainStoryData);
 
       // Attach coordinates to all stories
-      const storiesWithCoords = stories.map(story => {
-        const storyChapters = chapters.filter(c => c.story_id === story.id);
+      const storiesWithCoords = (stories || []).map(story => {
+        const storyChapters = (chapters || []).filter(c => c.story_id === story.id);
         const firstChapterWithCoords = storyChapters.find(c => c.coordinates && c.coordinates.length === 2);
-        
+
         return {
           ...story,
           coordinates: story.coordinates || firstChapterWithCoords?.coordinates || null
@@ -51,7 +51,7 @@ export default function ProjectInterface() {
       }).filter(s => s.coordinates);
 
       setAllStories(storiesWithCoords);
-      setPageSections(sections);
+      setPageSections(sections || []);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
