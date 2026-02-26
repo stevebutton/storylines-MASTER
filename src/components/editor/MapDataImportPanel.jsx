@@ -70,12 +70,13 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 if (images.length === 0) continue;
 
                 const chapterId = generateId();
-                await supabase.from('chapters').insert({
+                const { error: chapterErr } = await supabase.from('chapters').insert({
                     id: chapterId,
                     story_id: storyId,
                     title: folderName,
                     order: ci,
                 });
+                if (chapterErr) throw chapterErr;
 
                 const sortedImages = images.sort((a, b) =>
                     a.relativePath.localeCompare(b.relativePath)
@@ -102,7 +103,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                         }
                     } catch { /* no EXIF — skip */ }
 
-                    await supabase.from('slides').insert({
+                    const { error: slideErr } = await supabase.from('slides').insert({
                         id: generateId(),
                         chapter_id: chapterId,
                         order: si,
@@ -110,6 +111,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                         image_url,
                         coordinates,
                     });
+                    if (slideErr) throw slideErr;
                     totalSlides++;
                 }
                 chaptersOverview.push({ name: folderName, slide_count: sortedImages.length });
