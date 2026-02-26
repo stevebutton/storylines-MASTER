@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapBackground from '@/components/storymap/MapContainer';
 import StoryChapter from '@/components/storymap/StoryChapter';
@@ -230,34 +230,45 @@ export default function StoryMapView() {
         }
 
         try {
-            const [storyData, chaptersData, slidesData] = await Promise.all([
-                base44.entities.Story.filter({ id: storyId }),
-                base44.entities.Chapter.filter({ story_id: storyId }, 'order'),
-                base44.entities.Slide.list('order')
-            ]);
+            const { data: storyData, error: storyErr } = await supabase
+                .from('stories')
+                .select('*')
+                .eq('id', storyId)
+                .limit(1);
+            if (storyErr) throw storyErr;
 
             if (storyData.length > 0) {
                 setStory(storyData[0]);
-                
+
                 // Fetch related stories in the same category
                 const currentStory = storyData[0];
                 if (currentStory.category) {
-                    const allStoriesInCategory = await base44.entities.Story.filter({
-                        category: currentStory.category,
-                        is_published: true
-                    });
-                    
-                    // Exclude current story and limit to 4 suggestions
-                    const related = allStoriesInCategory
-                        .filter(s => s.id !== currentStory.id)
-                        .slice(0, 4);
-                    setRelatedStories(related);
+                    const { data: related } = await supabase
+                        .from('stories')
+                        .select('*')
+                        .eq('category', currentStory.category)
+                        .eq('is_published', true)
+                        .neq('id', currentStory.id)
+                        .limit(4);
+                    setRelatedStories(related || []);
                 }
             }
 
-            // Attach slides to chapters
+            const { data: chaptersData, error: chapErr } = await supabase
+                .from('chapters')
+                .select('*')
+                .eq('story_id', storyId)
+                .order('order');
+            if (chapErr) throw chapErr;
+
             const chapterIds = chaptersData.map(c => c.id);
-            const relevantSlides = slidesData.filter(s => chapterIds.includes(s.chapter_id));
+
+            const { data: relevantSlides, error: slideErr } = await supabase
+                .from('slides')
+                .select('*')
+                .in('chapter_id', chapterIds)
+                .order('order');
+            if (slideErr) throw slideErr;
             
             const chaptersWithSlides = chaptersData.map(chapter => ({
                 ...chapter,
