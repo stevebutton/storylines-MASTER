@@ -140,15 +140,18 @@ export default function MapBackground({
             };
         }
 
-        // Instant positioning — jumpTo with no animation (used for initial story location
-        // while the black overlay is covering the map)
+        // Instant positioning — easeTo with duration 0 so the offset is honoured
+        // (jumpTo doesn't support offset; omitting it causes a visible vertical
+        // discrepancy vs flyTo when pitch is non-zero)
         if (instant) {
             try {
-                map.current.jumpTo({
+                map.current.easeTo({
                     center: [center[1], center[0]],
                     zoom: zoom || 12,
                     bearing: bearing || 0,
-                    pitch: validPitch
+                    pitch: validPitch,
+                    offset: offset || [0, 0],
+                    duration: 0
                 });
             } catch (e) {}
             return;
