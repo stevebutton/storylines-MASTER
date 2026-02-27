@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 import * as exifr from 'exifr';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Loader2, MapPin, FileText, CheckCircle } from 'lucide-react';
+import { X, Upload, Loader2, MapPin, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import VoiceSelectionPanel from './VoiceSelectionPanel';
@@ -12,8 +12,11 @@ import { toast } from "sonner";
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 
-export default function MapDataImportPanel({ isOpen, onClose }) {
+// appendToStoryId — when provided, skips story creation and appends chapters to existing story
+export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = null }) {
     const navigate = useNavigate();
+    const isAppendMode = !!appendToStoryId;
+
     const [zipFile, setZipFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [step, setStep] = useState('upload'); // upload, processing_zip, voice_selection, generating_descriptions, overview
@@ -42,8 +45,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 if (entry.dir) return;
                 if (!/\.(jpe?g|heic|png|webp)$/i.test(relativePath)) return;
                 const parts = relativePath.split('/');
-                if (parts.length < 2) return; // skip root-level files
-                // Use immediate parent directory so nested ZIPs (root/chapter/image.jpg) work correctly
+                if (parts.length < 2) return;
                 const folder = parts[parts.length - 2];
                 if (!folderMap[folder]) folderMap[folder] = [];
                 folderMap[folder].push({ relativePath, entry });
@@ -51,14 +53,27 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
 
             const sortedFolders = Object.keys(folderMap).sort();
 
-            // Create Story
-            const storyId = generateId();
-            const { error: storyErr } = await supabase.from('stories').insert({
-                id: storyId,
-                title: file.name.replace(/\.zip$/i, ''),
-                subtitle: ''
-            });
-            if (storyErr) throw storyErr;
+            let storyId;
+            let orderOffset = 0;
+
+            if (isAppendMode) {
+                // Use existing story, get current chapter count for order offset
+                storyId = appendToStoryId;
+                const { count } = await supabase
+                    .from('chapters')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('story_id', storyId);
+                orderOffset = count || 0;
+            } else {
+                // Create new story
+                storyId = generateId();
+                const { error: storyErr } = await supabase.from('stories').insert({
+                    id: storyId,
+                    title: file.name.replace(/\.zip$/i, ''),
+                    subtitle: ''
+                });
+                if (storyErr) throw storyErr;
+            }
 
             let totalSlides = 0;
             let slidesWithGps = 0;
@@ -74,7 +89,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                     id: chapterId,
                     story_id: storyId,
                     name: folderName,
-                    order: ci,
+                    order: orderOffset + ci,
                 });
                 if (chapterErr) throw chapterErr;
 
@@ -98,7 +113,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                     try {
                         const gps = await exifr.gps(blob);
                         if (gps?.latitude && gps?.longitude) {
-                            coordinates = [gps.latitude, gps.longitude]; // internal [lat, lng]
+                            coordinates = [gps.latitude, gps.longitude];
                             slidesWithGps++;
                         }
                     } catch { /* no EXIF — skip */ }
@@ -155,7 +170,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
         } catch (error) {
             console.error('Failed to generate descriptions:', error.message);
             toast.error(`Caption generation failed: ${error.message}`, { duration: 8000 });
-            setStep('overview'); // Still show overview — captions are optional
+            setStep('overview');
         } finally {
             setIsProcessing(false);
         }
@@ -206,8 +221,14 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                             <div className="flex items-center gap-3">
                                 <MapPin className="w-8 h-8 text-blue-600" />
                                 <div>
-                                    <h2 className="text-4xl font-bold text-slate-800">Import from Map Data</h2>
-                                    <p className="text-sm text-slate-600 mt-1">Generate narratives from field documentation and geotagged media</p>
+                                    <h2 className="text-4xl font-bold text-slate-800">
+                                        {isAppendMode ? 'Add Chapters to Story' : 'Import from Map Data'}
+                                    </h2>
+                                    <p className="text-sm text-slate-600 mt-1">
+                                        {isAppendMode
+                                            ? 'Upload a ZIP to append new chapters to this story'
+                                            : 'Generate narratives from field documentation and geotagged media'}
+                                    </p>
                                 </div>
                             </div>
                             <Button variant="ghost" size="icon" onClick={handleClose}>
@@ -282,10 +303,10 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                         <CheckCircle className="w-8 h-8 text-green-600" />
                                         <div>
                                             <h3 className="text-2xl font-bold text-slate-800">
-                                                Story Created Successfully
+                                                {isAppendMode ? 'Chapters Added Successfully' : 'Story Created Successfully'}
                                             </h3>
                                             <p className="text-sm text-slate-600">
-                                                Review your story structure below
+                                                Review your {isAppendMode ? 'new chapters' : 'story structure'} below
                                             </p>
                                         </div>
                                     </div>
@@ -322,12 +343,18 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                     </div>
 
                                     <div className="flex justify-end pt-4">
-                                        <Button
-                                            onClick={() => navigate(`${createPageUrl('StoryEditor')}?id=${currentStoryId}`)}
-                                            className="bg-blue-600 hover:bg-blue-700"
-                                        >
-                                            Open in Editor
-                                        </Button>
+                                        {isAppendMode ? (
+                                            <Button onClick={handleClose} className="bg-blue-600 hover:bg-blue-700">
+                                                Done
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                onClick={() => navigate(`${createPageUrl('StoryEditor')}?id=${currentStoryId}`)}
+                                                className="bg-blue-600 hover:bg-blue-700"
+                                            >
+                                                Open in Editor
+                                            </Button>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}
@@ -336,7 +363,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 )}
             </AnimatePresence>
 
-            {/* Voice Selection Modal — rendered outside the panel so it layers correctly */}
+            {/* Voice Selection Modal */}
             {step === 'voice_selection' && (
                 <VoiceSelectionPanel
                     isOpen={true}

@@ -14,6 +14,7 @@ import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
 import TabbedContentEditor from '@/components/editor/TabbedContentEditor';
 import AIAssistant from '@/components/editor/AIAssistant';
 import HelpPanel from '@/components/editor/HelpPanel';
+import MapDataImportPanel from '@/components/editor/MapDataImportPanel';
 import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 
 export default function StoryEditor() {
@@ -30,6 +31,7 @@ export default function StoryEditor() {
     const [isSaving, setIsSaving] = useState(false);
     const [selectedItem, setSelectedItem] = useState({ type: 'story', id: null });
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+    const [isStoryHelperOpen, setIsStoryHelperOpen] = useState(false);
     const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(false);
     const [showTitleValidationDialog, setShowTitleValidationDialog] = useState(false);
     const [pendingTitle, setPendingTitle] = useState('');
@@ -438,7 +440,7 @@ export default function StoryEditor() {
                             <p className="text-xs text-slate-600 font-semibold">Help</p>
                         </button>
                         <button
-                            onClick={() => setIsAIAssistantOpen(true)}
+                            onClick={() => setIsStoryHelperOpen(true)}
                             className="hidden md:flex flex-1 bg-purple-50 hover:bg-purple-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]"
                         >
                             <Sparkles className="w-5 h-5 text-purple-600 mb-1" />
@@ -529,6 +531,13 @@ export default function StoryEditor() {
                     setShowTitleValidationDialog(false);
                     setSelectedItem({ type: 'story', id: null });
                 }}
+            />
+
+            {/* Story Helper — append chapters via ZIP upload */}
+            <MapDataImportPanel
+                isOpen={isStoryHelperOpen}
+                onClose={() => { setIsStoryHelperOpen(false); loadData(); }}
+                appendToStoryId={currentStoryId}
             />
 
             {/* AI Assistant Panel */}
