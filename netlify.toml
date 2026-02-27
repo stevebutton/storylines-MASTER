@@ -2,6 +2,9 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  timeout = 26
+
 # SPA catch-all — serve index.html for all non-static routes
 [[redirects]]
   from = "/*"

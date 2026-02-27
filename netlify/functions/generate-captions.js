@@ -46,8 +46,7 @@ exports.handler = async (event) => {
         .from('slides').select('id,title,chapter_id')
         .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
 
-    let updatedCount = 0;
-    for (const slide of (slides || [])) {
+    const results = await Promise.all((slides || []).map(async (slide) => {
         const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
 
         const prompt = `You are writing ${voiceStyle}.
@@ -68,14 +67,16 @@ Respond with valid JSON only, no other text:
             });
 
             const raw = msg.content[0]?.text?.trim();
-            if (!raw) continue;
+            if (!raw) return false;
+
+            // Strip markdown code fences if present
+            const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
 
             let parsed;
             try {
-                parsed = JSON.parse(raw);
+                parsed = JSON.parse(cleaned);
             } catch {
-                // If JSON parse fails, skip this slide
-                continue;
+                return false;
             }
 
             const title = parsed.title?.trim() || slide.title;
@@ -87,10 +88,13 @@ Respond with valid JSON only, no other text:
                     description,
                     extended_content: extended_content || null,
                 }).eq('id', slide.id);
-                updatedCount++;
+                return true;
             }
-        } catch { /* skip individual failures */ }
-    }
+            return false;
+        } catch { return false; }
+    }));
+
+    const updatedCount = results.filter(Boolean).length;
 
     return {
         statusCode: 200,
