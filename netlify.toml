@@ -2,6 +2,9 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "20"
+
 [functions]
   timeout = 26
 
@@ -11,12 +14,7 @@
   to = "/index.html"
   status = 200
 
-[build.environment]
-  NODE_VERSION = "20"
-
 # Branch deploy context — applies to all non-production branches
-# The `supabase` branch will get its own deploy URL automatically:
-#   https://supabase--<your-site-name>.netlify.app
 [context.branch-deploy]
   command = "npm run build"
 
