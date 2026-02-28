@@ -43,8 +43,7 @@ export default function Stories() {
     try {
       const { data, error } = await supabase
         .from('stories')
-        .select('*')
-        .order('created_date', { ascending: false });
+        .select('*');
       if (error) throw error;
       setStories(data || []);
     } catch (error) {
@@ -100,10 +99,16 @@ export default function Stories() {
     // Sorting
     result.sort((a, b) => {
       switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_date) - new Date(a.created_date);
-        case 'oldest':
-          return new Date(a.created_date) - new Date(b.created_date);
+        case 'newest': {
+          const da = a.created_date ? new Date(a.created_date) : new Date();
+          const db = b.created_date ? new Date(b.created_date) : new Date();
+          return db - da;
+        }
+        case 'oldest': {
+          const da = a.created_date ? new Date(a.created_date) : new Date();
+          const db = b.created_date ? new Date(b.created_date) : new Date();
+          return da - db;
+        }
         case 'title':
           return (a.title || '').localeCompare(b.title || '');
         case 'author':

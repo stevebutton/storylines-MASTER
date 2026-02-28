@@ -88,7 +88,7 @@ export default function StoryEditor() {
             } else {
                 const newId = generateId();
                 const { data: newStory, error } = await supabase
-                    .from('stories').insert({ ...story, id: newId }).select().single();
+                    .from('stories').insert({ ...story, id: newId, created_date: new Date().toISOString() }).select().single();
                 if (error) throw error;
                 savedStoryId = newStory.id;
                 setStory(newStory);

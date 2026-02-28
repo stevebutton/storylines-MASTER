@@ -73,7 +73,8 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                 const { error: storyErr } = await supabase.from('stories').insert({
                     id: storyId,
                     title: file.name.replace(/\.zip$/i, ''),
-                    subtitle: ''
+                    subtitle: '',
+                    created_date: new Date().toISOString(),
                 });
                 if (storyErr) throw storyErr;
             }
