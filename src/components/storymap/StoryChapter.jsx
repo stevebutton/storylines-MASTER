@@ -99,6 +99,7 @@ export default function StoryChapter({
                 >
                     {/* Exit animation wrapper */}
                     <motion.div
+                        initial={{ opacity: 0 }}
                         animate={isExiting ? { opacity: 0, x: -80 } : { opacity: 1, x: 0 }}
                         transition={{ duration: 0.45, ease: 'easeIn' }}
                     >
@@ -120,10 +121,17 @@ export default function StoryChapter({
                             {/* Spacer pushes all content to bottom half */}
                             <div className="flex-1" />
 
-                            {/* Chapter title — unified */}
-                            <h1 className="text-4xl font-light text-amber-400 mb-5 leading-tight">
-                                Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
-                            </h1>
+                            {/* Chapter title — two-line, tight */}
+                            <div className="mb-5">
+                                <span className="block text-3xl font-light text-amber-400 leading-none">
+                                    Chapter {String(index + 1).padStart(2, '0')}
+                                </span>
+                                {chapter.name && (
+                                    <span className="block text-5xl font-light text-amber-400 leading-tight">
+                                        {chapter.name}
+                                    </span>
+                                )}
+                            </div>
 
                             {/* Slide title — hidden on opener card, kept in DOM for potential reuse */}
                             <div className="hidden">
@@ -259,7 +267,12 @@ export default function StoryChapter({
                 )}>
                     {/* Carousel for all media types */}
                     {chapter.slides && chapter.slides.length > 0 && (
-                        <div className="pointer-events-auto">
+                        <motion.div
+                            className="pointer-events-auto"
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
+                        >
                             <ChapterCarousel
                                 slides={chapter.slides}
                                 onSlideChange={handleSlideChange}
@@ -270,7 +283,7 @@ export default function StoryChapter({
                                     setShowFullScreenViewer(true);
                                 }}
                             />
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Content */}
