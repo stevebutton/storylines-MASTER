@@ -2,11 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
-[functions]
-  timeout = 60
-
 [build.environment]
   NODE_VERSION = "20"
+
+[functions]
+  timeout = 60
 
 # SPA catch-all — serve index.html for all non-static routes
 [[redirects]]
