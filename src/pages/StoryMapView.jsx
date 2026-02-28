@@ -289,6 +289,7 @@ export default function StoryMapView() {
                         pitch: s.pitch,
                         fly_duration: s.fly_duration,
                         pdf_url: s.pdf_url,
+                        pdf_title: s.pdf_title,
                         video_url: s.video_url,
                         video_thumbnail_url: s.video_thumbnail_url,
                         mapbox_layer_id: s.mapbox_layer_id,

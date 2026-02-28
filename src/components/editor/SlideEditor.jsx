@@ -42,17 +42,21 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
 
     React.useEffect(() => {
         if (slide.pdf_url) {
-            try {
-                const url = new URL(slide.pdf_url);
-                const filename = url.pathname.split('/').pop();
-                setPdfFileName(decodeURIComponent(filename));
-            } catch (e) {
-                setPdfFileName('Attached PDF');
+            if (slide.pdf_title) {
+                setPdfFileName(slide.pdf_title);
+            } else {
+                try {
+                    const url = new URL(slide.pdf_url);
+                    const filename = url.pathname.split('/').pop();
+                    setPdfFileName(decodeURIComponent(filename));
+                } catch (e) {
+                    setPdfFileName('Attached PDF');
+                }
             }
         } else {
             setPdfFileName('');
         }
-    }, [slide.pdf_url]);
+    }, [slide.pdf_url, slide.pdf_title]);
 
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -436,7 +440,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            onUpdate({ ...slide, pdf_url: null });
+                                            onUpdate({ ...slide, pdf_url: null, pdf_title: '' });
                                             setPdfFileName('');
                                         }}
                                         className="text-red-500 hover:text-red-600"
@@ -463,8 +467,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                             onClose={() => setShowDocumentPicker(false)}
                             storyId={storyId}
                             onSelect={(doc) => {
-                                onUpdate({ ...slide, pdf_url: doc.file_url });
-                                setPdfFileName(doc.title + '.pdf');
+                                onUpdate({ ...slide, pdf_url: doc.file_url, pdf_title: doc.title });
                             }}
                         />
                     </div>
