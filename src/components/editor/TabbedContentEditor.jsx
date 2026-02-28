@@ -57,7 +57,8 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingHeroImage(true);
             try {
-                const filePath = `${generateId()}-${file.name}`;
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
                 const { error: uploadError } = await supabase.storage
                     .from('media')
                     .upload(filePath, file, { contentType: file.type, upsert: false });
@@ -74,7 +75,8 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingHeroVideo(true);
             try {
-                const filePath = `${generateId()}-${file.name}`;
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
                 const { error: uploadError } = await supabase.storage
                     .from('media')
                     .upload(filePath, file, { contentType: file.type, upsert: false });
@@ -91,7 +93,8 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingThumbnail(true);
             try {
-                const filePath = `${generateId()}-${file.name}`;
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
                 const { error: uploadError } = await supabase.storage
                     .from('media')
                     .upload(filePath, file, { contentType: file.type, upsert: false });
@@ -456,7 +459,8 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingImage(true);
             try {
-                const filePath = `${generateId()}-${file.name}`;
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
                 const { error: uploadError } = await supabase.storage
                     .from('media')
                     .upload(filePath, file, { contentType: file.type, upsert: false });
@@ -473,7 +477,8 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingVideo(true);
             try {
-                const filePath = `${generateId()}-${file.name}`;
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
                 const { error: uploadError } = await supabase.storage
                     .from('media')
                     .upload(filePath, file, { contentType: file.type, upsert: false });

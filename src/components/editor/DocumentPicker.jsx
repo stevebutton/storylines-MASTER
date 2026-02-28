@@ -42,7 +42,8 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
         setIsUploading(true);
         try {
             // Upload to Supabase Storage — requires a public 'documents' bucket
-            const filePath = `${generateId()}-${file.name}`;
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const filePath = `${generateId()}-${safeName}`;
             const { error: uploadError } = await supabase.storage
                 .from('media')
                 .upload(filePath, file, { contentType: file.type, upsert: false });
