@@ -280,6 +280,7 @@ export default function StoryMapView() {
                         chapter_id: s.chapter_id,
                         order: s.order,
                         image: s.image,
+                        card_style: s.card_style,
                         title: s.title,
                         description: s.description,
                         location: s.location,
