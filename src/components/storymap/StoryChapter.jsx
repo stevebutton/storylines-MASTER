@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ChapterCarousel from './ChapterCarousel';
-import { FileText, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PdfViewer from '@/components/pdf/PdfViewer';
+import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 import FullScreenImageViewer from './FullScreenImageViewer';
 
 export default function StoryChapter({
@@ -173,10 +174,17 @@ export default function StoryChapter({
                                             <h4 className="text-xs font-medium text-white/70 mb-2 uppercase tracking-wider">Related Documents</h4>
                                             <button
                                                 onClick={() => setShowPdfModal(true)}
-                                                className="flex items-center gap-2 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
+                                                className="flex items-center gap-3 group hover:opacity-80 transition-opacity text-left"
                                             >
-                                                <FileText className="w-4 h-4" />
-                                                <span>{currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</span>
+                                                <div
+                                                    className="shrink-0 overflow-hidden rounded-[10px]"
+                                                    style={{ width: '80px', height: '60px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                                                >
+                                                    <PdfThumbnail url={currentSlide.pdf_url} className="w-full h-full" />
+                                                </div>
+                                                <span className="text-xs font-medium text-amber-400 group-hover:text-amber-300 transition-colors">
+                                                    {currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}
+                                                </span>
                                             </button>
                                         </div>
                                     )}
@@ -309,10 +317,17 @@ export default function StoryChapter({
                                         <h4 className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">Related Documents</h4>
                                         <button
                                             onClick={() => setShowPdfModal(true)}
-                                            className="flex items-center gap-2 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
+                                            className="flex items-center gap-3 group hover:opacity-80 transition-opacity text-left"
                                         >
-                                            <FileText className="w-4 h-4" />
-                                            <span>{currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</span>
+                                            <div
+                                                className="shrink-0 overflow-hidden rounded-[10px]"
+                                                style={{ width: '80px', height: '60px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                                            >
+                                                <PdfThumbnail url={currentSlide.pdf_url} className="w-full h-full" />
+                                            </div>
+                                            <span className="text-xs font-medium text-amber-600 group-hover:text-amber-700 transition-colors">
+                                                {currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}
+                                            </span>
                                         </button>
                                     </div>
                                 )}
