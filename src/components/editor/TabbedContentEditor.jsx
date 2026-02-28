@@ -721,17 +721,30 @@ export default function TabbedContentEditor({
                             <div>
                                 <Label>PDF Document</Label>
                                 {item.pdf_url ? (
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border mt-2">
-                                        <div className="flex items-center gap-2">
-                                            <FileText className="w-5 h-5 text-red-600" />
-                                            <span className="text-sm">PDF attached</span>
+                                    <div className="mt-2 p-3 bg-slate-50 rounded-lg border space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="w-5 h-5 text-red-600 shrink-0" />
+                                                <span className="text-xs text-slate-500">PDF attached</span>
+                                            </div>
+                                            <button
+                                                onClick={() => onUpdate({ ...item, pdf_url: '', pdf_title: '' })}
+                                                className="text-red-500 hover:text-red-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => onUpdate({ ...item, pdf_url: '' })}
-                                            className="text-red-500 hover:text-red-600"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
+                                        <div>
+                                            <Label className="text-xs">Display Title</Label>
+                                            <Input
+                                                value={item.pdf_title || ''}
+                                                onChange={(e) => onUpdate({ ...item, pdf_title: e.target.value })}
+                                                placeholder="Short display title..."
+                                                maxLength={60}
+                                                className="mt-1 text-sm"
+                                            />
+                                            <p className="text-xs text-slate-400 mt-1">Shown in the story viewer. Saved with the slide.</p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <Button 
@@ -752,7 +765,7 @@ export default function TabbedContentEditor({
                                 onClose={() => setShowDocumentPicker(false)}
                                 storyId={storyId}
                                 onSelect={(doc) => {
-                                    onUpdate({ ...item, pdf_url: doc.file_url });
+                                    onUpdate({ ...item, pdf_url: doc.file_url, pdf_title: doc.title });
                                     setShowDocumentPicker(false);
                                 }}
                             />

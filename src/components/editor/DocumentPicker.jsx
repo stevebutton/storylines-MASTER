@@ -15,6 +15,7 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [uploadedDoc, setUploadedDoc] = useState(null);
+    const [docTitle, setDocTitle] = useState('');
 
     const { data: documents = [], isLoading } = useQuery({
         queryKey: ['documents', storyId],
@@ -69,6 +70,7 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
                 .single();
             if (insertError) throw insertError;
             setUploadedDoc(newDoc);
+            setDocTitle(newDoc.title || '');
         } catch (error) {
             console.error('Failed to upload document:', error);
             toast.error(`Failed to upload document: ${error.message}`);
@@ -87,15 +89,36 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
 
                 {/* Success screen */}
                 {uploadedDoc && (
-                    <div className="flex flex-col items-center justify-center py-10 gap-4 text-center">
-                        <CheckCircle className="w-16 h-16 text-green-500" />
+                    <div className="flex flex-col items-center justify-center py-8 gap-5 text-center">
+                        <CheckCircle className="w-14 h-14 text-green-500" />
                         <div>
                             <h3 className="text-xl font-semibold text-slate-800">Document Uploaded Successfully</h3>
-                            <p className="text-slate-500 mt-1 text-sm">{uploadedDoc.title}</p>
+                            <p className="text-xs text-slate-400 mt-1">Give it a short display title before attaching</p>
+                        </div>
+                        <div className="w-full max-w-sm text-left">
+                            <Label htmlFor="doc-title">Display Title</Label>
+                            <Input
+                                id="doc-title"
+                                value={docTitle}
+                                onChange={(e) => setDocTitle(e.target.value)}
+                                maxLength={60}
+                                placeholder="e.g. Site Survey Report"
+                                className="mt-1"
+                            />
+                            <p className="text-xs text-slate-400 mt-1">{docTitle.length}/60</p>
                         </div>
                         <Button
-                            className="bg-amber-600 hover:bg-amber-700 mt-2"
-                            onClick={() => { onSelect(uploadedDoc); onClose(); setUploadedDoc(null); }}
+                            className="bg-amber-600 hover:bg-amber-700"
+                            disabled={!docTitle.trim()}
+                            onClick={async () => {
+                                if (docTitle.trim() !== uploadedDoc.title) {
+                                    await supabase.from('documents').update({ title: docTitle.trim() }).eq('id', uploadedDoc.id);
+                                }
+                                onSelect({ ...uploadedDoc, title: docTitle.trim() });
+                                onClose();
+                                setUploadedDoc(null);
+                                setDocTitle('');
+                            }}
                         >
                             Attach to Slide
                         </Button>
