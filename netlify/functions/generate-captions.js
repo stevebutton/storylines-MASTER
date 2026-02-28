@@ -46,7 +46,9 @@ exports.handler = async (event) => {
         .from('slides').select('id,title,chapter_id')
         .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
 
-    const results = await Promise.all((slides || []).map(async (slide) => {
+    // Process slides sequentially to avoid Anthropic rate limits and Netlify timeouts
+    let updatedCount = 0;
+    for (const slide of (slides || [])) {
         const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
 
         const prompt = `You are writing ${voiceStyle}.
@@ -67,7 +69,7 @@ Respond with valid JSON only, no other text:
             });
 
             const raw = msg.content[0]?.text?.trim();
-            if (!raw) return false;
+            if (!raw) continue;
 
             // Strip markdown code fences if present
             const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
@@ -76,7 +78,7 @@ Respond with valid JSON only, no other text:
             try {
                 parsed = JSON.parse(cleaned);
             } catch {
-                return false;
+                continue;
             }
 
             const title = parsed.title?.trim() || slide.title;
@@ -88,13 +90,12 @@ Respond with valid JSON only, no other text:
                     description,
                     extended_content: extended_content || null,
                 }).eq('id', slide.id);
-                return true;
+                updatedCount++;
             }
-            return false;
-        } catch { return false; }
-    }));
-
-    const updatedCount = results.filter(Boolean).length;
+        } catch (e) {
+            console.error('[captions] Failed slide', slide.id, e?.message);
+        }
+    }
 
     return {
         statusCode: 200,

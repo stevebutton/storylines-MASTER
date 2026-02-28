@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 import * as exifr from 'exifr';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Loader2, MapPin, CheckCircle } from 'lucide-react';
+import { X, Upload, Loader2, MapPin, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import VoiceSelectionPanel from './VoiceSelectionPanel';
@@ -44,6 +44,9 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
             zip.forEach((relativePath, entry) => {
                 if (entry.dir) return;
                 if (!/\.(jpe?g|heic|png|webp)$/i.test(relativePath)) return;
+                // Skip macOS resource fork / metadata files (._filename)
+                const basename = relativePath.split('/').pop();
+                if (basename.startsWith('._')) return;
                 const parts = relativePath.split('/');
                 if (parts.length < 2) return;
                 const folder = parts[parts.length - 2];
@@ -77,6 +80,8 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
 
             let totalSlides = 0;
             let slidesWithGps = 0;
+            let heicCount = 0;
+            let failedUploads = 0;
             const chaptersOverview = [];
 
             for (let ci = 0; ci < sortedFolders.length; ci++) {
@@ -97,6 +102,7 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                     a.relativePath.localeCompare(b.relativePath)
                 );
 
+                let slideOrder = 0;
                 for (let si = 0; si < sortedImages.length; si++) {
                     const img = sortedImages[si];
 
@@ -104,21 +110,18 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                     const rawName = img.relativePath.split('/').pop();
                     const safeName = rawName.replace(/[^a-zA-Z0-9._-]/g, '_');
                     const ext = safeName.split('.').pop().toLowerCase();
+                    const isHeic = ext === 'heic' || ext === 'heif';
                     const contentType = ext === 'png' ? 'image/png'
                         : ext === 'webp' ? 'image/webp'
-                        : ext === 'heic' ? 'image/heic'
+                        : isHeic ? 'image/heic'
                         : 'image/jpeg';
+
+                    if (isHeic) heicCount++;
 
                     const blob = await img.entry.async('blob');
                     const imageFile = new File([blob], safeName, { type: contentType });
 
-                    const filePath = `${generateId()}-${safeName}`;
-                    const { error: upErr } = await supabase.storage
-                        .from('media').upload(filePath, imageFile, { contentType, upsert: false });
-                    if (upErr) throw upErr;
-                    const { data: { publicUrl: image_url } } = supabase.storage
-                        .from('media').getPublicUrl(filePath);
-
+                    // Extract GPS from the original file before any processing
                     let coordinates = null;
                     try {
                         const gps = await exifr.gps(imageFile);
@@ -132,18 +135,31 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                         console.warn('[EXIF] Failed to read GPS from', rawName, e);
                     }
 
+                    // Upload — non-fatal: if this image fails, skip it and continue
+                    const filePath = `${generateId()}-${safeName}`;
+                    const { error: upErr } = await supabase.storage
+                        .from('media').upload(filePath, imageFile, { contentType, upsert: false });
+                    if (upErr) {
+                        console.error('[Upload] Failed for', rawName, upErr);
+                        failedUploads++;
+                        continue; // skip slide insert, move on to next image
+                    }
+                    const { data: { publicUrl: image_url } } = supabase.storage
+                        .from('media').getPublicUrl(filePath);
+
                     const { error: slideErr } = await supabase.from('slides').insert({
                         id: generateId(),
                         chapter_id: chapterId,
-                        order: si,
+                        order: slideOrder,
                         title: rawName.replace(/\.[^.]+$/, ''),
                         image: image_url,
                         coordinates,
                     });
                     if (slideErr) throw slideErr;
                     totalSlides++;
+                    slideOrder++;
                 }
-                chaptersOverview.push({ name: folderName, slide_count: sortedImages.length });
+                chaptersOverview.push({ name: folderName, slide_count: slideOrder });
             }
 
             setCurrentStoryId(storyId);
@@ -151,6 +167,8 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                 chapter_count: chaptersOverview.length,
                 slide_count: totalSlides,
                 slides_with_gps: slidesWithGps,
+                heic_count: heicCount,
+                failed_uploads: failedUploads,
                 chapters: chaptersOverview,
             });
             setStep('voice_selection');
@@ -341,6 +359,31 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* HEIC warning */}
+                                    {storyOverview.heic_count > 0 && (
+                                        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-medium text-amber-800">
+                                                    {storyOverview.heic_count} HEIC image{storyOverview.heic_count !== 1 ? 's' : ''} detected
+                                                </p>
+                                                <p className="text-xs text-amber-700 mt-1">
+                                                    Chrome cannot display HEIC files. On your iPhone, go to Settings → Camera → Formats and select <strong>Most Compatible</strong> to shoot in JPEG, then re-export and re-import your ZIP.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Failed uploads warning */}
+                                    {storyOverview.failed_uploads > 0 && (
+                                        <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-lg p-4">
+                                            <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                                            <p className="text-sm text-red-800">
+                                                {storyOverview.failed_uploads} image{storyOverview.failed_uploads !== 1 ? 's' : ''} failed to upload and were skipped. Check the browser console for details.
+                                            </p>
+                                        </div>
+                                    )}
 
                                     <div className="space-y-3 max-h-96 overflow-y-auto">
                                         {storyOverview.chapters.map((chapter, idx) => (

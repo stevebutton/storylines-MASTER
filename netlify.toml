@@ -2,6 +2,9 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  timeout = 60
+
 [build.environment]
   NODE_VERSION = "20"
 

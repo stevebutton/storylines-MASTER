@@ -414,7 +414,7 @@ export default function StoryEditor() {
                             onClick={async () => {
                                 const updatedStory = { ...story, is_published: !story.is_published };
                                 setStory(updatedStory);
-                                if (storyId) {
+                                if (currentStoryId) {
                                     await supabase.from('stories').update({ is_published: updatedStory.is_published }).eq('id', currentStoryId);
                                 }
                             }}
