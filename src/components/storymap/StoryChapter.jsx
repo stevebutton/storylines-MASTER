@@ -60,6 +60,7 @@ export default function StoryChapter({
     };
 
     const handleSlideChange = (slideIndex) => {
+        setIsExiting(false);
         setActiveSlideIndex(slideIndex);
         const slide = chapter.slides?.[slideIndex];
         if (slide && onSlideChange) {
@@ -77,7 +78,7 @@ export default function StoryChapter({
         setIsExiting(true);
         setTimeout(() => {
             handleSlideChange(Math.min(activeSlideIndex + 1, chapter.slides.length - 1));
-        }, 450);
+        }, 200);
     };
 
     const cardStyle = currentSlide?.card_style || 'default';
@@ -124,19 +125,21 @@ export default function StoryChapter({
                                 Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
                             </h1>
 
-                            {/* Slide title - animated */}
-                            <AnimatePresence mode="wait">
-                                <motion.h2
-                                    key={currentSlide?.title}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="text-2xl md:text-3xl font-light text-white mb-4 leading-tight"
-                                >
-                                    {currentSlide?.title}
-                                </motion.h2>
-                            </AnimatePresence>
+                            {/* Slide title — hidden on opener card, kept in DOM for potential reuse */}
+                            <div className="hidden">
+                                <AnimatePresence mode="wait">
+                                    <motion.h2
+                                        key={currentSlide?.title}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="text-2xl md:text-3xl font-light text-white mb-4 leading-tight"
+                                    >
+                                        {currentSlide?.title}
+                                    </motion.h2>
+                                </AnimatePresence>
+                            </div>
 
                             {/* Description - animated */}
                             <AnimatePresence mode="wait">
