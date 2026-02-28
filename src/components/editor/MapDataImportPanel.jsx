@@ -99,30 +99,44 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
 
                 for (let si = 0; si < sortedImages.length; si++) {
                     const img = sortedImages[si];
-                    const blob = await img.entry.async('blob');
-                    const imageFile = new File([blob], img.entry.name, { type: 'image/jpeg' });
 
-                    const filePath = `${generateId()}-${img.entry.name}`;
+                    // Use only the base filename, never the full folder path
+                    const rawName = img.relativePath.split('/').pop();
+                    const safeName = rawName.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const ext = safeName.split('.').pop().toLowerCase();
+                    const contentType = ext === 'png' ? 'image/png'
+                        : ext === 'webp' ? 'image/webp'
+                        : ext === 'heic' ? 'image/heic'
+                        : 'image/jpeg';
+
+                    const blob = await img.entry.async('blob');
+                    const imageFile = new File([blob], safeName, { type: contentType });
+
+                    const filePath = `${generateId()}-${safeName}`;
                     const { error: upErr } = await supabase.storage
-                        .from('media').upload(filePath, imageFile, { contentType: 'image/jpeg', upsert: false });
+                        .from('media').upload(filePath, imageFile, { contentType, upsert: false });
                     if (upErr) throw upErr;
                     const { data: { publicUrl: image_url } } = supabase.storage
                         .from('media').getPublicUrl(filePath);
 
                     let coordinates = null;
                     try {
-                        const gps = await exifr.gps(blob);
+                        const gps = await exifr.gps(imageFile);
                         if (gps?.latitude && gps?.longitude) {
                             coordinates = [gps.latitude, gps.longitude];
                             slidesWithGps++;
+                        } else {
+                            console.warn('[EXIF] No GPS in', rawName, gps);
                         }
-                    } catch { /* no EXIF — skip */ }
+                    } catch (e) {
+                        console.warn('[EXIF] Failed to read GPS from', rawName, e);
+                    }
 
                     const { error: slideErr } = await supabase.from('slides').insert({
                         id: generateId(),
                         chapter_id: chapterId,
                         order: si,
-                        title: img.entry.name.replace(/\.[^.]+$/, ''),
+                        title: rawName.replace(/\.[^.]+$/, ''),
                         image: image_url,
                         coordinates,
                     });
