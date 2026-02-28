@@ -78,7 +78,7 @@ export default function StoryChapter({
         setIsExiting(true);
         setTimeout(() => {
             handleSlideChange(Math.min(activeSlideIndex + 1, chapter.slides.length - 1));
-        }, 200);
+        }, 500);
     };
 
     const cardStyle = currentSlide?.card_style || 'default';
@@ -123,11 +123,11 @@ export default function StoryChapter({
 
                             {/* Chapter title — two-line, tight */}
                             <div className="mb-5">
-                                <span className="block text-3xl font-light text-amber-400 leading-none">
+                                <span className="block text-2xl font-light text-amber-400 leading-none">
                                     Chapter {String(index + 1).padStart(2, '0')}
                                 </span>
                                 {chapter.name && (
-                                    <span className="block text-5xl font-light text-amber-400 leading-tight">
+                                    <span className="block text-5xl font-light text-amber-400 leading-none">
                                         {chapter.name}
                                     </span>
                                 )}
