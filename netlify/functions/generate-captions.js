@@ -21,7 +21,7 @@ exports.handler = async (event) => {
     if (event.httpMethod !== 'POST')
         return { statusCode: 405, body: 'Method Not Allowed' };
 
-    const { story_id, caption_voice, custom_caption_voice_description, story_context } =
+    const { story_id, caption_voice, custom_caption_voice_description, story_context, slide_ids } =
         JSON.parse(event.body || '{}');
     if (!story_id)
         return { statusCode: 400, body: JSON.stringify({ error: 'story_id required' }) };
@@ -42,13 +42,20 @@ exports.handler = async (event) => {
 
     const { data: chapters } = await supabase
         .from('chapters').select('id,name').eq('story_id', story_id).order('order');
-    const { data: slides } = await supabase
+
+    // If slide_ids provided (batched call from client), only fetch those slides.
+    // Otherwise fall back to fetching all slides for the story.
+    let slidesQuery = supabase
         .from('slides').select('id,title,chapter_id')
         .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
+    if (Array.isArray(slide_ids) && slide_ids.length > 0) {
+        slidesQuery = slidesQuery.in('id', slide_ids);
+    }
+    const { data: slides } = await slidesQuery;
 
-    // Process slides sequentially to avoid Anthropic rate limits and Netlify timeouts
+    // Process concurrently — safe because the client sends small batches (≤4 slides)
     let updatedCount = 0;
-    for (const slide of (slides || [])) {
+    const results = await Promise.all((slides || []).map(async (slide) => {
         const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
 
         const prompt = `You are writing ${voiceStyle}.
@@ -69,7 +76,7 @@ Respond with valid JSON only, no other text:
             });
 
             const raw = msg.content[0]?.text?.trim();
-            if (!raw) continue;
+            if (!raw) return false;
 
             // Strip markdown code fences if present
             const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
@@ -78,7 +85,7 @@ Respond with valid JSON only, no other text:
             try {
                 parsed = JSON.parse(cleaned);
             } catch {
-                continue;
+                return false;
             }
 
             const title = parsed.title?.trim() || slide.title;
@@ -90,12 +97,15 @@ Respond with valid JSON only, no other text:
                     description,
                     extended_content: extended_content || null,
                 }).eq('id', slide.id);
-                updatedCount++;
+                return true;
             }
+            return false;
         } catch (e) {
             console.error('[captions] Failed slide', slide.id, e?.message);
+            return false;
         }
-    }
+    }));
+    updatedCount = results.filter(Boolean).length;
 
     return {
         statusCode: 200,

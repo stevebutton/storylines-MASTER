@@ -83,6 +83,7 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
             let heicCount = 0;
             let failedUploads = 0;
             const chaptersOverview = [];
+            const allSlideIds = [];
 
             for (let ci = 0; ci < sortedFolders.length; ci++) {
                 const folderName = sortedFolders[ci];
@@ -147,8 +148,9 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                     const { data: { publicUrl: image_url } } = supabase.storage
                         .from('media').getPublicUrl(filePath);
 
+                    const slideId = generateId();
                     const { error: slideErr } = await supabase.from('slides').insert({
-                        id: generateId(),
+                        id: slideId,
                         chapter_id: chapterId,
                         order: slideOrder,
                         title: rawName.replace(/\.[^.]+$/, ''),
@@ -156,6 +158,7 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                         coordinates,
                     });
                     if (slideErr) throw slideErr;
+                    allSlideIds.push(slideId);
                     totalSlides++;
                     slideOrder++;
                 }
@@ -170,6 +173,7 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                 heic_count: heicCount,
                 failed_uploads: failedUploads,
                 chapters: chaptersOverview,
+                slide_ids: allSlideIds,
             });
             setStep('voice_selection');
 
@@ -187,17 +191,36 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
         setIsProcessing(true);
         setStep('generating_descriptions');
         try {
-            const resp = await fetch('/.netlify/functions/generate-captions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ story_id: currentStoryId, ...config }),
-            });
-            if (!resp.ok) {
-                const err = await resp.json();
-                throw new Error(err.error || 'Caption generation failed');
+            const slideIds = storyOverview?.slide_ids || [];
+            const BATCH = 4; // 4 slides × ~1.5s per Haiku call ≈ 6s — within Netlify's 10s limit
+            let totalUpdated = 0;
+
+            if (slideIds.length === 0) {
+                // Fallback: let the function fetch slides itself (legacy path)
+                const resp = await fetch('/.netlify/functions/generate-captions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ story_id: currentStoryId, ...config }),
+                });
+                if (!resp.ok) throw new Error((await resp.json()).error || 'Caption generation failed');
+                totalUpdated = (await resp.json()).updated_count;
+            } else {
+                for (let i = 0; i < slideIds.length; i += BATCH) {
+                    const batch = slideIds.slice(i, i + BATCH);
+                    const resp = await fetch('/.netlify/functions/generate-captions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ story_id: currentStoryId, slide_ids: batch, ...config }),
+                    });
+                    if (!resp.ok) {
+                        const err = await resp.json().catch(() => ({}));
+                        throw new Error(err.error || 'Caption generation failed');
+                    }
+                    totalUpdated += (await resp.json()).updated_count;
+                }
             }
-            const result = await resp.json();
-            setStoryOverview(prev => ({ ...prev, captions_generated: result.updated_count }));
+
+            setStoryOverview(prev => ({ ...prev, captions_generated: totalUpdated }));
             setStep('overview');
         } catch (error) {
             console.error('Failed to generate descriptions:', error.message);
