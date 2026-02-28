@@ -23,6 +23,7 @@ export default function StoryChapter({
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
     const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
+    const [isExiting, setIsExiting] = useState(false);
     
     // Notify parent when fullscreen state changes
     useEffect(() => {
@@ -72,6 +73,13 @@ export default function StoryChapter({
         }
     };
 
+    const handleExplore = () => {
+        setIsExiting(true);
+        setTimeout(() => {
+            handleSlideChange(Math.min(activeSlideIndex + 1, chapter.slides.length - 1));
+        }, 450);
+    };
+
     const cardStyle = currentSlide?.card_style || 'default';
 
     // Full Background Style
@@ -88,6 +96,11 @@ export default function StoryChapter({
                     viewport={{ once: false, amount: 0.5 }}
                     className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
                 >
+                    {/* Exit animation wrapper */}
+                    <motion.div
+                        animate={isExiting ? { opacity: 0, x: -80 } : { opacity: 1, x: 0 }}
+                        transition={{ duration: 0.45, ease: 'easeIn' }}
+                    >
                     {/* Full Background Card */}
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
                         {/* Background Image — uses the slide's main image as full bleed */}
@@ -106,17 +119,10 @@ export default function StoryChapter({
                             {/* Spacer pushes all content to bottom half */}
                             <div className="flex-1" />
 
-                            {/* Chapter number — small label */}
-                            <p className="text-xs font-medium tracking-[0.2em] uppercase text-amber-400 mb-3">
-                                Chapter {String(index + 1).padStart(2, '0')}
-                            </p>
-
-                            {/* Chapter name — 5xl hero */}
-                            {chapter.name && (
-                                <h1 className="text-5xl font-light text-white mb-5 leading-tight">
-                                    {chapter.name}
-                                </h1>
-                            )}
+                            {/* Chapter title — unified */}
+                            <h1 className="text-4xl font-light text-amber-400 mb-5 leading-tight">
+                                Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
+                            </h1>
 
                             {/* Slide title - animated */}
                             <AnimatePresence mode="wait">
@@ -184,7 +190,7 @@ export default function StoryChapter({
                             {/* Explore the chapter button */}
                             {chapter.slides && chapter.slides.length > 1 && (
                                 <button
-                                    onClick={() => handleSlideChange(Math.min(activeSlideIndex + 1, chapter.slides.length - 1))}
+                                    onClick={handleExplore}
                                     className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-xl transition-colors w-fit"
                                 >
                                     Explore the chapter
@@ -195,6 +201,7 @@ export default function StoryChapter({
                             )}
                         </div>
                     </div>
+                    </motion.div>
                 </motion.div>
 
                 {/* PDF Modal */}
@@ -203,7 +210,7 @@ export default function StoryChapter({
                             <DialogContent className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6 flex flex-col z-[100]">
                                 <DialogHeader className="pb-5">
                                     <DialogTitle style={{ fontSize: '1.5rem' }}>
-                                        {currentSlide?.pdf_url 
+                                        {currentSlide?.pdf_url
                                             ? currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0] || '').replace(/^[^_]+_/, '').replace(/\.pdf$/i, '') || 'Document'
                                             : 'Document'}
                                     </DialogTitle>
