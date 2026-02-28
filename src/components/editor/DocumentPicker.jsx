@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -42,12 +43,12 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
             // Upload to Supabase Storage — requires a public 'documents' bucket
             const filePath = `${generateId()}-${file.name}`;
             const { error: uploadError } = await supabase.storage
-                .from('documents')
+                .from('media')
                 .upload(filePath, file, { contentType: file.type, upsert: false });
             if (uploadError) throw uploadError;
 
             const { data: { publicUrl: file_url } } = supabase.storage
-                .from('documents')
+                .from('media')
                 .getPublicUrl(filePath);
 
             const docId = generateId();
@@ -69,6 +70,7 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
             onClose();
         } catch (error) {
             console.error('Failed to upload document:', error);
+            toast.error(`Failed to upload document: ${error.message}`);
         } finally {
             setIsUploading(false);
             e.target.value = '';
