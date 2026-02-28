@@ -90,14 +90,14 @@ export default function StoryChapter({
                 >
                     {/* Full Background Card */}
                     <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
-                        {/* Background Image */}
-                        {currentSlide?.background_image && (
-                            <div 
+                        {/* Background Image — uses the slide's main image as full bleed */}
+                        {currentSlide?.image && (
+                            <div
                                 className="absolute inset-0 bg-cover bg-center"
-                                style={{ backgroundImage: `url(${currentSlide.background_image})` }}
+                                style={{ backgroundImage: `url(${currentSlide.image})` }}
                             />
                         )}
-                        
+
                         {/* 50% Overlay */}
                         <div className="absolute inset-0 bg-black/50" />
 
@@ -110,22 +110,6 @@ export default function StoryChapter({
                                 </span>
                                 <div className="flex-1 h-px bg-gradient-to-r from-amber-400/50 to-transparent" />
                             </div>
-
-                            {/* Carousel for all media types */}
-                            {chapter.slides && chapter.slides.length > 0 && (
-                                <div className="mb-6 pointer-events-auto">
-                                    <ChapterCarousel
-                                        slides={chapter.slides}
-                                        onSlideChange={handleSlideChange}
-                                        scrollToRef={carouselScrollToRef}
-                                        onImageClick={(index) => {
-                                            console.log('🔍 StoryChapter: Image clicked, opening fullscreen viewer');
-                                            setFullScreenImageIndex(index);
-                                            setShowFullScreenViewer(true);
-                                        }}
-                                    />
-                                </div>
-                            )}
                             
                             {/* Title - animated */}
                             <AnimatePresence mode="wait">
