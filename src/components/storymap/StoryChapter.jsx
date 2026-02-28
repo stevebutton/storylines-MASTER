@@ -101,16 +101,15 @@ export default function StoryChapter({
                         {/* 50% Overlay */}
                         <div className="absolute inset-0 bg-black/50" />
 
-                        {/* Chapter label overlay */}
-                        <div className="absolute top-0 left-0 right-0 z-20 px-4 py-2.5 bg-white/40 backdrop-blur-sm flex items-center gap-3">
-                            <span className="text-xs font-medium tracking-[0.2em] uppercase text-amber-700">
-                                Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
-                            </span>
-                            <div className="flex-1 h-px bg-gradient-to-r from-amber-700/50 to-transparent" />
-                        </div>
-
                         {/* Content */}
                         <div className="relative z-10 p-6 md:p-8 flex flex-col h-full justify-center">
+                            {/* Chapter number */}
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className="text-xs font-medium tracking-[0.2em] uppercase text-amber-400">
+                                    Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
+                                </span>
+                                <div className="flex-1 h-px bg-gradient-to-r from-amber-400/50 to-transparent" />
+                            </div>
 
                             {/* Carousel for all media types */}
                             {chapter.slides && chapter.slides.length > 0 && (
@@ -247,7 +246,7 @@ export default function StoryChapter({
                 )}>
                     {/* Carousel for all media types */}
                     {chapter.slides && chapter.slides.length > 0 && (
-                        <div className="relative pointer-events-auto">
+                        <div className="pointer-events-auto">
                             <ChapterCarousel
                                 slides={chapter.slides}
                                 onSlideChange={handleSlideChange}
@@ -258,18 +257,18 @@ export default function StoryChapter({
                                     setShowFullScreenViewer(true);
                                 }}
                             />
-                            {/* Chapter label overlay */}
-                            <div className="absolute top-0 left-0 right-0 px-4 py-2.5 bg-white/40 backdrop-blur-sm flex items-center gap-3 pointer-events-none">
-                                <span className="text-xs font-medium tracking-[0.2em] uppercase text-amber-700">
-                                    Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
-                                </span>
-                                <div className="flex-1 h-px bg-gradient-to-r from-amber-700/50 to-transparent" />
-                            </div>
                         </div>
                     )}
 
                     {/* Content */}
                     <div className="p-6 md:p-8">
+                        {/* Chapter number */}
+                        <div className="flex items-center gap-3 mb-4">
+                            <span className="text-xs font-medium tracking-[0.2em] uppercase text-amber-600">
+                                Chapter {String(index + 1).padStart(2, '0')}{chapter.name ? `: ${chapter.name}` : ''}
+                            </span>
+                            <div className="flex-1 h-px bg-gradient-to-r from-amber-600/50 to-transparent" />
+                        </div>
 
                         {/* Title - animated */}
                         <AnimatePresence mode="wait">
