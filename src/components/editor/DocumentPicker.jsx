@@ -8,12 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Search, Upload, Loader2, X } from 'lucide-react';
+import { FileText, Search, Upload, Loader2, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadedDoc, setUploadedDoc] = useState(null);
 
     const { data: documents = [], isLoading } = useQuery({
         queryKey: ['documents', storyId],
@@ -66,8 +67,7 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
                 .select()
                 .single();
             if (insertError) throw insertError;
-            onSelect(newDoc);
-            onClose();
+            setUploadedDoc(newDoc);
         } catch (error) {
             console.error('Failed to upload document:', error);
             toast.error(`Failed to upload document: ${error.message}`);
@@ -84,7 +84,24 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
                     <DialogTitle>Select or Upload Document</DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4">
+                {/* Success screen */}
+                {uploadedDoc && (
+                    <div className="flex flex-col items-center justify-center py-10 gap-4 text-center">
+                        <CheckCircle className="w-16 h-16 text-green-500" />
+                        <div>
+                            <h3 className="text-xl font-semibold text-slate-800">Document Uploaded Successfully</h3>
+                            <p className="text-slate-500 mt-1 text-sm">{uploadedDoc.title}</p>
+                        </div>
+                        <Button
+                            className="bg-amber-600 hover:bg-amber-700 mt-2"
+                            onClick={() => { onSelect(uploadedDoc); onClose(); setUploadedDoc(null); }}
+                        >
+                            Attach to Slide
+                        </Button>
+                    </div>
+                )}
+
+                {!uploadedDoc && <div className="space-y-4">
                     {/* Upload Section */}
                     <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 bg-slate-50">
                         <input
@@ -181,7 +198,7 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
                             </div>
                         )}
                     </ScrollArea>
-                </div>
+                </div>}
             </DialogContent>
         </Dialog>
     );
