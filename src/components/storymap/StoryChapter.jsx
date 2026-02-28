@@ -176,7 +176,7 @@ export default function StoryChapter({
                                                 className="flex items-center gap-2 text-xs font-medium text-amber-400 hover:text-amber-300 transition-colors"
                                             >
                                                 <FileText className="w-4 h-4" />
-                                                <span>{decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</span>
+                                                <span>{currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</span>
                                             </button>
                                         </div>
                                     )}
@@ -193,7 +193,7 @@ export default function StoryChapter({
                                 <DialogHeader className="pb-5">
                                     <DialogTitle style={{ fontSize: '1.5rem' }}>
                                         {currentSlide?.pdf_url 
-                                            ? decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0] || '').replace(/^[^_]+_/, '').replace(/\.pdf$/i, '') || 'Document'
+                                            ? currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0] || '').replace(/^[^_]+_/, '').replace(/\.pdf$/i, '') || 'Document'
                                             : 'Document'}
                                     </DialogTitle>
                                 </DialogHeader>
@@ -312,7 +312,7 @@ export default function StoryChapter({
                                             className="flex items-center gap-2 text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors"
                                         >
                                             <FileText className="w-4 h-4" />
-                                            <span>{decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</span>
+                                            <span>{currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}</span>
                                         </button>
                                     </div>
                                 )}
@@ -329,7 +329,7 @@ export default function StoryChapter({
                             <DialogHeader className="pb-5">
                                 <DialogTitle style={{ fontSize: '1.5rem' }}>
                                     {currentSlide?.pdf_url 
-                                        ? decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0] || '').replace(/^[^_]+_/, '').replace(/\.pdf$/i, '') || 'Document'
+                                        ? currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0] || '').replace(/^[^_]+_/, '').replace(/\.pdf$/i, '') || 'Document'
                                         : 'Document'}
                                 </DialogTitle>
                             </DialogHeader>
