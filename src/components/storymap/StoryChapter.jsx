@@ -117,7 +117,7 @@ export default function StoryChapter({
                         <div className="absolute inset-0 bg-black/30" />
 
                         {/* Content — all elements in bottom half */}
-                        <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px' }}>
+                        <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px', paddingRight: '14rem' }}>
                             {/* Spacer pushes all content to bottom half */}
                             <div className="flex-1" />
 
