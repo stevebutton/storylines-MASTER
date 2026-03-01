@@ -282,11 +282,11 @@ export default function MapBackground({
         // redrawing the full accumulated route from scratch.
         prevRouteLength.current = totalLen;
 
-        // Delay line animation so camera starts moving first, then line chases it
-        const startDelay = 500;
-        // Line duration matches flyTo minus the delay, so they finish together
-        const flyMs = (flyDuration || 12) * 1000;
-        const animationDuration = flyMs - startDelay;
+        // Fixed animation duration — decoupled from flyTo so the line always
+        // completes cleanly regardless of camera speed or how quickly the user
+        // navigates to the next slide.
+        const startDelay = 300;
+        const animationDuration = 5000;
         const newSegmentCoords = allLngLat.slice(Math.max(prevLen - 1, 0));
 
         // Same easing curve as the flyTo for synchronized feel
@@ -329,7 +329,7 @@ export default function MapBackground({
                 lineAnimationRef.current = null;
             }
         };
-    }, [routeCoordinates, clearRoute, flyDuration]);
+    }, [routeCoordinates, clearRoute]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Update markers
     useEffect(() => {
