@@ -322,10 +322,6 @@ export default function StoryMapView() {
 
         const handleScroll = () => {
             const scrollPosition = window.scrollY + window.innerHeight / 2;
-            
-            // Show banner once we've scrolled past the header (first screen)
-            const headerHeight = window.innerHeight;
-            setIsBannerVisible(window.scrollY > headerHeight * 0.5);
 
             chapterRefs.current.forEach((ref, index) => {
                 if (ref) {
@@ -411,6 +407,15 @@ export default function StoryMapView() {
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, [activeChapter, chapters]);
+
+    // Banner and footer animate in once the user scrolls into the first chapter.
+    // Uses a one-way latch — once visible it stays visible for the session.
+    useEffect(() => {
+        if (activeChapter >= 0) {
+            setIsBannerVisible(true);
+            setHasExplored(true);
+        }
+    }, [activeChapter]);
 
     // Pre-fetch all road segments for the active chapter when it activates.
     // Road geometry is cached in segmentCacheRef so it's ready before the user
