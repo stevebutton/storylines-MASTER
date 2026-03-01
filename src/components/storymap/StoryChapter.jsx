@@ -32,6 +32,14 @@ export default function StoryChapter({
         if (onFullScreenChange) onFullScreenChange(showFullScreenViewer);
     }, [showFullScreenViewer, onFullScreenChange]);
 
+    // Reset to title card when chapter deactivates so each visit starts fresh
+    useEffect(() => {
+        if (!isActive) {
+            setShowCarousel(false);
+            setActiveSlideIndex(0);
+        }
+    }, [isActive]);
+
     // Open carousel and navigate when a marker click targets a specific slide
     useEffect(() => {
         if (targetSlideIndex !== undefined && targetSlideIndex !== null) {
@@ -100,7 +108,7 @@ export default function StoryChapter({
                 initial={index === 0 ? { opacity: 0, x: 100 } : { opacity: 0, y: 40 }}
                 whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
                 transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
-                viewport={{ once: false, amount: 0.5 }}
+                viewport={{ once: false, amount: 0.3 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
             >
                 <AnimatePresence mode="wait">
@@ -109,8 +117,10 @@ export default function StoryChapter({
                 {!showCarousel && (
                     <motion.div
                         key="title-card"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
                         exit={{ opacity: 0, x: -80 }}
-                        transition={{ duration: 0.45, ease: 'easeIn' }}
+                        transition={{ duration: 0.35, ease: 'easeOut' }}
                     >
                         <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
                             {/* Background image */}
@@ -168,6 +178,7 @@ export default function StoryChapter({
                         key="carousel"
                         initial={{ opacity: 0, x: 80 }}
                         animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -40 }}
                         transition={{ duration: 0.6, ease: 'easeOut' }}
                         className="pointer-events-auto"
                     >
