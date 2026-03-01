@@ -356,9 +356,13 @@ export default function StoryMapView() {
 
                             if (story.show_route !== false) {
                                 const cacheKey = chapter.id || `ch-${index}`;
-                                // Reset visited coords so the route re-draws progressively from
-                                // the first slide. Previously cached road segments are reused.
-                                visitedSlideCoordsRef.current[cacheKey] = [];
+                                // Only reset visited coords when genuinely entering a NEW chapter.
+                                // If the same chapter re-enters the scroll zone (e.g. card height
+                                // changes when the carousel opens), preserve the trail so the
+                                // route stays incremental rather than restarting.
+                                if (prevChapterIdx !== index) {
+                                    visitedSlideCoordsRef.current[cacheKey] = [];
+                                }
                             }
 
                             // Only update map for chapter-to-chapter transitions.
@@ -649,6 +653,9 @@ export default function StoryMapView() {
 
                                 const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
 
+                                // _noRoute slides (chapter overview activations) only fly the map —
+                                // they don't contribute to the route trail, landing markers, or story markers.
+                                if (!slide._noRoute) {
                                 if (story.show_route !== false) {
                                     const chKey = chapters[index]?.id || `ch-${index}`;
 
@@ -710,7 +717,8 @@ export default function StoryMapView() {
                                     if (!exists) return [...prev, { coordinates: normalizedCoords, chapterIndex: index }];
                                     return prev;
                                 });
-                                
+                                } // end !slide._noRoute
+
                                 // Set active Mapbox layer
                                 setActiveLayerId(slide.mapbox_layer_id || null);
 
@@ -731,6 +739,7 @@ export default function StoryMapView() {
                                     });
                                 }
 
+                                if (!slide._noRoute) {
                                 // Build interactive marker for this slide
                                 const slideIdx = chapter.slides?.findIndex(s =>
                                     s.coordinates && areCoordinatesEqual(
@@ -758,6 +767,7 @@ export default function StoryMapView() {
                                 // Set active index separately (avoid nested setState)
                                 const existingIdx = storyMarkers.findIndex(m => areCoordinatesEqual(m.coordinates, normalizedCoords));
                                 setActiveMarkerIdx(existingIdx === -1 ? storyMarkers.length : existingIdx);
+                                } // end !slide._noRoute (story markers)
                             }}
                         />
                     </div>

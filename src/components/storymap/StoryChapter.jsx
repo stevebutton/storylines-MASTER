@@ -40,7 +40,9 @@ export default function StoryChapter({
         }
     }, [targetSlideIndex]);
 
-    // Emit the chapter's initial map position when this chapter becomes active
+    // Emit the chapter's initial map position when this chapter becomes active.
+    // _noRoute: true tells StoryMapView to fly the map without adding this
+    // overview position to the slide route trail.
     useEffect(() => {
         if (!isActive || !onSlideChange) return;
         const chCoords = chapter.coordinates;
@@ -58,11 +60,20 @@ export default function StoryChapter({
                 description: chapter.description || '',
                 location: '',
                 image: '',
+                _noRoute: true,
             });
         } else if (firstSlide) {
             onSlideChange(firstSlide);
         }
     }, [isActive, chapter.id]);
+
+    // Embla only fires 'select' on user navigation, not on initial render.
+    // When the carousel first opens, manually fire slide 0's map position
+    // so the map flies to the first slide without the user having to click.
+    useEffect(() => {
+        if (!showCarousel) return;
+        handleSlideChange(activeSlideIndex);
+    }, [showCarousel]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleFullScreenClose = () => {
         setShowFullScreenViewer(false);
