@@ -1,7 +1,6 @@
 import React from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const VideoEmbed = ({ url }) => {
     if (!url) return null;
@@ -127,42 +126,23 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
 
-            {/* Navigation strip — overlaid at bottom of image with 30% opacity background */}
-            <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-3 py-2 bg-black/30 backdrop-blur-sm">
-                <button
-                    onClick={scrollPrev}
-                    className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors flex-shrink-0"
-                    aria-label="Previous slide"
-                >
-                    <ChevronLeft className="w-4 h-4 text-white" />
-                </button>
-
-                <div className="flex items-center gap-2">
-                    {slides.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => emblaApi?.scrollTo(index)}
-                            aria-label={`Go to slide ${index + 1}`}
-                            className="flex items-center justify-center w-6 h-6"
-                        >
-                            <span className={cn(
-                                "block rounded-full transition-all duration-200",
-                                selectedIndex === index
-                                    ? "w-4 h-2 bg-white"
-                                    : "w-2 h-2 bg-white/40 hover:bg-white/70"
-                            )} />
-                        </button>
-                    ))}
-                </div>
-
-                <button
-                    onClick={scrollNext}
-                    className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors flex-shrink-0"
-                    aria-label="Next slide"
-                >
-                    <ChevronRight className="w-4 h-4 text-white" />
-                </button>
-            </div>
+            {/* Navigation arrows — overlaid left/right at bottom of image */}
+            <button
+                onClick={scrollPrev}
+                className="absolute left-3 z-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-100"
+                style={{ width: 36, height: 36, bottom: 112, background: '#000', border: '3px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', opacity: 0.7 }}
+                aria-label="Previous slide"
+            >
+                <ChevronLeft className="w-5 h-5 text-white" />
+            </button>
+            <button
+                onClick={scrollNext}
+                className="absolute right-3 z-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-100"
+                style={{ width: 36, height: 36, bottom: 37, background: '#000', border: '3px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', opacity: 0.7 }}
+                aria-label="Next slide"
+            >
+                <ChevronRight className="w-5 h-5 text-white" />
+            </button>
         </div>
     );
 }
