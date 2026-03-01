@@ -670,6 +670,7 @@ export default function StoryMapView() {
                         <ProjectDescriptionSection
                             storyTitle={story.title}
                             description={story.story_description}
+                            backgroundImage={story.thumbnail || story.hero_image}
                             onContinue={() => {
                                 navigateToChapter(0);
                                 if (chapters.length > 0) {
