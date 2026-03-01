@@ -356,19 +356,27 @@ export default function StoryMapView() {
                             // The initial hero/description→chapter0 activation is already
                             // handled by onExplore/onContinue — skip it here to avoid
                             // restarting the flyTo mid-flight (double jump).
+                            // Prefer chapter.coordinates (overview position) over firstSlide.coordinates.
+                            const chCoords = Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2
+                                && !isNaN(chapter.coordinates[0]) && !isNaN(chapter.coordinates[1])
+                                ? chapter.coordinates : firstSlide?.coordinates;
+                            const activationZoom = chapter.coordinates ? (chapter.zoom || 12) : (firstSlide?.zoom || 12);
+                            const activationBearing = chapter.coordinates ? (chapter.bearing || 0) : (firstSlide?.bearing || 0);
+                            const activationPitch = chapter.coordinates ? (chapter.pitch || 0) : (firstSlide?.pitch || 0);
+
                             if (prevChapterIdx !== -1 &&
-                                firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) &&
-                                firstSlide.coordinates.length === 2 &&
-                                !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                chCoords && Array.isArray(chCoords) &&
+                                chCoords.length === 2 &&
+                                !isNaN(chCoords[0]) && !isNaN(chCoords[1])) {
                                 setMapConfig({
-                                    center: firstSlide.coordinates,
+                                    center: chCoords,
                                     offset: [-200, 0],
-                                    zoom: firstSlide?.zoom || 12,
-                                    bearing: firstSlide?.bearing || 0,
-                                    pitch: firstSlide?.pitch || 0,
+                                    zoom: activationZoom,
+                                    bearing: activationBearing,
+                                    pitch: activationPitch,
                                     mapStyle: story.map_style || 'light',
                                     shouldRotate: true,
-                                    flyDuration: firstSlide?.fly_duration || 8
+                                    flyDuration: chapter.fly_duration || 8
                                 });
                             }
                         }
@@ -535,23 +543,27 @@ export default function StoryMapView() {
                             scrollToProjectDescription();
                         } else {
                             navigateToChapter(0);
-                            if (chapters.length > 0 && chapters[0].slides?.length > 0) {
-                                const firstSlide = chapters[0].slides[0];
-                                if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) &&
-                                    firstSlide.coordinates.length === 2 &&
-                                    !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                            if (chapters.length > 0) {
+                                const ch0 = chapters[0];
+                                const firstSlide = ch0.slides?.[0];
+                                const ch0Coords = Array.isArray(ch0.coordinates) && ch0.coordinates.length === 2
+                                    && !isNaN(ch0.coordinates[0]) && !isNaN(ch0.coordinates[1])
+                                    ? ch0.coordinates : firstSlide?.coordinates;
+                                if (ch0Coords && Array.isArray(ch0Coords) &&
+                                    ch0Coords.length === 2 &&
+                                    !isNaN(ch0Coords[0]) && !isNaN(ch0Coords[1])) {
                                     // Suppress the redundant setMapConfig that fires via
                                     // the isActive effect → onSlideChange when chapter 0 activates
                                     suppressNextOnSlideChangeMapConfig.current = true;
                                     setMapConfig({
-                                        center: firstSlide.coordinates,
+                                        center: ch0Coords,
                                         offset: [-200, 0],
-                                        zoom: firstSlide.zoom || 12,
-                                        bearing: firstSlide.bearing || 0,
-                                        pitch: firstSlide.pitch || 0,
+                                        zoom: ch0.coordinates ? (ch0.zoom || 12) : (firstSlide?.zoom || 12),
+                                        bearing: ch0.coordinates ? (ch0.bearing || 0) : (firstSlide?.bearing || 0),
+                                        pitch: ch0.coordinates ? (ch0.pitch || 0) : (firstSlide?.pitch || 0),
                                         mapStyle: story.map_style || 'light',
                                         shouldRotate: true,
-                                        flyDuration: firstSlide.fly_duration || 8
+                                        flyDuration: ch0.fly_duration || 8
                                     });
                                 }
                             }
@@ -577,23 +589,27 @@ export default function StoryMapView() {
                             description={story.story_description}
                             onContinue={() => {
                                 navigateToChapter(0);
-                                if (chapters.length > 0 && chapters[0].slides?.length > 0) {
-                                    const firstSlide = chapters[0].slides[0];
-                                    if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) &&
-                                        firstSlide.coordinates.length === 2 &&
-                                        !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                if (chapters.length > 0) {
+                                    const ch0 = chapters[0];
+                                    const firstSlide = ch0.slides?.[0];
+                                    const ch0Coords = Array.isArray(ch0.coordinates) && ch0.coordinates.length === 2
+                                        && !isNaN(ch0.coordinates[0]) && !isNaN(ch0.coordinates[1])
+                                        ? ch0.coordinates : firstSlide?.coordinates;
+                                    if (ch0Coords && Array.isArray(ch0Coords) &&
+                                        ch0Coords.length === 2 &&
+                                        !isNaN(ch0Coords[0]) && !isNaN(ch0Coords[1])) {
                                         // Suppress the redundant setMapConfig that fires via
                                         // the isActive effect → onSlideChange when chapter 0 activates
                                         suppressNextOnSlideChangeMapConfig.current = true;
                                         setMapConfig({
-                                            center: firstSlide.coordinates,
+                                            center: ch0Coords,
                                             offset: [-200, 0],
-                                            zoom: firstSlide.zoom || 12,
-                                            bearing: firstSlide.bearing || 0,
-                                            pitch: firstSlide.pitch || 0,
+                                            zoom: ch0.coordinates ? (ch0.zoom || 12) : (firstSlide?.zoom || 12),
+                                            bearing: ch0.coordinates ? (ch0.bearing || 0) : (firstSlide?.bearing || 0),
+                                            pitch: ch0.coordinates ? (ch0.pitch || 0) : (firstSlide?.pitch || 0),
                                             mapStyle: story.map_style || 'light',
                                             shouldRotate: true,
-                                            flyDuration: firstSlide.fly_duration || 8
+                                            flyDuration: ch0.fly_duration || 8
                                         });
                                     }
                                 }
