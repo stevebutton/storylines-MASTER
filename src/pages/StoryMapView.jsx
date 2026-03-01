@@ -75,6 +75,7 @@ export default function StoryMapView() {
     });
     const [activeLayerId, setActiveLayerId] = useState(null);
     const [routeCoordinates, setRouteCoordinates] = useState([]);
+    const [routeStaticLength, setRouteStaticLength] = useState(0);
     const [clearRoute, setClearRoute] = useState(false);
     const previousChapterRef = useRef(-1);
     const [landingMarkers, setLandingMarkers] = useState([]);
@@ -144,6 +145,7 @@ export default function StoryMapView() {
             setTargetSlide(null);
             setActiveLayerId(null);
             setRouteCoordinates([]);
+            setRouteStaticLength(0);
             setClearRoute(false);
             setLandingMarkers([]);
             setIsChapterMenuOpen(false);
@@ -341,6 +343,7 @@ export default function StoryMapView() {
                                 // Clear route when moving to a new chapter (but keep landing markers)
                                 setClearRoute(true);
                                 setRouteCoordinates([]);
+                                setRouteStaticLength(0);
                             }
 
                             previousChapterRef.current = index;
@@ -526,6 +529,7 @@ export default function StoryMapView() {
                 flyDuration={mapConfig.flyDuration}
                 instant={mapConfig.instant}
                 routeCoordinates={routeCoordinates}
+                routeStaticLength={routeStaticLength}
                 clearRoute={clearRoute}
                 onRouteCleared={() => setClearRoute(false)}
                 offset={mapConfig.offset}
@@ -676,6 +680,16 @@ export default function StoryMapView() {
 
                                     // Draw route immediately (straight-line fallback for unfetched segments)
                                     setRouteCoordinates(buildRouteFromVisited(currentVisited, segmentCacheRef.current));
+
+                                    // Static length = the route up to (but not including) the new slide.
+                                    // MapContainer uses this to know exactly where to start the new
+                                    // segment animation, independent of how many road-geometry points
+                                    // earlier segments have accumulated.
+                                    const staticRoute = buildRouteFromVisited(
+                                        currentVisited.slice(0, -1),
+                                        segmentCacheRef.current
+                                    );
+                                    setRouteStaticLength(staticRoute.length);
 
                                     // Fetch road segment for the latest step if not yet cached
                                     if (currentVisited.length >= 2) {

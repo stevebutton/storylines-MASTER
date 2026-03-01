@@ -29,6 +29,7 @@ export default function MapBackground({
     flyDuration = 8,
     instant = false,
     routeCoordinates = [],
+    routeStaticLength = 0,
     clearRoute = false,
     onRouteCleared,
     offset = [0, 0],
@@ -46,7 +47,7 @@ export default function MapBackground({
     const landingMarkersRef = useRef([]);
     const lineAnimationRef = useRef(null);
     const previousLayerId = useRef(null);
-    const prevRouteLength = useRef(0);
+    const prevStaticLength = useRef(0);
     const onMarkerClickRef = useRef(onMarkerClick);
     onMarkerClickRef.current = onMarkerClick;
     const activeChapterRef = useRef(activeChapter);
@@ -205,7 +206,7 @@ export default function MapBackground({
                 map.current.removeSource('route');
             }
             routeSourceAdded.current = false;
-            prevRouteLength.current = 0;
+            prevStaticLength.current = 0;
             if (onRouteCleared) onRouteCleared();
             return;
         }
@@ -255,11 +256,17 @@ export default function MapBackground({
         const source = map.current.getSource('route');
         if (!source) return;
 
-        const prevLen = prevRouteLength.current;
-        const totalLen = allLngLat.length;
+        // Determine whether this update is a new slide visit (animate) or a
+        // road-geometry refinement from the Directions API (display only).
+        // routeStaticLength only increments when a slide is visited; it does NOT
+        // change when the API callback replaces straight-line segments with road
+        // geometry. This prevents API returns from triggering animations for
+        // slides the user passed 2–3 seconds ago.
+        const shouldAnimate = routeStaticLength !== prevStaticLength.current;
+        prevStaticLength.current = routeStaticLength;
 
-        // If no new coordinates were added, just ensure source is up to date
-        if (totalLen <= prevLen) {
+        if (!shouldAnimate) {
+            // Road-geometry refinement — just refresh the source, no animation.
             source.setData({
                 type: 'Feature',
                 properties: {},
@@ -268,7 +275,14 @@ export default function MapBackground({
             return;
         }
 
-        // Immediately show the static portion (all previously drawn coords)
+        // New slide — animate from the end of the static route to the new point.
+        // routeStaticLength is the exact coordinate count of the route up to (but
+        // not including) the new segment, so it is stable regardless of how many
+        // road-geometry points earlier segments contain.
+        const prevLen = routeStaticLength;
+        const newSegmentCoords = allLngLat.slice(Math.max(prevLen - 1, 0));
+
+        // Immediately show everything up to the start of the new segment
         const staticCoords = allLngLat.slice(0, Math.max(prevLen, 1));
         source.setData({
             type: 'Feature',
@@ -276,20 +290,9 @@ export default function MapBackground({
             geometry: { type: 'LineString', coordinates: staticCoords }
         });
 
-        // Claim totalLen now — before the animation starts — so that if a new
-        // slide fires and cancels this animation mid-flight, the next run reads
-        // the correct prevLen and only animates the NEW segment rather than
-        // redrawing the full accumulated route from scratch.
-        prevRouteLength.current = totalLen;
-
-        // Fixed animation duration — decoupled from flyTo so the line always
-        // completes cleanly regardless of camera speed or how quickly the user
-        // navigates to the next slide.
         const startDelay = 300;
         const animationDuration = 5000;
-        const newSegmentCoords = allLngLat.slice(Math.max(prevLen - 1, 0));
 
-        // Same easing curve as the flyTo for synchronized feel
         const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
         const delayTimer = setTimeout(() => {
@@ -329,7 +332,7 @@ export default function MapBackground({
                 lineAnimationRef.current = null;
             }
         };
-    }, [routeCoordinates, clearRoute]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [routeCoordinates, routeStaticLength, clearRoute]);
 
     // Update markers
     useEffect(() => {
