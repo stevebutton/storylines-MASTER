@@ -191,7 +191,7 @@ export default function StoryChapter({
                         transition={{ duration: 0.6, ease: 'easeOut' }}
                         className="pointer-events-auto"
                     >
-                        <div className="backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl bg-white/90 dark:bg-slate-900/90 border border-white/20">
+                        <div className="backdrop-blur-xl rounded-2xl shadow-2xl bg-white/90 dark:bg-slate-900/90 border border-white/20">
                             {/* Carousel */}
                             {chapter.slides && chapter.slides.length > 0 && (
                                 <motion.div

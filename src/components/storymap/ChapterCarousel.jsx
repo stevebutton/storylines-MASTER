@@ -99,8 +99,9 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
     }
 
     return (
-        <div className="relative h-[300px] overflow-hidden">
-            <div ref={emblaRef} className="h-full">
+        <div className="relative h-[300px]">
+            {/* Embla viewport — clips slides to rounded-t-2xl, arrows overflow outside */}
+            <div ref={emblaRef} className="absolute inset-0 overflow-hidden rounded-t-2xl">
                 <div className="flex h-full">
                     {slides.map((slide, index) => (
                         <div
@@ -124,21 +125,21 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
             </div>
 
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none rounded-t-2xl" />
 
             {/* Navigation arrows — overlaid left/right at bottom of image */}
             <button
                 onClick={scrollPrev}
-                className="absolute left-3 z-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-100"
-                style={{ width: 36, height: 36, bottom: 112, background: '#000', border: '3px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', opacity: 0.7 }}
+                className="absolute z-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-100"
+                style={{ width: 36, height: 36, bottom: 112, left: 0, transform: 'translateX(-50%)', background: '#000', border: '3px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', opacity: 0.7 }}
                 aria-label="Previous slide"
             >
                 <ChevronLeft className="w-5 h-5 text-white" />
             </button>
             <button
                 onClick={scrollNext}
-                className="absolute right-3 z-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-100"
-                style={{ width: 36, height: 36, bottom: 37, background: '#000', border: '3px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', opacity: 0.7 }}
+                className="absolute z-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-100"
+                style={{ width: 36, height: 36, bottom: 37, right: 0, transform: 'translateX(50%)', background: '#000', border: '3px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', opacity: 0.7 }}
                 aria-label="Next slide"
             >
                 <ChevronRight className="w-5 h-5 text-white" />
