@@ -225,6 +225,7 @@ export default function MapBackground({
             if (!map.current.getSource('route')) {
                 map.current.addSource('route', {
                     type: 'geojson',
+                    lineMetrics: true,   // required for line-gradient
                     data: {
                         type: 'Feature',
                         properties: {},
@@ -233,32 +234,22 @@ export default function MapBackground({
                 });
             }
 
-            if (!map.current.getLayer('route-glow')) {
-                const routeColor = CHAPTER_COLORS[activeChapterRef.current % CHAPTER_COLORS.length].main;
-                // Wide blurred layer — the glow halo
-                map.current.addLayer({
-                    id: 'route-glow',
-                    type: 'line',
-                    source: 'route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: {
-                        'line-color': routeColor,
-                        'line-width': 14,
-                        'line-blur': 10,
-                        'line-opacity': 0.35
-                    }
-                });
-                // Dots layer — zero-length dash + round caps = evenly spaced circles
+            if (!map.current.getLayer('route-line')) {
+                const color = CHAPTER_COLORS[activeChapterRef.current % CHAPTER_COLORS.length];
+                // Gradient line: faint at start → full chapter colour → white at the tip
                 map.current.addLayer({
                     id: 'route-line',
                     type: 'line',
                     source: 'route',
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
                     paint: {
-                        'line-color': routeColor,
-                        'line-width': 5,
-                        'line-dasharray': [0, 3],
-                        'line-opacity': 0.9
+                        'line-width': 4,
+                        'line-gradient': [
+                            'interpolate', ['linear'], ['line-progress'],
+                            0,   `rgba(${color.rgb}, 0.15)`,
+                            0.5, color.main,
+                            1,   '#ffffff'
+                        ]
                     }
                 });
             }
