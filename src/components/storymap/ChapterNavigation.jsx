@@ -1,24 +1,52 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { MapPin } from 'lucide-react';
+import { MapPin, Home, AlignLeft } from 'lucide-react';
 
-export default function ChapterNavigation({ chapters, activeIndex, onNavigate, isOpen }) {
+export default function ChapterNavigation({ chapters, activeIndex, onNavigate, isOpen, onGoToStart, onGoToOverview }) {
     return (
-        <motion.div 
+        <motion.div
             className="fixed right-6 top-[120px] z-[100]"
             initial={{ x: 300, opacity: 0 }}
-            animate={{ 
-                x: isOpen ? 0 : 300, 
+            animate={{
+                x: isOpen ? 0 : 300,
                 opacity: isOpen ? 1 : 0
             }}
             exit={{ x: 300, opacity: 0 }}
-            transition={{ 
+            transition={{
                 duration: 0.7,
                 ease: "easeInOut"
             }}
         >
             <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/50 p-4 min-w-[220px]">
+                {/* Pre-chapter navigation */}
+                {(onGoToStart || onGoToOverview) && (
+                    <div className="space-y-1 mb-3 pb-3 border-b border-slate-200">
+                        {onGoToStart && (
+                            <button
+                                onClick={onGoToStart}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-all duration-300 text-left"
+                            >
+                                <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                    <Home className="w-3.5 h-3.5 text-slate-500" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-700">Project Start</span>
+                            </button>
+                        )}
+                        {onGoToOverview && (
+                            <button
+                                onClick={onGoToOverview}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-all duration-300 text-left"
+                            >
+                                <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                    <AlignLeft className="w-3.5 h-3.5 text-slate-500" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-700">Overview</span>
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
                     <MapPin className="w-4 h-4 text-amber-600" />

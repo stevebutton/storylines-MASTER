@@ -533,6 +533,25 @@ export default function StoryMapView() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Reset all chapter/route/banner state and close the chapter menu.
+    // Uses instant scroll so the scroll handler never re-detects chapter zones
+    // during the jump, which would immediately re-set activeChapter.
+    const resetToPreChapter = () => {
+        setActiveChapter(-1);
+        setIsBannerVisible(false);
+        setHasExplored(false);
+        previousChapterRef.current = -1;
+        currentActiveChapterRef.current = -1;
+        setClearRoute(true);
+        setRouteCoordinates([]);
+        setRouteStaticLength(0);
+        setStoryMarkers([]);
+        setActiveMarkerIdx(-1);
+        setLandingMarkers([]);
+        visitedSlideCoordsRef.current = {};
+        setIsChapterMenuOpen(false);
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -885,6 +904,17 @@ export default function StoryMapView() {
                     navigateToChapter(index);
                     setIsChapterMenuOpen(false);
                 }}
+                onGoToStart={() => {
+                    resetToPreChapter();
+                    window.scrollTo(0, 0);
+                }}
+                onGoToOverview={story.story_description ? () => {
+                    resetToPreChapter();
+                    const el = projectDescriptionRef.current;
+                    if (el) {
+                        window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY);
+                    }
+                } : undefined}
             />
             </div>
 
