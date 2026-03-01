@@ -162,6 +162,15 @@ export default function StoryMapView() {
         loadStory();
     }, [storyIdParam]);
 
+    // Safety net: if the story has loaded but onHeroLoaded never fires (e.g. broken
+    // hero image, unexpected media state) force-dismiss the overlay after 5 seconds
+    // so the page never stays permanently black.
+    useEffect(() => {
+        if (!story || isLoading) return;
+        const id = setTimeout(() => setShowBlackOverlay(false), 5000);
+        return () => clearTimeout(id);
+    }, [story?.id, isLoading]);
+
     // Set initial map config from story opening view — jump instantly (no animation)
     // because the black overlay is covering the map at this point
     useEffect(() => {

@@ -134,6 +134,7 @@ export default function StoryEditor() {
             await loadData();
         } catch (error) {
             console.error('Failed to save:', error);
+            alert(`Save failed: ${error?.message || error}`);
         } finally {
             setIsSaving(false);
         }
