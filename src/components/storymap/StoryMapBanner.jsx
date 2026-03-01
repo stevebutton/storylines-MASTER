@@ -30,27 +30,31 @@ export default function StoryMapBanner({
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
-            {/* Logo - Left */}
-            <Link
-                to={createPageUrl('ProjectInterface')}
+            {/* Logo - slides in from left after banner settles */}
+            <motion.div
                 className="hidden md:block flex-shrink-0 ml-[100px]"
+                initial={{ opacity: 0, x: -80 }}
+                animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -80 }}
+                transition={{ duration: 2, delay: 1, ease: 'easeOut' }}
             >
-                <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png" 
-                    alt="Storylines" 
-                    width="250"
-                    height="100"
-                    className="hover:scale-110 transition-transform duration-500 cursor-pointer"
-                />
-            </Link>
+                <Link to={createPageUrl('ProjectInterface')}>
+                    <img
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                        alt="Storylines"
+                        width="250"
+                        height="100"
+                        className="hover:scale-110 transition-transform duration-500 cursor-pointer"
+                    />
+                </Link>
+            </motion.div>
 
-            {/* Story Title - Left */}
+            {/* Story title - slides in from right after banner settles */}
             {storyTitle && (
-                <motion.div 
+                <motion.div
                     className="text-slate-800 flex-grow text-left font-light text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mx-4 md:mx-8"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-                    transition={{ duration: 1.5, delay: hasExplored ? 3 : 0, ease: "easeOut" }}
+                    initial={{ opacity: 0, x: 80 }}
+                    animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 80 }}
+                    transition={{ duration: 2, delay: 1, ease: 'easeOut' }}
                 >
                     {storyTitle}
                 </motion.div>
