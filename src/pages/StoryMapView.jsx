@@ -412,6 +412,65 @@ export default function StoryMapView() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [activeChapter, chapters]);
 
+    // Pre-fetch all road segments for the active chapter when it activates.
+    // Road geometry is cached in segmentCacheRef so it's ready before the user
+    // navigates slides — eliminating the reactive-fetch lag.
+    useEffect(() => {
+        if (activeChapter < 0 || chapters.length === 0) return;
+        if (story?.show_route === false) return;
+
+        const chapter = chapters[activeChapter];
+        if (!chapter?.slides) return;
+
+        const chKey = chapter.id || `ch-${activeChapter}`;
+        const capturedChIdx = activeChapter;
+
+        // All slides with valid coordinates, in order
+        const coordSlides = chapter.slides
+            .filter(s => isValidCoordinatePair(s.coordinates))
+            .map(s => normalizeCoordinatePair(s.coordinates));
+
+        if (coordSlides.length < 2) return;
+
+        const token = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
+
+        for (let i = 1; i < coordSlides.length; i++) {
+            const from = coordSlides[i - 1];
+            const to   = coordSlides[i];
+            const segKey = `${from[1].toFixed(5)},${from[0].toFixed(5)}→${to[1].toFixed(5)},${to[0].toFixed(5)}`;
+
+            if (segmentCacheRef.current[segKey] !== undefined) continue; // already cached or in-progress
+
+            segmentCacheRef.current[segKey] = null; // mark in-progress
+            (async () => {
+                const waypoints = `${from[1]},${from[0]};${to[1]},${to[0]}`;
+                try {
+                    const resp = await fetch(
+                        `https://api.mapbox.com/directions/v5/mapbox/walking/${waypoints}` +
+                        `?geometries=geojson&overview=simplified&access_token=${token}`
+                    );
+                    const data = await resp.json();
+                    const route = data.routes?.[0];
+                    const straightDist = haversineMetres(from, to);
+                    const tooDetoured = !route || route.distance > straightDist * 2.5;
+                    segmentCacheRef.current[segKey] = tooDetoured
+                        ? [from, to]
+                        : route.geometry.coordinates.map(c => [c[1], c[0]]);
+                } catch (e) {
+                    segmentCacheRef.current[segKey] = [from, to];
+                }
+                // Silently refresh the visible route if the user has already visited slides.
+                // routeStaticLength is unchanged so MapContainer skips animation — just updates data.
+                if (currentActiveChapterRef.current === capturedChIdx) {
+                    const latestVisited = visitedSlideCoordsRef.current[chKey] || [];
+                    if (latestVisited.length > 0) {
+                        setRouteCoordinates(buildRouteFromVisited(latestVisited, segmentCacheRef.current));
+                    }
+                }
+            })();
+        }
+    }, [activeChapter, chapters]);
+
     const navigateToChapter = (index) => {
         const element = chapterRefs.current[index];
         if (!element) return;
