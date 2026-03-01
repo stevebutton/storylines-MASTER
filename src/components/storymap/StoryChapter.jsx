@@ -25,26 +25,22 @@ export default function StoryChapter({
 
     const firstSlide = chapter.slides?.[0];
     const currentSlide = chapter.slides?.[activeSlideIndex] || firstSlide;
+    const bgImage = chapter.background_image || firstSlide?.image;
 
     // Notify parent when fullscreen state changes
     useEffect(() => {
-        if (onFullScreenChange) {
-            onFullScreenChange(showFullScreenViewer);
-        }
+        if (onFullScreenChange) onFullScreenChange(showFullScreenViewer);
     }, [showFullScreenViewer, onFullScreenChange]);
 
     // Open carousel and navigate when a marker click targets a specific slide
     useEffect(() => {
         if (targetSlideIndex !== undefined && targetSlideIndex !== null) {
             setShowCarousel(true);
-            if (carouselScrollToRef.current) {
-                carouselScrollToRef.current(targetSlideIndex);
-            }
+            if (carouselScrollToRef.current) carouselScrollToRef.current(targetSlideIndex);
         }
     }, [targetSlideIndex]);
 
-    // Emit the chapter's initial map position when this chapter becomes active.
-    // Prefer chapter.coordinates (overview position); fall back to first slide.
+    // Emit the chapter's initial map position when this chapter becomes active
     useEffect(() => {
         if (!isActive || !onSlideChange) return;
         const chCoords = chapter.coordinates;
@@ -70,9 +66,7 @@ export default function StoryChapter({
 
     const handleFullScreenClose = () => {
         setShowFullScreenViewer(false);
-        if (carouselScrollToRef.current) {
-            carouselScrollToRef.current(fullScreenImageIndex);
-        }
+        if (carouselScrollToRef.current) carouselScrollToRef.current(fullScreenImageIndex);
         handleSlideChange(fullScreenImageIndex);
     };
 
@@ -81,9 +75,7 @@ export default function StoryChapter({
         const slide = chapter.slides?.[slideIndex];
         if (slide && onSlideChange) {
             if (!slide.coordinates || !Array.isArray(slide.coordinates) || slide.coordinates.length !== 2 ||
-                isNaN(slide.coordinates[0]) || isNaN(slide.coordinates[1])) {
-                return;
-            }
+                isNaN(slide.coordinates[0]) || isNaN(slide.coordinates[1])) return;
             onSlideChange(slide);
         }
     };
@@ -100,67 +92,73 @@ export default function StoryChapter({
                 viewport={{ once: false, amount: 0.5 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
             >
-                {/* ── Title Card (always visible) ── */}
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
-                    {/* Background image — first slide's image */}
-                    {firstSlide?.image && (
-                        <div
-                            className="absolute inset-0 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${firstSlide.image})` }}
-                        />
-                    )}
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-black/30" />
+                <AnimatePresence mode="wait">
 
-                    {/* Content */}
-                    <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px', paddingRight: '14rem' }}>
-                        <div className="flex-1" />
-
-                        {/* Chapter number + name */}
-                        <div className="mb-5">
-                            <span className="block text-2xl font-light text-amber-400 leading-none">
-                                Chapter {String(index + 1).padStart(2, '0')}
-                            </span>
-                            {chapter.name && (
-                                <span className="block text-5xl font-light text-amber-400 leading-none">
-                                    {chapter.name}
-                                </span>
+                {/* ── Title Card ── shown until Explore is clicked */}
+                {!showCarousel && (
+                    <motion.div
+                        key="title-card"
+                        exit={{ opacity: 0, x: -80 }}
+                        transition={{ duration: 0.45, ease: 'easeIn' }}
+                    >
+                        <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
+                            {/* Background image */}
+                            {bgImage && (
+                                <div
+                                    className="absolute inset-0 bg-cover bg-center"
+                                    style={{ backgroundImage: `url(${bgImage})` }}
+                                />
                             )}
+                            <div className="absolute inset-0 bg-black/30" />
+
+                            <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px', paddingRight: '14rem' }}>
+                                <div className="flex-1" />
+
+                                {/* Chapter number + name */}
+                                <div className="mb-5">
+                                    <span className="block text-2xl font-light text-amber-400 leading-none">
+                                        Chapter {String(index + 1).padStart(2, '0')}
+                                    </span>
+                                    {chapter.name && (
+                                        <span className="block text-5xl font-light text-amber-400 leading-none">
+                                            {chapter.name}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Chapter description */}
+                                {chapter.description && (
+                                    <div
+                                        className="text-white/90 text-sm md:text-base leading-relaxed mb-4"
+                                        dangerouslySetInnerHTML={{ __html: chapter.description }}
+                                    />
+                                )}
+
+                                {/* Explore button */}
+                                {chapter.slides && chapter.slides.length > 0 && (
+                                    <button
+                                        onClick={() => setShowCarousel(true)}
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-xl transition-colors w-fit"
+                                    >
+                                        Explore the chapter
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
                         </div>
+                    </motion.div>
+                )}
 
-                        {/* Chapter description */}
-                        {chapter.description && (
-                            <div
-                                className="text-white/90 text-sm md:text-base leading-relaxed mb-4"
-                                dangerouslySetInnerHTML={{ __html: chapter.description }}
-                            />
-                        )}
-
-                        {/* Explore button — hidden once carousel is open */}
-                        {!showCarousel && chapter.slides && chapter.slides.length > 0 && (
-                            <button
-                                onClick={() => setShowCarousel(true)}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-xl transition-colors w-fit"
-                            >
-                                Explore the chapter
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                </svg>
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* ── Carousel section (revealed on Explore) ── */}
-                <AnimatePresence>
+                {/* ── Carousel Card ── enters after title card exits */}
                 {showCarousel && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.5, ease: 'easeOut' }}
-                        style={{ overflow: 'hidden' }}
-                        className="mt-4 pointer-events-auto"
+                        key="carousel"
+                        initial={{ opacity: 0, x: 80 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        className="pointer-events-auto"
                     >
                         <div className="backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl bg-white/90 dark:bg-slate-900/90 border border-white/20">
                             {/* Carousel */}
@@ -185,7 +183,6 @@ export default function StoryChapter({
 
                             {/* Slide text panel */}
                             <div className="p-6 md:p-8">
-                                {/* Slide title */}
                                 <AnimatePresence mode="wait">
                                     <motion.h2
                                         key={currentSlide?.title}
@@ -199,7 +196,6 @@ export default function StoryChapter({
                                     </motion.h2>
                                 </AnimatePresence>
 
-                                {/* Slide description */}
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={currentSlide?.description}
@@ -251,6 +247,7 @@ export default function StoryChapter({
                         </div>
                     </motion.div>
                 )}
+
                 </AnimatePresence>
             </motion.div>
 

@@ -38,6 +38,7 @@ export default function TabbedContentEditor({
     const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
     const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
     const [showDocumentPicker, setShowDocumentPicker] = useState(false);
+    const [isUploadingChapterImage, setIsUploadingChapterImage] = useState(false);
 
     // Handle missing item
     if (!item) {
@@ -380,6 +381,24 @@ export default function TabbedContentEditor({
 
     // Chapter Editor
     if (itemType === 'chapter') {
+        const handleChapterImageUpload = async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setIsUploadingChapterImage(true);
+            try {
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                onUpdate({ ...item, background_image: file_url });
+            } finally {
+                setIsUploadingChapterImage(false);
+            }
+        };
+
         return (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
@@ -437,10 +456,56 @@ export default function TabbedContentEditor({
                                 />
                             </div>
 
+                            {/* Chapter Background Image */}
+                            <div>
+                                <Label>Title Card Background Image</Label>
+                                <p className="text-xs text-slate-500 mb-2">Full-bleed image shown behind the chapter title. If not set, uses the first slide's image.</p>
+                                {item.background_image && (
+                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border mb-3">
+                                        <img src={item.background_image} className="w-full h-full object-cover" alt="Chapter background" />
+                                        <button
+                                            onClick={() => onUpdate({ ...item, background_image: null })}
+                                            className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-colors"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                )}
+                                <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors w-fit">
+                                    {isUploadingChapterImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                                    {isUploadingChapterImage ? 'Uploading...' : 'Upload Image'}
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleChapterImageUpload} disabled={isUploadingChapterImage} />
+                                </label>
+                            </div>
+
+                            {/* Chapter Location */}
+                            <div>
+                                <Label>Chapter Location</Label>
+                                <p className="text-xs text-slate-500 mb-2">Sets the map view when this chapter's title card is shown</p>
+                                <EmbeddedLocationPicker
+                                    location={{
+                                        lat: item.coordinates?.[0] || 0,
+                                        lng: item.coordinates?.[1] || 0,
+                                        zoom: item.zoom || 12,
+                                        bearing: item.bearing || 0,
+                                        pitch: item.pitch || 0,
+                                    }}
+                                    onLocationChange={(newLocation) => {
+                                        onUpdate({
+                                            ...item,
+                                            coordinates: [newLocation.lat, newLocation.lng],
+                                            zoom: newLocation.zoom,
+                                            bearing: newLocation.bearing,
+                                            pitch: newLocation.pitch,
+                                        });
+                                    }}
+                                />
+                            </div>
+
                             <div>
                                 <Label>Card Alignment</Label>
-                                <Select 
-                                    value={item.alignment || 'left'} 
+                                <Select
+                                    value={item.alignment || 'left'}
                                     onValueChange={(value) => onUpdate({ ...item, alignment: value })}
                                 >
                                     <SelectTrigger>
