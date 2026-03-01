@@ -416,17 +416,25 @@ export default function TabbedContentEditor({
                     <Card>
                         <CardContent className="pt-6 space-y-4">
                             <div>
-                                <Label>Chapter Name (optional)</Label>
+                                <Label>Chapter Name</Label>
                                 <Input
                                     type="text"
-                                    placeholder="Enter chapter name..."
+                                    placeholder="e.g. Arriving in Rome"
                                     value={item.name || ''}
-                                    onChange={(e) => onUpdate({ ...item, name: e.target.value.slice(0, 25) })}
-                                    maxLength={25}
+                                    onChange={(e) => onUpdate({ ...item, name: e.target.value })}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
-                                    {item.name?.length || 0}/25 characters
-                                </p>
+                                <p className="text-xs text-slate-500 mt-1">Shown as large title on the chapter card</p>
+                            </div>
+
+                            <div>
+                                <Label>Chapter Description</Label>
+                                <Textarea
+                                    placeholder="Brief chapter introduction shown on the title card"
+                                    value={item.description || ''}
+                                    onChange={(e) => onUpdate({ ...item, description: e.target.value })}
+                                    rows={3}
+                                    className="resize-none"
+                                />
                             </div>
 
                             <div>
