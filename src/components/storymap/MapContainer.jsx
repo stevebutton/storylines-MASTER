@@ -199,12 +199,9 @@ export default function MapBackground({
         // it always fires even during a style transition (otherwise clearRoute
         // stays true permanently and blocks subsequent route drawing).
         if (clearRoute) {
-            if (map.current.getLayer('route-line')) {
-                map.current.removeLayer('route-line');
-            }
-            if (map.current.getSource('route')) {
-                map.current.removeSource('route');
-            }
+            if (map.current.getLayer('route-line')) map.current.removeLayer('route-line');
+            if (map.current.getLayer('route-glow')) map.current.removeLayer('route-glow');
+            if (map.current.getSource('route')) map.current.removeSource('route');
             routeSourceAdded.current = false;
             prevStaticLength.current = 0;
             if (onRouteCleared) onRouteCleared();
@@ -236,8 +233,22 @@ export default function MapBackground({
                 });
             }
 
-            if (!map.current.getLayer('route-line')) {
+            if (!map.current.getLayer('route-glow')) {
                 const routeColor = CHAPTER_COLORS[activeChapterRef.current % CHAPTER_COLORS.length].main;
+                // Wide blurred layer — the glow halo
+                map.current.addLayer({
+                    id: 'route-glow',
+                    type: 'line',
+                    source: 'route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    paint: {
+                        'line-color': routeColor,
+                        'line-width': 14,
+                        'line-blur': 10,
+                        'line-opacity': 0.35
+                    }
+                });
+                // Dots layer — zero-length dash + round caps = evenly spaced circles
                 map.current.addLayer({
                     id: 'route-line',
                     type: 'line',
@@ -245,8 +256,9 @@ export default function MapBackground({
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
                     paint: {
                         'line-color': routeColor,
-                        'line-width': 3,
-                        'line-opacity': 0.8
+                        'line-width': 5,
+                        'line-dasharray': [0, 3],
+                        'line-opacity': 0.9
                     }
                 });
             }
