@@ -186,7 +186,7 @@ export default function MapBackground({
     // Only animates the new segment (from prevRouteLength to current length)
     // ============================================
     useEffect(() => {
-        if (!map.current || !map.current.isStyleLoaded() || !mapContainer.current) return;
+        if (!map.current || !mapContainer.current) return;
 
         // Cancel any ongoing animation
         if (lineAnimationRef.current) {
@@ -194,7 +194,9 @@ export default function MapBackground({
             lineAnimationRef.current = null;
         }
 
-        // Clear route if requested
+        // Clear route if requested — handled before isStyleLoaded() guard so
+        // it always fires even during a style transition (otherwise clearRoute
+        // stays true permanently and blocks subsequent route drawing).
         if (clearRoute) {
             if (map.current.getLayer('route-line')) {
                 map.current.removeLayer('route-line');
@@ -207,6 +209,8 @@ export default function MapBackground({
             if (onRouteCleared) onRouteCleared();
             return;
         }
+
+        if (!map.current.isStyleLoaded()) return;
 
         // Coordinates are already normalized by StoryMapView — just filter out invalids
         const validCoords = routeCoordinates.filter(coord =>
@@ -272,6 +276,12 @@ export default function MapBackground({
             geometry: { type: 'LineString', coordinates: staticCoords }
         });
 
+        // Claim totalLen now — before the animation starts — so that if a new
+        // slide fires and cancels this animation mid-flight, the next run reads
+        // the correct prevLen and only animates the NEW segment rather than
+        // redrawing the full accumulated route from scratch.
+        prevRouteLength.current = totalLen;
+
         // Delay line animation so camera starts moving first, then line chases it
         const startDelay = 500;
         // Line duration matches flyTo minus the delay, so they finish together
@@ -305,7 +315,6 @@ export default function MapBackground({
                 if (linearProgress < 1) {
                     lineAnimationRef.current = requestAnimationFrame(animateLine);
                 } else {
-                    prevRouteLength.current = totalLen;
                     lineAnimationRef.current = null;
                 }
             };
