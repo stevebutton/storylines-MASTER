@@ -350,6 +350,12 @@ export default function StoryMapView() {
                             const chapter = chapters[index];
 
                             const firstSlide = chapter.slides?.[0];
+                            // First slide that actually has valid coordinates — slides[0] may
+                            // be a text-only cover slide with no location.
+                            const firstSlideWithCoords = chapter.slides?.find(s =>
+                                Array.isArray(s.coordinates) && s.coordinates.length === 2 &&
+                                !isNaN(s.coordinates[0]) && !isNaN(s.coordinates[1])
+                            );
 
                             // Track active chapter for async route callbacks
                             currentActiveChapterRef.current = index;
@@ -369,13 +375,14 @@ export default function StoryMapView() {
                             // The initial hero/description→chapter0 activation is already
                             // handled by onExplore/onContinue — skip it here to avoid
                             // restarting the flyTo mid-flight (double jump).
-                            // Prefer chapter.coordinates (overview position) over firstSlide.coordinates.
+                            // Prefer chapter.coordinates (overview position), then first slide
+                            // with valid coordinates (slides[0] may have no location).
                             const chCoords = Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2
                                 && !isNaN(chapter.coordinates[0]) && !isNaN(chapter.coordinates[1])
-                                ? chapter.coordinates : firstSlide?.coordinates;
-                            const activationZoom = chapter.coordinates ? (chapter.zoom || 12) : (firstSlide?.zoom || 12);
-                            const activationBearing = chapter.coordinates ? (chapter.bearing || 0) : (firstSlide?.bearing || 0);
-                            const activationPitch = chapter.coordinates ? (chapter.pitch || 0) : (firstSlide?.pitch || 0);
+                                ? chapter.coordinates : firstSlideWithCoords?.coordinates;
+                            const activationZoom = chapter.coordinates ? (chapter.zoom || 12) : (firstSlideWithCoords?.zoom || 12);
+                            const activationBearing = chapter.coordinates ? (chapter.bearing || 0) : (firstSlideWithCoords?.bearing || 0);
+                            const activationPitch = chapter.coordinates ? (chapter.pitch || 0) : (firstSlideWithCoords?.pitch || 0);
 
                             if (prevChapterIdx !== -1 &&
                                 chCoords && Array.isArray(chCoords) &&

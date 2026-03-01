@@ -70,8 +70,17 @@ export default function StoryChapter({
                 image: '',
                 _noRoute: true,
             });
-        } else if (firstSlide) {
-            onSlideChange(firstSlide);
+        } else {
+            // Fall back to the first slide that actually has valid coordinates.
+            // slides[0] may be a text-only slide with no location — scanning
+            // forward ensures the map always flies somewhere meaningful.
+            const firstSlideWithCoords = chapter.slides?.find(s =>
+                Array.isArray(s.coordinates) && s.coordinates.length === 2 &&
+                !isNaN(s.coordinates[0]) && !isNaN(s.coordinates[1])
+            );
+            if (firstSlideWithCoords) {
+                onSlideChange({ ...firstSlideWithCoords, _noRoute: true });
+            }
         }
     }, [isActive, chapter.id]);
 
