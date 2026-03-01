@@ -37,6 +37,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           loop
           playsInline
           onLoadedData={handleMediaLoad}
+          onError={handleMediaLoad}
           initial={{ scale: 1.25, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{
@@ -51,6 +52,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           alt={title}
           className="absolute inset-0 w-full h-full object-cover z-0"
           onLoad={handleMediaLoad}
+          onError={handleMediaLoad}
           initial={{ scale: 1.25, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{
