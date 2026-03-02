@@ -28,6 +28,7 @@ export default function StoryChapter({
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
     const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
+    const [showExploreButton, setShowExploreButton] = useState(false);
 
     const firstSlide = chapter.slides?.[0];
     const currentSlide = chapter.slides?.[activeSlideIndex] || firstSlide;
@@ -45,6 +46,18 @@ export default function StoryChapter({
             setActiveSlideIndex(0);
         }
     }, [isActive]);
+
+    // Delay explore button entrance until the card has fully landed
+    // Chapter 0 has a longer entrance (delay + 4s animation); others take ~0.8s
+    useEffect(() => {
+        if (!isActive) {
+            setShowExploreButton(false);
+            return;
+        }
+        const duration = index === 0 ? delay + 4000 + 1000 : 1800;
+        const t = setTimeout(() => setShowExploreButton(true), duration);
+        return () => clearTimeout(t);
+    }, [isActive, index, delay]);
 
     // Open carousel and navigate when a marker click targets a specific slide
     useEffect(() => {
@@ -177,22 +190,23 @@ export default function StoryChapter({
                                 )}
                             </div>
 
-                            {/* Explore button — absolute bottom-right, slides in after 1s */}
-                            {chapter.slides && chapter.slides.length > 0 && (
+                            {/* Explore button — slides in after card has fully landed */}
+                            {showExploreButton && chapter.slides && chapter.slides.length > 0 && (
                                 <motion.button
                                     onClick={() => setShowCarousel(true)}
-                                    className="absolute bottom-6 right-6 z-20 flex items-center gap-3 text-white/90 hover:text-white transition-colors"
+                                    className="absolute bottom-6 right-6 z-20 flex items-center gap-1 text-white/90 hover:text-white transition-colors"
                                     style={{ fontFamily: themeFont || 'Raleway, sans-serif' }}
                                     initial={{ opacity: 0, x: 40 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 1, duration: 0.7, ease: 'easeOut' }}
+                                    whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
+                                    transition={{ duration: 0.7, ease: 'easeOut' }}
                                 >
-                                    <span className="text-sm font-light">Explore the chapter</span>
+                                    <span className="text-base font-light">Explore the chapter</span>
                                     <img
                                         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
                                         alt=""
-                                        width="50"
-                                        height="34"
+                                        width="74"
+                                        height="50"
                                         style={{ transform: 'rotate(-90deg)' }}
                                     />
                                 </motion.button>
