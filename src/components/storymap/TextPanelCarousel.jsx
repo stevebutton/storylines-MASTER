@@ -31,6 +31,10 @@ const splitHtmlIntoPages = (html, maxChars = 550) => {
     return pages.length > 0 ? pages : [html];
 };
 
+const THEME_FONTS = {
+    c: 'Righteous, cursive',
+};
+
 /**
  * TextPanelCarousel
  *
@@ -45,7 +49,9 @@ const TextPanelCarousel = ({
     description,
     extendedContent,
     location,
+    mapStyle = 'a',
 }) => {
+    const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const [currentPage, setCurrentPage] = useState(0);
     const [isPanelOpen, setIsPanelOpen] = useState(true);
     const [contentHeight, setContentHeight] = useState('auto');
@@ -107,7 +113,7 @@ const TextPanelCarousel = ({
                     {/* Chapter eyebrow */}
                     {chapterTitle && (
                         <p className="text-xs font-medium text-amber-500 uppercase tracking-widest text-right"
-                           style={{ fontFamily: 'Raleway, sans-serif' }}>
+                           style={{ fontFamily: themeFont }}>
                             {chapterTitle}
                         </p>
                     )}
@@ -115,7 +121,7 @@ const TextPanelCarousel = ({
                     {/* Location */}
                     {location && (
                         <div className="flex items-center justify-end gap-2">
-                            <span className="text-sm text-slate-500" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                            <span className="text-sm text-slate-500" style={{ fontFamily: themeFont }}>
                                 {location}
                             </span>
                             <div
@@ -129,7 +135,7 @@ const TextPanelCarousel = ({
                     {slideTitle && (
                         <h3
                             className="text-3xl font-light text-slate-800 text-right"
-                            style={{ fontFamily: 'Raleway, sans-serif', lineHeight: '1.1' }}
+                            style={{ fontFamily: themeFont, lineHeight: '1.1' }}
                         >
                             {slideTitle}
                         </h3>
@@ -151,7 +157,7 @@ const TextPanelCarousel = ({
                                     >
                                         <div
                                             className="text-slate-600 leading-relaxed text-base font-light prose prose-sm max-w-none text-right"
-                                            style={{ fontFamily: 'Raleway, sans-serif' }}
+                                            style={{ fontFamily: themeFont }}
                                             dangerouslySetInnerHTML={{ __html: page.content }}
                                         />
                                     </div>

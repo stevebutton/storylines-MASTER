@@ -319,6 +319,7 @@ export default function StoryChapter({
                 currentIndex={fullScreenImageIndex}
                 onNavigate={setFullScreenImageIndex}
                 chapterName={chapter.name ? `Chapter ${String(index + 1).padStart(2, '0')}: ${chapter.name}` : `Chapter ${String(index + 1).padStart(2, '0')}`}
+                mapStyle={mapStyle}
             />
         </div>
     );

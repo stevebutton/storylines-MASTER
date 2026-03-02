@@ -52,13 +52,14 @@ const VideoPlayer = ({ url, onVideoEnded }) => {
     );
 };
 
-export default function FullScreenImageViewer({ 
-    isOpen, 
-    onClose, 
-    slides, 
-    currentIndex, 
+export default function FullScreenImageViewer({
+    isOpen,
+    onClose,
+    slides,
+    currentIndex,
     onNavigate,
-    chapterName 
+    chapterName,
+    mapStyle = 'a',
 }) {
     if (!slides || slides.length === 0) return null;
 
@@ -137,6 +138,7 @@ export default function FullScreenImageViewer({
                             description={currentSlide.description || ''}
                             extendedContent={currentSlide.extended_content || ''}
                             location={currentSlide.location}
+                            mapStyle={mapStyle}
                         />
 
                         {/* Control strip — bottom centre */}
