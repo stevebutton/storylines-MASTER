@@ -106,7 +106,7 @@ const TextPanelCarousel = ({
 
                     {/* Chapter eyebrow */}
                     {chapterTitle && (
-                        <p className="text-xs font-medium text-amber-500 uppercase tracking-widest"
+                        <p className="text-xs font-medium text-amber-500 uppercase tracking-widest text-right"
                            style={{ fontFamily: 'Raleway, sans-serif' }}>
                             {chapterTitle}
                         </p>
@@ -114,21 +114,21 @@ const TextPanelCarousel = ({
 
                     {/* Location */}
                     {location && (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-end gap-2">
+                            <span className="text-sm text-slate-500" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                                {location}
+                            </span>
                             <div
                                 className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
                                 style={{ background: '#d97706', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
                             />
-                            <span className="text-sm text-slate-500" style={{ fontFamily: 'Raleway, sans-serif' }}>
-                                {location}
-                            </span>
                         </div>
                     )}
 
                     {/* Slide title */}
                     {slideTitle && (
                         <h3
-                            className="text-3xl font-light text-slate-800 leading-tight"
+                            className="text-3xl font-light text-slate-800 text-right"
                             style={{ fontFamily: 'Raleway, sans-serif', lineHeight: '1.1' }}
                         >
                             {slideTitle}
@@ -150,7 +150,7 @@ const TextPanelCarousel = ({
                                         className={index === currentPage ? 'block' : 'hidden'}
                                     >
                                         <div
-                                            className="text-slate-600 leading-relaxed text-base font-light prose prose-sm max-w-none"
+                                            className="text-slate-600 leading-relaxed text-base font-light prose prose-sm max-w-none text-right"
                                             style={{ fontFamily: 'Raleway, sans-serif' }}
                                             dangerouslySetInnerHTML={{ __html: page.content }}
                                         />
