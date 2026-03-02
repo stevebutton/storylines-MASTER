@@ -99,6 +99,7 @@ export default function StoryMapView() {
     const [showRoute, setShowRoute] = useState(true);
     const [showMarkers, setShowMarkers] = useState(true);
     const [isEditTransitioning, setIsEditTransitioning] = useState(false);
+    const [carouselOpened, setCarouselOpened] = useState(false);
     const mapInstanceRef = useRef(null);
     const navigate = useNavigate();
 
@@ -142,6 +143,7 @@ export default function StoryMapView() {
             setShowBlackOverlay(true);
             setActiveChapter(-1);
             setHasExplored(false);
+            setCarouselOpened(false);
             setHeroMediaLoaded(false);
             setIsBannerVisible(false);
             setIsStorySlideshowOpen(false);
@@ -570,6 +572,7 @@ export default function StoryMapView() {
         setActiveChapter(-1);
         setIsBannerVisible(false);
         setHasExplored(false);
+        setCarouselOpened(false);
         previousChapterRef.current = -1;
         currentActiveChapterRef.current = -1;
         setClearRoute(true);
@@ -912,7 +915,7 @@ export default function StoryMapView() {
                                 setActiveMarkerIdx(existingIdx === -1 ? storyMarkers.length : existingIdx);
                                 } // end !slide._noRoute (story markers)
                             }}
-                            onExplore={() => setHasExplored(true)}
+                            onExplore={() => setCarouselOpened(true)}
                         />
                     </div>
                 ))}
@@ -991,7 +994,7 @@ export default function StoryMapView() {
 
             {/* Bottom Pill Bar — appears when chapter 1 first activates */}
             <BottomPillBar
-                isVisible={hasExplored && !isFullScreenOpen}
+                isVisible={carouselOpened && !isFullScreenOpen}
                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
                 onZoomOut={() => mapInstanceRef.current?.zoomOut()}
                 onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}
