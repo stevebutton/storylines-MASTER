@@ -18,7 +18,7 @@ const CHAPTER_COLORS = [
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
 // Generate a GeoJSON polygon approximating a circle at [lat, lng] with the given radius in metres.
-function createCirclePolygon([lat, lng], radiusMetres, steps = 64) {
+function createCirclePolygon([lat, lng], radiusMetres, steps = 5) {
     const coords = [];
     for (let i = 0; i <= steps; i++) {
         const angle = (i / steps) * 2 * Math.PI;
