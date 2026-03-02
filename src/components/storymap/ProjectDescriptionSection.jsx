@@ -27,7 +27,12 @@ const splitHtmlIntoPages = (html, maxChars = 550) => {
     return pages.length > 0 ? pages : [html];
 };
 
-export default function ProjectDescriptionSection({ storyTitle, description, onContinue, backgroundImage }) {
+const THEME_FONTS = {
+    c: 'Righteous, cursive',
+};
+
+export default function ProjectDescriptionSection({ storyTitle, description, onContinue, backgroundImage, mapStyle = 'a' }) {
+    const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const [currentPage, setCurrentPage] = useState(0);
     const [contentHeight, setContentHeight] = useState('auto');
     const pageRefs = useRef([]);
@@ -87,7 +92,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                         {storyTitle && (
                             <div className="mb-2">
                                 <span className="block text-xs font-medium text-amber-400 uppercase tracking-widest"
-                                      style={{ fontFamily: 'Raleway, sans-serif' }}>
+                                      style={{ fontFamily: themeFont }}>
                                     {storyTitle}
                                 </span>
                             </div>
@@ -96,7 +101,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                         {/* Overview heading — the key function of this panel */}
                         <div className="mb-5">
                             <span className="block text-5xl font-light text-amber-400 leading-none"
-                                  style={{ fontFamily: 'Raleway, sans-serif' }}>
+                                  style={{ fontFamily: themeFont }}>
                                 Overview
                             </span>
                         </div>
@@ -118,7 +123,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                                 >
                                     <div
                                         className="text-white/90 leading-relaxed text-base font-light prose prose-sm max-w-none prose-invert"
-                                        style={{ fontFamily: 'Raleway, sans-serif' }}
+                                        style={{ fontFamily: themeFont }}
                                         dangerouslySetInnerHTML={{ __html: page }}
                                     />
                                 </motion.div>

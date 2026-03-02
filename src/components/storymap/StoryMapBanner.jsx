@@ -57,7 +57,7 @@ export default function StoryMapBanner({
             {/* Story title - slides in from right after banner settles */}
             {storyTitle && (
                 <motion.div
-                    className="text-slate-800 flex-grow text-left font-light text-2xl md:text-3xl lg:text-4xl mx-4 md:mx-8"
+                    className="text-slate-800 flex-grow text-left font-light text-3xl md:text-5xl mx-4 md:mx-8"
                     style={{ fontFamily: themeFont || 'Raleway, sans-serif' }}
                     initial={{ opacity: 0, x: 80 }}
                     animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 80 }}

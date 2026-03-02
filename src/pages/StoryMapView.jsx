@@ -672,6 +672,7 @@ export default function StoryMapView() {
                     heroVideo={story.hero_video}
                     heroType={story.hero_type}
                     heroVideoLoop={story.hero_video_loop}
+                    mapStyle={story?.map_style || 'a'}
                     onExplore={() => {
                         setHasExplored(true);
                         if (story.story_description) {
@@ -723,6 +724,7 @@ export default function StoryMapView() {
                             storyTitle={story.title}
                             description={story.story_description}
                             backgroundImage={story.thumbnail || story.hero_image}
+                            mapStyle={story?.map_style || 'a'}
                             onContinue={() => {
                                 navigateToChapter(0);
                                 if (chapters.length > 0) {
