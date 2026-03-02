@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChapterCarousel from './ChapterCarousel';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { X } from 'lucide-react';
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 import FullScreenImageViewer from './FullScreenImageViewer';
@@ -328,22 +328,37 @@ export default function StoryChapter({
             </motion.div>
 
             {/* PDF Modal */}
+            <AnimatePresence>
             {showPdfModal && (
-                <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                    <DialogContent className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6 flex flex-col z-[100]" style={{ transform: 'none' }}>
-                        <DialogHeader className="pb-5">
-                            <DialogTitle style={{ fontSize: '1.5rem' }}>
-                                {currentSlide?.pdf_url
-                                    ? currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0] || '').replace(/^[^_]+_/, '').replace(/\.pdf$/i, '') || 'Document'
-                                    : 'Document'}
-                            </DialogTitle>
-                        </DialogHeader>
-                        <div className="flex-1 overflow-auto">
-                            <PdfViewer url={currentSlide?.pdf_url} />
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4, ease: 'easeInOut' }}
+                    className="fixed inset-0 z-[9990] bg-white flex flex-col"
+                >
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-8 py-5 border-b border-slate-200 flex-shrink-0">
+                        <h2 className="text-2xl font-light text-slate-800">
+                            {currentSlide?.pdf_url
+                                ? currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0] || '').replace(/^[^_]+_/, '').replace(/\.pdf$/i, '') || 'Document'
+                                : 'Document'}
+                        </h2>
+                        <button
+                            onClick={() => setShowPdfModal(false)}
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {/* PDF Viewer */}
+                    <div className="flex-1 overflow-hidden">
+                        <PdfViewer url={currentSlide?.pdf_url} />
+                    </div>
+                </motion.div>
             )}
+            </AnimatePresence>
 
             {/* Full Screen Image Viewer */}
             <FullScreenImageViewer
