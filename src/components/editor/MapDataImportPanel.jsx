@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+import JSZip from 'jszip';
+import * as exifr from 'exifr';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Loader2, MapPin, FileText, CheckCircle } from 'lucide-react';
+import { X, Upload, Loader2, MapPin, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import VoiceSelectionPanel from './VoiceSelectionPanel';
 import { toast } from "sonner";
 
-export default function MapDataImportPanel({ isOpen, onClose }) {
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
+
+// appendToStoryId — when provided, skips story creation and appends chapters to existing story
+export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = null }) {
     const navigate = useNavigate();
+    const isAppendMode = !!appendToStoryId;
+
     const [zipFile, setZipFile] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [step, setStep] = useState('upload'); // upload, processing_zip, voice_selection, generating_descriptions, overview
@@ -29,18 +36,148 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
     const processZipAndCreateStructure = async (file) => {
         setIsProcessing(true);
         setStep('processing_zip');
-
         try {
-            // Upload zip file
-            const { file_url } = await base44.integrations.Core.UploadFile({ file: file });
+            const zip = await JSZip.loadAsync(file);
 
-            // Process zip: extract images, create Story/Chapter/Slide entities, return story_id
-            const { data: response } = await base44.functions.invoke('processZipForStory', {
-                zip_url: file_url
+            // Group image files by their immediate parent folder → chapters
+            const folderMap = {};
+            zip.forEach((relativePath, entry) => {
+                if (entry.dir) return;
+                if (!/\.(jpe?g|heic|png|webp)$/i.test(relativePath)) return;
+                // Skip macOS resource fork / metadata files (._filename)
+                const basename = relativePath.split('/').pop();
+                if (basename.startsWith('._')) return;
+                const parts = relativePath.split('/');
+                if (parts.length < 2) return;
+                const folder = parts[parts.length - 2];
+                if (!folderMap[folder]) folderMap[folder] = [];
+                folderMap[folder].push({ relativePath, entry });
             });
 
-            setCurrentStoryId(response.story_id);
+            const sortedFolders = Object.keys(folderMap).sort();
+
+            let storyId;
+            let orderOffset = 0;
+
+            if (isAppendMode) {
+                // Use existing story, get current chapter count for order offset
+                storyId = appendToStoryId;
+                const { count } = await supabase
+                    .from('chapters')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('story_id', storyId);
+                orderOffset = count || 0;
+            } else {
+                // Create new story
+                storyId = generateId();
+                const { error: storyErr } = await supabase.from('stories').insert({
+                    id: storyId,
+                    title: file.name.replace(/\.zip$/i, ''),
+                    subtitle: '',
+                    created_date: new Date().toISOString(),
+                });
+                if (storyErr) throw storyErr;
+            }
+
+            let totalSlides = 0;
+            let slidesWithGps = 0;
+            let heicCount = 0;
+            let failedUploads = 0;
+            const chaptersOverview = [];
+            const allSlideIds = [];
+
+            for (let ci = 0; ci < sortedFolders.length; ci++) {
+                const folderName = sortedFolders[ci];
+                const images = folderMap[folderName];
+                if (images.length === 0) continue;
+
+                const chapterId = generateId();
+                const { error: chapterErr } = await supabase.from('chapters').insert({
+                    id: chapterId,
+                    story_id: storyId,
+                    name: folderName,
+                    order: orderOffset + ci,
+                });
+                if (chapterErr) throw chapterErr;
+
+                const sortedImages = images.sort((a, b) =>
+                    a.relativePath.localeCompare(b.relativePath)
+                );
+
+                let slideOrder = 0;
+                for (let si = 0; si < sortedImages.length; si++) {
+                    const img = sortedImages[si];
+
+                    // Use only the base filename, never the full folder path
+                    const rawName = img.relativePath.split('/').pop();
+                    const safeName = rawName.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const ext = safeName.split('.').pop().toLowerCase();
+                    const isHeic = ext === 'heic' || ext === 'heif';
+                    const contentType = ext === 'png' ? 'image/png'
+                        : ext === 'webp' ? 'image/webp'
+                        : isHeic ? 'image/heic'
+                        : 'image/jpeg';
+
+                    if (isHeic) heicCount++;
+
+                    const blob = await img.entry.async('blob');
+                    const imageFile = new File([blob], safeName, { type: contentType });
+
+                    // Extract GPS from the original file before any processing
+                    let coordinates = null;
+                    try {
+                        const gps = await exifr.gps(imageFile);
+                        if (gps?.latitude && gps?.longitude) {
+                            coordinates = [gps.latitude, gps.longitude];
+                            slidesWithGps++;
+                        } else {
+                            console.warn('[EXIF] No GPS in', rawName, gps);
+                        }
+                    } catch (e) {
+                        console.warn('[EXIF] Failed to read GPS from', rawName, e);
+                    }
+
+                    // Upload — non-fatal: if this image fails, skip it and continue
+                    const filePath = `${generateId()}-${safeName}`;
+                    const { error: upErr } = await supabase.storage
+                        .from('media').upload(filePath, imageFile, { contentType, upsert: false });
+                    if (upErr) {
+                        console.error('[Upload] Failed for', rawName, upErr);
+                        failedUploads++;
+                        continue; // skip slide insert, move on to next image
+                    }
+                    const { data: { publicUrl: image_url } } = supabase.storage
+                        .from('media').getPublicUrl(filePath);
+
+                    const slideId = generateId();
+                    const { error: slideErr } = await supabase.from('slides').insert({
+                        id: slideId,
+                        chapter_id: chapterId,
+                        order: slideOrder,
+                        title: rawName.replace(/\.[^.]+$/, ''),
+                        image: image_url,
+                        coordinates,
+                    });
+                    if (slideErr) throw slideErr;
+                    allSlideIds.push(slideId);
+                    totalSlides++;
+                    slideOrder++;
+                }
+                chaptersOverview.push({ name: folderName, slide_count: slideOrder });
+            }
+
+            setCurrentStoryId(storyId);
+            setStoryOverview({
+                chapter_count: chaptersOverview.length,
+                slide_count: totalSlides,
+                slides_with_gps: slidesWithGps,
+                heic_count: heicCount,
+                failed_uploads: failedUploads,
+                chapters: chaptersOverview,
+                slide_ids: allSlideIds,
+            });
             setStep('voice_selection');
+
         } catch (error) {
             console.error('Failed to process zip file:', error);
             toast.error('Failed to process zip file. Please try again.');
@@ -54,35 +191,42 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
     const handleVoiceContinue = async (config) => {
         setIsProcessing(true);
         setStep('generating_descriptions');
-
         try {
-            const result = await base44.functions.invoke('generateStoryDescriptions', {
-                story_id: currentStoryId,
-                caption_voice: config.caption_voice,
-                custom_caption_voice_description: config.custom_caption_voice_description,
-                story_context: config.story_context
-            });
+            const slideIds = storyOverview?.slide_ids || [];
+            const BATCH = 4; // 4 slides × ~1.5s per Haiku call ≈ 6s — within Netlify's 10s limit
+            let totalUpdated = 0;
 
-            // Handle both wrapped ({ data: ... }) and direct response formats
-            const response = result?.data ?? result;
-            console.log('[generateStoryDescriptions] response:', JSON.stringify(response));
-
-            if (response?.overview) {
-                setStoryOverview(response.overview);
-                setStep('overview');
-            } else if (response?.error) {
-                throw new Error(response.error);
+            if (slideIds.length === 0) {
+                // Fallback: let the function fetch slides itself (legacy path)
+                const resp = await fetch('/.netlify/functions/generate-captions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ story_id: currentStoryId, ...config }),
+                });
+                if (!resp.ok) throw new Error((await resp.json()).error || 'Caption generation failed');
+                totalUpdated = (await resp.json()).updated_count;
             } else {
-                throw new Error(`Unexpected response: ${JSON.stringify(response)}`);
+                for (let i = 0; i < slideIds.length; i += BATCH) {
+                    const batch = slideIds.slice(i, i + BATCH);
+                    const resp = await fetch('/.netlify/functions/generate-captions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ story_id: currentStoryId, slide_ids: batch, ...config }),
+                    });
+                    if (!resp.ok) {
+                        const err = await resp.json().catch(() => ({}));
+                        throw new Error(err.error || 'Caption generation failed');
+                    }
+                    totalUpdated += (await resp.json()).updated_count;
+                }
             }
+
+            setStoryOverview(prev => ({ ...prev, captions_generated: totalUpdated }));
+            setStep('overview');
         } catch (error) {
-            // Surface the actual server error if available (Axios wraps it in error.response.data)
-            const msg = error.response?.data?.error || error.message;
-            console.error('Failed to generate descriptions:', msg, error);
-            toast.error(`Failed to generate descriptions: ${msg}`, { duration: 8000 });
-            setStep('upload');
-            setZipFile(null);
-            setCurrentStoryId(null);
+            console.error('Failed to generate descriptions:', error.message);
+            toast.error(`Caption generation failed: ${error.message}`, { duration: 8000 });
+            setStep('overview');
         } finally {
             setIsProcessing(false);
         }
@@ -133,8 +277,14 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                             <div className="flex items-center gap-3">
                                 <MapPin className="w-8 h-8 text-blue-600" />
                                 <div>
-                                    <h2 className="text-4xl font-bold text-slate-800">Import from Map Data</h2>
-                                    <p className="text-sm text-slate-600 mt-1">Generate narratives from field documentation and geotagged media</p>
+                                    <h2 className="text-4xl font-bold text-slate-800">
+                                        {isAppendMode ? 'Add Chapters to Story' : 'Import from Map Data'}
+                                    </h2>
+                                    <p className="text-sm text-slate-600 mt-1">
+                                        {isAppendMode
+                                            ? 'Upload a ZIP to append new chapters to this story'
+                                            : 'Generate narratives from field documentation and geotagged media'}
+                                    </p>
                                 </div>
                             </div>
                             <Button variant="ghost" size="icon" onClick={handleClose}>
@@ -209,10 +359,10 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                         <CheckCircle className="w-8 h-8 text-green-600" />
                                         <div>
                                             <h3 className="text-2xl font-bold text-slate-800">
-                                                Story Created Successfully
+                                                {isAppendMode ? 'Chapters Added Successfully' : 'Story Created Successfully'}
                                             </h3>
                                             <p className="text-sm text-slate-600">
-                                                Review your story structure below
+                                                Review your {isAppendMode ? 'new chapters' : 'story structure'} below
                                             </p>
                                         </div>
                                     </div>
@@ -234,6 +384,31 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                         </div>
                                     </div>
 
+                                    {/* HEIC warning */}
+                                    {storyOverview.heic_count > 0 && (
+                                        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-medium text-amber-800">
+                                                    {storyOverview.heic_count} HEIC image{storyOverview.heic_count !== 1 ? 's' : ''} detected
+                                                </p>
+                                                <p className="text-xs text-amber-700 mt-1">
+                                                    Chrome cannot display HEIC files. On your iPhone, go to Settings → Camera → Formats and select <strong>Most Compatible</strong> to shoot in JPEG, then re-export and re-import your ZIP.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Failed uploads warning */}
+                                    {storyOverview.failed_uploads > 0 && (
+                                        <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-lg p-4">
+                                            <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                                            <p className="text-sm text-red-800">
+                                                {storyOverview.failed_uploads} image{storyOverview.failed_uploads !== 1 ? 's' : ''} failed to upload and were skipped. Check the browser console for details.
+                                            </p>
+                                        </div>
+                                    )}
+
                                     <div className="space-y-3 max-h-96 overflow-y-auto">
                                         {storyOverview.chapters.map((chapter, idx) => (
                                             <div key={idx} className="bg-white rounded-lg border border-slate-200 p-4">
@@ -249,12 +424,18 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                                     </div>
 
                                     <div className="flex justify-end pt-4">
-                                        <Button
-                                            onClick={() => navigate(`${createPageUrl('StoryEditor')}?id=${currentStoryId}`)}
-                                            className="bg-blue-600 hover:bg-blue-700"
-                                        >
-                                            Open in Editor
-                                        </Button>
+                                        {isAppendMode ? (
+                                            <Button onClick={handleClose} className="bg-blue-600 hover:bg-blue-700">
+                                                Done
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                onClick={() => navigate(`${createPageUrl('StoryEditor')}?id=${currentStoryId}`)}
+                                                className="bg-blue-600 hover:bg-blue-700"
+                                            >
+                                                Open in Editor
+                                            </Button>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}
@@ -263,7 +444,7 @@ export default function MapDataImportPanel({ isOpen, onClose }) {
                 )}
             </AnimatePresence>
 
-            {/* Voice Selection Modal — rendered outside the panel so it layers correctly */}
+            {/* Voice Selection Modal */}
             {step === 'voice_selection' && (
                 <VoiceSelectionPanel
                     isOpen={true}

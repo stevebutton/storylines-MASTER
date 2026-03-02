@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TextPanelCarousel from './TextPanelCarousel';
+import FloatingControlStrip from './FloatingControlStrip';
 
 const VideoPlayer = ({ url, onVideoEnded }) => {
     if (!url) return null;
@@ -51,13 +52,14 @@ const VideoPlayer = ({ url, onVideoEnded }) => {
     );
 };
 
-export default function FullScreenImageViewer({ 
-    isOpen, 
-    onClose, 
-    slides, 
-    currentIndex, 
+export default function FullScreenImageViewer({
+    isOpen,
+    onClose,
+    slides,
+    currentIndex,
     onNavigate,
-    chapterName 
+    chapterName,
+    mapStyle = 'a',
 }) {
     if (!slides || slides.length === 0) return null;
 
@@ -128,25 +130,25 @@ export default function FullScreenImageViewer({
                             </AnimatePresence>
                         </div>
 
-                        {/* Text Panel Overlay — positioned top-left, above image */}
-                        <div className="absolute top-[120px] left-[25px] z-20 pointer-events-auto">
-                            <AnimatePresence mode="wait">
-                                <TextPanelCarousel
-                                    key={currentIndex}
-                                    chapterTitle={chapterName}
-                                    slideTitle={currentSlide.title}
-                                    description={currentSlide.description || ''}
-                                    extendedContent={currentSlide.extended_content || ''}
-                                    location={currentSlide.location}
-                                    slideCounter={hasMultipleSlides ? `${currentIndex + 1} / ${slides.length}` : null}
-                                    onPrevSlide={handlePrevious}
-                                    onNextSlide={handleNext}
-                                    onClose={onClose}
-                                    hasMultipleSlides={hasMultipleSlides}
-                                    defaultOpen={!currentSlide.video_url}
-                                />
-                            </AnimatePresence>
-                        </div>
+                        {/* Text panel — full-bleed left, manages its own position */}
+                        <TextPanelCarousel
+                            key={currentIndex}
+                            chapterTitle={chapterName}
+                            slideTitle={currentSlide.title}
+                            description={currentSlide.description || ''}
+                            extendedContent={currentSlide.extended_content || ''}
+                            location={currentSlide.location}
+                            mapStyle={mapStyle}
+                        />
+
+                        {/* Control strip — bottom centre */}
+                        <FloatingControlStrip
+                            onPrev={handlePrevious}
+                            onNext={handleNext}
+                            onClose={onClose}
+                            counter={hasMultipleSlides ? `${currentIndex + 1} / ${slides.length}` : null}
+                            hasMultipleSlides={hasMultipleSlides}
+                        />
                     </motion.div>
                 </>
             )}

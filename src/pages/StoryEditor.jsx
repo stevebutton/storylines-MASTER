@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { normalizeCoordinatePair } from '@/components/utils/coordinateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+// Generate a Base44-style 24-char hex ID for new records
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle } from 'lucide-react';
@@ -11,6 +14,7 @@ import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
 import TabbedContentEditor from '@/components/editor/TabbedContentEditor';
 import AIAssistant from '@/components/editor/AIAssistant';
 import HelpPanel from '@/components/editor/HelpPanel';
+import MapDataImportPanel from '@/components/editor/MapDataImportPanel';
 import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 
 export default function StoryEditor() {
@@ -27,6 +31,7 @@ export default function StoryEditor() {
     const [isSaving, setIsSaving] = useState(false);
     const [selectedItem, setSelectedItem] = useState({ type: 'story', id: null });
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+    const [isStoryHelperOpen, setIsStoryHelperOpen] = useState(false);
     const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(false);
     const [showTitleValidationDialog, setShowTitleValidationDialog] = useState(false);
     const [pendingTitle, setPendingTitle] = useState('');
@@ -41,20 +46,21 @@ export default function StoryEditor() {
         setIsLoading(true);
         try {
             if (currentStoryId) {
-                const [storyData, chaptersData, slidesData] = await Promise.all([
-                    base44.entities.Story.filter({ id: currentStoryId }),
-                    base44.entities.Chapter.filter({ story_id: currentStoryId }, 'order'),
-                    base44.entities.Slide.list('order')
-                ]);
-                
-                if (storyData.length > 0) {
-                    setStory(storyData[0]);
-                }
+                const { data: storyData, error: storyErr } = await supabase
+                    .from('stories').select('*').eq('id', currentStoryId).limit(1);
+                if (storyErr) throw storyErr;
+                if (storyData.length > 0) setStory(storyData[0]);
+
+                const { data: chaptersData, error: chapErr } = await supabase
+                    .from('chapters').select('*').eq('story_id', currentStoryId).order('order');
+                if (chapErr) throw chapErr;
                 setChapters(chaptersData);
-                
+
                 const chapterIds = chaptersData.map(c => c.id);
-                const filteredSlides = slidesData.filter(s => chapterIds.includes(s.chapter_id));
-                setSlides(filteredSlides);
+                const { data: slidesData, error: slideErr } = await supabase
+                    .from('slides').select('*').in('chapter_id', chapterIds).order('order');
+                if (slideErr) throw slideErr;
+                setSlides(slidesData);
             }
         } catch (error) {
             console.error('Failed to load data:', error);
@@ -74,65 +80,61 @@ export default function StoryEditor() {
         setIsSaving(true);
         try {
             let savedStoryId = currentStoryId;
-            
+
             if (currentStoryId) {
-                await base44.entities.Story.update(currentStoryId, story);
+                const { id, ...storyData } = story;
+                const { error } = await supabase.from('stories').update(storyData).eq('id', currentStoryId);
+                if (error) throw error;
             } else {
-                const newStory = await base44.entities.Story.create(story);
+                const newId = generateId();
+                const { data: newStory, error } = await supabase
+                    .from('stories').insert({ ...story, id: newId, created_date: new Date().toISOString() }).select().single();
+                if (error) throw error;
                 savedStoryId = newStory.id;
                 setStory(newStory);
                 setCurrentStoryId(newStory.id);
-                urlParams.set('id', newStory.id);
-                
-                // Verify story is queryable before proceeding
-                let retries = 0;
-                const maxRetries = 5;
-                while (retries < maxRetries) {
-                    const verifyStory = await base44.entities.Story.filter({ id: newStory.id });
-                    if (verifyStory.length > 0) {
-                        break;
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                    retries++;
-                }
-                
                 const newUrl = `${createPageUrl('StoryEditor')}?id=${newStory.id}`;
                 window.history.replaceState({}, '', newUrl);
             }
 
             const chapterIdMap = {};
-            
+
             for (const chapter of chapters) {
                 if (chapter.id.startsWith('temp-')) {
                     const { id, ...chapterData } = chapter;
-                    const newChapter = await base44.entities.Chapter.create({ 
-                        ...chapterData, 
-                        story_id: savedStoryId 
-                    });
+                    const newId = generateId();
+                    const { data: newChapter, error } = await supabase
+                        .from('chapters').insert({ ...chapterData, id: newId, story_id: savedStoryId }).select().single();
+                    if (error) throw error;
                     chapterIdMap[id] = newChapter.id;
                     setChapters(prev => prev.map(c => c.id === id ? newChapter : c));
                 } else {
-                    await base44.entities.Chapter.update(chapter.id, chapter);
+                    const { id, ...chapterData } = chapter;
+                    const { error } = await supabase.from('chapters').update(chapterData).eq('id', chapter.id);
+                    if (error) throw error;
                 }
             }
 
             for (const slide of slides) {
                 if (slide.id.startsWith('temp-')) {
                     const { id, ...slideData } = slide;
+                    const newId = generateId();
                     const finalChapterId = chapterIdMap[slide.chapter_id] || slide.chapter_id;
-                    const newSlide = await base44.entities.Slide.create({ 
-                        ...slideData, 
-                        chapter_id: finalChapterId 
-                    });
+                    const { data: newSlide, error } = await supabase
+                        .from('slides').insert({ ...slideData, id: newId, chapter_id: finalChapterId }).select().single();
+                    if (error) throw error;
                     setSlides(prev => prev.map(s => s.id === id ? newSlide : s));
                 } else {
-                    await base44.entities.Slide.update(slide.id, slide);
+                    const { id, ...slideData } = slide;
+                    const { error } = await supabase.from('slides').update(slideData).eq('id', slide.id);
+                    if (error) throw error;
                 }
             }
 
             await loadData();
         } catch (error) {
             console.error('Failed to save:', error);
+            alert(`Save failed: ${error?.message || error}`);
         } finally {
             setIsSaving(false);
         }
@@ -222,7 +224,8 @@ export default function StoryEditor() {
                     // Convert Directions API [lng,lat] → internal [lat,lng]
                     const routeGeometry = coords.map(c => [c[1], c[0]]);
                     console.log(`[route-debug] chapter ${chapter.id}: saving ${routeGeometry.length} pts`);
-                    await base44.entities.Chapter.update(chapter.id, { ...chapter, route_geometry: routeGeometry });
+                    const { error: routeErr } = await supabase.from('chapters').update({ route_geometry: routeGeometry }).eq('id', chapter.id);
+                    if (routeErr) throw routeErr;
                     successCount++;
                 }
             } catch (e) {
@@ -240,7 +243,7 @@ export default function StoryEditor() {
     const clearRoutes = async () => {
         for (const chapter of chapters) {
             if (chapter.id.startsWith('temp-')) continue;
-            await base44.entities.Chapter.update(chapter.id, { ...chapter, route_geometry: null });
+            await supabase.from('chapters').update({ route_geometry: null }).eq('id', chapter.id);
         }
         await loadData();
         setRouteComputeStatus('Routes cleared');
@@ -248,13 +251,8 @@ export default function StoryEditor() {
 
     const deleteChapter = async (chapterId) => {
         if (!chapterId.startsWith('temp-')) {
-            await base44.entities.Chapter.delete(chapterId);
-            const chapterSlides = slides.filter(s => s.chapter_id === chapterId);
-            for (const slide of chapterSlides) {
-                if (!slide.id.startsWith('temp-')) {
-                    await base44.entities.Slide.delete(slide.id);
-                }
-            }
+            // ON DELETE CASCADE on slides FK means we only need to delete the chapter
+            await supabase.from('chapters').delete().eq('id', chapterId);
         }
         setChapters(chapters.filter(c => c.id !== chapterId));
         setSlides(slides.filter(s => s.chapter_id !== chapterId));
@@ -263,7 +261,7 @@ export default function StoryEditor() {
 
     const deleteSlide = async (slideId) => {
         if (!slideId.startsWith('temp-')) {
-            await base44.entities.Slide.delete(slideId);
+            await supabase.from('slides').delete().eq('id', slideId);
         }
         setSlides(slides.filter(s => s.id !== slideId));
         setSelectedItem({ type: 'story', id: null });
@@ -417,8 +415,8 @@ export default function StoryEditor() {
                             onClick={async () => {
                                 const updatedStory = { ...story, is_published: !story.is_published };
                                 setStory(updatedStory);
-                                if (storyId) {
-                                    await base44.entities.Story.update(currentStoryId, { is_published: updatedStory.is_published });
+                                if (currentStoryId) {
+                                    await supabase.from('stories').update({ is_published: updatedStory.is_published }).eq('id', currentStoryId);
                                 }
                             }}
                             className={`flex-1 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col justify-center min-w-[80px] ${
@@ -443,7 +441,7 @@ export default function StoryEditor() {
                             <p className="text-xs text-slate-600 font-semibold">Help</p>
                         </button>
                         <button
-                            onClick={() => setIsAIAssistantOpen(true)}
+                            onClick={() => setIsStoryHelperOpen(true)}
                             className="hidden md:flex flex-1 bg-purple-50 hover:bg-purple-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]"
                         >
                             <Sparkles className="w-5 h-5 text-purple-600 mb-1" />
@@ -534,6 +532,13 @@ export default function StoryEditor() {
                     setShowTitleValidationDialog(false);
                     setSelectedItem({ type: 'story', id: null });
                 }}
+            />
+
+            {/* Story Helper — append chapters via ZIP upload */}
+            <MapDataImportPanel
+                isOpen={isStoryHelperOpen}
+                onClose={() => { setIsStoryHelperOpen(false); loadData(); }}
+                appendToStoryId={currentStoryId}
             />
 
             {/* AI Assistant Panel */}

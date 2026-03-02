@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -103,47 +105,7 @@ Create a professional project narrative outline with:
 
 Write in a professional style appropriate for NGO and consulting organization audiences.`;
 
-            const response = await base44.integrations.Core.InvokeLLM({
-                prompt: prompt,
-                add_context_from_internet: true,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        subtitle: { type: "string" },
-                        author: { type: "string" },
-                        category: { type: "string" },
-                        chapters: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    title: { type: "string" },
-                                    location: { type: "string" },
-                                    coordinates: {
-                                        type: "array",
-                                        items: { type: "number" }
-                                    },
-                                    slides: {
-                                        type: "array",
-                                        items: {
-                                            type: "object",
-                                            properties: {
-                                                title: { type: "string" },
-                                                description: { type: "string" },
-                                                image_url: { type: "string" },
-                                                coordinates: {
-                                                    type: "array",
-                                                    items: { type: "number" }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+            throw new Error('AI generation requires LLM API key — not yet configured');
 
             setMessages(prev => [...prev, { 
                 role: 'assistant', 
@@ -151,13 +113,11 @@ Write in a professional style appropriate for NGO and consulting organization au
             }]);
 
             // Create the story with user-provided title
-            const newStory = await base44.entities.Story.create({
-                title: data.title,
-                subtitle: response.subtitle,
-                author: response.author || 'Unknown',
-                category: response.category || 'other',
-                is_published: false
-            });
+            const { data: newStory, error: storyErr } = await supabase
+                .from('stories')
+                .insert({ id: generateId(), title: data.title, subtitle: response.subtitle, author: response.author || 'Unknown', category: response.category || 'other', is_published: false })
+                .select().single();
+            if (storyErr) throw storyErr;
 
             // Create chapters and slides
             for (let i = 0; i < response.chapters.length; i++) {
@@ -169,11 +129,11 @@ Write in a professional style appropriate for NGO and consulting organization au
                     chapterCoords = [Number(chapterData.coordinates[0]), Number(chapterData.coordinates[1])];
                 }
                 
-                const newChapter = await base44.entities.Chapter.create({
-                    story_id: newStory.id,
-                    order: i,
-                    alignment: 'left'
-                });
+                const { data: newChapter, error: chapErr } = await supabase
+                    .from('chapters')
+                    .insert({ id: generateId(), story_id: newStory.id, order: i, alignment: 'left' })
+                    .select().single();
+                if (chapErr) throw chapErr;
 
                 for (let j = 0; j < chapterData.slides.length; j++) {
                     const slideData = chapterData.slides[j];
@@ -184,7 +144,8 @@ Write in a professional style appropriate for NGO and consulting organization au
                         slideCoords = [Number(slideData.coordinates[0]), Number(slideData.coordinates[1])];
                     }
                     
-                    await base44.entities.Slide.create({
+                    await supabase.from('slides').insert({
+                        id: generateId(),
                         chapter_id: newChapter.id,
                         order: j,
                         title: slideData.title,

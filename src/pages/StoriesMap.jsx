@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import mapboxgl from 'mapbox-gl';
@@ -25,14 +25,14 @@ export default function StoriesMap() {
 
     const loadStories = async () => {
         try {
-            const [storiesData, chaptersData] = await Promise.all([
-                base44.entities.Story.filter({ is_published: true }),
-                base44.entities.Chapter.list('order')
+            const [{ data: storiesData }, { data: chaptersData }] = await Promise.all([
+                supabase.from('stories').select('*').eq('is_published', true),
+                supabase.from('chapters').select('*').order('order')
             ]);
 
             // Attach coordinates to stories
-            const storiesWithCoords = storiesData.map(story => {
-                const storyChapters = chaptersData.filter(c => c.story_id === story.id);
+            const storiesWithCoords = (storiesData || []).map(story => {
+                const storyChapters = (chaptersData || []).filter(c => c.story_id === story.id);
                 const firstChapterWithCoords = storyChapters.find(c => c.coordinates && c.coordinates.length === 2);
                 
                 return {

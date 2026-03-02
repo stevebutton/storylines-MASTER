@@ -5,9 +5,13 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# SPA catch-all — serve index.html for all non-static routes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 # Branch deploy context — applies to all non-production branches
-# The `supabase` branch will get its own deploy URL automatically:
-#   https://supabase--<your-site-name>.netlify.app
 [context.branch-deploy]
   command = "npm run build"
 

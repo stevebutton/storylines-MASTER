@@ -7,12 +7,31 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2, Check } from 'lucide-react';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
 import DocumentPicker from '@/components/editor/DocumentPicker';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
+
+const MAP_STYLES_CONFIG = {
+    a: {
+        label: 'Style A',
+        description: 'Light cartographic — white banner, amber accents',
+        owner: 'stevebutton',
+        id: 'clummsfw1002701mpbiw3exg7',
+    },
+    c: {
+        label: 'Style C',
+        description: 'Dark cartographic — Righteous type, strong route contrast',
+        owner: 'stevebutton',
+        id: 'ckn1s2y342eq018tidycnavti',
+    },
+};
 
 export default function TabbedContentEditor({
     itemType,
@@ -36,6 +55,7 @@ export default function TabbedContentEditor({
     const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
     const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
     const [showDocumentPicker, setShowDocumentPicker] = useState(false);
+    const [isUploadingChapterImage, setIsUploadingChapterImage] = useState(false);
 
     // Handle missing item
     if (!item) {
@@ -55,7 +75,13 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingHeroImage(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, hero_image: file_url, hero_type: 'image' });
             } finally {
                 setIsUploadingHeroImage(false);
@@ -67,7 +93,13 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingHeroVideo(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, hero_video: file_url, hero_type: 'video' });
             } finally {
                 setIsUploadingHeroVideo(false);
@@ -79,7 +111,13 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingThumbnail(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, thumbnail: file_url });
             } finally {
                 setIsUploadingThumbnail(false);
@@ -87,8 +125,15 @@ export default function TabbedContentEditor({
         };
 
         return (
-            <div className="space-y-6">
-                <Card>
+            <div className="space-y-4">
+                <Tabs defaultValue="story">
+                    <TabsList className="w-full grid grid-cols-2">
+                        <TabsTrigger value="story">Story</TabsTrigger>
+                        <TabsTrigger value="style">Map Style</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="story">
+                    <Card>
                     <CardContent className="pt-6 space-y-4">
                         <div>
                             <Label>Title <span className="text-red-500">*</span></Label>
@@ -160,23 +205,6 @@ export default function TabbedContentEditor({
                             />
                         </div>
 
-                        <div>
-                            <Label>Map Style</Label>
-                            <Select 
-                                value={item.map_style || 'light'} 
-                                onValueChange={(value) => onUpdate({ ...item, map_style: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="light">Light</SelectItem>
-                                    <SelectItem value="dark">Dark</SelectItem>
-                                    <SelectItem value="satellite">Satellite</SelectItem>
-                                    <SelectItem value="terrain">Terrain</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Author</Label>
@@ -353,13 +381,88 @@ export default function TabbedContentEditor({
                             </Button>
                         </div>
                     </CardContent>
-                </Card>
+                    </Card>
+                    </TabsContent>
+
+                    <TabsContent value="style">
+                    <Card>
+                    <CardContent className="pt-6 space-y-4">
+                        <p className="text-xs text-slate-500">
+                            Select the base map style for this story. Thumbnails show the style over your story's opening location.
+                        </p>
+                        <div className="flex flex-col gap-4">
+                            {Object.entries(MAP_STYLES_CONFIG).map(([key, style]) => {
+                                const thumbLon = item.coordinates?.[1] ?? 2.3522;
+                                const thumbLat = item.coordinates?.[0] ?? 48.8566;
+                                const thumbZoom = Math.max(4, Math.min(item.zoom || 8, 13));
+                                const thumbUrl = `https://api.mapbox.com/styles/v1/${style.owner}/${style.id}/static/${thumbLon},${thumbLat},${thumbZoom},0,0/600x280@2x?access_token=${MAPBOX_TOKEN}`;
+                                const isSelected = (item.map_style || 'a') === key;
+                                return (
+                                    <div
+                                        key={key}
+                                        onClick={() => onUpdate({ ...item, map_style: key })}
+                                        className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                                            isSelected
+                                                ? 'border-amber-500 shadow-lg shadow-amber-500/20'
+                                                : 'border-slate-200 hover:border-slate-400'
+                                        }`}
+                                    >
+                                        <div className="relative">
+                                            <img
+                                                src={thumbUrl}
+                                                alt={style.label}
+                                                className="w-full h-44 object-cover"
+                                            />
+                                            {isSelected && (
+                                                <div className="absolute top-2 right-2 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-md">
+                                                    <Check className="w-4 h-4 text-white" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className={`px-4 py-3 flex items-center justify-between ${isSelected ? 'bg-amber-50' : 'bg-white'}`}>
+                                            <div>
+                                                <span className={`text-sm font-medium block ${isSelected ? 'text-amber-700' : 'text-slate-700'}`}>
+                                                    {style.label}
+                                                </span>
+                                                <span className="text-xs text-slate-400">{style.description}</span>
+                                            </div>
+                                            {isSelected && (
+                                                <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Active</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
+                    </Card>
+                    </TabsContent>
+
+                </Tabs>
             </div>
         );
     }
 
     // Chapter Editor
     if (itemType === 'chapter') {
+        const handleChapterImageUpload = async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setIsUploadingChapterImage(true);
+            try {
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                onUpdate({ ...item, background_image: file_url });
+            } finally {
+                setIsUploadingChapterImage(false);
+            }
+        };
+
         return (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
@@ -396,23 +499,77 @@ export default function TabbedContentEditor({
                     <Card>
                         <CardContent className="pt-6 space-y-4">
                             <div>
-                                <Label>Chapter Name (optional)</Label>
+                                <Label>Chapter Name</Label>
                                 <Input
                                     type="text"
-                                    placeholder="Enter chapter name..."
+                                    placeholder="e.g. Arriving in Rome"
                                     value={item.name || ''}
-                                    onChange={(e) => onUpdate({ ...item, name: e.target.value.slice(0, 25) })}
-                                    maxLength={25}
+                                    onChange={(e) => onUpdate({ ...item, name: e.target.value })}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
-                                    {item.name?.length || 0}/25 characters
-                                </p>
+                                <p className="text-xs text-slate-500 mt-1">Shown as large title on the chapter card</p>
+                            </div>
+
+                            <div>
+                                <Label>Chapter Description</Label>
+                                <Textarea
+                                    placeholder="Brief chapter introduction shown on the title card"
+                                    value={item.description || ''}
+                                    onChange={(e) => onUpdate({ ...item, description: e.target.value })}
+                                    rows={3}
+                                    className="resize-none"
+                                />
+                            </div>
+
+                            {/* Chapter Background Image */}
+                            <div>
+                                <Label>Title Card Background Image</Label>
+                                <p className="text-xs text-slate-500 mb-2">Full-bleed image shown behind the chapter title. If not set, uses the first slide's image.</p>
+                                {item.background_image && (
+                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border mb-3">
+                                        <img src={item.background_image} className="w-full h-full object-cover" alt="Chapter background" />
+                                        <button
+                                            onClick={() => onUpdate({ ...item, background_image: null })}
+                                            className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-colors"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                )}
+                                <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors w-fit">
+                                    {isUploadingChapterImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                                    {isUploadingChapterImage ? 'Uploading...' : 'Upload Image'}
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleChapterImageUpload} disabled={isUploadingChapterImage} />
+                                </label>
+                            </div>
+
+                            {/* Chapter Location */}
+                            <div>
+                                <Label>Chapter Location</Label>
+                                <p className="text-xs text-slate-500 mb-2">Sets the map view when this chapter's title card is shown</p>
+                                <EmbeddedLocationPicker
+                                    location={{
+                                        lat: item.coordinates?.[0] || 0,
+                                        lng: item.coordinates?.[1] || 0,
+                                        zoom: item.zoom || 12,
+                                        bearing: item.bearing || 0,
+                                        pitch: item.pitch || 0,
+                                    }}
+                                    onLocationChange={(newLocation) => {
+                                        onUpdate({
+                                            ...item,
+                                            coordinates: [newLocation.lat, newLocation.lng],
+                                            zoom: newLocation.zoom,
+                                            bearing: newLocation.bearing,
+                                            pitch: newLocation.pitch,
+                                        });
+                                    }}
+                                />
                             </div>
 
                             <div>
                                 <Label>Card Alignment</Label>
-                                <Select 
-                                    value={item.alignment || 'left'} 
+                                <Select
+                                    value={item.alignment || 'left'}
                                     onValueChange={(value) => onUpdate({ ...item, alignment: value })}
                                 >
                                     <SelectTrigger>
@@ -439,7 +596,13 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingImage(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, image: file_url });
             } finally {
                 setIsUploadingImage(false);
@@ -451,7 +614,13 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingVideo(true);
             try {
-                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                 onUpdate({ ...item, video_url: file_url });
             } finally {
                 setIsUploadingVideo(false);
@@ -689,17 +858,30 @@ export default function TabbedContentEditor({
                             <div>
                                 <Label>PDF Document</Label>
                                 {item.pdf_url ? (
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border mt-2">
-                                        <div className="flex items-center gap-2">
-                                            <FileText className="w-5 h-5 text-red-600" />
-                                            <span className="text-sm">PDF attached</span>
+                                    <div className="mt-2 p-3 bg-slate-50 rounded-lg border space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="w-5 h-5 text-red-600 shrink-0" />
+                                                <span className="text-xs text-slate-500">PDF attached</span>
+                                            </div>
+                                            <button
+                                                onClick={() => onUpdate({ ...item, pdf_url: '', pdf_title: '' })}
+                                                className="text-red-500 hover:text-red-600"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => onUpdate({ ...item, pdf_url: '' })}
-                                            className="text-red-500 hover:text-red-600"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
+                                        <div>
+                                            <Label className="text-xs">Display Title</Label>
+                                            <Input
+                                                value={item.pdf_title || ''}
+                                                onChange={(e) => onUpdate({ ...item, pdf_title: e.target.value })}
+                                                placeholder="Short display title..."
+                                                maxLength={60}
+                                                className="mt-1 text-sm"
+                                            />
+                                            <p className="text-xs text-slate-400 mt-1">Shown in the story viewer. Saved with the slide.</p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <Button 
@@ -720,7 +902,7 @@ export default function TabbedContentEditor({
                                 onClose={() => setShowDocumentPicker(false)}
                                 storyId={storyId}
                                 onSelect={(doc) => {
-                                    onUpdate({ ...item, pdf_url: doc.file_url });
+                                    onUpdate({ ...item, pdf_url: doc.file_url, pdf_title: doc.title });
                                     setShowDocumentPicker(false);
                                 }}
                             />

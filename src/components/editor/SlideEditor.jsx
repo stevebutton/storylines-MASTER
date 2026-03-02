@@ -5,7 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2, FileText, Video } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import ReactQuill from 'react-quill';
@@ -40,17 +42,21 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
 
     React.useEffect(() => {
         if (slide.pdf_url) {
-            try {
-                const url = new URL(slide.pdf_url);
-                const filename = url.pathname.split('/').pop();
-                setPdfFileName(decodeURIComponent(filename));
-            } catch (e) {
-                setPdfFileName('Attached PDF');
+            if (slide.pdf_title) {
+                setPdfFileName(slide.pdf_title);
+            } else {
+                try {
+                    const url = new URL(slide.pdf_url);
+                    const filename = url.pathname.split('/').pop();
+                    setPdfFileName(decodeURIComponent(filename));
+                } catch (e) {
+                    setPdfFileName('Attached PDF');
+                }
             }
         } else {
             setPdfFileName('');
         }
-    }, [slide.pdf_url]);
+    }, [slide.pdf_url, slide.pdf_title]);
 
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -58,7 +64,12 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
 
         setIsUploading(true);
         try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            const filePath = `${generateId()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('media')
+                .upload(filePath, file, { contentType: file.type, upsert: false });
+            if (uploadError) throw uploadError;
+            const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
             onUpdate({ ...slide, image: file_url });
         } catch (error) {
             console.error('Failed to upload image:', error);
@@ -73,7 +84,12 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
 
         setIsUploadingBackground(true);
         try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            const filePath = `${generateId()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('media')
+                .upload(filePath, file, { contentType: file.type, upsert: false });
+            if (uploadError) throw uploadError;
+            const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
             onUpdate({ ...slide, background_image: file_url });
         } catch (error) {
             console.error('Failed to upload background image:', error);
@@ -290,7 +306,12 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                         if (!file) return;
                                         setIsUploadingVideo(true);
                                         try {
-                                            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                            const filePath = `${generateId()}-${file.name}`;
+                                            const { error: uploadError } = await supabase.storage
+                                                .from('media')
+                                                .upload(filePath, file, { contentType: file.type, upsert: false });
+                                            if (uploadError) throw uploadError;
+                                            const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                                             onUpdate({ ...slide, video_url: file_url });
                                         } catch (error) {
                                             console.error('Failed to upload video:', error);
@@ -350,7 +371,12 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                     if (!file) return;
                                                     setIsUploadingVideoThumbnail(true);
                                                     try {
-                                                        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                                                        const filePath = `${generateId()}-${file.name}`;
+                                                        const { error: uploadError } = await supabase.storage
+                                                            .from('media')
+                                                            .upload(filePath, file, { contentType: file.type, upsert: false });
+                                                        if (uploadError) throw uploadError;
+                                                        const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
                                                         onUpdate({ ...slide, video_thumbnail_url: file_url });
                                                     } catch (error) {
                                                         console.error('Failed to upload thumbnail:', error);
@@ -414,7 +440,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            onUpdate({ ...slide, pdf_url: null });
+                                            onUpdate({ ...slide, pdf_url: null, pdf_title: '' });
                                             setPdfFileName('');
                                         }}
                                         className="text-red-500 hover:text-red-600"
@@ -441,8 +467,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                             onClose={() => setShowDocumentPicker(false)}
                             storyId={storyId}
                             onSelect={(doc) => {
-                                onUpdate({ ...slide, pdf_url: doc.file_url });
-                                setPdfFileName(doc.title + '.pdf');
+                                onUpdate({ ...slide, pdf_url: doc.file_url, pdf_title: doc.title });
                             }}
                         />
                     </div>

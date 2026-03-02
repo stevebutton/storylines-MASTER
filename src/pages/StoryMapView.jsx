@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapBackground from '@/components/storymap/MapContainer';
 import StoryChapter from '@/components/storymap/StoryChapter';
@@ -7,6 +7,7 @@ import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
+import BottomPillBar from '@/components/storymap/BottomPillBar';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
@@ -16,7 +17,7 @@ import DocumentManagerContent from '@/components/documents/DocumentManagerConten
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 // Straight-line distance in metres between two [lat, lng] points (Haversine formula).
 function haversineMetres([lat1, lng1], [lat2, lng2]) {
@@ -52,9 +53,13 @@ function buildRouteFromVisited(visited, segCache) {
 
 export default function StoryMapView() {
     const [searchParams] = useSearchParams();
-    const storyId = searchParams.get('id');
+    const storyIdParam = searchParams.get('id');
 
     const [story, setStory] = useState(null);
+    // Effective story ID — URL param when navigating to a specific story,
+    // falls back to the loaded story's own ID (e.g. when landing as main page
+    // without a ?id= param).
+    const storyId = storyIdParam ?? story?.id ?? null;
     const [chapters, setChapters] = useState([]);
     const [relatedStories, setRelatedStories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +67,7 @@ export default function StoryMapView() {
     const [mapConfig, setMapConfig] = useState({
         center: [0, 0],
         zoom: 2,
-        mapStyle: 'light',
+        mapStyle: 'a',
         bearing: 0,
         pitch: 0,
         shouldRotate: false,
@@ -71,7 +76,9 @@ export default function StoryMapView() {
     });
     const [activeLayerId, setActiveLayerId] = useState(null);
     const [routeCoordinates, setRouteCoordinates] = useState([]);
+    const [routeStaticLength, setRouteStaticLength] = useState(0);
     const [clearRoute, setClearRoute] = useState(false);
+    const [chapterRegion, setChapterRegion] = useState(null);
     const previousChapterRef = useRef(-1);
     const [landingMarkers, setLandingMarkers] = useState([]);
     const [clearLandingMarkers, setClearLandingMarkers] = useState(false);
@@ -89,7 +96,12 @@ export default function StoryMapView() {
 
     const [activeSlide, setActiveSlide] = useState(null);
     const [isLiveEditorOpen, setIsLiveEditorOpen] = useState(false);
+    const [showRoute, setShowRoute] = useState(true);
+    const [showMarkers, setShowMarkers] = useState(true);
+    const [isEditTransitioning, setIsEditTransitioning] = useState(false);
+    const [carouselOpened, setCarouselOpened] = useState(false);
     const mapInstanceRef = useRef(null);
+    const navigate = useNavigate();
 
     // Close the live map editor when fullscreen carousel opens
     useEffect(() => {
@@ -122,7 +134,7 @@ export default function StoryMapView() {
     // before the browser paints, closing any gap between the overlay disappearing
     // in FloatingStorySlideshow and it appearing here.
     useLayoutEffect(() => {
-        if (prevStoryIdRef.current !== null && prevStoryIdRef.current !== storyId) {
+        if (prevStoryIdRef.current !== storyIdParam) {
             // Cancel any pending overlay-fade from the previous story
             if (overlayTimeoutRef.current) {
                 clearTimeout(overlayTimeoutRef.current);
@@ -131,6 +143,7 @@ export default function StoryMapView() {
             setShowBlackOverlay(true);
             setActiveChapter(-1);
             setHasExplored(false);
+            setCarouselOpened(false);
             setHeroMediaLoaded(false);
             setIsBannerVisible(false);
             setIsStorySlideshowOpen(false);
@@ -140,7 +153,9 @@ export default function StoryMapView() {
             setTargetSlide(null);
             setActiveLayerId(null);
             setRouteCoordinates([]);
+            setRouteStaticLength(0);
             setClearRoute(false);
+            setChapterRegion(null);
             setLandingMarkers([]);
             setIsChapterMenuOpen(false);
             previousChapterRef.current = -1;
@@ -151,12 +166,21 @@ export default function StoryMapView() {
             chapterRefs.current = [];
             window.scrollTo(0, 0);
         }
-        prevStoryIdRef.current = storyId;
-    }, [storyId]);
+        prevStoryIdRef.current = storyIdParam;
+    }, [storyIdParam]);
 
     useEffect(() => {
         loadStory();
-    }, [storyId]);
+    }, [storyIdParam]);
+
+    // Safety net: if the story has loaded but onHeroLoaded never fires (e.g. broken
+    // hero image, unexpected media state) force-dismiss the overlay after 5 seconds
+    // so the page never stays permanently black.
+    useEffect(() => {
+        if (!story || isLoading) return;
+        const id = setTimeout(() => setShowBlackOverlay(false), 5000);
+        return () => clearTimeout(id);
+    }, [story?.id, isLoading]);
 
     // Set initial map config from story opening view — jump instantly (no animation)
     // because the black overlay is covering the map at this point
@@ -166,7 +190,7 @@ export default function StoryMapView() {
                 ...prev,
                 center: story.coordinates,
                 zoom: story.zoom || 2,
-                mapStyle: story.map_style || 'light',
+                mapStyle: story.map_style || 'a',
                 bearing: story.bearing || 0,
                 pitch: story.pitch || 0,
                 instant: true
@@ -224,40 +248,47 @@ export default function StoryMapView() {
     }, [story]);
 
     const loadStory = async () => {
-        if (!storyId) {
-            setIsLoading(false);
-            return;
-        }
-
         try {
-            const [storyData, chaptersData, slidesData] = await Promise.all([
-                base44.entities.Story.filter({ id: storyId }),
-                base44.entities.Chapter.filter({ story_id: storyId }, 'order'),
-                base44.entities.Slide.list('order')
-            ]);
+            // If no storyId in URL, fall back to the main story
+            const query = storyIdParam
+                ? supabase.from('stories').select('*').eq('id', storyIdParam).limit(1)
+                : supabase.from('stories').select('*').eq('is_main_story', true).limit(1);
+
+            const { data: storyData, error: storyErr } = await query;
+            if (storyErr) throw storyErr;
 
             if (storyData.length > 0) {
                 setStory(storyData[0]);
-                
+
                 // Fetch related stories in the same category
                 const currentStory = storyData[0];
                 if (currentStory.category) {
-                    const allStoriesInCategory = await base44.entities.Story.filter({
-                        category: currentStory.category,
-                        is_published: true
-                    });
-                    
-                    // Exclude current story and limit to 4 suggestions
-                    const related = allStoriesInCategory
-                        .filter(s => s.id !== currentStory.id)
-                        .slice(0, 4);
-                    setRelatedStories(related);
+                    const { data: related } = await supabase
+                        .from('stories')
+                        .select('*')
+                        .eq('category', currentStory.category)
+                        .eq('is_published', true)
+                        .neq('id', currentStory.id)
+                        .limit(4);
+                    setRelatedStories(related || []);
                 }
             }
 
-            // Attach slides to chapters
+            const { data: chaptersData, error: chapErr } = await supabase
+                .from('chapters')
+                .select('*')
+                .eq('story_id', storyData[0]?.id ?? storyId)
+                .order('order');
+            if (chapErr) throw chapErr;
+
             const chapterIds = chaptersData.map(c => c.id);
-            const relevantSlides = slidesData.filter(s => chapterIds.includes(s.chapter_id));
+
+            const { data: relevantSlides, error: slideErr } = await supabase
+                .from('slides')
+                .select('*')
+                .in('chapter_id', chapterIds)
+                .order('order');
+            if (slideErr) throw slideErr;
             
             const chaptersWithSlides = chaptersData.map(chapter => ({
                 ...chapter,
@@ -269,6 +300,7 @@ export default function StoryMapView() {
                         chapter_id: s.chapter_id,
                         order: s.order,
                         image: s.image,
+                        card_style: s.card_style,
                         title: s.title,
                         description: s.description,
                         location: s.location,
@@ -278,6 +310,7 @@ export default function StoryMapView() {
                         pitch: s.pitch,
                         fly_duration: s.fly_duration,
                         pdf_url: s.pdf_url,
+                        pdf_title: s.pdf_title,
                         video_url: s.video_url,
                         video_thumbnail_url: s.video_thumbnail_url,
                         mapbox_layer_id: s.mapbox_layer_id,
@@ -298,10 +331,6 @@ export default function StoryMapView() {
 
         const handleScroll = () => {
             const scrollPosition = window.scrollY + window.innerHeight / 2;
-            
-            // Show banner once we've scrolled past the header (first screen)
-            const headerHeight = window.innerHeight;
-            setIsBannerVisible(window.scrollY > headerHeight * 0.5);
 
             chapterRefs.current.forEach((ref, index) => {
                 if (ref) {
@@ -319,6 +348,7 @@ export default function StoryMapView() {
                                 // Clear route when moving to a new chapter (but keep landing markers)
                                 setClearRoute(true);
                                 setRouteCoordinates([]);
+                                setRouteStaticLength(0);
                             }
 
                             previousChapterRef.current = index;
@@ -328,34 +358,53 @@ export default function StoryMapView() {
                             const chapter = chapters[index];
 
                             const firstSlide = chapter.slides?.[0];
+                            // First slide that actually has valid coordinates — slides[0] may
+                            // be a text-only cover slide with no location.
+                            const firstSlideWithCoords = chapter.slides?.find(s =>
+                                Array.isArray(s.coordinates) && s.coordinates.length === 2 &&
+                                !isNaN(s.coordinates[0]) && !isNaN(s.coordinates[1])
+                            );
 
                             // Track active chapter for async route callbacks
                             currentActiveChapterRef.current = index;
 
                             if (story.show_route !== false) {
                                 const cacheKey = chapter.id || `ch-${index}`;
-                                // Reset visited coords so the route re-draws progressively from
-                                // the first slide. Previously cached road segments are reused.
-                                visitedSlideCoordsRef.current[cacheKey] = [];
+                                // Only reset visited coords when genuinely entering a NEW chapter.
+                                // If the same chapter re-enters the scroll zone (e.g. card height
+                                // changes when the carousel opens), preserve the trail so the
+                                // route stays incremental rather than restarting.
+                                if (prevChapterIdx !== index) {
+                                    visitedSlideCoordsRef.current[cacheKey] = [];
+                                }
                             }
 
                             // Only update map for chapter-to-chapter transitions.
                             // The initial hero/description→chapter0 activation is already
                             // handled by onExplore/onContinue — skip it here to avoid
                             // restarting the flyTo mid-flight (double jump).
+                            // Prefer chapter.coordinates (overview position), then first slide
+                            // with valid coordinates (slides[0] may have no location).
+                            const chCoords = Array.isArray(chapter.coordinates) && chapter.coordinates.length === 2
+                                && !isNaN(chapter.coordinates[0]) && !isNaN(chapter.coordinates[1])
+                                ? chapter.coordinates : firstSlideWithCoords?.coordinates;
+                            const activationZoom = chapter.coordinates ? (chapter.zoom || 12) : (firstSlideWithCoords?.zoom || 12);
+                            const activationBearing = chapter.coordinates ? (chapter.bearing || 0) : (firstSlideWithCoords?.bearing || 0);
+                            const activationPitch = chapter.coordinates ? (chapter.pitch || 0) : (firstSlideWithCoords?.pitch || 0);
+
                             if (prevChapterIdx !== -1 &&
-                                firstSlide?.coordinates && Array.isArray(firstSlide.coordinates) &&
-                                firstSlide.coordinates.length === 2 &&
-                                !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                chCoords && Array.isArray(chCoords) &&
+                                chCoords.length === 2 &&
+                                !isNaN(chCoords[0]) && !isNaN(chCoords[1])) {
                                 setMapConfig({
-                                    center: firstSlide.coordinates,
+                                    center: chCoords,
                                     offset: [-200, 0],
-                                    zoom: firstSlide?.zoom || 12,
-                                    bearing: firstSlide?.bearing || 0,
-                                    pitch: firstSlide?.pitch || 0,
-                                    mapStyle: story.map_style || 'light',
+                                    zoom: activationZoom,
+                                    bearing: activationBearing,
+                                    pitch: activationPitch,
+                                    mapStyle: story.map_style || 'a',
                                     shouldRotate: true,
-                                    flyDuration: firstSlide?.fly_duration || 8
+                                    flyDuration: chapter.fly_duration || 8
                                 });
                             }
                         }
@@ -366,6 +415,97 @@ export default function StoryMapView() {
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
+    }, [activeChapter, chapters]);
+
+    // Banner and footer animate in once the user scrolls into the first chapter.
+    // Uses a one-way latch — once visible it stays visible for the session.
+    useEffect(() => {
+        if (activeChapter >= 0) {
+            setIsBannerVisible(true);
+            setHasExplored(true);
+        }
+    }, [activeChapter]);
+
+    // Compute the chapter region (centroid + bounding radius) for the active chapter.
+    // Displayed on the map as a soft circle marking the territory of the chapter's slides.
+    useEffect(() => {
+        if (activeChapter < 0 || chapters.length === 0) {
+            setChapterRegion(null);
+            return;
+        }
+        const chapter = chapters[activeChapter];
+        const coordSlides = chapter?.slides
+            ?.filter(s => isValidCoordinatePair(s.coordinates))
+            .map(s => normalizeCoordinatePair(s.coordinates)) || [];
+
+        if (coordSlides.length < 2) {
+            setChapterRegion(null);
+            return;
+        }
+
+        const centLat = coordSlides.reduce((sum, c) => sum + c[0], 0) / coordSlides.length;
+        const centLng = coordSlides.reduce((sum, c) => sum + c[1], 0) / coordSlides.length;
+        const radiusMetres = Math.max(...coordSlides.map(c => haversineMetres([centLat, centLng], c))) * 1.3;
+        setChapterRegion({ center: [centLat, centLng], radiusMetres });
+    }, [activeChapter, chapters]);
+
+    // Pre-fetch all road segments for the active chapter when it activates.
+    // Road geometry is cached in segmentCacheRef so it's ready before the user
+    // navigates slides — eliminating the reactive-fetch lag.
+    useEffect(() => {
+        if (activeChapter < 0 || chapters.length === 0) return;
+        if (story?.show_route === false) return;
+
+        const chapter = chapters[activeChapter];
+        if (!chapter?.slides) return;
+
+        const chKey = chapter.id || `ch-${activeChapter}`;
+        const capturedChIdx = activeChapter;
+
+        // All slides with valid coordinates, in order
+        const coordSlides = chapter.slides
+            .filter(s => isValidCoordinatePair(s.coordinates))
+            .map(s => normalizeCoordinatePair(s.coordinates));
+
+        if (coordSlides.length < 2) return;
+
+        const token = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
+
+        for (let i = 1; i < coordSlides.length; i++) {
+            const from = coordSlides[i - 1];
+            const to   = coordSlides[i];
+            const segKey = `${from[1].toFixed(5)},${from[0].toFixed(5)}→${to[1].toFixed(5)},${to[0].toFixed(5)}`;
+
+            if (segmentCacheRef.current[segKey] !== undefined) continue; // already cached or in-progress
+
+            segmentCacheRef.current[segKey] = null; // mark in-progress
+            (async () => {
+                const waypoints = `${from[1]},${from[0]};${to[1]},${to[0]}`;
+                try {
+                    const resp = await fetch(
+                        `https://api.mapbox.com/directions/v5/mapbox/walking/${waypoints}` +
+                        `?geometries=geojson&overview=simplified&access_token=${token}`
+                    );
+                    const data = await resp.json();
+                    const route = data.routes?.[0];
+                    const straightDist = haversineMetres(from, to);
+                    const tooDetoured = !route || route.distance > straightDist * 2.5;
+                    segmentCacheRef.current[segKey] = tooDetoured
+                        ? [from, to]
+                        : route.geometry.coordinates.map(c => [c[1], c[0]]);
+                } catch (e) {
+                    segmentCacheRef.current[segKey] = [from, to];
+                }
+                // Silently refresh the visible route if the user has already visited slides.
+                // routeStaticLength is unchanged so MapContainer skips animation — just updates data.
+                if (currentActiveChapterRef.current === capturedChIdx) {
+                    const latestVisited = visitedSlideCoordsRef.current[chKey] || [];
+                    if (latestVisited.length > 0) {
+                        setRouteCoordinates(buildRouteFromVisited(latestVisited, segmentCacheRef.current));
+                    }
+                }
+            })();
+        }
     }, [activeChapter, chapters]);
 
     const navigateToChapter = (index) => {
@@ -425,6 +565,27 @@ export default function StoryMapView() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    // Reset all chapter/route/banner state and close the chapter menu.
+    // Uses instant scroll so the scroll handler never re-detects chapter zones
+    // during the jump, which would immediately re-set activeChapter.
+    const resetToPreChapter = () => {
+        setActiveChapter(-1);
+        setIsBannerVisible(false);
+        setHasExplored(false);
+        setCarouselOpened(false);
+        previousChapterRef.current = -1;
+        currentActiveChapterRef.current = -1;
+        setClearRoute(true);
+        setRouteCoordinates([]);
+        setRouteStaticLength(0);
+        setChapterRegion(null);
+        setStoryMarkers([]);
+        setActiveMarkerIdx(-1);
+        setLandingMarkers([]);
+        visitedSlideCoordsRef.current = {};
+        setIsChapterMenuOpen(false);
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -469,6 +630,7 @@ export default function StoryMapView() {
                 isChapterMenuOpen={isChapterMenuOpen}
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
+                mapStyle={story?.map_style || 'a'}
             />
             </div>
 
@@ -485,6 +647,7 @@ export default function StoryMapView() {
                 flyDuration={mapConfig.flyDuration}
                 instant={mapConfig.instant}
                 routeCoordinates={routeCoordinates}
+                routeStaticLength={routeStaticLength}
                 clearRoute={clearRoute}
                 onRouteCleared={() => setClearRoute(false)}
                 offset={mapConfig.offset}
@@ -492,6 +655,7 @@ export default function StoryMapView() {
                 clearLandingMarkers={clearLandingMarkers}
                 activeLayerId={activeLayerId}
                 activeChapter={activeChapter}
+                chapterRegion={chapterRegion}
                 markers={storyMarkers}
                 activeMarkerIndex={activeMarkerIdx}
                 onMarkerClick={(markerIndex) => {
@@ -502,6 +666,8 @@ export default function StoryMapView() {
                     }
                 }}
                 onMapReady={(mapInstance) => { mapInstanceRef.current = mapInstance; }}
+                showRoute={showRoute}
+                showMarkers={showMarkers}
             />
             
             {/* Story Content */}
@@ -516,29 +682,34 @@ export default function StoryMapView() {
                     heroVideo={story.hero_video}
                     heroType={story.hero_type}
                     heroVideoLoop={story.hero_video_loop}
+                    mapStyle={story?.map_style || 'a'}
                     onExplore={() => {
                         setHasExplored(true);
                         if (story.story_description) {
                             scrollToProjectDescription();
                         } else {
                             navigateToChapter(0);
-                            if (chapters.length > 0 && chapters[0].slides?.length > 0) {
-                                const firstSlide = chapters[0].slides[0];
-                                if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) &&
-                                    firstSlide.coordinates.length === 2 &&
-                                    !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                            if (chapters.length > 0) {
+                                const ch0 = chapters[0];
+                                const firstSlide = ch0.slides?.[0];
+                                const ch0Coords = Array.isArray(ch0.coordinates) && ch0.coordinates.length === 2
+                                    && !isNaN(ch0.coordinates[0]) && !isNaN(ch0.coordinates[1])
+                                    ? ch0.coordinates : firstSlide?.coordinates;
+                                if (ch0Coords && Array.isArray(ch0Coords) &&
+                                    ch0Coords.length === 2 &&
+                                    !isNaN(ch0Coords[0]) && !isNaN(ch0Coords[1])) {
                                     // Suppress the redundant setMapConfig that fires via
                                     // the isActive effect → onSlideChange when chapter 0 activates
                                     suppressNextOnSlideChangeMapConfig.current = true;
                                     setMapConfig({
-                                        center: firstSlide.coordinates,
+                                        center: ch0Coords,
                                         offset: [-200, 0],
-                                        zoom: firstSlide.zoom || 12,
-                                        bearing: firstSlide.bearing || 0,
-                                        pitch: firstSlide.pitch || 0,
-                                        mapStyle: story.map_style || 'light',
+                                        zoom: ch0.coordinates ? (ch0.zoom || 12) : (firstSlide?.zoom || 12),
+                                        bearing: ch0.coordinates ? (ch0.bearing || 0) : (firstSlide?.bearing || 0),
+                                        pitch: ch0.coordinates ? (ch0.pitch || 0) : (firstSlide?.pitch || 0),
+                                        mapStyle: story.map_style || 'a',
                                         shouldRotate: true,
-                                        flyDuration: firstSlide.fly_duration || 8
+                                        flyDuration: ch0.fly_duration || 8
                                     });
                                 }
                             }
@@ -562,25 +733,31 @@ export default function StoryMapView() {
                         <ProjectDescriptionSection
                             storyTitle={story.title}
                             description={story.story_description}
+                            backgroundImage={story.thumbnail || story.hero_image}
+                            mapStyle={story?.map_style || 'a'}
                             onContinue={() => {
                                 navigateToChapter(0);
-                                if (chapters.length > 0 && chapters[0].slides?.length > 0) {
-                                    const firstSlide = chapters[0].slides[0];
-                                    if (firstSlide.coordinates && Array.isArray(firstSlide.coordinates) &&
-                                        firstSlide.coordinates.length === 2 &&
-                                        !isNaN(firstSlide.coordinates[0]) && !isNaN(firstSlide.coordinates[1])) {
+                                if (chapters.length > 0) {
+                                    const ch0 = chapters[0];
+                                    const firstSlide = ch0.slides?.[0];
+                                    const ch0Coords = Array.isArray(ch0.coordinates) && ch0.coordinates.length === 2
+                                        && !isNaN(ch0.coordinates[0]) && !isNaN(ch0.coordinates[1])
+                                        ? ch0.coordinates : firstSlide?.coordinates;
+                                    if (ch0Coords && Array.isArray(ch0Coords) &&
+                                        ch0Coords.length === 2 &&
+                                        !isNaN(ch0Coords[0]) && !isNaN(ch0Coords[1])) {
                                         // Suppress the redundant setMapConfig that fires via
                                         // the isActive effect → onSlideChange when chapter 0 activates
                                         suppressNextOnSlideChangeMapConfig.current = true;
                                         setMapConfig({
-                                            center: firstSlide.coordinates,
+                                            center: ch0Coords,
                                             offset: [-200, 0],
-                                            zoom: firstSlide.zoom || 12,
-                                            bearing: firstSlide.bearing || 0,
-                                            pitch: firstSlide.pitch || 0,
-                                            mapStyle: story.map_style || 'light',
+                                            zoom: ch0.coordinates ? (ch0.zoom || 12) : (firstSlide?.zoom || 12),
+                                            bearing: ch0.coordinates ? (ch0.bearing || 0) : (firstSlide?.bearing || 0),
+                                            pitch: ch0.coordinates ? (ch0.pitch || 0) : (firstSlide?.pitch || 0),
+                                            mapStyle: story.map_style || 'a',
                                             shouldRotate: true,
-                                            flyDuration: firstSlide.fly_duration || 8
+                                            flyDuration: ch0.fly_duration || 8
                                         });
                                     }
                                 }
@@ -605,12 +782,16 @@ export default function StoryMapView() {
                             delay={index === 0 ? 1000 : 0}
                             onFullScreenChange={setIsFullScreenOpen}
                             targetSlideIndex={targetSlide?.chapter === index ? targetSlide.slide : undefined}
+                            mapStyle={chapter.map_style || story?.map_style || 'a'}
                             onSlideChange={(slide) => {
                                 setActiveSlide(slide);
                                 if (!isValidCoordinatePair(slide.coordinates)) return;
 
                                 const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
 
+                                // _noRoute slides (chapter overview activations) only fly the map —
+                                // they don't contribute to the route trail, landing markers, or story markers.
+                                if (!slide._noRoute) {
                                 if (story.show_route !== false) {
                                     const chKey = chapters[index]?.id || `ch-${index}`;
 
@@ -624,6 +805,16 @@ export default function StoryMapView() {
 
                                     // Draw route immediately (straight-line fallback for unfetched segments)
                                     setRouteCoordinates(buildRouteFromVisited(currentVisited, segmentCacheRef.current));
+
+                                    // Static length = the route up to (but not including) the new slide.
+                                    // MapContainer uses this to know exactly where to start the new
+                                    // segment animation, independent of how many road-geometry points
+                                    // earlier segments have accumulated.
+                                    const staticRoute = buildRouteFromVisited(
+                                        currentVisited.slice(0, -1),
+                                        segmentCacheRef.current
+                                    );
+                                    setRouteStaticLength(staticRoute.length);
 
                                     // Fetch road segment for the latest step if not yet cached
                                     if (currentVisited.length >= 2) {
@@ -672,7 +863,8 @@ export default function StoryMapView() {
                                     if (!exists) return [...prev, { coordinates: normalizedCoords, chapterIndex: index }];
                                     return prev;
                                 });
-                                
+                                } // end !slide._noRoute
+
                                 // Set active Mapbox layer
                                 setActiveLayerId(slide.mapbox_layer_id || null);
 
@@ -687,12 +879,13 @@ export default function StoryMapView() {
                                         zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
                                         bearing: slide.bearing !== undefined ? slide.bearing : 0,
                                         pitch: slide.pitch !== undefined ? slide.pitch : 0,
-                                        mapStyle: chapter.map_style || 'light',
+                                        mapStyle: chapter.map_style || story.map_style || 'a',
                                         shouldRotate: false,
                                         flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 8)
                                     });
                                 }
 
+                                if (!slide._noRoute) {
                                 // Build interactive marker for this slide
                                 const slideIdx = chapter.slides?.findIndex(s =>
                                     s.coordinates && areCoordinatesEqual(
@@ -720,23 +913,19 @@ export default function StoryMapView() {
                                 // Set active index separately (avoid nested setState)
                                 const existingIdx = storyMarkers.findIndex(m => areCoordinatesEqual(m.coordinates, normalizedCoords));
                                 setActiveMarkerIdx(existingIdx === -1 ? storyMarkers.length : existingIdx);
+                                } // end !slide._noRoute (story markers)
                             }}
+                            onExplore={() => setCarouselOpened(true)}
                         />
                     </div>
                 ))}
                 
-                {/* Footer */}
+                {/* End-of-story section */}
                 <div className="pointer-events-auto" data-name="footer-wrapper">
                 <StoryFooter
                     onRestart={scrollToTop}
-                    onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                    storyId={storyId}
-                    isVisible={isBannerVisible}
-                    onOpenLibrary={() => setShowLibraryModal(true)}
                     relatedStories={relatedStories}
                     currentCategory={story?.category}
-                    onOpenMapEditor={isFullScreenOpen ? null : () => setIsLiveEditorOpen(prev => !prev)}
-                    isOwner={true}
                 />
                 </div>
             </div>
@@ -751,6 +940,17 @@ export default function StoryMapView() {
                     navigateToChapter(index);
                     setIsChapterMenuOpen(false);
                 }}
+                onGoToStart={() => {
+                    resetToPreChapter();
+                    window.scrollTo(0, 0);
+                }}
+                onGoToOverview={story.story_description ? () => {
+                    resetToPreChapter();
+                    const el = projectDescriptionRef.current;
+                    if (el) {
+                        window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY);
+                    }
+                } : undefined}
             />
             </div>
 
@@ -791,6 +991,38 @@ export default function StoryMapView() {
                     setActiveSlide(prev => prev?.id === slideId ? { ...prev, ...values } : prev);
                 }}
             />
+
+            {/* Bottom Pill Bar — appears when chapter 1 first activates */}
+            <BottomPillBar
+                isVisible={carouselOpened && !isFullScreenOpen}
+                onZoomIn={() => mapInstanceRef.current?.zoomIn()}
+                onZoomOut={() => mapInstanceRef.current?.zoomOut()}
+                onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}
+                showRoute={showRoute}
+                onToggleRoute={() => setShowRoute(v => !v)}
+                showMarkers={showMarkers}
+                onToggleMarkers={() => setShowMarkers(v => !v)}
+                onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
+                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
+                onOpenLibrary={() => setShowLibraryModal(true)}
+                onEditStory={() => setIsEditTransitioning(true)}
+            />
+
+            {/* White dissolve overlay for edit-story transition */}
+            <AnimatePresence>
+                {isEditTransitioning && (
+                    <motion.div
+                        className="fixed inset-0 bg-white pointer-events-all"
+                        style={{ zIndex: 9998 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, ease: 'easeInOut' }}
+                        onAnimationComplete={() => {
+                            navigate(`/StoryEditor?id=${storyId}`);
+                        }}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Document Library Sheet */}
             <Sheet 

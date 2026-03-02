@@ -6,11 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight, GripVertical, Trash2, Plus, MapPin, AlertCircle, Eye, Upload, Loader2, FileText } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import SlideEditor from './SlideEditor';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
 
 const validateCoordinate = (value, type) => {
     if (value === '' || value === undefined || value === null) return null;
@@ -99,7 +99,7 @@ export default function ChapterEditor({
                                 Chapter {index + 1}
                             </span>
                             <span className="text-sm font-medium text-slate-700 truncate">
-                                {firstSlideTitle}
+                                {chapter.name || firstSlideTitle}
                             </span>
                             <span className="text-xs text-slate-400 ml-auto mr-2">
                                 {slides.length} slide{slides.length !== 1 ? 's' : ''}
@@ -136,6 +136,31 @@ export default function ChapterEditor({
 
                 <CollapsibleContent>
                     <CardContent className="p-4 space-y-4">
+                        {/* Chapter Display */}
+                        <div className="p-4 bg-slate-50 rounded-lg space-y-3">
+                            <Label className="text-sm font-medium">Chapter Display</Label>
+                            <div>
+                                <Label className="text-xs">Chapter Name</Label>
+                                <Input
+                                    value={chapter.name || ''}
+                                    onChange={e => onUpdateChapter({ ...chapter, name: e.target.value })}
+                                    placeholder="e.g. Arriving in Rome"
+                                    className="h-9"
+                                />
+                                <p className="text-xs text-slate-400 mt-1">Shown as large title on the chapter card</p>
+                            </div>
+                            <div>
+                                <Label className="text-xs">Chapter Description</Label>
+                                <Textarea
+                                    value={chapter.description || ''}
+                                    onChange={e => onUpdateChapter({ ...chapter, description: e.target.value })}
+                                    placeholder="Brief chapter introduction shown on the title card"
+                                    rows={3}
+                                    className="resize-none"
+                                />
+                            </div>
+                        </div>
+
                         {/* Map Settings */}
                         <div className="p-4 bg-slate-50 rounded-lg space-y-3">
                             <div className="flex items-center justify-between">
@@ -200,18 +225,15 @@ export default function ChapterEditor({
                                 <div>
                                     <Label className="text-xs">Map Style</Label>
                                     <Select 
-                                        value={chapter.map_style || 'light'} 
+                                        value={chapter.map_style || 'a'}
                                         onValueChange={(value) => onUpdateChapter({ ...chapter, map_style: value })}
                                     >
                                         <SelectTrigger className="h-9">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="light">Light</SelectItem>
-                                            <SelectItem value="dark">Dark</SelectItem>
-                                            <SelectItem value="satellite">Satellite</SelectItem>
-                                            <SelectItem value="watercolor">Watercolor</SelectItem>
-                                            <SelectItem value="terrain">Terrain</SelectItem>
+                                            <SelectItem value="a">Style A</SelectItem>
+                                            <SelectItem value="c">Style C</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

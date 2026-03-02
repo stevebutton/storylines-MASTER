@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, ArrowLeft, MapPin, Loader2 } from 'lucide-react';
@@ -63,15 +63,15 @@ export default function ChapterPreview() {
             
             setIsLoading(true);
             try {
-                const [chapterData, slidesData] = await Promise.all([
-                    base44.entities.Chapter.filter({ id: chapterId }),
-                    base44.entities.Slide.filter({ chapter_id: chapterId }, 'order')
+                const [{ data: chapterData }, { data: slidesData }] = await Promise.all([
+                    supabase.from('chapters').select('*').eq('id', chapterId).limit(1),
+                    supabase.from('slides').select('*').eq('chapter_id', chapterId).order('order')
                 ]);
                 
-                if (chapterData.length > 0) {
+                if (chapterData?.length > 0) {
                     setChapter(chapterData[0]);
                 }
-                setSlides(slidesData);
+                setSlides(slidesData || []);
             } catch (error) {
                 console.error('Failed to load chapter:', error);
             } finally {

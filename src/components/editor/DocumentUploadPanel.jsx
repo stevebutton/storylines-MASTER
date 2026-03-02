@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, FileText, CheckCircle2, AlertCircle, Loader2, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 
 const TEMPLATE_CONTENT = `# Project Chronicle: [Insert Project Name]
 Subtitle: [Brief, Professional Overview of Project]
@@ -93,99 +95,101 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
 
     const processDocument = async () => {
         if (!file) return;
-
         setIsProcessing(true);
         setStep('processing');
-
         try {
-            // Upload the document
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            // Read file as text
+            const text = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
 
-            // Extract story structure from document
-            const storyData = await base44.integrations.Core.ExtractDataFromUploadedFile({
-                file_url,
-                json_schema: {
-                    type: "object",
-                    properties: {
-                        title: { type: "string" },
-                        subtitle: { type: "string" },
-                        author: { type: "string" },
-                        chapters: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    title: { type: "string" },
-                                    location: { type: "string" },
-                                    description: { type: "string" },
-                                    slides: {
-                                        type: "array",
-                                        items: {
-                                            type: "object",
-                                            properties: {
-                                                title: { type: "string" },
-                                                description: { type: "string" },
-                                                location: { type: "string" }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+            // Parse the structured template format
+            const lines = text.split('\n').map(l => l.trim());
+            let storyTitle = '';
+            let storySubtitle = '';
+            const parsedChapters = [];
+            let currentChapter = null;
+            let currentSlide = null;
+
+            for (const line of lines) {
+                if (!line) { currentSlide = null; continue; }
+                if (line.startsWith('# ') && !storyTitle) {
+                    storyTitle = line.replace(/^# /, '').trim();
+                } else if (/^subtitle:/i.test(line) && !storySubtitle) {
+                    storySubtitle = line.replace(/^subtitle:\s*/i, '').trim();
+                } else if (line.startsWith('## ')) {
+                    if (currentChapter) parsedChapters.push(currentChapter);
+                    currentSlide = null;
+                    const chapterTitle = line.replace(/^##\s+(Chapter\s+\d+:\s*)?/i, '').trim();
+                    currentChapter = { title: chapterTitle, location: '', description: '', slides: [] };
+                } else if (/^location:/i.test(line) && currentChapter && !currentSlide) {
+                    currentChapter.location = line.replace(/^location:\s*/i, '').trim();
+                } else if (/^description:/i.test(line) && currentChapter && !currentSlide) {
+                    currentChapter.description = line.replace(/^description:\s*/i, '').trim();
+                } else if (/^[*\-]\s+slide:/i.test(line) && currentChapter) {
+                    const slideTitle = line.replace(/^[*\-]\s+slide:\s*/i, '').trim();
+                    currentSlide = { title: slideTitle, description: '', location: '' };
+                    currentChapter.slides.push(currentSlide);
+                } else if (/^description:/i.test(line) && currentSlide) {
+                    currentSlide.description = line.replace(/^description:\s*/i, '').trim();
+                } else if (/^location:/i.test(line) && currentSlide) {
+                    currentSlide.location = line.replace(/^location:\s*/i, '').trim();
                 }
-            });
+            }
+            if (currentChapter) parsedChapters.push(currentChapter);
 
-            if (storyData.status === 'error') {
-                throw new Error(storyData.details);
+            if (!storyTitle || parsedChapters.length === 0) {
+                throw new Error('Could not parse document. Please ensure it follows the template format.');
             }
 
-            // Truncate title if exceeds limit
-            let storyTitle = storyData.output.title;
-            if (storyTitle.length > 34) {
-                storyTitle = storyTitle.substring(0, 34);
-            }
+            // Geocode locations via Mapbox
+            const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY;
+            const geocode = async (locationStr) => {
+                if (!locationStr || !MAPBOX_TOKEN) return null;
+                try {
+                    const r = await fetch(
+                        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationStr)}.json?limit=1&access_token=${MAPBOX_TOKEN}`
+                    );
+                    const d = await r.json();
+                    const [lng, lat] = d.features?.[0]?.center || [];
+                    return (lat && lng) ? [lat, lng] : null;
+                } catch { return null; }
+            };
 
-            // Create the story
-            const newStory = await base44.entities.Story.create({
-                title: storyTitle,
-                subtitle: storyData.output.subtitle,
-                author: storyData.output.author,
-                is_published: false
-            });
+            // Create Story + Chapters + Slides
+            const storyId = generateId();
+            await supabase.from('stories').insert({ id: storyId, title: storyTitle, subtitle: storySubtitle });
 
-            // Create chapters and slides
-            for (let i = 0; i < storyData.output.chapters.length; i++) {
-                const chapterData = storyData.output.chapters[i];
-                const newChapter = await base44.entities.Chapter.create({
-                    story_id: newStory.id,
-                    order: i,
-                    coordinates: [0, 0],
-                    zoom: 12,
-                    map_style: 'light',
-                    alignment: 'left'
+            for (let ci = 0; ci < parsedChapters.length; ci++) {
+                const ch = parsedChapters[ci];
+                const chapterCoords = await geocode(ch.location);
+                const chapterId = generateId();
+                await supabase.from('chapters').insert({
+                    id: chapterId, story_id: storyId,
+                    name: ch.title,
+                    order: ci,
                 });
-
-                for (let j = 0; j < (chapterData.slides || []).length; j++) {
-                    const slideData = chapterData.slides[j];
-                    await base44.entities.Slide.create({
-                        chapter_id: newChapter.id,
-                        order: j,
-                        title: slideData.title,
-                        description: slideData.description,
-                        location: slideData.location || chapterData.location
+                for (let si = 0; si < ch.slides.length; si++) {
+                    const sl = ch.slides[si];
+                    const slideCoords = await geocode(sl.location) || chapterCoords;
+                    await supabase.from('slides').insert({
+                        id: generateId(), chapter_id: chapterId,
+                        title: sl.title, description: sl.description,
+                        order: si, coordinates: slideCoords,
                     });
                 }
             }
 
             setStep('success');
-            setTimeout(() => {
-                navigate(`${createPageUrl('StoryEditor')}?id=${newStory.id}`);
-            }, 1500);
+            setTimeout(() => navigate(`${createPageUrl('StoryEditor')}?id=${storyId}`), 1500);
 
         } catch (error) {
             console.error('Failed to process document:', error);
             setStep('error');
+        } finally {
             setIsProcessing(false);
         }
     };
@@ -244,8 +248,8 @@ export default function DocumentUploadPanel({ isOpen, onClose }) {
                                                     How It Works
                                                 </h3>
                                                 <p className="text-slate-700 leading-relaxed">
-                                                    Upload a structured document containing your project outline or report. We'll help transform 
-                                                    it into an interactive narrative with chapters and visual content sections. Your document should 
+                                                    Upload a structured document containing your project outline or report. We'll help transform
+                                                    it into an interactive narrative with chapters and visual content sections. Your document should
                                                     follow a clear format with a title, section headings, and descriptive content for each location or milestone.
                                                 </p>
                                             </div>

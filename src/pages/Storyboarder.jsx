@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
@@ -45,7 +47,11 @@ export default function Storyboarder() {
 
     setIsUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const filePath = `${generateId()}-${file.name}`;
+      const { error: upErr } = await supabase.storage.from('media').upload(filePath, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+      const file_url = publicUrl;
       setCoverPhoto({
         id: Date.now(),
         name: file.name,
@@ -92,19 +98,20 @@ export default function Storyboarder() {
   const handleCreateStory = async () => {
     setIsSaving(true);
     try {
-      const user = await base44.auth.me();
-
-      const storyData = {
-        title: storyTitle || `Field Story ${new Date().toLocaleDateString()}`,
-        subtitle: 'Draft from mobile capture',
-        author: user.full_name || user.email,
-        is_published: false,
-        hero_image: coverPhoto?.url || undefined,
-        coordinates: startingLocation ? [startingLocation.lat, startingLocation.lng] : undefined,
-        zoom: startingLocation ? 12 : 2
-      };
-
-      const story = await base44.entities.Story.create(storyData);
+      const newStoryId = generateId();
+      const { data: story, error: storyErr } = await supabase
+          .from('stories')
+          .insert({
+              id: newStoryId,
+              title: storyTitle || `Field Story ${new Date().toLocaleDateString()}`,
+              subtitle: 'Draft from mobile capture',
+              is_published: false,
+              hero_image: coverPhoto?.url || undefined,
+              coordinates: startingLocation ? [startingLocation.lat, startingLocation.lng] : undefined,
+              zoom: startingLocation ? 12 : 2
+          })
+          .select().single();
+      if (storyErr) throw storyErr;
       setStoryId(story.id);
       setCurrentStep(3);
     } catch (error) {
@@ -119,9 +126,9 @@ export default function Storyboarder() {
     if (!chapterId) return;
     setIsLoadingSlides(true);
     try {
-      const chapterSlides = await base44.entities.Slide.filter({ chapter_id: chapterId });
-      chapterSlides.sort((a, b) => a.order - b.order);
-      setSlides(chapterSlides);
+      const { data: chapterSlides, error: slideErr } = await supabase.from('slides').select('*').eq('chapter_id', chapterId).order('order');
+      if (slideErr) throw slideErr;
+      setSlides(chapterSlides || []);
     } catch (error) {
       console.error('Error loading slides:', error);
     } finally {
@@ -138,7 +145,11 @@ export default function Storyboarder() {
       // Resize image before upload
       const resizedFile = await resizeImage(file, 800);
 
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: resizedFile });
+      const filePath = `${generateId()}-${file.name}`;
+      const { error: upErr } = await supabase.storage.from('media').upload(filePath, resizedFile, { contentType: resizedFile.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+      const file_url = publicUrl;
 
       // Capture location when image is uploaded
       if (navigator.geolocation) {
@@ -194,9 +205,11 @@ export default function Storyboarder() {
       }
 
       if (currentSlideId) {
-        await base44.entities.Slide.update(currentSlideId, slideData);
+          const { error } = await supabase.from('slides').update(slideData).eq('id', currentSlideId);
+          if (error) throw error;
       } else {
-        await base44.entities.Slide.create(slideData);
+          const { error } = await supabase.from('slides').insert({ id: generateId(), ...slideData });
+          if (error) throw error;
       }
 
       // Clear form
@@ -304,17 +317,14 @@ export default function Storyboarder() {
       }
 
       // Get current chapter count
-      const existingChapters = await base44.entities.Chapter.filter({ story_id: storyId });
-      const chapterOrder = existingChapters.length;
+      const { data: existingChapters } = await supabase.from('chapters').select('id').eq('story_id', storyId);
+      const chapterOrder = (existingChapters || []).length;
 
-      // Create chapter
-      const chapterData = {
-        story_id: storyId,
-        order: chapterOrder,
-        alignment: 'left'
-      };
-
-      const chapter = await base44.entities.Chapter.create(chapterData);
+      const { data: chapter, error: chapErr } = await supabase
+          .from('chapters')
+          .insert({ id: generateId(), story_id: storyId, order: chapterOrder, alignment: 'left' })
+          .select().single();
+      if (chapErr) throw chapErr;
       setChapterId(chapter.id);
 
       // Move to slide creation screen

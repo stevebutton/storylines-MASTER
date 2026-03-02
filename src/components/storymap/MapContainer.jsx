@@ -1,9 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 
-const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
+const MAP_STYLES = {
+    a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
+    c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
+};
 
 // One colour per chapter, cycling if there are more than 6 chapters
 const CHAPTER_COLORS = [
@@ -17,6 +20,18 @@ const CHAPTER_COLORS = [
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
+// Generate a GeoJSON polygon approximating a circle at [lat, lng] with the given radius in metres.
+function createCirclePolygon([lat, lng], radiusMetres, steps = 5) {
+    const coords = [];
+    for (let i = 0; i <= steps; i++) {
+        const angle = (i / steps) * 2 * Math.PI;
+        const dLat = (radiusMetres / 6371000) * Math.cos(angle) * (180 / Math.PI);
+        const dLng = (radiusMetres / 6371000) * Math.sin(angle) / Math.cos(lat * Math.PI / 180) * (180 / Math.PI);
+        coords.push([lng + dLng, lat + dLat]);
+    }
+    return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [coords] } };
+}
+
 export default function MapBackground({
     center,
     zoom,
@@ -29,6 +44,7 @@ export default function MapBackground({
     flyDuration = 8,
     instant = false,
     routeCoordinates = [],
+    routeStaticLength = 0,
     clearRoute = false,
     onRouteCleared,
     offset = [0, 0],
@@ -36,7 +52,11 @@ export default function MapBackground({
     clearLandingMarkers = false,
     activeLayerId = null,
     activeChapter = 0,
-    onMapReady = null
+    mapStyle = 'a',
+    chapterRegion = null,
+    onMapReady = null,
+    showRoute = true,
+    showMarkers = true,
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
@@ -45,8 +65,11 @@ export default function MapBackground({
     const routeSourceAdded = useRef(false);
     const landingMarkersRef = useRef([]);
     const lineAnimationRef = useRef(null);
+    const regionAnimRef = useRef(null);
     const previousLayerId = useRef(null);
-    const prevRouteLength = useRef(0);
+    const appliedStyleRef = useRef(null);
+    const [styleLoadCount, setStyleLoadCount] = useState(0);
+    const prevStaticLength = useRef(0);
     const onMarkerClickRef = useRef(onMarkerClick);
     onMarkerClickRef.current = onMarkerClick;
     const activeChapterRef = useRef(activeChapter);
@@ -63,9 +86,12 @@ export default function MapBackground({
             ? [center[1], center[0]]
             : [-74.006, 40.7128];
         
+        const initialStyle = MAP_STYLES[mapStyle] || MAP_STYLES.a;
+        appliedStyleRef.current = initialStyle;
+
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
-            style: MAPBOX_STYLE,
+            style: initialStyle,
             center: validCenter,
             zoom: zoom || 12,
             bearing: bearing || 0,
@@ -76,10 +102,7 @@ export default function MapBackground({
             fog: null
         });
 
-        // Add navigation controls (zoom, compass, pitch)
-        map.current.addControl(new mapboxgl.NavigationControl({
-            visualizePitch: true
-        }), 'bottom-left');
+        // Navigation controls are rendered as React buttons in BottomPillBar
 
         // Expose the map instance to parent via onMapReady callback
         if (onMapReady) {
@@ -181,12 +204,96 @@ export default function MapBackground({
         };
     }, [center, zoom, bearing, pitch, shouldRotate, flyDuration, instant]);
 
+    // Switch map style when the mapStyle prop changes.
+    // On style.load, reset routeSourceAdded and increment styleLoadCount so the
+    // route and region effects re-run and re-add their layers to the fresh style.
+    useEffect(() => {
+        if (!map.current) return;
+        const styleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.a;
+        if (appliedStyleRef.current === styleUrl) return;
+        if (!map.current.isStyleLoaded()) {
+            appliedStyleRef.current = styleUrl;
+            return;
+        }
+        appliedStyleRef.current = styleUrl;
+        routeSourceAdded.current = false;
+        map.current.setStyle(styleUrl);
+        map.current.once('style.load', () => {
+            setStyleLoadCount(c => c + 1);
+        });
+    }, [mapStyle]);
+
+    // ============================================
+    // CHAPTER REGION: Soft radiating circle marking the chapter's geographic territory
+    // ============================================
+    useEffect(() => {
+        if (regionAnimRef.current) {
+            cancelAnimationFrame(regionAnimRef.current);
+            regionAnimRef.current = null;
+        }
+        if (!map.current) return;
+
+        const cleanupRegion = () => {
+            try {
+                if (map.current?.getLayer('chapter-region-fill')) map.current.removeLayer('chapter-region-fill');
+                if (map.current?.getLayer('chapter-region-stroke')) map.current.removeLayer('chapter-region-stroke');
+                if (map.current?.getSource('chapter-region')) map.current.removeSource('chapter-region');
+            } catch (e) {}
+        };
+
+        if (!chapterRegion || !map.current.isStyleLoaded()) {
+            cleanupRegion();
+            return;
+        }
+
+        cleanupRegion();
+
+        const color = CHAPTER_COLORS[activeChapterRef.current % CHAPTER_COLORS.length].main;
+        const geojson = createCirclePolygon(chapterRegion.center, chapterRegion.radiusMetres);
+
+        try {
+            map.current.addSource('chapter-region', { type: 'geojson', data: geojson });
+            map.current.addLayer({
+                id: 'chapter-region-fill',
+                type: 'fill',
+                source: 'chapter-region',
+                paint: { 'fill-color': color, 'fill-opacity': 0.06 }
+            });
+            map.current.addLayer({
+                id: 'chapter-region-stroke',
+                type: 'line',
+                source: 'chapter-region',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-color': color, 'line-width': 1, 'line-opacity': 0.35 }
+            });
+        } catch (e) { return; }
+
+        // Slow breathing animation on the fill opacity
+        const startTime = performance.now();
+        const animate = (now) => {
+            if (!map.current?.getLayer('chapter-region-fill')) return;
+            const t = ((now - startTime) % 5000) / 5000;
+            const opacity = 0.04 + 0.05 * (0.5 + 0.5 * Math.sin(t * 2 * Math.PI));
+            try { map.current.setPaintProperty('chapter-region-fill', 'fill-opacity', opacity); } catch (e) {}
+            regionAnimRef.current = requestAnimationFrame(animate);
+        };
+        regionAnimRef.current = requestAnimationFrame(animate);
+
+        return () => {
+            if (regionAnimRef.current) {
+                cancelAnimationFrame(regionAnimRef.current);
+                regionAnimRef.current = null;
+            }
+            cleanupRegion();
+        };
+    }, [chapterRegion, styleLoadCount]);
+
     // ============================================
     // ROUTE LINE RENDERING: Draw and animate route line on map
     // Only animates the new segment (from prevRouteLength to current length)
     // ============================================
     useEffect(() => {
-        if (!map.current || !map.current.isStyleLoaded() || !mapContainer.current) return;
+        if (!map.current || !mapContainer.current) return;
 
         // Cancel any ongoing animation
         if (lineAnimationRef.current) {
@@ -194,19 +301,20 @@ export default function MapBackground({
             lineAnimationRef.current = null;
         }
 
-        // Clear route if requested
+        // Clear route if requested — handled before isStyleLoaded() guard so
+        // it always fires even during a style transition (otherwise clearRoute
+        // stays true permanently and blocks subsequent route drawing).
         if (clearRoute) {
-            if (map.current.getLayer('route-line')) {
-                map.current.removeLayer('route-line');
-            }
-            if (map.current.getSource('route')) {
-                map.current.removeSource('route');
-            }
+            if (map.current.getLayer('route-line')) map.current.removeLayer('route-line');
+            if (map.current.getLayer('route-glow')) map.current.removeLayer('route-glow');
+            if (map.current.getSource('route')) map.current.removeSource('route');
             routeSourceAdded.current = false;
-            prevRouteLength.current = 0;
+            prevStaticLength.current = 0;
             if (onRouteCleared) onRouteCleared();
             return;
         }
+
+        if (!map.current.isStyleLoaded()) return;
 
         // Coordinates are already normalized by StoryMapView — just filter out invalids
         const validCoords = routeCoordinates.filter(coord =>
@@ -223,6 +331,7 @@ export default function MapBackground({
             if (!map.current.getSource('route')) {
                 map.current.addSource('route', {
                     type: 'geojson',
+                    lineMetrics: true,   // required for line-gradient
                     data: {
                         type: 'Feature',
                         properties: {},
@@ -232,16 +341,21 @@ export default function MapBackground({
             }
 
             if (!map.current.getLayer('route-line')) {
-                const routeColor = CHAPTER_COLORS[activeChapterRef.current % CHAPTER_COLORS.length].main;
+                const color = CHAPTER_COLORS[activeChapterRef.current % CHAPTER_COLORS.length];
+                // Gradient line: faint at start → full chapter colour → white at the tip
                 map.current.addLayer({
                     id: 'route-line',
                     type: 'line',
                     source: 'route',
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
                     paint: {
-                        'line-color': routeColor,
-                        'line-width': 3,
-                        'line-opacity': 0.8
+                        'line-width': 4,
+                        'line-gradient': [
+                            'interpolate', ['linear'], ['line-progress'],
+                            0,   `rgba(${color.rgb}, 0.15)`,
+                            0.5, color.main,
+                            1,   '#ffffff'
+                        ]
                     }
                 });
             }
@@ -251,11 +365,17 @@ export default function MapBackground({
         const source = map.current.getSource('route');
         if (!source) return;
 
-        const prevLen = prevRouteLength.current;
-        const totalLen = allLngLat.length;
+        // Determine whether this update is a new slide visit (animate) or a
+        // road-geometry refinement from the Directions API (display only).
+        // routeStaticLength only increments when a slide is visited; it does NOT
+        // change when the API callback replaces straight-line segments with road
+        // geometry. This prevents API returns from triggering animations for
+        // slides the user passed 2–3 seconds ago.
+        const shouldAnimate = routeStaticLength !== prevStaticLength.current;
+        prevStaticLength.current = routeStaticLength;
 
-        // If no new coordinates were added, just ensure source is up to date
-        if (totalLen <= prevLen) {
+        if (!shouldAnimate) {
+            // Road-geometry refinement — just refresh the source, no animation.
             source.setData({
                 type: 'Feature',
                 properties: {},
@@ -264,7 +384,14 @@ export default function MapBackground({
             return;
         }
 
-        // Immediately show the static portion (all previously drawn coords)
+        // New slide — animate from the end of the static route to the new point.
+        // routeStaticLength is the exact coordinate count of the route up to (but
+        // not including) the new segment, so it is stable regardless of how many
+        // road-geometry points earlier segments contain.
+        const prevLen = routeStaticLength;
+        const newSegmentCoords = allLngLat.slice(Math.max(prevLen - 1, 0));
+
+        // Immediately show everything up to the start of the new segment
         const staticCoords = allLngLat.slice(0, Math.max(prevLen, 1));
         source.setData({
             type: 'Feature',
@@ -272,14 +399,9 @@ export default function MapBackground({
             geometry: { type: 'LineString', coordinates: staticCoords }
         });
 
-        // Delay line animation so camera starts moving first, then line chases it
-        const startDelay = 500;
-        // Line duration matches flyTo minus the delay, so they finish together
-        const flyMs = (flyDuration || 12) * 1000;
-        const animationDuration = flyMs - startDelay;
-        const newSegmentCoords = allLngLat.slice(Math.max(prevLen - 1, 0));
+        const startDelay = 300;
+        const animationDuration = 5000;
 
-        // Same easing curve as the flyTo for synchronized feel
         const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
         const delayTimer = setTimeout(() => {
@@ -305,7 +427,6 @@ export default function MapBackground({
                 if (linearProgress < 1) {
                     lineAnimationRef.current = requestAnimationFrame(animateLine);
                 } else {
-                    prevRouteLength.current = totalLen;
                     lineAnimationRef.current = null;
                 }
             };
@@ -320,7 +441,7 @@ export default function MapBackground({
                 lineAnimationRef.current = null;
             }
         };
-    }, [routeCoordinates, clearRoute, flyDuration]);
+    }, [routeCoordinates, routeStaticLength, clearRoute, styleLoadCount]);
 
     // Update markers
     useEffect(() => {
@@ -527,6 +648,21 @@ export default function MapBackground({
         });
     }, [landingMarkers, clearLandingMarkers, flyDuration]);
 
+    // Toggle route line visibility
+    useEffect(() => {
+        if (!map.current || !map.current.isStyleLoaded()) return;
+        const visibility = showRoute ? 'visible' : 'none';
+        if (map.current.getLayer('route-line')) map.current.setLayoutProperty('route-line', 'visibility', visibility);
+        if (map.current.getLayer('route-glow')) map.current.setLayoutProperty('route-glow', 'visibility', visibility);
+    }, [showRoute]);
+
+    // Toggle story marker visibility
+    useEffect(() => {
+        markersRef.current.forEach(marker => {
+            marker.getElement().style.display = showMarkers ? '' : 'none';
+        });
+    }, [showMarkers]);
+
     // ============================================
     // LAYER VISIBILITY: Show/hide Mapbox layers based on active slide
     // ============================================
@@ -562,29 +698,6 @@ export default function MapBackground({
         <div className="fixed inset-0 z-0" data-name="map-background-container">
             <div ref={mapContainer} className="h-full w-full" data-name="mapbox-container" />
             <style>{`
-                .mapboxgl-ctrl-bottom-left {
-                    z-index: 1000 !important;
-                    bottom: 80px !important;
-                    left: 16px !important;
-                    pointer-events: auto !important;
-                }
-                .mapboxgl-ctrl-group {
-                    background: rgba(255, 255, 255, 0.95) !important;
-                    backdrop-filter: blur(12px) !important;
-                    border-radius: 12px !important;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-                    border: 1px solid rgba(226, 232, 240, 0.5) !important;
-                    display: flex !important;
-                    flex-direction: row !important;
-                }
-                .mapboxgl-ctrl-group button {
-                    width: 36px !important;
-                    height: 36px !important;
-                }
-                .mapboxgl-ctrl-group button + button {
-                    border-top: none !important;
-                    border-left: 1px solid rgba(226, 232, 240, 0.5) !important;
-                }
                 @keyframes marker-pulse-0 {
                     0%   { box-shadow: 0 0 0 0px  rgba(217, 119,   6, 0.8), 0 2px 8px rgba(0,0,0,0.3); }
                     70%  { box-shadow: 0 0 0 22px rgba(217, 119,   6, 0),   0 2px 8px rgba(0,0,0,0.3); }

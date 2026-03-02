@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -40,8 +40,13 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
     const loadStories = async () => {
         setIsLoading(true);
         try {
-            const allStories = await base44.entities.Story.filter({ is_published: true });
-            const otherStories = allStories.filter(s => s.id !== currentStoryId);
+            const { data: allStories, error } = await supabase
+                .from('stories')
+                .select('*')
+                .eq('is_published', true)
+                .neq('id', currentStoryId ?? '');
+            if (error) throw error;
+            const otherStories = allStories;
             setStories(otherStories.map(s => ({
                 ...s,
                 display_image: s.thumbnail || s.hero_image || null

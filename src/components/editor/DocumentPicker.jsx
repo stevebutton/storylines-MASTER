@@ -1,23 +1,34 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Search, Upload, Loader2, X } from 'lucide-react';
+import { FileText, Search, Upload, Loader2, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadedDoc, setUploadedDoc] = useState(null);
+    const [docTitle, setDocTitle] = useState('');
 
     const { data: documents = [], isLoading } = useQuery({
         queryKey: ['documents', storyId],
         queryFn: async () => {
             if (!storyId) return [];
-            const allDocs = await base44.entities.Document.list('-created_date');
-            return allDocs.filter(doc => doc.story_id === storyId);
+            const { data, error } = await supabase
+                .from('documents')
+                .select('*')
+                .eq('story_id', storyId)
+                .order('created_date', { ascending: false });
+            if (error) throw error;
+            return data || [];
         },
         enabled: isOpen && !!storyId
     });
@@ -32,19 +43,38 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
 
         setIsUploading(true);
         try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            const newDoc = await base44.entities.Document.create({
-                title: file.name.replace(/\.pdf$/i, ''),
-                file_url,
-                story_id: storyId,
-                category: 'other',
-                file_size: file.size,
-                description: 'Uploaded from slide editor'
-            });
-            onSelect(newDoc);
-            onClose();
+            // Upload to Supabase Storage — requires a public 'documents' bucket
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const filePath = `${generateId()}-${safeName}`;
+            const { error: uploadError } = await supabase.storage
+                .from('media')
+                .upload(filePath, file, { contentType: file.type, upsert: false });
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl: file_url } } = supabase.storage
+                .from('media')
+                .getPublicUrl(filePath);
+
+            const docId = generateId();
+            const { data: newDoc, error: insertError } = await supabase
+                .from('documents')
+                .insert({
+                    id: docId,
+                    title: file.name.replace(/\.pdf$/i, ''),
+                    file_url,
+                    story_id: storyId,
+                    category: 'other',
+                    file_size: file.size,
+                    description: 'Uploaded from slide editor'
+                })
+                .select()
+                .single();
+            if (insertError) throw insertError;
+            setUploadedDoc(newDoc);
+            setDocTitle(newDoc.title || '');
         } catch (error) {
             console.error('Failed to upload document:', error);
+            toast.error(`Failed to upload document: ${error.message}`);
         } finally {
             setIsUploading(false);
             e.target.value = '';
@@ -58,7 +88,45 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
                     <DialogTitle>Select or Upload Document</DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-4">
+                {/* Success screen */}
+                {uploadedDoc && (
+                    <div className="flex flex-col items-center justify-center py-8 gap-5 text-center">
+                        <CheckCircle className="w-14 h-14 text-green-500" />
+                        <div>
+                            <h3 className="text-xl font-semibold text-slate-800">Document Uploaded Successfully</h3>
+                            <p className="text-xs text-slate-400 mt-1">Give it a short display title before attaching</p>
+                        </div>
+                        <div className="w-full max-w-sm text-left">
+                            <Label htmlFor="doc-title">Display Title</Label>
+                            <Input
+                                id="doc-title"
+                                value={docTitle}
+                                onChange={(e) => setDocTitle(e.target.value)}
+                                maxLength={60}
+                                placeholder="e.g. Site Survey Report"
+                                className="mt-1"
+                            />
+                            <p className="text-xs text-slate-400 mt-1">{docTitle.length}/60</p>
+                        </div>
+                        <Button
+                            className="bg-amber-600 hover:bg-amber-700"
+                            disabled={!docTitle.trim()}
+                            onClick={async () => {
+                                if (docTitle.trim() !== uploadedDoc.title) {
+                                    await supabase.from('documents').update({ title: docTitle.trim() }).eq('id', uploadedDoc.id);
+                                }
+                                onSelect({ ...uploadedDoc, title: docTitle.trim() });
+                                onClose();
+                                setUploadedDoc(null);
+                                setDocTitle('');
+                            }}
+                        >
+                            Attach to Slide
+                        </Button>
+                    </div>
+                )}
+
+                {!uploadedDoc && <div className="space-y-4">
                     {/* Upload Section */}
                     <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 bg-slate-50">
                         <input
@@ -155,7 +223,7 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
                             </div>
                         )}
                     </ScrollArea>
-                </div>
+                </div>}
             </DialogContent>
         </Dialog>
     );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crosshair, MapPin, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -168,11 +168,12 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         try {
             const patchData = { zoom, bearing, pitch, fly_duration: flyDuration };
             if (coordinatesModified && coordinates) patchData.coordinates = coordinates;
-            // Send the full slide object so base44 doesn't silently discard partial-update fields
-            const fullUpdateData = { ...activeSlide, ...patchData };
-            console.log('[LiveMapEditor] Saving slide', activeSlide.id, patchData, 'chapter_id:', activeSlide.chapter_id);
-            const result = await base44.entities.Slide.update(activeSlide.id, fullUpdateData);
-            console.log('[LiveMapEditor] Save result:', result?.zoom, result?.bearing, result?.pitch);
+            console.log('[LiveMapEditor] Saving slide', activeSlide.id, patchData);
+            const { error } = await supabase
+                .from('slides')
+                .update(patchData)
+                .eq('id', activeSlide.id);
+            if (error) throw error;
             if (onSlideSave) onSlideSave(activeSlide.id, patchData);
             toast.success(`Saved — zoom ${zoom.toFixed(1)}, bearing ${bearing}°, pitch ${pitch}°`);
         } catch {

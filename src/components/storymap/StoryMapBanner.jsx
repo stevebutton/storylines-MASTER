@@ -1,44 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-export default function StoryMapBanner({ 
+const THEME_FONTS = {
+    c: 'Righteous, cursive',
+};
+
+export default function StoryMapBanner({
     isVisible = true,
     storyTitle = '',
     hasExplored = false,
     storyId = '',
     isShareable = false,
-    isChapterMenuOpen, 
+    isChapterMenuOpen,
     onToggleChapterMenu,
-    hasChapters = false
+    hasChapters = false,
+    mapStyle = 'a',
 }) {
+    const themeFont = THEME_FONTS[mapStyle] || null;
     const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const currentUser = await base44.auth.me();
-                setUser(currentUser);
-            } catch (error) {
-                setUser(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        checkAuth();
-    }, []);
-
-    const handleLogin = () => {
-        base44.auth.redirectToLogin();
-    };
-
-    const handleLogout = () => {
-        base44.auth.logout();
-    };
+    // Auth handled by Supabase — stubbed until Supabase Auth is wired up
+    const handleLogin = () => {};
+    const handleLogout = () => { setUser(null); };
 
     return (
         <div 
@@ -49,27 +36,32 @@ export default function StoryMapBanner({
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
             )}
         >
-            {/* Logo - Left */}
-            <Link
-                to={createPageUrl('ProjectInterface')}
+            {/* Logo - slides in from left after banner settles */}
+            <motion.div
                 className="hidden md:block flex-shrink-0 ml-[100px]"
+                initial={{ opacity: 0, x: -80 }}
+                animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: -80 }}
+                transition={{ duration: 2, delay: 1, ease: 'easeOut' }}
             >
-                <img 
-                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png" 
-                    alt="Storylines" 
-                    width="250"
-                    height="100"
-                    className="hover:scale-110 transition-transform duration-500 cursor-pointer"
-                />
-            </Link>
+                <Link to={createPageUrl('ProjectInterface')}>
+                    <img
+                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                        alt="Storylines"
+                        width="250"
+                        height="100"
+                        className="hover:scale-110 transition-transform duration-500 cursor-pointer"
+                    />
+                </Link>
+            </motion.div>
 
-            {/* Story Title - Left */}
+            {/* Story title - slides in from right after banner settles */}
             {storyTitle && (
-                <motion.div 
-                    className="text-slate-800 flex-grow text-left font-light text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mx-4 md:mx-8"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={hasExplored ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-                    transition={{ duration: 1.5, delay: hasExplored ? 3 : 0, ease: "easeOut" }}
+                <motion.div
+                    className="text-slate-800 flex-grow text-left font-light text-3xl md:text-5xl mx-4 md:mx-8"
+                    style={{ fontFamily: themeFont || 'Raleway, sans-serif' }}
+                    initial={{ opacity: 0, x: 80 }}
+                    animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 80 }}
+                    transition={{ duration: 2, delay: 1, ease: 'easeOut' }}
                 >
                     {storyTitle}
                 </motion.div>

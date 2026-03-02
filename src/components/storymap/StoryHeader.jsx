@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines, onHeroLoaded }) {
+const THEME_FONTS = {
+    c: 'Righteous, cursive',
+};
+
+export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines, onHeroLoaded, mapStyle = 'a' }) {
+    const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
   const [mediaLoaded, setMediaLoaded] = useState(false);
 
   // When hero props change (including on SPA story switches where this component
@@ -11,11 +16,16 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
   // For no-hero stories, immediately re-set to true and fire onHeroLoaded.
   React.useEffect(() => {
     setMediaLoaded(false);
-    if (!heroImage && !heroVideo && onHeroLoaded) {
+    // Check whether a media element will actually be rendered —
+    // a video only renders when heroType === 'video' AND heroVideo is set.
+    // An image renders when heroImage is set (and it's not a video story).
+    const willRenderVideo = heroType === 'video' && !!heroVideo;
+    const willRenderImage = !willRenderVideo && !!heroImage;
+    if (!willRenderVideo && !willRenderImage && onHeroLoaded) {
       setMediaLoaded(true);
       onHeroLoaded();
     }
-  }, [heroImage, heroVideo]);
+  }, [heroImage, heroVideo, heroType]);
 
   const handleMediaLoad = () => {
     setMediaLoaded(true);
@@ -37,6 +47,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           loop
           playsInline
           onLoadedData={handleMediaLoad}
+          onError={handleMediaLoad}
           initial={{ scale: 1.25, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{
@@ -51,6 +62,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           alt={title}
           className="absolute inset-0 w-full h-full object-cover z-0"
           onLoad={handleMediaLoad}
+          onError={handleMediaLoad}
           initial={{ scale: 1.25, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{
@@ -87,7 +99,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
             {/* Story Title */}
             <motion.h1
               className="text-white text-6xl font-light text-center leading-none"
-              style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
+              style={{ fontFamily: themeFont, fontWeight: 300 }}
               data-name="story-title"
               initial={{ translateX: '100px', opacity: 0 }}
               animate={{ translateX: '0', opacity: 1 }}
@@ -98,8 +110,8 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
             {/* Description */}
             <motion.div
-              className="text-white font-light text-center leading-snug max-w-md"
-              style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300, fontSize: '1.4rem' }}
+              className="text-white font-light text-center leading-relaxed max-w-md text-base"
+              style={{ fontFamily: themeFont, fontWeight: 300 }}
               data-name="story-description"
               initial={{ translateY: '100px', opacity: 0 }}
               animate={{ translateY: '0', opacity: 1 }}
