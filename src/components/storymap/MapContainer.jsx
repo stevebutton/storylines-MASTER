@@ -7,6 +7,7 @@ const MAP_STYLES = {
     a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
     b: 'mapbox://styles/stevebutton/cktf8ygms085117nnzm4a97d0',
     c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
+    d: 'mapbox://styles/stevebutton/cmm9edvor004m01sc0wyug8vz',
 };
 
 // One colour per chapter, cycling if there are more than 6 chapters

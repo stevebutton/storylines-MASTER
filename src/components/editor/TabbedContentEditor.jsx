@@ -37,6 +37,12 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'ckn1s2y342eq018tidycnavti',
     },
+    d: {
+        label: 'Style D',
+        description: 'Mapbox Standard — dynamic lighting, 3D buildings',
+        owner: 'stevebutton',
+        id: 'cmm9edvor004m01sc0wyug8vz',
+    },
 };
 
 export default function TabbedContentEditor({
