@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChapterCarousel from './ChapterCarousel';
 import { X } from 'lucide-react';
@@ -327,7 +328,8 @@ export default function StoryChapter({
                 </AnimatePresence>
             </motion.div>
 
-            {/* PDF Modal */}
+            {/* PDF Modal — portalled to document.body to escape the z-[60] stacking context */}
+            {createPortal(
             <AnimatePresence>
             {showPdfModal && (
                 <motion.div
@@ -358,7 +360,8 @@ export default function StoryChapter({
                     </div>
                 </motion.div>
             )}
-            </AnimatePresence>
+            </AnimatePresence>,
+            document.body)}
 
             {/* Full Screen Image Viewer */}
             <FullScreenImageViewer
