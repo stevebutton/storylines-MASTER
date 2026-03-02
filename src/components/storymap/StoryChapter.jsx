@@ -201,6 +201,7 @@ export default function StoryChapter({
                                     whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
                                     transition={{ duration: 0.7, ease: 'easeOut' }}
                                 >
+                                    <span className="text-base font-light text-white/90">Explore the chapter</span>
                                     <img
                                         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
                                         alt=""
@@ -211,7 +212,6 @@ export default function StoryChapter({
                                             filter: 'brightness(0) saturate(100%) invert(80%) sepia(60%) saturate(500%) hue-rotate(5deg) brightness(105%)',
                                         }}
                                     />
-                                    <span className="text-base font-light text-amber-400">Explore the chapter</span>
                                 </motion.button>
                             )}
                         </div>
