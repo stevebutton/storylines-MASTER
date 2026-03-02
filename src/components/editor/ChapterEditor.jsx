@@ -225,18 +225,16 @@ export default function ChapterEditor({
                                 <div>
                                     <Label className="text-xs">Map Style</Label>
                                     <Select 
-                                        value={chapter.map_style || 'light'} 
+                                        value={chapter.map_style || 'a'}
                                         onValueChange={(value) => onUpdateChapter({ ...chapter, map_style: value })}
                                     >
                                         <SelectTrigger className="h-9">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="light">Light</SelectItem>
-                                            <SelectItem value="dark">Dark</SelectItem>
-                                            <SelectItem value="satellite">Satellite</SelectItem>
-                                            <SelectItem value="watercolor">Watercolor</SelectItem>
-                                            <SelectItem value="terrain">Terrain</SelectItem>
+                                            <SelectItem value="a">Style A</SelectItem>
+                                            <SelectItem value="b">Style B</SelectItem>
+                                            <SelectItem value="c">Style C</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

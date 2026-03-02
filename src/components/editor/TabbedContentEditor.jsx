@@ -184,17 +184,16 @@ export default function TabbedContentEditor({
                         <div>
                             <Label>Map Style</Label>
                             <Select 
-                                value={item.map_style || 'light'} 
+                                value={item.map_style || 'a'}
                                 onValueChange={(value) => onUpdate({ ...item, map_style: value })}
                             >
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="light">Light</SelectItem>
-                                    <SelectItem value="dark">Dark</SelectItem>
-                                    <SelectItem value="satellite">Satellite</SelectItem>
-                                    <SelectItem value="terrain">Terrain</SelectItem>
+                                    <SelectItem value="a">Style A</SelectItem>
+                                    <SelectItem value="b">Style B</SelectItem>
+                                    <SelectItem value="c">Style C</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

@@ -1,9 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 
-const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
+const MAP_STYLES = {
+    a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
+    b: 'mapbox://styles/stevebutton/cmllvyti1007h01sk0wa3hpkd',
+    c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
+};
 
 // One colour per chapter, cycling if there are more than 6 chapters
 const CHAPTER_COLORS = [
@@ -61,6 +65,8 @@ export default function MapBackground({
     const lineAnimationRef = useRef(null);
     const regionAnimRef = useRef(null);
     const previousLayerId = useRef(null);
+    const appliedStyleRef = useRef(null);
+    const [styleLoadCount, setStyleLoadCount] = useState(0);
     const prevStaticLength = useRef(0);
     const onMarkerClickRef = useRef(onMarkerClick);
     onMarkerClickRef.current = onMarkerClick;
@@ -78,9 +84,12 @@ export default function MapBackground({
             ? [center[1], center[0]]
             : [-74.006, 40.7128];
         
+        const initialStyle = MAP_STYLES[mapStyle] || MAP_STYLES.a;
+        appliedStyleRef.current = initialStyle;
+
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
-            style: MAPBOX_STYLE,
+            style: initialStyle,
             center: validCenter,
             zoom: zoom || 12,
             bearing: bearing || 0,
@@ -196,6 +205,25 @@ export default function MapBackground({
         };
     }, [center, zoom, bearing, pitch, shouldRotate, flyDuration, instant]);
 
+    // Switch map style when the mapStyle prop changes.
+    // On style.load, reset routeSourceAdded and increment styleLoadCount so the
+    // route and region effects re-run and re-add their layers to the fresh style.
+    useEffect(() => {
+        if (!map.current) return;
+        const styleUrl = MAP_STYLES[mapStyle] || MAP_STYLES.a;
+        if (appliedStyleRef.current === styleUrl) return;
+        if (!map.current.isStyleLoaded()) {
+            appliedStyleRef.current = styleUrl;
+            return;
+        }
+        appliedStyleRef.current = styleUrl;
+        routeSourceAdded.current = false;
+        map.current.setStyle(styleUrl);
+        map.current.once('style.load', () => {
+            setStyleLoadCount(c => c + 1);
+        });
+    }, [mapStyle]);
+
     // ============================================
     // CHAPTER REGION: Soft radiating circle marking the chapter's geographic territory
     // ============================================
@@ -259,7 +287,7 @@ export default function MapBackground({
             }
             cleanupRegion();
         };
-    }, [chapterRegion]);
+    }, [chapterRegion, styleLoadCount]);
 
     // ============================================
     // ROUTE LINE RENDERING: Draw and animate route line on map
@@ -414,7 +442,7 @@ export default function MapBackground({
                 lineAnimationRef.current = null;
             }
         };
-    }, [routeCoordinates, routeStaticLength, clearRoute]);
+    }, [routeCoordinates, routeStaticLength, clearRoute, styleLoadCount]);
 
     // Update markers
     useEffect(() => {
