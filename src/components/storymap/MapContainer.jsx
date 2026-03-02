@@ -102,10 +102,7 @@ export default function MapBackground({
             fog: null
         });
 
-        // Add navigation controls (zoom, compass, pitch)
-        map.current.addControl(new mapboxgl.NavigationControl({
-            visualizePitch: true
-        }), 'bottom-left');
+        // Navigation controls are rendered as React buttons in BottomPillBar
 
         // Expose the map instance to parent via onMapReady callback
         if (onMapReady) {
@@ -701,29 +698,6 @@ export default function MapBackground({
         <div className="fixed inset-0 z-0" data-name="map-background-container">
             <div ref={mapContainer} className="h-full w-full" data-name="mapbox-container" />
             <style>{`
-                .mapboxgl-ctrl-bottom-left {
-                    z-index: 1000 !important;
-                    bottom: 20px !important;
-                    left: 16px !important;
-                    pointer-events: auto !important;
-                }
-                .mapboxgl-ctrl-group {
-                    background: rgba(255, 255, 255, 0.95) !important;
-                    backdrop-filter: blur(12px) !important;
-                    border-radius: 12px !important;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
-                    border: 1px solid rgba(226, 232, 240, 0.5) !important;
-                    display: flex !important;
-                    flex-direction: row !important;
-                }
-                .mapboxgl-ctrl-group button {
-                    width: 36px !important;
-                    height: 36px !important;
-                }
-                .mapboxgl-ctrl-group button + button {
-                    border-top: none !important;
-                    border-left: 1px solid rgba(226, 232, 240, 0.5) !important;
-                }
                 @keyframes marker-pulse-0 {
                     0%   { box-shadow: 0 0 0 0px  rgba(217, 119,   6, 0.8), 0 2px 8px rgba(0,0,0,0.3); }
                     70%  { box-shadow: 0 0 0 22px rgba(217, 119,   6, 0),   0 2px 8px rgba(0,0,0,0.3); }

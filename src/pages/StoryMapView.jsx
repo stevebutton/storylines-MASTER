@@ -988,9 +988,12 @@ export default function StoryMapView() {
                 }}
             />
 
-            {/* Bottom Pill Bar */}
+            {/* Bottom Pill Bar — appears when chapter 1 first activates */}
             <BottomPillBar
-                isVisible={isBannerVisible && !isFullScreenOpen}
+                isVisible={activeChapter >= 0 && !isFullScreenOpen}
+                onZoomIn={() => mapInstanceRef.current?.zoomIn()}
+                onZoomOut={() => mapInstanceRef.current?.zoomOut()}
+                onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}
                 showRoute={showRoute}
                 onToggleRoute={() => setShowRoute(v => !v)}
                 showMarkers={showMarkers}
