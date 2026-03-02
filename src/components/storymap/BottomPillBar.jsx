@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Navigation, MapPin, SlidersHorizontal, BookOpen, Library, Pencil, LogIn, LogOut, Plus, Minus, Compass } from 'lucide-react';
 
 /**
@@ -33,15 +34,21 @@ export default function BottomPillBar({
     onLogin,
     onLogout,
 }) {
-    if (!isVisible) return null;
-
     const activeClass = 'bg-amber-100 text-amber-600';
     const idleClass   = 'text-slate-500 hover:bg-black/10 hover:text-slate-800';
     const btnBase     = 'w-10 h-10 rounded-full flex items-center justify-center transition-colors';
     const divider     = <div className="w-px h-5 bg-slate-200 mx-1 flex-shrink-0" />;
 
     return (
-        <div className="fixed bottom-8 left-8 z-[9999] flex items-center gap-3 pointer-events-auto">
+        <AnimatePresence>
+        {isVisible && (
+        <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 40, opacity: 0 }}
+            transition={{ duration: 1.4, ease: 'easeOut' }}
+            className="fixed bottom-8 left-8 z-[9999] flex items-center gap-3 pointer-events-auto"
+        >
 
             {/* ── Map Controls Pill ── */}
             <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-full px-3 py-2 shadow-2xl">
@@ -109,6 +116,8 @@ export default function BottomPillBar({
                     </button>
                 )}
             </div>
-        </div>
+        </motion.div>
+        )}
+        </AnimatePresence>
     );
 }

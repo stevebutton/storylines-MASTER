@@ -912,6 +912,7 @@ export default function StoryMapView() {
                                 setActiveMarkerIdx(existingIdx === -1 ? storyMarkers.length : existingIdx);
                                 } // end !slide._noRoute (story markers)
                             }}
+                            onExplore={() => setHasExplored(true)}
                         />
                     </div>
                 ))}
@@ -990,7 +991,7 @@ export default function StoryMapView() {
 
             {/* Bottom Pill Bar — appears when chapter 1 first activates */}
             <BottomPillBar
-                isVisible={activeChapter >= 0 && !isFullScreenOpen}
+                isVisible={hasExplored && !isFullScreenOpen}
                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
                 onZoomOut={() => mapInstanceRef.current?.zoomOut()}
                 onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}

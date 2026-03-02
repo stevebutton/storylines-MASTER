@@ -20,9 +20,15 @@ export default function StoryChapter({
     onFullScreenChange,
     targetSlideIndex,
     mapStyle = 'a',
+    onExplore,
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
     const [showCarousel, setShowCarousel] = useState(false);
+
+    const handleOpenCarousel = () => {
+        setShowCarousel(true);
+        if (onExplore) onExplore();
+    };
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const carouselScrollToRef = useRef(null);
     const [showPdfModal, setShowPdfModal] = useState(false);
@@ -62,7 +68,7 @@ export default function StoryChapter({
     // Open carousel and navigate when a marker click targets a specific slide
     useEffect(() => {
         if (targetSlideIndex !== undefined && targetSlideIndex !== null) {
-            setShowCarousel(true);
+            handleOpenCarousel();
             if (carouselScrollToRef.current) carouselScrollToRef.current(targetSlideIndex);
         }
     }, [targetSlideIndex]);
@@ -193,7 +199,7 @@ export default function StoryChapter({
                             {/* Explore button — slides in after card has fully landed */}
                             {showExploreButton && chapter.slides && chapter.slides.length > 0 && (
                                 <motion.button
-                                    onClick={() => setShowCarousel(true)}
+                                    onClick={handleOpenCarousel}
                                     className="absolute bottom-6 right-6 z-20 flex items-center gap-1"
                                     style={{ fontFamily: themeFont || 'Raleway, sans-serif' }}
                                     initial={{ opacity: 0, x: -40 }}
