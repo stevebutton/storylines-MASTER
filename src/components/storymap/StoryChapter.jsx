@@ -157,8 +157,8 @@ export default function StoryChapter({
                                         Chapter {String(index + 1).padStart(2, '0')}
                                     </span>
                                     {chapter.name && (
-                                        <span className="block text-5xl font-light text-amber-400 leading-none"
-                                              style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}>
+                                        <span className="block text-5xl font-light text-amber-400"
+                                              style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}>
                                             {chapter.name}
                                         </span>
                                     )}
@@ -167,8 +167,8 @@ export default function StoryChapter({
                                 {/* Chapter description */}
                                 {chapter.description && (
                                     <div
-                                        className="text-white/90 text-base font-light leading-relaxed mb-4"
-                                        style={{ fontFamily: 'Raleway, sans-serif' }}
+                                        className="text-white/90 text-base font-light leading-relaxed"
+                                        style={{ fontFamily: 'Raleway, sans-serif', paddingBottom: '40px' }}
                                         dangerouslySetInnerHTML={{ __html: chapter.description }}
                                     />
                                 )}

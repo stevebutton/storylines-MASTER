@@ -80,18 +80,26 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                     )}
                     <div className="absolute inset-0 bg-black/40" />
 
-                    <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px' }}>
+                    <div className="relative z-10 flex flex-col items-center text-center p-6 md:p-8" style={{ minHeight: '500px' }}>
                         <div className="flex-1" />
 
-                        {/* Story title */}
+                        {/* Story title — eyebrow, we've already seen this */}
                         {storyTitle && (
-                            <div className="mb-5">
-                                <span className="block text-5xl font-light text-amber-400 leading-none"
+                            <div className="mb-2">
+                                <span className="block text-xs font-medium text-amber-400 uppercase tracking-widest"
                                       style={{ fontFamily: 'Raleway, sans-serif' }}>
                                     {storyTitle}
                                 </span>
                             </div>
                         )}
+
+                        {/* Overview heading — the key function of this panel */}
+                        <div className="mb-5">
+                            <span className="block text-5xl font-light text-amber-400 leading-none"
+                                  style={{ fontFamily: 'Raleway, sans-serif' }}>
+                                Overview
+                            </span>
+                        </div>
 
                         {/* Paginated description */}
                         <motion.div
@@ -119,7 +127,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
 
                         {/* Page indicators */}
                         {pages.length > 1 && (
-                            <div className="flex items-center gap-2 mb-6">
+                            <div className="flex items-center justify-center gap-2 mb-6">
                                 {pages.map((_, index) => (
                                     <button
                                         key={index}
@@ -169,7 +177,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                         )}
 
                         {/* Scroll-down arrow */}
-                        <div className="flex justify-start pointer-events-auto">
+                        <div className="flex justify-center pointer-events-auto">
                             <motion.button
                                 onClick={onContinue}
                                 className="cursor-pointer"
