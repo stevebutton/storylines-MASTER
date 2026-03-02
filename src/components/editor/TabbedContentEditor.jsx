@@ -25,6 +25,12 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'clummsfw1002701mpbiw3exg7',
     },
+    b: {
+        label: 'Style B',
+        description: 'Mid-tone cartographic',
+        owner: 'stevebutton',
+        id: 'cktf8ygms085117nnzm4a97d0',
+    },
     c: {
         label: 'Style C',
         description: 'Dark cartographic — Righteous type, strong route contrast',
