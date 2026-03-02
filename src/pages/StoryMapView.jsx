@@ -77,6 +77,7 @@ export default function StoryMapView() {
     const [routeCoordinates, setRouteCoordinates] = useState([]);
     const [routeStaticLength, setRouteStaticLength] = useState(0);
     const [clearRoute, setClearRoute] = useState(false);
+    const [chapterRegion, setChapterRegion] = useState(null);
     const previousChapterRef = useRef(-1);
     const [landingMarkers, setLandingMarkers] = useState([]);
     const [clearLandingMarkers, setClearLandingMarkers] = useState(false);
@@ -147,6 +148,7 @@ export default function StoryMapView() {
             setRouteCoordinates([]);
             setRouteStaticLength(0);
             setClearRoute(false);
+            setChapterRegion(null);
             setLandingMarkers([]);
             setIsChapterMenuOpen(false);
             previousChapterRef.current = -1;
@@ -417,6 +419,29 @@ export default function StoryMapView() {
         }
     }, [activeChapter]);
 
+    // Compute the chapter region (centroid + bounding radius) for the active chapter.
+    // Displayed on the map as a soft circle marking the territory of the chapter's slides.
+    useEffect(() => {
+        if (activeChapter < 0 || chapters.length === 0) {
+            setChapterRegion(null);
+            return;
+        }
+        const chapter = chapters[activeChapter];
+        const coordSlides = chapter?.slides
+            ?.filter(s => isValidCoordinatePair(s.coordinates))
+            .map(s => normalizeCoordinatePair(s.coordinates)) || [];
+
+        if (coordSlides.length < 2) {
+            setChapterRegion(null);
+            return;
+        }
+
+        const centLat = coordSlides.reduce((sum, c) => sum + c[0], 0) / coordSlides.length;
+        const centLng = coordSlides.reduce((sum, c) => sum + c[1], 0) / coordSlides.length;
+        const radiusMetres = Math.max(...coordSlides.map(c => haversineMetres([centLat, centLng], c))) * 1.3;
+        setChapterRegion({ center: [centLat, centLng], radiusMetres });
+    }, [activeChapter, chapters]);
+
     // Pre-fetch all road segments for the active chapter when it activates.
     // Road geometry is cached in segmentCacheRef so it's ready before the user
     // navigates slides — eliminating the reactive-fetch lag.
@@ -545,6 +570,7 @@ export default function StoryMapView() {
         setClearRoute(true);
         setRouteCoordinates([]);
         setRouteStaticLength(0);
+        setChapterRegion(null);
         setStoryMarkers([]);
         setActiveMarkerIdx(-1);
         setLandingMarkers([]);
@@ -620,6 +646,7 @@ export default function StoryMapView() {
                 clearLandingMarkers={clearLandingMarkers}
                 activeLayerId={activeLayerId}
                 activeChapter={activeChapter}
+                chapterRegion={chapterRegion}
                 markers={storyMarkers}
                 activeMarkerIndex={activeMarkerIdx}
                 onMarkerClick={(markerIndex) => {

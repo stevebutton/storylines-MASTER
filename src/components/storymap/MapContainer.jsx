@@ -17,6 +17,18 @@ const CHAPTER_COLORS = [
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
+// Generate a GeoJSON polygon approximating a circle at [lat, lng] with the given radius in metres.
+function createCirclePolygon([lat, lng], radiusMetres, steps = 64) {
+    const coords = [];
+    for (let i = 0; i <= steps; i++) {
+        const angle = (i / steps) * 2 * Math.PI;
+        const dLat = (radiusMetres / 6371000) * Math.cos(angle) * (180 / Math.PI);
+        const dLng = (radiusMetres / 6371000) * Math.sin(angle) / Math.cos(lat * Math.PI / 180) * (180 / Math.PI);
+        coords.push([lng + dLng, lat + dLat]);
+    }
+    return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [coords] } };
+}
+
 export default function MapBackground({
     center,
     zoom,
@@ -37,6 +49,7 @@ export default function MapBackground({
     clearLandingMarkers = false,
     activeLayerId = null,
     activeChapter = 0,
+    chapterRegion = null,
     onMapReady = null
 }) {
     const mapContainer = useRef(null);
@@ -46,6 +59,7 @@ export default function MapBackground({
     const routeSourceAdded = useRef(false);
     const landingMarkersRef = useRef([]);
     const lineAnimationRef = useRef(null);
+    const regionAnimRef = useRef(null);
     const previousLayerId = useRef(null);
     const prevStaticLength = useRef(0);
     const onMarkerClickRef = useRef(onMarkerClick);
@@ -181,6 +195,71 @@ export default function MapBackground({
             }
         };
     }, [center, zoom, bearing, pitch, shouldRotate, flyDuration, instant]);
+
+    // ============================================
+    // CHAPTER REGION: Soft radiating circle marking the chapter's geographic territory
+    // ============================================
+    useEffect(() => {
+        if (regionAnimRef.current) {
+            cancelAnimationFrame(regionAnimRef.current);
+            regionAnimRef.current = null;
+        }
+        if (!map.current) return;
+
+        const cleanupRegion = () => {
+            try {
+                if (map.current?.getLayer('chapter-region-fill')) map.current.removeLayer('chapter-region-fill');
+                if (map.current?.getLayer('chapter-region-stroke')) map.current.removeLayer('chapter-region-stroke');
+                if (map.current?.getSource('chapter-region')) map.current.removeSource('chapter-region');
+            } catch (e) {}
+        };
+
+        if (!chapterRegion || !map.current.isStyleLoaded()) {
+            cleanupRegion();
+            return;
+        }
+
+        cleanupRegion();
+
+        const color = CHAPTER_COLORS[activeChapterRef.current % CHAPTER_COLORS.length].main;
+        const geojson = createCirclePolygon(chapterRegion.center, chapterRegion.radiusMetres);
+
+        try {
+            map.current.addSource('chapter-region', { type: 'geojson', data: geojson });
+            map.current.addLayer({
+                id: 'chapter-region-fill',
+                type: 'fill',
+                source: 'chapter-region',
+                paint: { 'fill-color': color, 'fill-opacity': 0.06 }
+            });
+            map.current.addLayer({
+                id: 'chapter-region-stroke',
+                type: 'line',
+                source: 'chapter-region',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-color': color, 'line-width': 1, 'line-opacity': 0.35 }
+            });
+        } catch (e) { return; }
+
+        // Slow breathing animation on the fill opacity
+        const startTime = performance.now();
+        const animate = (now) => {
+            if (!map.current?.getLayer('chapter-region-fill')) return;
+            const t = ((now - startTime) % 5000) / 5000;
+            const opacity = 0.04 + 0.05 * (0.5 + 0.5 * Math.sin(t * 2 * Math.PI));
+            try { map.current.setPaintProperty('chapter-region-fill', 'fill-opacity', opacity); } catch (e) {}
+            regionAnimRef.current = requestAnimationFrame(animate);
+        };
+        regionAnimRef.current = requestAnimationFrame(animate);
+
+        return () => {
+            if (regionAnimRef.current) {
+                cancelAnimationFrame(regionAnimRef.current);
+                regionAnimRef.current = null;
+            }
+            cleanupRegion();
+        };
+    }, [chapterRegion]);
 
     // ============================================
     // ROUTE LINE RENDERING: Draw and animate route line on map
