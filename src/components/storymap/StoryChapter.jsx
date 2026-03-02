@@ -194,21 +194,24 @@ export default function StoryChapter({
                             {showExploreButton && chapter.slides && chapter.slides.length > 0 && (
                                 <motion.button
                                     onClick={() => setShowCarousel(true)}
-                                    className="absolute bottom-6 right-6 z-20 flex items-center gap-1 text-white/90 hover:text-white transition-colors"
+                                    className="absolute bottom-6 right-6 z-20 flex items-center gap-1"
                                     style={{ fontFamily: themeFont || 'Raleway, sans-serif' }}
-                                    initial={{ opacity: 0, x: 40 }}
+                                    initial={{ opacity: 0, x: -40 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
                                     transition={{ duration: 0.7, ease: 'easeOut' }}
                                 >
-                                    <span className="text-base font-light">Explore the chapter</span>
                                     <img
                                         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
                                         alt=""
                                         width="74"
                                         height="50"
-                                        style={{ transform: 'rotate(-90deg)' }}
+                                        style={{
+                                            transform: 'rotate(-90deg)',
+                                            filter: 'brightness(0) saturate(100%) invert(80%) sepia(60%) saturate(500%) hue-rotate(5deg) brightness(105%)',
+                                        }}
                                     />
+                                    <span className="text-base font-light text-amber-400">Explore the chapter</span>
                                 </motion.button>
                             )}
                         </div>
