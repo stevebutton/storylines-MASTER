@@ -308,7 +308,7 @@ export default function StoryChapter({
                                                 >
                                                     <div
                                                         className="shrink-0 overflow-hidden rounded-[10px]"
-                                                        style={{ width: '80px', height: '60px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                                                        style={{ width: '60px', height: '100px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
                                                     >
                                                         <PdfThumbnail url={currentSlide.pdf_url} className="w-full h-full" />
                                                     </div>
@@ -337,7 +337,7 @@ export default function StoryChapter({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.4, ease: 'easeInOut' }}
-                    className="fixed left-0 right-0 bottom-0 top-[100px] z-[10001] bg-white flex flex-col"
+                    className="fixed left-0 right-0 bottom-0 top-[100px] z-[10001] bg-white flex flex-col pl-[50px] pr-[50px] pb-[50px]"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-8 py-5 border-b border-slate-200 flex-shrink-0">
