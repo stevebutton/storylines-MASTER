@@ -54,7 +54,9 @@ export default function MapBackground({
     activeChapter = 0,
     mapStyle = 'a',
     chapterRegion = null,
-    onMapReady = null
+    onMapReady = null,
+    showRoute = true,
+    showMarkers = true,
 }) {
     const mapContainer = useRef(null);
     const map = useRef(null);
@@ -649,6 +651,21 @@ export default function MapBackground({
         });
     }, [landingMarkers, clearLandingMarkers, flyDuration]);
 
+    // Toggle route line visibility
+    useEffect(() => {
+        if (!map.current || !map.current.isStyleLoaded()) return;
+        const visibility = showRoute ? 'visible' : 'none';
+        if (map.current.getLayer('route-line')) map.current.setLayoutProperty('route-line', 'visibility', visibility);
+        if (map.current.getLayer('route-glow')) map.current.setLayoutProperty('route-glow', 'visibility', visibility);
+    }, [showRoute]);
+
+    // Toggle story marker visibility
+    useEffect(() => {
+        markersRef.current.forEach(marker => {
+            marker.getElement().style.display = showMarkers ? '' : 'none';
+        });
+    }, [showMarkers]);
+
     // ============================================
     // LAYER VISIBILITY: Show/hide Mapbox layers based on active slide
     // ============================================
@@ -686,7 +703,7 @@ export default function MapBackground({
             <style>{`
                 .mapboxgl-ctrl-bottom-left {
                     z-index: 1000 !important;
-                    bottom: 80px !important;
+                    bottom: 20px !important;
                     left: 16px !important;
                     pointer-events: auto !important;
                 }

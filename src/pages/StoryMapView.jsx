@@ -7,6 +7,7 @@ import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
+import BottomPillBar from '@/components/storymap/BottomPillBar';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
@@ -16,7 +17,7 @@ import DocumentManagerContent from '@/components/documents/DocumentManagerConten
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 // Straight-line distance in metres between two [lat, lng] points (Haversine formula).
 function haversineMetres([lat1, lng1], [lat2, lng2]) {
@@ -95,7 +96,11 @@ export default function StoryMapView() {
 
     const [activeSlide, setActiveSlide] = useState(null);
     const [isLiveEditorOpen, setIsLiveEditorOpen] = useState(false);
+    const [showRoute, setShowRoute] = useState(true);
+    const [showMarkers, setShowMarkers] = useState(true);
+    const [isEditTransitioning, setIsEditTransitioning] = useState(false);
     const mapInstanceRef = useRef(null);
+    const navigate = useNavigate();
 
     // Close the live map editor when fullscreen carousel opens
     useEffect(() => {
@@ -658,6 +663,8 @@ export default function StoryMapView() {
                     }
                 }}
                 onMapReady={(mapInstance) => { mapInstanceRef.current = mapInstance; }}
+                showRoute={showRoute}
+                showMarkers={showMarkers}
             />
             
             {/* Story Content */}
@@ -909,18 +916,12 @@ export default function StoryMapView() {
                     </div>
                 ))}
                 
-                {/* Footer */}
+                {/* End-of-story section */}
                 <div className="pointer-events-auto" data-name="footer-wrapper">
                 <StoryFooter
                     onRestart={scrollToTop}
-                    onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                    storyId={storyId}
-                    isVisible={isBannerVisible}
-                    onOpenLibrary={() => setShowLibraryModal(true)}
                     relatedStories={relatedStories}
                     currentCategory={story?.category}
-                    onOpenMapEditor={isFullScreenOpen ? null : () => setIsLiveEditorOpen(prev => !prev)}
-                    isOwner={true}
                 />
                 </div>
             </div>
@@ -986,6 +987,35 @@ export default function StoryMapView() {
                     setActiveSlide(prev => prev?.id === slideId ? { ...prev, ...values } : prev);
                 }}
             />
+
+            {/* Bottom Pill Bar */}
+            <BottomPillBar
+                isVisible={isBannerVisible && !isFullScreenOpen}
+                showRoute={showRoute}
+                onToggleRoute={() => setShowRoute(v => !v)}
+                showMarkers={showMarkers}
+                onToggleMarkers={() => setShowMarkers(v => !v)}
+                onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
+                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
+                onOpenLibrary={() => setShowLibraryModal(true)}
+                onEditStory={() => setIsEditTransitioning(true)}
+            />
+
+            {/* White dissolve overlay for edit-story transition */}
+            <AnimatePresence>
+                {isEditTransitioning && (
+                    <motion.div
+                        className="fixed inset-0 bg-white pointer-events-all"
+                        style={{ zIndex: 9998 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, ease: 'easeInOut' }}
+                        onAnimationComplete={() => {
+                            navigate(`/StoryEditor?id=${storyId}`);
+                        }}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Document Library Sheet */}
             <Sheet 
