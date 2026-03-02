@@ -105,8 +105,8 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
             {/* Description */}
             <motion.div
-              className="text-white font-light text-center leading-snug max-w-md"
-              style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300, fontSize: '1.4rem' }}
+              className="text-white font-light text-center leading-relaxed max-w-md text-base"
+              style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 300 }}
               data-name="story-description"
               initial={{ translateY: '100px', opacity: 0 }}
               animate={{ translateY: '0', opacity: 1 }}

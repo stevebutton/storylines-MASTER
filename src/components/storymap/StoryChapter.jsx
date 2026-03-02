@@ -152,13 +152,13 @@ export default function StoryChapter({
 
                                 {/* Chapter number + name */}
                                 <div className="mb-5">
-                                    <span className="block text-2xl font-light text-amber-400 leading-none"
-                                          style={themeFont ? { fontFamily: themeFont } : undefined}>
+                                    <span className="block text-xs font-medium text-amber-400 uppercase tracking-widest mb-2"
+                                          style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}>
                                         Chapter {String(index + 1).padStart(2, '0')}
                                     </span>
                                     {chapter.name && (
                                         <span className="block text-5xl font-light text-amber-400 leading-none"
-                                              style={themeFont ? { fontFamily: themeFont } : undefined}>
+                                              style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}>
                                             {chapter.name}
                                         </span>
                                     )}
@@ -167,7 +167,8 @@ export default function StoryChapter({
                                 {/* Chapter description */}
                                 {chapter.description && (
                                     <div
-                                        className="text-white/90 text-sm md:text-base leading-relaxed mb-4"
+                                        className="text-white/90 text-base font-light leading-relaxed mb-4"
+                                        style={{ fontFamily: 'Raleway, sans-serif' }}
                                         dangerouslySetInnerHTML={{ __html: chapter.description }}
                                     />
                                 )}
@@ -229,8 +230,8 @@ export default function StoryChapter({
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.3 }}
-                                        className="text-2xl md:text-3xl font-light text-slate-800 mb-4 leading-tight"
-                                        style={themeFont ? { fontFamily: themeFont } : undefined}
+                                        className="text-3xl font-light text-slate-800 mb-4 leading-tight"
+                                        style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}
                                     >
                                         {currentSlide?.title}
                                     </motion.h2>
@@ -243,7 +244,8 @@ export default function StoryChapter({
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.3, delay: 0.1 }}
-                                        className="text-slate-600 leading-relaxed text-sm md:text-base prose prose-sm max-w-none"
+                                        className="text-slate-600 leading-relaxed text-base font-light prose prose-sm max-w-none"
+                                        style={{ fontFamily: 'Raleway, sans-serif' }}
                                         dangerouslySetInnerHTML={{ __html: currentSlide?.description || '' }}
                                     />
                                 </AnimatePresence>

@@ -86,7 +86,8 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                         {/* Story title */}
                         {storyTitle && (
                             <div className="mb-5">
-                                <span className="block text-5xl font-light text-amber-400 leading-none">
+                                <span className="block text-5xl font-light text-amber-400 leading-none"
+                                      style={{ fontFamily: 'Raleway, sans-serif' }}>
                                     {storyTitle}
                                 </span>
                             </div>
@@ -108,7 +109,8 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                                     className={index === currentPage ? 'block' : 'hidden'}
                                 >
                                     <div
-                                        className="text-white/90 leading-relaxed text-sm md:text-base prose prose-sm max-w-none prose-invert"
+                                        className="text-white/90 leading-relaxed text-base font-light prose prose-sm max-w-none prose-invert"
+                                        style={{ fontFamily: 'Raleway, sans-serif' }}
                                         dangerouslySetInnerHTML={{ __html: page }}
                                     />
                                 </motion.div>

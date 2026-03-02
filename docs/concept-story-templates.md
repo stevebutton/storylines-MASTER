@@ -45,6 +45,34 @@ Tested associating Google Font **Righteous** with Style C. Applied to: banner st
 
 **Font note:** Righteous is a strong display choice for C. The original concept suggested Montserrat — worth testing both. Raleway (current default) suits Style A well.
 
+## User-Configurable Fonts
+
+The font-per-style system is extensible to allow user choice of any Google Font, not just a hardcoded value per style.
+
+**Mechanism** — Google Fonts can be loaded dynamically at runtime without pre-declaring in `index.html`:
+```js
+function loadGoogleFont(fontName) {
+    const id = `gfont-${fontName.replace(/\s+/g, '-')}`;
+    if (document.getElementById(id)) return; // already loaded
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@300;400;700&display=swap`;
+    document.head.appendChild(link);
+}
+```
+The font name is then applied via `fontFamily` inline style exactly as the current `THEME_FONTS` system works. The chosen font name would be stored on the story record (e.g. `story.theme_font`).
+
+**UX approach options:**
+- **Curated picker** — dropdown of 10–15 hand-picked editorial fonts. Safer, better UX for most users.
+- **Free text** — user types any Google Font name; load attempted, falls back gracefully on failure.
+- **Hybrid** — curated list with an "Other (enter name)" escape hatch.
+
+Curated is the right first pass. Suggested shortlist for editorial/map storytelling:
+`Righteous`, `Playfair Display`, `Cormorant`, `Space Grotesk`, `Raleway`, `Bebas Neue`, `DM Serif Display`
+
+**Storage** — `story.theme_font` column (text, nullable). Null = inherit style default from `THEME_FONTS`.
+
 ## User-Facing Templates
 Templates would be named presets in the story editor:
 - "Classic" → Style A + Raleway + white banner
