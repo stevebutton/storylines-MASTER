@@ -330,7 +330,7 @@ export default function StoryChapter({
             {/* PDF Modal */}
             {showPdfModal && (
                 <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                    <DialogContent className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6 flex flex-col z-[100]">
+                    <DialogContent className="fixed left-0 top-[100px] w-[45vw] h-[calc(100vh-100px)] max-w-none backdrop-blur-2xl bg-white/80 border-white/30 p-6 flex flex-col z-[100]" style={{ transform: 'none' }}>
                         <DialogHeader className="pb-5">
                             <DialogTitle style={{ fontSize: '1.5rem' }}>
                                 {currentSlide?.pdf_url
