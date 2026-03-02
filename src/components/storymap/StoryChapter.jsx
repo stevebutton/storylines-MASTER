@@ -137,16 +137,19 @@ export default function StoryChapter({
                         exit={{ opacity: 0, x: -80 }}
                         transition={{ duration: 0.35, ease: 'easeOut' }}
                     >
-                        <div className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
-                            {/* Background image */}
-                            {bgImage && (
-                                <div
-                                    className="absolute inset-0 bg-cover bg-center"
-                                    style={{ backgroundImage: `url(${bgImage})` }}
-                                />
-                            )}
-                            <div className="absolute inset-0 bg-black/30" />
+                        <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
+                            {/* Background layers — clipped independently so the explore button can overflow */}
+                            <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                                {bgImage && (
+                                    <div
+                                        className="absolute inset-0 bg-cover bg-center"
+                                        style={{ backgroundImage: `url(${bgImage})` }}
+                                    />
+                                )}
+                                <div className="absolute inset-0 bg-black/30" />
+                            </div>
 
+                            {/* Text content */}
                             <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px', paddingRight: '14rem' }}>
                                 <div className="flex-1" />
 
@@ -172,20 +175,28 @@ export default function StoryChapter({
                                         dangerouslySetInnerHTML={{ __html: chapter.description }}
                                     />
                                 )}
-
-                                {/* Explore button */}
-                                {chapter.slides && chapter.slides.length > 0 && (
-                                    <button
-                                        onClick={() => setShowCarousel(true)}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-xl transition-colors w-fit"
-                                    >
-                                        Explore the chapter
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                        </svg>
-                                    </button>
-                                )}
                             </div>
+
+                            {/* Explore button — absolute bottom-right, slides in after 1s */}
+                            {chapter.slides && chapter.slides.length > 0 && (
+                                <motion.button
+                                    onClick={() => setShowCarousel(true)}
+                                    className="absolute bottom-6 right-6 z-20 flex items-center gap-3 text-white/90 hover:text-white transition-colors"
+                                    style={{ fontFamily: themeFont || 'Raleway, sans-serif' }}
+                                    initial={{ opacity: 0, x: 40 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 1, duration: 0.7, ease: 'easeOut' }}
+                                >
+                                    <span className="text-sm font-light">Explore the chapter</span>
+                                    <img
+                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
+                                        alt=""
+                                        width="50"
+                                        height="34"
+                                        style={{ transform: 'rotate(-90deg)' }}
+                                    />
+                                </motion.button>
+                            )}
                         </div>
                     </motion.div>
                 )}
