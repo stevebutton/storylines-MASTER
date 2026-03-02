@@ -98,18 +98,18 @@ export default function MapBackground({
             pitch: pitch || 0,
             interactive: true,
             dragRotate: true,
-            pitchWithRotate: true,
             fog: null
         });
 
         // Navigation controls are rendered as React buttons in BottomPillBar
 
-        // Expose the map instance to parent via onMapReady callback
-        if (onMapReady) {
-            map.current.once('load', () => {
-                if (onMapReady) onMapReady(map.current);
-            });
-        }
+        // v3: pitchWithRotate is no longer a Map constructor option — enable via handlers.
+        // Also enable touchPitch for two-finger pitch on touch devices.
+        map.current.once('load', () => {
+            if (map.current?.dragRotate) map.current.dragRotate.enable({ pitchWithRotate: true });
+            if (map.current?.touchPitch) map.current.touchPitch.enable();
+            if (onMapReady) onMapReady(map.current);
+        });
 
         return () => {
             if (map.current) {
