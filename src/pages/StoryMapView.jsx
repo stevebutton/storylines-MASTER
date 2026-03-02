@@ -622,6 +622,7 @@ export default function StoryMapView() {
                 isChapterMenuOpen={isChapterMenuOpen}
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
+                mapStyle={story?.map_style || 'a'}
             />
             </div>
 
@@ -769,6 +770,7 @@ export default function StoryMapView() {
                             delay={index === 0 ? 1000 : 0}
                             onFullScreenChange={setIsFullScreenOpen}
                             targetSlideIndex={targetSlide?.chapter === index ? targetSlide.slide : undefined}
+                            mapStyle={chapter.map_style || story?.map_style || 'a'}
                             onSlideChange={(slide) => {
                                 setActiveSlide(slide);
                                 if (!isValidCoordinatePair(slide.coordinates)) return;

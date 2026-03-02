@@ -5,7 +5,6 @@ import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } f
 
 const MAP_STYLES = {
     a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
-    b: 'mapbox://styles/stevebutton/cmm8vcrzw001u01shaw2uaq48',
     c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
 };
 

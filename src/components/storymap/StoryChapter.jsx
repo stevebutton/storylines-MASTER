@@ -6,6 +6,10 @@ import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 import FullScreenImageViewer from './FullScreenImageViewer';
 
+const THEME_FONTS = {
+    c: 'Righteous, cursive',
+};
+
 export default function StoryChapter({
     chapter,
     isActive,
@@ -14,8 +18,10 @@ export default function StoryChapter({
     onSlideChange,
     delay = 0,
     onFullScreenChange,
-    targetSlideIndex
+    targetSlideIndex,
+    mapStyle = 'a',
 }) {
+    const themeFont = THEME_FONTS[mapStyle] || null;
     const [showCarousel, setShowCarousel] = useState(false);
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const carouselScrollToRef = useRef(null);
@@ -146,11 +152,13 @@ export default function StoryChapter({
 
                                 {/* Chapter number + name */}
                                 <div className="mb-5">
-                                    <span className="block text-2xl font-light text-amber-400 leading-none">
+                                    <span className="block text-2xl font-light text-amber-400 leading-none"
+                                          style={themeFont ? { fontFamily: themeFont } : undefined}>
                                         Chapter {String(index + 1).padStart(2, '0')}
                                     </span>
                                     {chapter.name && (
-                                        <span className="block text-5xl font-light text-amber-400 leading-none">
+                                        <span className="block text-5xl font-light text-amber-400 leading-none"
+                                              style={themeFont ? { fontFamily: themeFont } : undefined}>
                                             {chapter.name}
                                         </span>
                                     )}
@@ -222,6 +230,7 @@ export default function StoryChapter({
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.3 }}
                                         className="text-2xl md:text-3xl font-light text-slate-800 mb-4 leading-tight"
+                                        style={themeFont ? { fontFamily: themeFont } : undefined}
                                     >
                                         {currentSlide?.title}
                                     </motion.h2>

@@ -4,6 +4,10 @@ import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+const THEME_FONTS = {
+    c: 'Righteous, cursive',
+};
+
 export default function StoryMapBanner({
     isVisible = true,
     storyTitle = '',
@@ -12,8 +16,10 @@ export default function StoryMapBanner({
     isShareable = false,
     isChapterMenuOpen,
     onToggleChapterMenu,
-    hasChapters = false
+    hasChapters = false,
+    mapStyle = 'a',
 }) {
+    const themeFont = THEME_FONTS[mapStyle] || null;
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -52,6 +58,7 @@ export default function StoryMapBanner({
             {storyTitle && (
                 <motion.div
                     className="text-slate-800 flex-grow text-left font-light text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl mx-4 md:mx-8"
+                    style={themeFont ? { fontFamily: themeFont } : undefined}
                     initial={{ opacity: 0, x: 80 }}
                     animate={isVisible ? { opacity: 1, x: 0 } : { opacity: 0, x: 80 }}
                     transition={{ duration: 2, delay: 1, ease: 'easeOut' }}

@@ -192,7 +192,6 @@ export default function TabbedContentEditor({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="a">Style A</SelectItem>
-                                    <SelectItem value="b">Style B</SelectItem>
                                     <SelectItem value="c">Style C</SelectItem>
                                 </SelectContent>
                             </Select>
