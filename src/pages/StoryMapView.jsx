@@ -66,7 +66,7 @@ export default function StoryMapView() {
     const [mapConfig, setMapConfig] = useState({
         center: [0, 0],
         zoom: 2,
-        mapStyle: 'light',
+        mapStyle: 'a',
         bearing: 0,
         pitch: 0,
         shouldRotate: false,
@@ -183,7 +183,7 @@ export default function StoryMapView() {
                 ...prev,
                 center: story.coordinates,
                 zoom: story.zoom || 2,
-                mapStyle: story.map_style || 'light',
+                mapStyle: story.map_style || 'a',
                 bearing: story.bearing || 0,
                 pitch: story.pitch || 0,
                 instant: true
@@ -395,7 +395,7 @@ export default function StoryMapView() {
                                     zoom: activationZoom,
                                     bearing: activationBearing,
                                     pitch: activationPitch,
-                                    mapStyle: story.map_style || 'light',
+                                    mapStyle: story.map_style || 'a',
                                     shouldRotate: true,
                                     flyDuration: chapter.fly_duration || 8
                                 });
@@ -695,7 +695,7 @@ export default function StoryMapView() {
                                         zoom: ch0.coordinates ? (ch0.zoom || 12) : (firstSlide?.zoom || 12),
                                         bearing: ch0.coordinates ? (ch0.bearing || 0) : (firstSlide?.bearing || 0),
                                         pitch: ch0.coordinates ? (ch0.pitch || 0) : (firstSlide?.pitch || 0),
-                                        mapStyle: story.map_style || 'light',
+                                        mapStyle: story.map_style || 'a',
                                         shouldRotate: true,
                                         flyDuration: ch0.fly_duration || 8
                                     });
@@ -742,7 +742,7 @@ export default function StoryMapView() {
                                             zoom: ch0.coordinates ? (ch0.zoom || 12) : (firstSlide?.zoom || 12),
                                             bearing: ch0.coordinates ? (ch0.bearing || 0) : (firstSlide?.bearing || 0),
                                             pitch: ch0.coordinates ? (ch0.pitch || 0) : (firstSlide?.pitch || 0),
-                                            mapStyle: story.map_style || 'light',
+                                            mapStyle: story.map_style || 'a',
                                             shouldRotate: true,
                                             flyDuration: ch0.fly_duration || 8
                                         });
@@ -865,7 +865,7 @@ export default function StoryMapView() {
                                         zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
                                         bearing: slide.bearing !== undefined ? slide.bearing : 0,
                                         pitch: slide.pitch !== undefined ? slide.pitch : 0,
-                                        mapStyle: chapter.map_style || 'light',
+                                        mapStyle: chapter.map_style || story.map_style || 'a',
                                         shouldRotate: false,
                                         flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 8)
                                     });
