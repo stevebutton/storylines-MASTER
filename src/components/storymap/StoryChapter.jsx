@@ -335,7 +335,7 @@ export default function StoryChapter({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.4, ease: 'easeInOut' }}
-                    className="fixed inset-0 z-[9990] bg-white flex flex-col"
+                    className="fixed left-0 right-0 bottom-0 top-[100px] z-[10001] bg-white flex flex-col"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-8 py-5 border-b border-slate-200 flex-shrink-0">
