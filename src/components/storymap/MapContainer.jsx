@@ -53,6 +53,7 @@ export default function MapBackground({
     clearLandingMarkers = false,
     activeLayerId = null,
     activeChapter = 0,
+    mapStyle = 'a',
     chapterRegion = null,
     onMapReady = null
 }) {
