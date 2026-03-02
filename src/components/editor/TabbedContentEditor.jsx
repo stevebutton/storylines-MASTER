@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2, Check } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
@@ -15,6 +15,23 @@ import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
 import DocumentPicker from '@/components/editor/DocumentPicker';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
+
+const MAP_STYLES_CONFIG = {
+    a: {
+        label: 'Style A',
+        description: 'Light cartographic — white banner, amber accents',
+        owner: 'stevebutton',
+        id: 'clummsfw1002701mpbiw3exg7',
+    },
+    c: {
+        label: 'Style C',
+        description: 'Dark cartographic — Righteous type, strong route contrast',
+        owner: 'stevebutton',
+        id: 'ckn1s2y342eq018tidycnavti',
+    },
+};
 
 export default function TabbedContentEditor({
     itemType,
@@ -108,8 +125,15 @@ export default function TabbedContentEditor({
         };
 
         return (
-            <div className="space-y-6">
-                <Card>
+            <div className="space-y-4">
+                <Tabs defaultValue="story">
+                    <TabsList className="w-full grid grid-cols-2">
+                        <TabsTrigger value="story">Story</TabsTrigger>
+                        <TabsTrigger value="style">Map Style</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="story">
+                    <Card>
                     <CardContent className="pt-6 space-y-4">
                         <div>
                             <Label>Title <span className="text-red-500">*</span></Label>
@@ -181,21 +205,6 @@ export default function TabbedContentEditor({
                             />
                         </div>
 
-                        <div>
-                            <Label>Map Style</Label>
-                            <Select 
-                                value={item.map_style || 'a'}
-                                onValueChange={(value) => onUpdate({ ...item, map_style: value })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="a">Style A</SelectItem>
-                                    <SelectItem value="c">Style C</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label>Author</Label>
@@ -372,7 +381,64 @@ export default function TabbedContentEditor({
                             </Button>
                         </div>
                     </CardContent>
-                </Card>
+                    </Card>
+                    </TabsContent>
+
+                    <TabsContent value="style">
+                    <Card>
+                    <CardContent className="pt-6 space-y-4">
+                        <p className="text-xs text-slate-500">
+                            Select the base map style for this story. Thumbnails show the style over your story's opening location.
+                        </p>
+                        <div className="flex flex-col gap-4">
+                            {Object.entries(MAP_STYLES_CONFIG).map(([key, style]) => {
+                                const thumbLon = item.coordinates?.[1] ?? 2.3522;
+                                const thumbLat = item.coordinates?.[0] ?? 48.8566;
+                                const thumbZoom = Math.max(4, Math.min(item.zoom || 8, 13));
+                                const thumbUrl = `https://api.mapbox.com/styles/v1/${style.owner}/${style.id}/static/${thumbLon},${thumbLat},${thumbZoom},0,0/600x280@2x?access_token=${MAPBOX_TOKEN}`;
+                                const isSelected = (item.map_style || 'a') === key;
+                                return (
+                                    <div
+                                        key={key}
+                                        onClick={() => onUpdate({ ...item, map_style: key })}
+                                        className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                                            isSelected
+                                                ? 'border-amber-500 shadow-lg shadow-amber-500/20'
+                                                : 'border-slate-200 hover:border-slate-400'
+                                        }`}
+                                    >
+                                        <div className="relative">
+                                            <img
+                                                src={thumbUrl}
+                                                alt={style.label}
+                                                className="w-full h-44 object-cover"
+                                            />
+                                            {isSelected && (
+                                                <div className="absolute top-2 right-2 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-md">
+                                                    <Check className="w-4 h-4 text-white" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className={`px-4 py-3 flex items-center justify-between ${isSelected ? 'bg-amber-50' : 'bg-white'}`}>
+                                            <div>
+                                                <span className={`text-sm font-medium block ${isSelected ? 'text-amber-700' : 'text-slate-700'}`}>
+                                                    {style.label}
+                                                </span>
+                                                <span className="text-xs text-slate-400">{style.description}</span>
+                                            </div>
+                                            {isSelected && (
+                                                <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Active</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
+                    </Card>
+                    </TabsContent>
+
+                </Tabs>
             </div>
         );
     }

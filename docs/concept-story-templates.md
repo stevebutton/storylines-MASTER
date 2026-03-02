@@ -35,6 +35,16 @@ const MAP_THEMES = {
 ```
 Theme passed via React context from StoryMapView — components read from it rather than hardcoded classes.
 
+## Proof of Concept — Style C + Righteous (March 2026)
+
+Tested associating Google Font **Righteous** with Style C. Applied to: banner story title, chapter number/name on title card, carousel slide title. Font passed via `mapStyle` prop → `THEME_FONTS[mapStyle]` inline style, with no structural changes.
+
+**Observed:** Style C is a darker cartographic map that creates strong tonal contrast. The gradient route line (amber→white, `line-gradient`) reads significantly better against this base than against Style A — the dark map gives the gradient room to breathe. Typography shift reinforces the visual register change.
+
+**Key insight:** The map style doesn't just change the basemap — it self-selects a visual language. Route treatment, typography, and card overlays all reinforce each other naturally. A story could shift registers mid-journey (e.g. Style A for urban chapters, Style C for wilderness sections) using the per-chapter `map_style` field already in the DB schema.
+
+**Font note:** Righteous is a strong display choice for C. The original concept suggested Montserrat — worth testing both. Raleway (current default) suits Style A well.
+
 ## User-Facing Templates
 Templates would be named presets in the story editor:
 - "Classic" → Style A + Raleway + white banner
@@ -48,4 +58,4 @@ Each template maps to a `(mapStyle, theme)` pair. Users pick a template; individ
 - Template names to be defined once visual options are clearer
 
 ## Status
-Concept only. Map style switching (a/c) already implemented. Theme system not yet built.
+Partially prototyped. Map style switching (a/c) implemented. Font-per-style implemented via `THEME_FONTS` in StoryChapter + StoryMapBanner. Full theme system (banner transparency, card bg, accent colour) not yet built.
