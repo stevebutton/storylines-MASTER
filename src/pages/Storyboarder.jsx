@@ -97,6 +97,11 @@ export default function Storyboarder() {
     const [showVoice, setShowVoice] = useState(false);
     const totalPhotosRef = useRef(0);
 
+    // ── Description panel (shown after each photo saves) ──────────────────────
+    const [lastSavedSlideId, setLastSavedSlideId] = useState(null);
+    const [showDescriptionPanel, setShowDescriptionPanel] = useState(false);
+    const [pendingDescription, setPendingDescription] = useState('');
+
     // ── Status ────────────────────────────────────────────────────────────────
     const [saving, setSaving] = useState(false);
     const [savedFlash, setSavedFlash] = useState(false);
@@ -148,9 +153,28 @@ export default function Storyboarder() {
         }
     };
 
+    // ── Save description to the most recently captured slide ──────────────────
+    const saveDescription = async () => {
+        if (pendingDescription.trim() && lastSavedSlideId) {
+            await supabase.from('slides')
+                .update({ description: pendingDescription.trim() })
+                .eq('id', lastSavedSlideId);
+        }
+        setShowDescriptionPanel(false);
+        setPendingDescription('');
+    };
+
     // ── Auto-save slide on photo capture ──────────────────────────────────────
     const handlePhotoCapture = async (file) => {
         if (!file || saving) return;
+        // Auto-save any description recorded for the previous photo
+        if (showDescriptionPanel && pendingDescription.trim() && lastSavedSlideId) {
+            await supabase.from('slides')
+                .update({ description: pendingDescription.trim() })
+                .eq('id', lastSavedSlideId);
+        }
+        setShowDescriptionPanel(false);
+        setPendingDescription('');
         setSaving(true);
         setSavedFlash(false);
         try {
@@ -179,6 +203,8 @@ export default function Storyboarder() {
             setSlides((prev) => [...prev, { id: slideId, title, image: publicUrl }]);
             setPendingTitle('');
             setShowVoice(false);
+            setLastSavedSlideId(slideId);
+            setShowDescriptionPanel(true);
             setSavedFlash(true);
             setTimeout(() => setSavedFlash(false), 2000);
         } catch (e) {
@@ -190,7 +216,11 @@ export default function Storyboarder() {
         }
     };
 
-    const startNewChapter = () => setStep(2);
+    const startNewChapter = () => {
+        setShowDescriptionPanel(false);
+        setPendingDescription('');
+        setStep(2);
+    };
 
     const finishStory = () => setStep(4);
 
@@ -203,6 +233,9 @@ export default function Storyboarder() {
         setSlides([]);
         setPendingTitle('');
         setShowVoice(false);
+        setLastSavedSlideId(null);
+        setShowDescriptionPanel(false);
+        setPendingDescription('');
         totalPhotosRef.current = 0;
     };
 
@@ -360,6 +393,40 @@ export default function Storyboarder() {
                                     )}
                                 </button>
                             </div>
+
+                            {/* ── Description panel (post-capture) ───────────── */}
+                            <AnimatePresence>
+                                {showDescriptionPanel && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        transition={{ duration: 0.25 }}
+                                        className="mx-5 mb-3 bg-zinc-800 border border-zinc-700 rounded-2xl p-4 space-y-3"
+                                    >
+                                        <p className="text-sm font-medium text-zinc-300">Add a description?</p>
+                                        <VoiceNarrationRecorder
+                                            onTranscriptChange={setPendingDescription}
+                                            initialTranscript=""
+                                        />
+                                        <div className="flex gap-2 pt-1">
+                                            <button
+                                                onClick={() => { setShowDescriptionPanel(false); setPendingDescription(''); }}
+                                                className="flex-1 h-10 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-sm text-zinc-300 hover:text-white transition-colors"
+                                            >
+                                                Skip
+                                            </button>
+                                            <button
+                                                onClick={saveDescription}
+                                                disabled={!pendingDescription.trim()}
+                                                className="flex-1 h-10 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-sm font-semibold transition-colors"
+                                            >
+                                                Save description
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             {/* Saved flash */}
                             <AnimatePresence>
