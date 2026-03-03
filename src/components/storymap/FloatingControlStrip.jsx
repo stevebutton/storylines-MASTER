@@ -16,12 +16,13 @@ export default function FloatingControlStrip({ onPrev, onNext, onClose, hasMulti
             {/* PDF section — label above, then title left + thumbnail right */}
             {pdfUrl && (
                 <div className="pointer-events-auto flex-shrink-0 flex flex-col gap-1.5">
-                    <span className="text-[10px] text-white/80 uppercase tracking-wider font-medium drop-shadow">
+                    <span className="text-[10px] text-white/80 uppercase tracking-wider font-medium drop-shadow"
+                          style={{ paddingLeft: 30 }}>
                         Related Documents
                     </span>
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-1.5">
                         {pdfTitle && (
-                            <span className="text-xs text-white font-medium leading-snug drop-shadow max-w-[100px]"
+                            <span className="text-xs text-white font-medium leading-snug drop-shadow max-w-[100px] text-right"
                                   style={{
                                       display: '-webkit-box',
                                       WebkitLineClamp: 4,
