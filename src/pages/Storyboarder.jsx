@@ -3,7 +3,7 @@ import { supabase } from '@/api/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
-    Camera, Mic, ChevronRight, Loader2, Check, Plus, Sparkles, BookOpen,
+    Camera, ChevronRight, Loader2, Check, Plus, Sparkles, BookOpen, RotateCcw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VoiceNarrationRecorder from '@/components/mobile/VoiceNarrationRecorder';
@@ -11,7 +11,6 @@ import { resizeImage } from '@/components/mobile/ImageResizer';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 
-// Silent GPS capture — resolves null on any failure
 const captureGPS = () =>
     new Promise((resolve) => {
         if (!navigator.geolocation) return resolve(null);
@@ -22,11 +21,66 @@ const captureGPS = () =>
         );
     });
 
-export default function Storyboarder() {
-    const navigate = useNavigate();
+// ── Voice title step — shared by story name + chapter name ────────────────────
+function VoiceTitleStep({ label, eyebrow, placeholder, onConfirm, saving }) {
+    const [title, setTitle] = useState('');
 
+    return (
+        <motion.div
+            key={eyebrow}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="p-6 flex flex-col gap-6"
+        >
+            <div>
+                <p className="text-zinc-500 text-xs uppercase tracking-widest mb-1">{eyebrow}</p>
+                <h2 className="text-2xl font-bold">{label}</h2>
+            </div>
+
+            {/* Voice recorder — primary input */}
+            <div className="bg-zinc-800 rounded-2xl p-4">
+                <VoiceNarrationRecorder
+                    onTranscriptChange={setTitle}
+                    initialTranscript=""
+                />
+            </div>
+
+            {/* Transcript result — editable fallback */}
+            {title ? (
+                <div className="space-y-1">
+                    <p className="text-zinc-500 text-xs uppercase tracking-widest">Captured title</p>
+                    <input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white text-xl font-semibold focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                </div>
+            ) : (
+                <p className="text-zinc-600 text-sm text-center italic">{placeholder}</p>
+            )}
+
+            <button
+                onClick={() => onConfirm(title)}
+                disabled={!title.trim() || saving}
+                className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg font-semibold transition-colors mt-auto"
+            >
+                {saving ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Creating…</>
+                ) : (
+                    <>Confirm <ChevronRight className="w-5 h-5" /></>
+                )}
+            </button>
+        </motion.div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function Storyboarder() {
     // ── Step ──────────────────────────────────────────────────────────────────
-    // 0 = welcome  1 = story name  2 = chapter name  3 = capture loop
+    // 0 = welcome  1 = story name  2 = chapter name  3 = capture loop  4 = finish
     const [step, setStep] = useState(0);
 
     // ── Story ─────────────────────────────────────────────────────────────────
@@ -34,14 +88,14 @@ export default function Storyboarder() {
     const [storyId, setStoryId] = useState(null);
 
     // ── Chapter ───────────────────────────────────────────────────────────────
-    const [chapterName, setChapterName] = useState('');
     const [chapterId, setChapterId] = useState(null);
     const chapterCountRef = useRef(0);
 
     // ── Capture loop ──────────────────────────────────────────────────────────
-    const [slides, setSlides] = useState([]);          // thumbnail strip
+    const [slides, setSlides] = useState([]);
     const [pendingTitle, setPendingTitle] = useState('');
     const [showVoice, setShowVoice] = useState(false);
+    const totalPhotosRef = useRef(0);
 
     // ── Status ────────────────────────────────────────────────────────────────
     const [saving, setSaving] = useState(false);
@@ -50,22 +104,17 @@ export default function Storyboarder() {
     const cameraRef = useRef(null);
 
     // ── Story creation ────────────────────────────────────────────────────────
-    const createStory = async () => {
-        if (!storyTitle.trim()) return;
+    const createStory = async (title) => {
+        if (!title.trim()) return;
         setSaving(true);
         try {
             const id = generateId();
             const { data, error } = await supabase
                 .from('stories')
-                .insert({
-                    id,
-                    title: storyTitle.trim(),
-                    subtitle: 'Draft from mobile capture',
-                    is_published: false,
-                })
-                .select()
-                .single();
+                .insert({ id, title: title.trim(), subtitle: 'Draft from mobile capture', is_published: false })
+                .select().single();
             if (error) throw error;
+            setStoryTitle(data.title);
             setStoryId(data.id);
             setStep(2);
         } catch (e) {
@@ -77,26 +126,18 @@ export default function Storyboarder() {
     };
 
     // ── Chapter creation ──────────────────────────────────────────────────────
-    const createChapter = async () => {
-        if (!chapterName.trim()) return;
+    const createChapter = async (name) => {
+        if (!name.trim()) return;
         setSaving(true);
         try {
             const id = generateId();
             const { data, error } = await supabase
                 .from('chapters')
-                .insert({
-                    id,
-                    story_id: storyId,
-                    name: chapterName.trim(),
-                    order: chapterCountRef.current,
-                    alignment: 'left',
-                })
-                .select()
-                .single();
+                .insert({ id, story_id: storyId, name: name.trim(), order: chapterCountRef.current, alignment: 'left' })
+                .select().single();
             if (error) throw error;
             chapterCountRef.current += 1;
             setChapterId(data.id);
-            setChapterName('');
             setSlides([]);
             setStep(3);
         } catch (e) {
@@ -113,34 +154,28 @@ export default function Storyboarder() {
         setSaving(true);
         setSavedFlash(false);
         try {
-            // Resize + GPS in parallel — neither blocks the other
-            const [resized, gps] = await Promise.all([
-                resizeImage(file, 800),
-                captureGPS(),
-            ]);
+            const [resized, gps] = await Promise.all([resizeImage(file, 800), captureGPS()]);
 
             const filePath = `${generateId()}-${file.name}`;
             const { error: upErr } = await supabase.storage
-                .from('media')
-                .upload(filePath, resized, { contentType: resized.type });
+                .from('media').upload(filePath, resized, { contentType: resized.type });
             if (upErr) throw upErr;
 
             const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
 
-            const title = pendingTitle.trim() || `Photo ${slides.length + 1}`;
+            const title = pendingTitle.trim() || `Photo ${totalPhotosRef.current + 1}`;
             const slideId = generateId();
-            const slideData = {
+            const { error: slideErr } = await supabase.from('slides').insert({
                 id: slideId,
                 chapter_id: chapterId,
                 title,
                 image: publicUrl,
                 order: slides.length,
                 ...(gps ? { coordinates: [gps.lat, gps.lng], zoom: 15 } : {}),
-            };
-
-            const { error: slideErr } = await supabase.from('slides').insert(slideData);
+            });
             if (slideErr) throw slideErr;
 
+            totalPhotosRef.current += 1;
             setSlides((prev) => [...prev, { id: slideId, title, image: publicUrl }]);
             setPendingTitle('');
             setShowVoice(false);
@@ -155,13 +190,20 @@ export default function Storyboarder() {
         }
     };
 
-    const startNewChapter = () => {
-        setChapterName('');
-        setStep(2);
-    };
+    const startNewChapter = () => setStep(2);
 
-    const finishStory = () => {
-        navigate(createPageUrl('Stories'));
+    const finishStory = () => setStep(4);
+
+    const startOver = () => {
+        setStep(0);
+        setStoryTitle('');
+        setStoryId(null);
+        setChapterId(null);
+        chapterCountRef.current = 0;
+        setSlides([]);
+        setPendingTitle('');
+        setShowVoice(false);
+        totalPhotosRef.current = 0;
     };
 
     return (
@@ -170,12 +212,11 @@ export default function Storyboarder() {
             <header className="bg-zinc-800 border-b border-zinc-700 px-5 py-4 flex items-center gap-3 sticky top-0 z-50">
                 <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0" />
                 <span className="text-lg font-semibold tracking-wide">Storyboarder</span>
-                {storyTitle && (
+                {storyTitle && step < 4 && (
                     <span className="ml-auto text-sm text-zinc-400 truncate max-w-[180px]">{storyTitle}</span>
                 )}
             </header>
 
-            {/* ── Steps ──────────────────────────────────────────────────────── */}
             <div className="flex-1 overflow-y-auto">
                 <AnimatePresence mode="wait">
 
@@ -193,7 +234,7 @@ export default function Storyboarder() {
                             </div>
                             <h2 className="text-4xl font-bold mb-3">Storyboarder</h2>
                             <p className="text-zinc-400 text-lg leading-relaxed max-w-sm mb-10">
-                                Capture your story on location — photos, voice, and GPS all in one go.
+                                Capture your story on location — voice, photos, and GPS in one go.
                             </p>
                             <button
                                 onClick={() => setStep(1)}
@@ -205,88 +246,34 @@ export default function Storyboarder() {
                         </motion.div>
                     )}
 
-                    {/* ── 1: Story name ──────────────────────────────────────── */}
+                    {/* ── 1: Story name (voice-first) ─────────────────────────── */}
                     {step === 1 && (
-                        <motion.div
+                        <VoiceTitleStep
                             key="story"
-                            initial={{ opacity: 0, x: 40 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -40 }}
-                            transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="p-6 space-y-6"
-                        >
-                            <div>
-                                <p className="text-zinc-400 text-sm uppercase tracking-widest mb-1">Step 1</p>
-                                <h2 className="text-2xl font-bold">Name your story</h2>
-                            </div>
-
-                            <input
-                                autoFocus
-                                value={storyTitle}
-                                onChange={(e) => setStoryTitle(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && createStory()}
-                                placeholder="e.g. Road Trip Through Patagonia"
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white placeholder-zinc-500 text-lg focus:outline-none focus:border-amber-500 transition-colors"
-                            />
-
-                            <button
-                                onClick={createStory}
-                                disabled={!storyTitle.trim() || saving}
-                                className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
-                            >
-                                {saving ? (
-                                    <><Loader2 className="w-5 h-5 animate-spin" /> Creating…</>
-                                ) : (
-                                    <>Create Story <ChevronRight className="w-5 h-5" /></>
-                                )}
-                            </button>
-                        </motion.div>
+                            eyebrow="Step 1 of 2"
+                            label="Say your story title"
+                            placeholder="Speak into the mic to set your story title"
+                            onConfirm={createStory}
+                            saving={saving}
+                        />
                     )}
 
-                    {/* ── 2: Chapter name ────────────────────────────────────── */}
+                    {/* ── 2: Chapter name (voice-first) ───────────────────────── */}
                     {step === 2 && (
-                        <motion.div
-                            key="chapter"
-                            initial={{ opacity: 0, x: 40 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -40 }}
-                            transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="p-6 space-y-6"
-                        >
-                            <div>
-                                <p className="text-zinc-400 text-sm uppercase tracking-widest mb-1">
-                                    {chapterCountRef.current === 0 ? 'Step 2' : 'New chapter'}
-                                </p>
-                                <h2 className="text-2xl font-bold">Name this chapter</h2>
-                            </div>
-
-                            <input
-                                autoFocus
-                                value={chapterName}
-                                onChange={(e) => setChapterName(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && createChapter()}
-                                placeholder="e.g. Arriving in Buenos Aires"
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white placeholder-zinc-500 text-lg focus:outline-none focus:border-amber-500 transition-colors"
-                            />
-
-                            <button
-                                onClick={createChapter}
-                                disabled={!chapterName.trim() || saving}
-                                className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
-                            >
-                                {saving ? (
-                                    <><Loader2 className="w-5 h-5 animate-spin" /> Creating…</>
-                                ) : (
-                                    <>Start Capturing <ChevronRight className="w-5 h-5" /></>
-                                )}
-                            </button>
-                        </motion.div>
+                        <VoiceTitleStep
+                            key={`chapter-${chapterCountRef.current}`}
+                            eyebrow={chapterCountRef.current === 0 ? 'Step 2 of 2' : 'New chapter'}
+                            label="Say the chapter name"
+                            placeholder="Speak into the mic to name this chapter"
+                            onConfirm={createChapter}
+                            saving={saving}
+                        />
                     )}
 
                     {/* ── 3: Capture loop ────────────────────────────────────── */}
                     {step === 3 && (
                         <motion.div
-                            key="capture"
+                            key={`capture-${chapterId}`}
                             initial={{ opacity: 0, x: 40 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -40 }}
@@ -305,13 +292,13 @@ export default function Storyboarder() {
                                 )}
                             </div>
 
-                            {/* Optional title + voice */}
+                            {/* Optional photo title — voice toggle */}
                             <div className="px-5 pb-4 space-y-3">
                                 <div className="flex gap-2">
                                     <input
                                         value={pendingTitle}
                                         onChange={(e) => setPendingTitle(e.target.value)}
-                                        placeholder="Photo title (optional — fill before shooting)"
+                                        placeholder="Photo title (optional)"
                                         className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-amber-500 transition-colors"
                                     />
                                     <button
@@ -319,14 +306,12 @@ export default function Storyboarder() {
                                         className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
                                             showVoice
                                                 ? 'bg-amber-500 text-white'
-                                                : 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500'
+                                                : 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white'
                                         }`}
-                                        aria-label="Voice input"
                                     >
-                                        <Mic className="w-5 h-5" />
+                                        🎤
                                     </button>
                                 </div>
-
                                 <AnimatePresence>
                                     {showVoice && (
                                         <motion.div
@@ -347,7 +332,7 @@ export default function Storyboarder() {
                                 </AnimatePresence>
                             </div>
 
-                            {/* ── Camera button (primary action) ─────────────── */}
+                            {/* ── Camera button ──────────────────────────────── */}
                             <div className="flex-1 flex items-center justify-center px-5 py-8">
                                 <input
                                     ref={cameraRef}
@@ -393,24 +378,20 @@ export default function Storyboarder() {
                             {/* Thumbnail strip */}
                             {slides.length > 0 && (
                                 <div className="px-5 pb-4">
-                                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                                    <div className="flex gap-2 overflow-x-auto pb-1">
                                         {slides.map((slide) => (
                                             <div
                                                 key={slide.id}
                                                 className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-zinc-800 ring-1 ring-zinc-700"
                                             >
-                                                <img
-                                                    src={slide.image}
-                                                    alt={slide.title}
-                                                    className="w-full h-full object-cover"
-                                                />
+                                                <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* ── Footer actions ──────────────────────────────── */}
+                            {/* Footer actions */}
                             <div className="px-5 pb-8 pt-2 flex gap-3">
                                 <button
                                     onClick={startNewChapter}
@@ -427,6 +408,57 @@ export default function Storyboarder() {
                                     Finish Story
                                 </button>
                             </div>
+                        </motion.div>
+                    )}
+
+                    {/* ── 4: Finish screen ───────────────────────────────────── */}
+                    {step === 4 && (
+                        <motion.div
+                            key="finish"
+                            initial={{ opacity: 0, scale: 0.96 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.4, ease: 'easeOut' }}
+                            className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] p-8 text-center"
+                        >
+                            {/* Check mark */}
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.15, duration: 0.5, type: 'spring', stiffness: 200 }}
+                                className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center mb-8"
+                            >
+                                <Check className="w-12 h-12 text-green-400" strokeWidth={2.5} />
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3, duration: 0.4 }}
+                                className="space-y-3 mb-10"
+                            >
+                                <h2 className="text-3xl font-bold">Story saved!</h2>
+                                <p className="text-xl text-amber-400 font-medium">{storyTitle}</p>
+                                <p className="text-zinc-400 text-base">
+                                    {chapterCountRef.current} chapter{chapterCountRef.current !== 1 ? 's' : ''}
+                                    {' · '}
+                                    {totalPhotosRef.current} photo{totalPhotosRef.current !== 1 ? 's' : ''}
+                                </p>
+                                <p className="text-zinc-500 text-sm max-w-xs mx-auto leading-relaxed">
+                                    Your story is ready to edit in the Storylines desktop editor.
+                                </p>
+                            </motion.div>
+
+                            <motion.button
+                                initial={{ opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5, duration: 0.4 }}
+                                onClick={startOver}
+                                className="w-full max-w-xs h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
+                            >
+                                <RotateCcw className="w-5 h-5" />
+                                Capture another story
+                            </motion.button>
                         </motion.div>
                     )}
 
