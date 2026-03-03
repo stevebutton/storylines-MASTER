@@ -13,11 +13,10 @@ const formatLong = (dateStr) => {
     });
 };
 
-// "Jun '24" — used for tick labels
-const formatShort = (dateStr) => {
+// "Jun 2024" — used for regular month tick labels
+const formatMedium = (dateStr) => {
     if (!dateStr) return '';
-    const d = new Date(dateStr + 'T12:00:00');
-    return d.toLocaleDateString('en-US', { month: 'short' }) + " '" + String(d.getFullYear()).slice(2);
+    return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
 const dateToMs = (dateStr) => new Date(dateStr + 'T12:00:00').getTime();
@@ -108,7 +107,7 @@ export default function StoryTimeline() {
         while (d.getTime() <= maxMs) {
             ticks.push({
                 dateStr: d.toISOString().split('T')[0],
-                label:   formatShort(d.toISOString().split('T')[0]),
+                label:   formatMedium(d.toISOString().split('T')[0]),
             });
             d.setMonth(d.getMonth() + 1);
         }
@@ -246,88 +245,85 @@ export default function StoryTimeline() {
                 </div>
             </div>
 
-            {/* ── Timeline bar: 88px ────────────────────────────────────────── */}
-            {/*                                                                  */}
-            {/*  tick labels  Jun '24   Jul '24   Aug '24   Sep '24             */}
-            {/*  tick marks      |         |    ●    |         |                */}
-            {/*  line      ──────┴─────────┴─────────┴─────────┴──────          */}
-            {/*  edge labels  Jun 2024                        Sep 2024          */}
-            {/*                                                                  */}
-            <div className="flex-shrink-0 bg-black relative" style={{ height: 88 }}>
+            {/* ── Timeline bar: 140px ───────────────────────────────────────── */}
+            {/*  cursor ●                                                        */}
+            {/*  line   ──────|──────────|──────────|──────────|──────           */}
+            {/*  ticks        |          |          |          |                 */}
+            {/*  labels     Jun 2024  Jul 2024   2025      Feb 2025             */}
+            <div className="flex-shrink-0 bg-black relative" style={{ height: 140 }}>
 
-                {/* Track line — at top: 56, leaving 56px above for ticks/labels */}
+                {/* Track line — at y=32, ticks + labels hang DOWN from it */}
                 <div
                     className="absolute"
-                    style={{ left: 48, right: 48, top: 56, height: 1, background: 'rgba(255,255,255,0.4)' }}
+                    style={{ left: 48, right: 48, top: 32, height: 2, background: 'rgba(255,255,255,0.6)' }}
                 >
                     {/* Month tick marks + labels */}
                     {monthTicks.map(tick => {
-                        const pct      = dateToPercent(tick.dateStr, minMs, maxMs);
-                        // January = year boundary → taller tick, full "Jan 2024" label
-                        const isYearBoundary = tick.dateStr.slice(5, 7) === '01';
+                        const pct    = dateToPercent(tick.dateStr, minMs, maxMs);
+                        const isYear = tick.dateStr.slice(5, 7) === '01'; // January = year boundary
                         return (
                             <React.Fragment key={tick.dateStr}>
-                                {/* Tick mark rising from the line */}
+                                {/* Tick hanging down from line */}
                                 <div style={{
                                     position:   'absolute',
                                     left:       `${pct}%`,
-                                    top:        isYearBoundary ? -14 : -9,
-                                    width:      isYearBoundary ? 2 : 1,
-                                    height:     isYearBoundary ? 14 : 9,
-                                    background: isYearBoundary
-                                        ? 'rgba(255,255,255,0.75)'
-                                        : 'rgba(255,255,255,0.45)',
+                                    top:        2,
+                                    width:      isYear ? 3 : 1,
+                                    height:     isYear ? 30 : 20,
+                                    background: isYear
+                                        ? 'rgba(255,255,255,0.9)'
+                                        : 'rgba(255,255,255,0.55)',
                                     transform:  'translateX(-50%)',
                                 }} />
-                                {/* Label above tick */}
+                                {/* Label below tick */}
                                 <span style={{
-                                    position:   'absolute',
-                                    left:       `${pct}%`,
-                                    top:        isYearBoundary ? -30 : -26,
-                                    transform:  'translateX(-50%)',
-                                    fontSize:   isYearBoundary ? 11 : 10,
-                                    fontWeight: isYearBoundary ? 600 : 400,
-                                    color:      isYearBoundary
-                                        ? 'rgba(255,255,255,0.85)'
-                                        : 'rgba(255,255,255,0.55)',
-                                    whiteSpace: 'nowrap',
-                                    letterSpacing: '0.03em',
+                                    position:      'absolute',
+                                    left:          `${pct}%`,
+                                    top:           isYear ? 36 : 26,
+                                    transform:     'translateX(-50%)',
+                                    fontSize:      isYear ? 26 : 18,
+                                    fontWeight:    isYear ? 700 : 400,
+                                    color:         isYear
+                                        ? 'rgba(255,255,255,1)'
+                                        : 'rgba(255,255,255,0.8)',
+                                    whiteSpace:    'nowrap',
+                                    letterSpacing: isYear ? '0.05em' : '0.02em',
                                     pointerEvents: 'none',
+                                    lineHeight:    1,
                                 }}>
-                                    {tick.label}
+                                    {/* Year boundaries show just the year; months show "Jun 2024" */}
+                                    {isYear ? tick.dateStr.slice(0, 4) : formatMedium(tick.dateStr)}
                                 </span>
                             </React.Fragment>
                         );
                     })}
 
-                    {/* Amber cursor — springs to current slide's position */}
+                    {/* Amber cursor — above the line, springs to current position */}
                     {cursorPercent !== null && (
-                        <div
-                            style={{
-                                position:   'absolute',
-                                left:       `${cursorPercent}%`,
-                                top:        -6,
-                                width:      12,
-                                height:     12,
-                                borderRadius: '50%',
-                                background: '#f59e0b',
-                                boxShadow:  '0 0 12px rgba(245,158,11,0.7)',
-                                transform:  'translateX(-50%)',
-                                transition: 'left 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)',
-                                zIndex:     2,
-                            }}
-                        />
+                        <div style={{
+                            position:     'absolute',
+                            left:         `${cursorPercent}%`,
+                            top:          -12,
+                            width:        16,
+                            height:       16,
+                            borderRadius: '50%',
+                            background:   '#f59e0b',
+                            boxShadow:    '0 0 16px rgba(245,158,11,0.85)',
+                            transform:    'translateX(-50%)',
+                            transition:   'left 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)',
+                            zIndex:       2,
+                        }} />
                     )}
 
-                    {/* Left edge label — story start (below line) */}
+                    {/* Story start label — below line at left edge */}
                     {minDate && (
                         <span style={{
                             position:      'absolute',
                             left:          0,
-                            top:           10,
+                            top:           26,
                             transform:     'translateX(-50%)',
-                            fontSize:      10,
-                            color:         'rgba(255,255,255,0.6)',
+                            fontSize:      14,
+                            color:         'rgba(255,255,255,0.5)',
                             whiteSpace:    'nowrap',
                             letterSpacing: '0.04em',
                         }}>
@@ -335,15 +331,15 @@ export default function StoryTimeline() {
                         </span>
                     )}
 
-                    {/* Right edge label — story end (below line) */}
+                    {/* Story end label — below line at right edge */}
                     {maxDate && maxDate !== minDate && (
                         <span style={{
                             position:      'absolute',
                             right:         0,
-                            top:           10,
+                            top:           26,
                             transform:     'translateX(50%)',
-                            fontSize:      10,
-                            color:         'rgba(255,255,255,0.6)',
+                            fontSize:      14,
+                            color:         'rgba(255,255,255,0.5)',
                             whiteSpace:    'nowrap',
                             letterSpacing: '0.04em',
                         }}>
