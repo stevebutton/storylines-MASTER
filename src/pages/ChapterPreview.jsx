@@ -16,7 +16,11 @@ const MAP_STYLES = {
     dark: 'mapbox://styles/mapbox/dark-v11',
     satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
     watercolor: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
-    terrain: 'mapbox://styles/mapbox/outdoors-v12'
+    terrain: 'mapbox://styles/mapbox/outdoors-v12',
+    a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
+    b: 'mapbox://styles/stevebutton/cktf8ygms085117nnzm4a97d0',
+    c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
+    d: 'mapbox://styles/stevebutton/cmm9edvor004m01sc0wyug8vz',
 };
 
 export default function ChapterPreview() {

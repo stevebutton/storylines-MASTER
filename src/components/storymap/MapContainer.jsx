@@ -5,7 +5,9 @@ import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } f
 
 const MAP_STYLES = {
     a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
+    b: 'mapbox://styles/stevebutton/cktf8ygms085117nnzm4a97d0',
     c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
+    d: 'mapbox://styles/stevebutton/cmm9edvor004m01sc0wyug8vz',
 };
 
 // One colour per chapter, cycling if there are more than 6 chapters
@@ -98,18 +100,18 @@ export default function MapBackground({
             pitch: pitch || 0,
             interactive: true,
             dragRotate: true,
-            pitchWithRotate: true,
             fog: null
         });
 
         // Navigation controls are rendered as React buttons in BottomPillBar
 
-        // Expose the map instance to parent via onMapReady callback
-        if (onMapReady) {
-            map.current.once('load', () => {
-                if (onMapReady) onMapReady(map.current);
-            });
-        }
+        // v3: pitchWithRotate is no longer a Map constructor option — enable via handlers.
+        // Also enable touchPitch for two-finger pitch on touch devices.
+        map.current.once('load', () => {
+            if (map.current?.dragRotate) map.current.dragRotate.enable({ pitchWithRotate: true });
+            if (map.current?.touchPitch) map.current.touchPitch.enable();
+            if (onMapReady) onMapReady(map.current);
+        });
 
         return () => {
             if (map.current) {
