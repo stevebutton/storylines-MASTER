@@ -173,7 +173,7 @@ export default function StoryChapter({
                             </div>
                             {/* White outline — sits above the background image */}
                             <div className="absolute inset-0 rounded-2xl pointer-events-none z-20"
-                                 style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.4)' }} />
+                                 style={{ boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.6)' }} />
 
                             {/* Text content */}
                             <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px', paddingRight: '14rem' }}>
