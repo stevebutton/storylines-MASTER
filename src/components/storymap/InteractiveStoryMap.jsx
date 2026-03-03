@@ -26,7 +26,9 @@ export default function InteractiveStoryMap({
   const map = useRef(null);
   const markers = useRef({});
   const [mapInitialized, setMapInitialized] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('featured');
+  const selectedCategoryRef = useRef('featured');
+  const filteredStoriesRef = useRef([]);
   const [categories, setCategories] = useState([]);
   const rotationIntervalRef = useRef(null);
   const shouldRotateRef = useRef(false);
@@ -49,6 +51,11 @@ export default function InteractiveStoryMap({
       }
     };
   }, [stories]);
+
+  // Keep ref in sync so event callbacks always read the current category
+  useEffect(() => {
+    selectedCategoryRef.current = selectedCategory;
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (map.current && mapInitialized) {
@@ -300,18 +307,31 @@ export default function InteractiveStoryMap({
   const updateStoryData = () => {
     if (!map.current || !mapInitialized) return;
 
-    const filteredStories = selectedCategory === 'all' 
-      ? stories 
+    const isFeatured = selectedCategory === 'featured';
+
+    const filteredStories = selectedCategory === 'all'
+      ? stories
       : stories.filter(s => s.category === selectedCategory);
 
+    // Store for direct marker creation in featured mode
+    filteredStoriesRef.current = filteredStories;
+
+    // Toggle cluster layers: hidden for featured (no clustering), visible otherwise
+    const clusterViz = isFeatured ? 'none' : 'visible';
+    ['clusters', 'cluster-count-number', 'cluster-count-label'].forEach(layerId => {
+      if (map.current?.getLayer(layerId)) {
+        map.current.setLayoutProperty(layerId, 'visibility', clusterViz);
+      }
+    });
+
     const features = filteredStories
-      .filter(story => 
-        story.coordinates && 
-        Array.isArray(story.coordinates) && 
+      .filter(story =>
+        story.coordinates &&
+        Array.isArray(story.coordinates) &&
         story.coordinates.length === 2 &&
-        !isNaN(story.coordinates[0]) && 
+        !isNaN(story.coordinates[0]) &&
         !isNaN(story.coordinates[1]) &&
-        isFinite(story.coordinates[0]) && 
+        isFinite(story.coordinates[0]) &&
         isFinite(story.coordinates[1])
       )
       .map(story => ({
@@ -332,11 +352,7 @@ export default function InteractiveStoryMap({
 
     const source = map.current.getSource('stories');
     if (source) {
-      source.setData({
-        type: 'FeatureCollection',
-        features
-      });
-      
+      source.setData({ type: 'FeatureCollection', features });
       updateUnclusteredMarkers();
     }
   };
@@ -344,24 +360,53 @@ export default function InteractiveStoryMap({
   const updateUnclusteredMarkers = () => {
     if (!map.current) return;
 
-    const features = map.current.querySourceFeatures('stories', {
-      filter: ['!', ['has', 'point_count']]
-    });
+    const isFeatured = selectedCategoryRef.current === 'featured';
 
-    // Remove markers that are no longer visible
+    let markerItems; // [{ props, lngLat }]
+
+    if (isFeatured) {
+      // Bypass Mapbox source clustering — create markers directly from the stories array
+      // so all featured stories appear regardless of Mapbox's internal cluster state.
+      markerItems = filteredStoriesRef.current
+        .filter(s =>
+          s.coordinates && Array.isArray(s.coordinates) && s.coordinates.length === 2 &&
+          !isNaN(s.coordinates[0]) && !isNaN(s.coordinates[1]) &&
+          isFinite(s.coordinates[0]) && isFinite(s.coordinates[1])
+        )
+        .map(s => ({
+          props: {
+            id: s.id,
+            title: s.title,
+            subtitle: s.subtitle,
+            author: s.author,
+            hero_image: s.hero_image,
+            category: s.category,
+          },
+          lngLat: [s.coordinates[1], s.coordinates[0]],
+        }));
+    } else {
+      const features = map.current.querySourceFeatures('stories', {
+        filter: ['!', ['has', 'point_count']]
+      });
+      markerItems = features.map(f => ({
+        props: f.properties,
+        lngLat: f.geometry.coordinates,
+      }));
+    }
+
+    // Remove markers no longer needed
     Object.keys(markers.current).forEach(id => {
-      const stillVisible = features.find(f => f.properties.id === id);
+      const stillVisible = markerItems.find(m => m.props.id === id);
       if (!stillVisible) {
         markers.current[id].remove();
         delete markers.current[id];
       }
     });
 
-    // Add/update markers for visible unclustered points
-    features.forEach(feature => {
-      const id = feature.properties.id;
-      if (!markers.current[id]) {
-        createMarker(feature.properties, feature.geometry.coordinates);
+    // Add new markers
+    markerItems.forEach(({ props, lngLat }) => {
+      if (!markers.current[props.id]) {
+        createMarker(props, lngLat);
       }
     });
   };
