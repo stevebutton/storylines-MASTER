@@ -99,6 +99,7 @@ export default function FullScreenImageViewer({
     }, [isOpen, onClose]);
 
     return (
+        <>
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -202,5 +203,6 @@ export default function FullScreenImageViewer({
             </AnimatePresence>,
             document.body
         )}
+        </>
     );
 }
