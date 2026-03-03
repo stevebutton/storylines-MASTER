@@ -246,44 +246,52 @@ export default function StoryTimeline() {
                 </div>
             </div>
 
-            {/* ── Timeline bar: 72px ────────────────────────────────────────── */}
+            {/* ── Timeline bar: 88px ────────────────────────────────────────── */}
             {/*                                                                  */}
             {/*  tick labels  Jun '24   Jul '24   Aug '24   Sep '24             */}
-            {/*  tick marks      |         |         |         |                */}
-            {/*  line      ──────┼─────────┼─────────●─────────┼──────          */}
+            {/*  tick marks      |         |    ●    |         |                */}
+            {/*  line      ──────┴─────────┴─────────┴─────────┴──────          */}
             {/*  edge labels  Jun 2024                        Sep 2024          */}
             {/*                                                                  */}
-            <div className="flex-shrink-0 bg-black relative" style={{ height: 72 }}>
+            <div className="flex-shrink-0 bg-black relative" style={{ height: 88 }}>
 
-                {/* Track line — positioned at top: 44, leaving 28px above for ticks/labels */}
+                {/* Track line — at top: 56, leaving 56px above for ticks/labels */}
                 <div
                     className="absolute"
-                    style={{ left: 40, right: 40, top: 44, height: 1, background: 'rgba(255,255,255,0.18)' }}
+                    style={{ left: 48, right: 48, top: 56, height: 1, background: 'rgba(255,255,255,0.4)' }}
                 >
-                    {/* Month tick marks + labels (above line) */}
+                    {/* Month tick marks + labels */}
                     {monthTicks.map(tick => {
-                        const pct = dateToPercent(tick.dateStr, minMs, maxMs);
+                        const pct      = dateToPercent(tick.dateStr, minMs, maxMs);
+                        // January = year boundary → taller tick, full "Jan 2024" label
+                        const isYearBoundary = tick.dateStr.slice(5, 7) === '01';
                         return (
                             <React.Fragment key={tick.dateStr}>
-                                {/* Tick mark */}
+                                {/* Tick mark rising from the line */}
                                 <div style={{
-                                    position: 'absolute',
-                                    left: `${pct}%`,
-                                    top: -7,
-                                    width: 1,
-                                    height: 7,
-                                    background: 'rgba(255,255,255,0.22)',
-                                    transform: 'translateX(-50%)',
+                                    position:   'absolute',
+                                    left:       `${pct}%`,
+                                    top:        isYearBoundary ? -14 : -9,
+                                    width:      isYearBoundary ? 2 : 1,
+                                    height:     isYearBoundary ? 14 : 9,
+                                    background: isYearBoundary
+                                        ? 'rgba(255,255,255,0.75)'
+                                        : 'rgba(255,255,255,0.45)',
+                                    transform:  'translateX(-50%)',
                                 }} />
-                                {/* Label */}
+                                {/* Label above tick */}
                                 <span style={{
-                                    position: 'absolute',
-                                    left: `${pct}%`,
-                                    top: -22,
-                                    transform: 'translateX(-50%)',
-                                    fontSize: 9,
-                                    color: 'rgba(255,255,255,0.28)',
+                                    position:   'absolute',
+                                    left:       `${pct}%`,
+                                    top:        isYearBoundary ? -30 : -26,
+                                    transform:  'translateX(-50%)',
+                                    fontSize:   isYearBoundary ? 11 : 10,
+                                    fontWeight: isYearBoundary ? 600 : 400,
+                                    color:      isYearBoundary
+                                        ? 'rgba(255,255,255,0.85)'
+                                        : 'rgba(255,255,255,0.55)',
                                     whiteSpace: 'nowrap',
+                                    letterSpacing: '0.03em',
                                     pointerEvents: 'none',
                                 }}>
                                     {tick.label}
@@ -292,49 +300,52 @@ export default function StoryTimeline() {
                         );
                     })}
 
-                    {/* Amber cursor — animates along the line */}
+                    {/* Amber cursor — springs to current slide's position */}
                     {cursorPercent !== null && (
                         <div
                             style={{
-                                position: 'absolute',
-                                left: `${cursorPercent}%`,
-                                top: -5,
-                                width: 10,
-                                height: 10,
+                                position:   'absolute',
+                                left:       `${cursorPercent}%`,
+                                top:        -6,
+                                width:      12,
+                                height:     12,
                                 borderRadius: '50%',
                                 background: '#f59e0b',
-                                boxShadow: '0 0 10px rgba(245,158,11,0.55)',
-                                transform: 'translateX(-50%)',
+                                boxShadow:  '0 0 12px rgba(245,158,11,0.7)',
+                                transform:  'translateX(-50%)',
                                 transition: 'left 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)',
+                                zIndex:     2,
                             }}
                         />
                     )}
 
-                    {/* Left edge label (below line) */}
+                    {/* Left edge label — story start (below line) */}
                     {minDate && (
                         <span style={{
-                            position: 'absolute',
-                            left: 0,
-                            top: 8,
-                            transform: 'translateX(-50%)',
-                            fontSize: 9,
-                            color: 'rgba(255,255,255,0.4)',
-                            whiteSpace: 'nowrap',
+                            position:      'absolute',
+                            left:          0,
+                            top:           10,
+                            transform:     'translateX(-50%)',
+                            fontSize:      10,
+                            color:         'rgba(255,255,255,0.6)',
+                            whiteSpace:    'nowrap',
+                            letterSpacing: '0.04em',
                         }}>
                             {formatLong(minDate)}
                         </span>
                     )}
 
-                    {/* Right edge label (below line) */}
+                    {/* Right edge label — story end (below line) */}
                     {maxDate && maxDate !== minDate && (
                         <span style={{
-                            position: 'absolute',
-                            right: 0,
-                            top: 8,
-                            transform: 'translateX(50%)',
-                            fontSize: 9,
-                            color: 'rgba(255,255,255,0.4)',
-                            whiteSpace: 'nowrap',
+                            position:      'absolute',
+                            right:         0,
+                            top:           10,
+                            transform:     'translateX(50%)',
+                            fontSize:      10,
+                            color:         'rgba(255,255,255,0.6)',
+                            whiteSpace:    'nowrap',
+                            letterSpacing: '0.04em',
                         }}>
                             {formatLong(maxDate)}
                         </span>
