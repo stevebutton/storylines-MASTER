@@ -35,12 +35,12 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
 
     return (
         <motion.div
-            className="fixed bottom-0 left-0 right-0 z-[9998] pointer-events-auto"
+            className="fixed bottom-0 right-0 z-[9998] pointer-events-auto"
+            style={{ left: 380, overflow: 'hidden' }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => setIsExpanded(false)}
             animate={{ height: isExpanded ? 124 : 76 }}
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-            style={{ overflow: 'hidden' }}
         >
             {/* Dark gradient backing */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
@@ -104,8 +104,7 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                 })}
             </div>
 
-            {/* Edge fade masks */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-black/60 to-transparent pointer-events-none" />
+            {/* Right edge fade mask */}
             <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black/60 to-transparent pointer-events-none" />
         </motion.div>
     );
