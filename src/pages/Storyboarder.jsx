@@ -1,1021 +1,437 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
-
-const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
-  Mic, Camera, MapPin, ChevronRight, ChevronLeft,
-  Check, FileText, Image as ImageIcon, MapPinned, Sparkles, Upload, Loader2, X } from
-'lucide-react';
+    Camera, Mic, ChevronRight, Loader2, Check, Plus, Sparkles, BookOpen,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VoiceNarrationRecorder from '@/components/mobile/VoiceNarrationRecorder';
 import { resizeImage } from '@/components/mobile/ImageResizer';
 
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
+
+// Silent GPS capture — resolves null on any failure
+const captureGPS = () =>
+    new Promise((resolve) => {
+        if (!navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => resolve(null),
+            { enableHighAccuracy: true, timeout: 8000 }
+        );
+    });
+
 export default function Storyboarder() {
-  const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [storyTitle, setStoryTitle] = useState('');
-  const [coverPhoto, setCoverPhoto] = useState(null);
-  const [startingLocation, setStartingLocation] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [storyId, setStoryId] = useState(null);
-  const [chapterId, setChapterId] = useState(null);
-  const [chapterTitle, setChapterTitle] = useState('');
-  const [currentSlideId, setCurrentSlideId] = useState(null);
-  const [slideTitle, setSlideTitle] = useState('');
-  const [slideDescription, setSlideDescription] = useState('');
-  const [slideImage, setSlideImage] = useState(null);
-  const [slideLocation, setSlideLocation] = useState(null);
-  const [slides, setSlides] = useState([]);
-  const [isLoadingSlides, setIsLoadingSlides] = useState(false);
-  const fileInputRef = useRef(null);
-  const slideImageInputRef = useRef(null);
+    const navigate = useNavigate();
 
-  const handleTakePhoto = async () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
+    // ── Step ──────────────────────────────────────────────────────────────────
+    // 0 = welcome  1 = story name  2 = chapter name  3 = capture loop
+    const [step, setStep] = useState(0);
 
-  const handleFileSelect = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    // ── Story ─────────────────────────────────────────────────────────────────
+    const [storyTitle, setStoryTitle] = useState('');
+    const [storyId, setStoryId] = useState(null);
 
-    setIsUploading(true);
-    try {
-      const filePath = `${generateId()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from('media').upload(filePath, file, { contentType: file.type, upsert: false });
-      if (upErr) throw upErr;
-      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-      const file_url = publicUrl;
-      setCoverPhoto({
-        id: Date.now(),
-        name: file.name,
-        url: file_url
-      });
-    } catch (error) {
-      console.error('Error uploading cover photo:', error);
-      alert('Failed to upload cover photo. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    // ── Chapter ───────────────────────────────────────────────────────────────
+    const [chapterName, setChapterName] = useState('');
+    const [chapterId, setChapterId] = useState(null);
+    const chapterCountRef = useRef(0);
 
-  const handleCaptureLocation = async () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
-      return;
-    }
+    // ── Capture loop ──────────────────────────────────────────────────────────
+    const [slides, setSlides] = useState([]);          // thumbnail strip
+    const [pendingTitle, setPendingTitle] = useState('');
+    const [showVoice, setShowVoice] = useState(false);
 
-    try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000
-        });
-      });
+    // ── Status ────────────────────────────────────────────────────────────────
+    const [saving, setSaving] = useState(false);
+    const [savedFlash, setSavedFlash] = useState(false);
 
-      const newLocation = {
-        id: Date.now(),
-        name: 'Starting Location',
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        coords: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`,
-        accuracy: position.coords.accuracy
-      };
+    const cameraRef = useRef(null);
 
-      setStartingLocation(newLocation);
-    } catch (error) {
-      console.error('Error getting location:', error);
-      alert('Unable to get your location. Please check permissions.');
-    }
-  };
-
-  const handleCreateStory = async () => {
-    setIsSaving(true);
-    try {
-      const newStoryId = generateId();
-      const { data: story, error: storyErr } = await supabase
-          .from('stories')
-          .insert({
-              id: newStoryId,
-              title: storyTitle || `Field Story ${new Date().toLocaleDateString()}`,
-              subtitle: 'Draft from mobile capture',
-              is_published: false,
-              hero_image: coverPhoto?.url || undefined,
-              coordinates: startingLocation ? [startingLocation.lat, startingLocation.lng] : undefined,
-              zoom: startingLocation ? 12 : 2
-          })
-          .select().single();
-      if (storyErr) throw storyErr;
-      setStoryId(story.id);
-      setCurrentStep(3);
-    } catch (error) {
-      console.error('Error creating story:', error);
-      alert('Failed to create story. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const loadSlides = async () => {
-    if (!chapterId) return;
-    setIsLoadingSlides(true);
-    try {
-      const { data: chapterSlides, error: slideErr } = await supabase.from('slides').select('*').eq('chapter_id', chapterId).order('order');
-      if (slideErr) throw slideErr;
-      setSlides(chapterSlides || []);
-    } catch (error) {
-      console.error('Error loading slides:', error);
-    } finally {
-      setIsLoadingSlides(false);
-    }
-  };
-
-  const handleSlideImageUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      // Resize image before upload
-      const resizedFile = await resizeImage(file, 800);
-
-      const filePath = `${generateId()}-${file.name}`;
-      const { error: upErr } = await supabase.storage.from('media').upload(filePath, resizedFile, { contentType: resizedFile.type, upsert: false });
-      if (upErr) throw upErr;
-      const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-      const file_url = publicUrl;
-
-      // Capture location when image is uploaded
-      if (navigator.geolocation) {
+    // ── Story creation ────────────────────────────────────────────────────────
+    const createStory = async () => {
+        if (!storyTitle.trim()) return;
+        setSaving(true);
         try {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000
-            });
-          });
-          setSlideLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            coords: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`
-          });
-        } catch (error) {
-          console.error('Error getting location:', error);
+            const id = generateId();
+            const { data, error } = await supabase
+                .from('stories')
+                .insert({
+                    id,
+                    title: storyTitle.trim(),
+                    subtitle: 'Draft from mobile capture',
+                    is_published: false,
+                })
+                .select()
+                .single();
+            if (error) throw error;
+            setStoryId(data.id);
+            setStep(2);
+        } catch (e) {
+            console.error(e);
+            alert('Could not create story. Please try again.');
+        } finally {
+            setSaving(false);
         }
-      }
+    };
 
-      setSlideImage({
-        id: Date.now(),
-        name: file.name,
-        url: file_url
-      });
-    } catch (error) {
-      console.error('Error uploading slide image:', error);
-      alert('Failed to upload image. Please try again.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const saveSlide = async () => {
-    if (!slideTitle) {
-      alert('Please add a title for the slide.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const slideData = {
-        chapter_id: chapterId,
-        title: slideTitle,
-        description: slideDescription || undefined,
-        image: slideImage?.url || undefined,
-        order: slides.length
-      };
-
-      if (slideLocation) {
-        slideData.coordinates = [slideLocation.lat, slideLocation.lng];
-        slideData.zoom = 15;
-      }
-
-      if (currentSlideId) {
-          const { error } = await supabase.from('slides').update(slideData).eq('id', currentSlideId);
-          if (error) throw error;
-      } else {
-          const { error } = await supabase.from('slides').insert({ id: generateId(), ...slideData });
-          if (error) throw error;
-      }
-
-      // Clear form
-      setSlideTitle('');
-      setSlideDescription('');
-      setSlideImage(null);
-      setSlideLocation(null);
-      setCurrentSlideId(null);
-
-      // Reload slides
-      await loadSlides();
-    } catch (error) {
-      console.error('Error saving slide:', error);
-      alert('Failed to save slide. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const loadSlideForEdit = (slide) => {
-    setCurrentSlideId(slide.id);
-    setSlideTitle(slide.title || '');
-    setSlideDescription(slide.description || '');
-    if (slide.image) {
-      setSlideImage({ url: slide.image });
-    }
-    if (slide.coordinates) {
-      setSlideLocation({
-        lat: slide.coordinates[0],
-        lng: slide.coordinates[1],
-        coords: `${slide.coordinates[0].toFixed(6)}, ${slide.coordinates[1].toFixed(6)}`
-      });
-    }
-    setCurrentStep(4);
-  };
-
-  const handleSaveCurrentSlide = async () => {
-    if (!slideTitle) {
-      return false;
-    }
-    await saveSlide();
-    return true;
-  };
-
-  const handleSaveAndAddAnotherSlide = async () => {
-    await handleSaveCurrentSlide();
-  };
-
-  const handleSaveAndReviewSlides = async () => {
-    await handleSaveCurrentSlide();
-    setCurrentStep(5);
-  };
-
-  const handleSaveAndAddNewChapter = async () => {
-    const saved = await handleSaveCurrentSlide();
-    if (saved) {
-      setChapterId(null);
-      setChapterTitle('');
-      setSlides([]);
-      setSlideTitle('');
-      setSlideDescription('');
-      setSlideImage(null);
-      setSlideLocation(null);
-      setCurrentSlideId(null);
-      setCurrentStep(3);
-    }
-  };
-
-  const handleExitStory = async () => {
-    await handleSaveCurrentSlide();
-    navigate(`${createPageUrl('ExitStory')}?id=${storyId}`);
-  };
-
-  useEffect(() => {
-    if (currentStep === 4 && chapterId) {
-      loadSlides();
-    }
-  }, [currentStep, chapterId]);
-
-  const handleMakeSlides = async () => {
-    if (!chapterTitle) {
-      alert('Please record a chapter title first.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      // Capture current location
-      let currentLocation = null;
-      if (navigator.geolocation) {
+    // ── Chapter creation ──────────────────────────────────────────────────────
+    const createChapter = async () => {
+        if (!chapterName.trim()) return;
+        setSaving(true);
         try {
-          const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000
-            });
-          });
-          currentLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-        } catch (error) {
-          console.error('Error getting location:', error);
+            const id = generateId();
+            const { data, error } = await supabase
+                .from('chapters')
+                .insert({
+                    id,
+                    story_id: storyId,
+                    name: chapterName.trim(),
+                    order: chapterCountRef.current,
+                    alignment: 'left',
+                })
+                .select()
+                .single();
+            if (error) throw error;
+            chapterCountRef.current += 1;
+            setChapterId(data.id);
+            setChapterName('');
+            setSlides([]);
+            setStep(3);
+        } catch (e) {
+            console.error(e);
+            alert('Could not create chapter. Please try again.');
+        } finally {
+            setSaving(false);
         }
-      }
+    };
 
-      // Get current chapter count
-      const { data: existingChapters } = await supabase.from('chapters').select('id').eq('story_id', storyId);
-      const chapterOrder = (existingChapters || []).length;
+    // ── Auto-save slide on photo capture ──────────────────────────────────────
+    const handlePhotoCapture = async (file) => {
+        if (!file || saving) return;
+        setSaving(true);
+        setSavedFlash(false);
+        try {
+            // Resize + GPS in parallel — neither blocks the other
+            const [resized, gps] = await Promise.all([
+                resizeImage(file, 800),
+                captureGPS(),
+            ]);
 
-      const { data: chapter, error: chapErr } = await supabase
-          .from('chapters')
-          .insert({ id: generateId(), story_id: storyId, order: chapterOrder, alignment: 'left' })
-          .select().single();
-      if (chapErr) throw chapErr;
-      setChapterId(chapter.id);
+            const filePath = `${generateId()}-${file.name}`;
+            const { error: upErr } = await supabase.storage
+                .from('media')
+                .upload(filePath, resized, { contentType: resized.type });
+            if (upErr) throw upErr;
 
-      // Move to slide creation screen
-      setCurrentStep(4);
-    } catch (error) {
-      console.error('Error creating chapter:', error);
-      alert('Failed to create chapter. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+            const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
 
-  return (
-    <div className="bg-zinc-200 min-h-screen from-slate-50 to-slate-100">
-            {/* Persistent Header Banner */}
-            <header className="bg-slate-600 text-white px-6 py-4 shadow-md sticky top-0 z-50">
-                <button
-          onClick={() => setCurrentStep(0)}
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            const title = pendingTitle.trim() || `Photo ${slides.length + 1}`;
+            const slideId = generateId();
+            const slideData = {
+                id: slideId,
+                chapter_id: chapterId,
+                title,
+                image: publicUrl,
+                order: slides.length,
+                ...(gps ? { coordinates: [gps.lat, gps.lng], zoom: 15 } : {}),
+            };
 
-                    <Sparkles className="w-6 h-6" />
-                    <h1 className="text-2xl font-bold">Storyboarder</h1>
-                </button>
+            const { error: slideErr } = await supabase.from('slides').insert(slideData);
+            if (slideErr) throw slideErr;
+
+            setSlides((prev) => [...prev, { id: slideId, title, image: publicUrl }]);
+            setPendingTitle('');
+            setShowVoice(false);
+            setSavedFlash(true);
+            setTimeout(() => setSavedFlash(false), 2000);
+        } catch (e) {
+            console.error(e);
+            alert('Could not save photo. Please try again.');
+        } finally {
+            setSaving(false);
+            if (cameraRef.current) cameraRef.current.value = '';
+        }
+    };
+
+    const startNewChapter = () => {
+        setChapterName('');
+        setStep(2);
+    };
+
+    const finishStory = () => {
+        navigate(createPageUrl('Stories'));
+    };
+
+    return (
+        <div className="min-h-screen bg-zinc-900 text-white flex flex-col">
+            {/* ── Header ─────────────────────────────────────────────────────── */}
+            <header className="bg-zinc-800 border-b border-zinc-700 px-5 py-4 flex items-center gap-3 sticky top-0 z-50">
+                <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                <span className="text-lg font-semibold tracking-wide">Storyboarder</span>
+                {storyTitle && (
+                    <span className="ml-auto text-sm text-zinc-400 truncate max-w-[180px]">{storyTitle}</span>
+                )}
             </header>
 
-            {/* Main Content Area */}
-            <div className="max-w-2xl mx-auto p-6">
-                <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-                    <AnimatePresence mode="wait">
-                        {/* Home/Welcome Screen */}
-                        {currentStep === 0 &&
-            <motion.div
-              key="welcome"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }} className="bg-gray-500 p-8 text-center space-y-8">
+            {/* ── Steps ──────────────────────────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto">
+                <AnimatePresence mode="wait">
 
+                    {/* ── 0: Welcome ─────────────────────────────────────────── */}
+                    {step === 0 && (
+                        <motion.div
+                            key="welcome"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] p-8 text-center"
+                        >
+                            <div className="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-8">
+                                <BookOpen className="w-10 h-10 text-amber-400" />
+                            </div>
+                            <h2 className="text-4xl font-bold mb-3">Storyboarder</h2>
+                            <p className="text-zinc-400 text-lg leading-relaxed max-w-sm mb-10">
+                                Capture your story on location — photos, voice, and GPS all in one go.
+                            </p>
+                            <button
+                                onClick={() => setStep(1)}
+                                className="w-full max-w-xs h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
+                            >
+                                Start a new story
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        </motion.div>
+                    )}
 
-                                <div className="py-6">
-                                    <h2 className="text-slate-50 mb-6 text-4xl font-bold">Storyboarder
+                    {/* ── 1: Story name ──────────────────────────────────────── */}
+                    {step === 1 && (
+                        <motion.div
+                            key="story"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="p-6 space-y-6"
+                        >
+                            <div>
+                                <p className="text-zinc-400 text-sm uppercase tracking-widest mb-1">Step 1</p>
+                                <h2 className="text-2xl font-bold">Name your story</h2>
+                            </div>
 
-                </h2>
-                                    <p className="text-slate-50 mb-2 text-xl leading-relaxed">is your companion for
+                            <input
+                                autoFocus
+                                value={storyTitle}
+                                onChange={(e) => setStoryTitle(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && createStory()}
+                                placeholder="e.g. Road Trip Through Patagonia"
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white placeholder-zinc-500 text-lg focus:outline-none focus:border-amber-500 transition-colors"
+                            />
 
-                </p>
-                                    <p className="text-slate-50 text-xl leading-relaxed">building stories on location.
+                            <button
+                                onClick={createStory}
+                                disabled={!storyTitle.trim() || saving}
+                                className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
+                            >
+                                {saving ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin" /> Creating…</>
+                                ) : (
+                                    <>Create Story <ChevronRight className="w-5 h-5" /></>
+                                )}
+                            </button>
+                        </motion.div>
+                    )}
 
-                </p>
-                                </div>
+                    {/* ── 2: Chapter name ────────────────────────────────────── */}
+                    {step === 2 && (
+                        <motion.div
+                            key="chapter"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="p-6 space-y-6"
+                        >
+                            <div>
+                                <p className="text-zinc-400 text-sm uppercase tracking-widest mb-1">
+                                    {chapterCountRef.current === 0 ? 'Step 2' : 'New chapter'}
+                                </p>
+                                <h2 className="text-2xl font-bold">Name this chapter</h2>
+                            </div>
 
-                                <p className="text-slate-50 mx-auto px-32 text-lg text-center leading-relaxed max-w-lg">Use voice, image, and location capture tools to build your story on the go, ready for editing in the Storylines desktop editor.
+                            <input
+                                autoFocus
+                                value={chapterName}
+                                onChange={(e) => setChapterName(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && createChapter()}
+                                placeholder="e.g. Arriving in Buenos Aires"
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white placeholder-zinc-500 text-lg focus:outline-none focus:border-amber-500 transition-colors"
+                            />
 
+                            <button
+                                onClick={createChapter}
+                                disabled={!chapterName.trim() || saving}
+                                className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
+                            >
+                                {saving ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin" /> Creating…</>
+                                ) : (
+                                    <>Start Capturing <ChevronRight className="w-5 h-5" /></>
+                                )}
+                            </button>
+                        </motion.div>
+                    )}
 
-              </p>
+                    {/* ── 3: Capture loop ────────────────────────────────────── */}
+                    {step === 3 && (
+                        <motion.div
+                            key="capture"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="flex flex-col min-h-[calc(100vh-60px)]"
+                        >
+                            {/* Chapter label */}
+                            <div className="px-5 pt-5 pb-2 flex items-baseline gap-2">
+                                <span className="text-amber-400 font-medium">
+                                    Chapter {String(chapterCountRef.current).padStart(2, '0')}
+                                </span>
+                                {slides.length > 0 && (
+                                    <span className="text-zinc-500 text-sm">
+                                        · {slides.length} photo{slides.length !== 1 ? 's' : ''}
+                                    </span>
+                                )}
+                            </div>
 
-                                <Button
-                onClick={() => setCurrentStep(1)}
-                className="w-full max-w-md mx-auto bg-amber-600 hover:bg-amber-700 h-16 text-xl font-bold shadow-xl">
-
-                                    Start a new story
-                                    <ChevronRight className="w-7 h-7 ml-2" />
-                                </Button>
-                            </motion.div>
-            }
-
-                        {/* Story Setup Actions Screen */}
-                        {currentStep === 1 &&
-            <motion.div
-              key="setup"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }} className="bg-slate-100 p-6 space-y-6">
-
-
-                                <div className="mb-6">
-                                    <h2 className="text-slate-800 mb-2 text-2xl font-bold text-center lowercase">Story Details
-
-                </h2>
-                                    <p className="text-sm text-slate-600">
-                                        Provide the essential details for your story.
-                                    </p>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {/* Story Title Button */}
-                                    <Button
-                  onClick={() => setCurrentStep(10)} className="bg-slate-600 text-primary-foreground px-4 py-2 text-sm font-medium rounded-md inline-flex items-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 w-full h-20 justify-between border-0 shadow-lg hover:bg-purple-600">
-
-
-
-
-
-
-                                        <Mic className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                                        <p className="text-white text-xl font-black text-center flex-1">STORY TITLE</p>
-                                        {storyTitle && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
-                                    </Button>
-
-                                    {/* Cover Photo Button */}
+                            {/* Optional title + voice */}
+                            <div className="px-5 pb-4 space-y-3">
+                                <div className="flex gap-2">
                                     <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleFileSelect}
-                  className="hidden" />
-
-                                    <Button
-                  onClick={handleTakePhoto} className="bg-slate-400 text-primary-foreground px-4 py-2 text-sm font-medium rounded-md inline-flex items-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 w-full h-20 justify-between border-0 shadow-lg hover:bg-blue-600"
-
-
-
-
-
-                  disabled={isUploading}>
-
-                                        {isUploading ?
-                  <Loader2 className="w-24 h-24 text-white flex-shrink-0 animate-spin" strokeWidth={2.5} /> :
-
-                  <Camera className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                  }
-                                        <p className="text-white text-xl font-black text-center flex-1">COVER PHOTO</p>
-                                        {coverPhoto && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
-                                    </Button>
-
-                                    {/* Capture Location Button */}
-                                    <Button
-                  onClick={handleCaptureLocation} className="bg-slate-300 text-primary-foreground px-4 py-2 text-sm font-medium rounded-md inline-flex items-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 w-full h-20 justify-between border-0 shadow-lg hover:bg-orange-600">
-
-
-
-
-
-
-                                        <MapPin className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                                        <p className="text-white text-xl font-black text-center flex-1">LOCATION</p>
-                                        {startingLocation && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
-                                    </Button>
-
-                                    {/* Review Button */}
-                                    <Button
-                  onClick={() => setCurrentStep(2)} className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-primary-foreground px-4 py-2 w-full h-20 justify-between bg-slate-700 hover:bg-slate-800 border-0 mt-6 shadow-lg">
-
-
-                                        <FileText className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                                        <p className="text-white text-xl font-black text-center flex-1">REVIEW STORY</p>
-                                        <ChevronRight className="w-16 h-16 text-white flex-shrink-0" strokeWidth={3} />
-                                    </Button>
-                                </div>
-                            </motion.div>
-            }
-
-                        {/* Story Title Recording Screen */}
-                        {currentStep === 10 &&
-            <motion.div
-              key="title-recording"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="p-6 space-y-6">
-
-                                <div>
-                                    <Badge className="bg-amber-100 text-amber-700 mb-2">Story Title</Badge>
-                                    <h2 className="text-slate-800 mb-2 text-2xl font-bold text-center">Dictate Story Title
-
-                </h2>
-                                    <p className="text-slate-600 text-sm text-center">Press the microphone to record your story's main title.
-
-                </p>
+                                        value={pendingTitle}
+                                        onChange={(e) => setPendingTitle(e.target.value)}
+                                        placeholder="Photo title (optional — fill before shooting)"
+                                        className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+                                    />
+                                    <button
+                                        onClick={() => setShowVoice((v) => !v)}
+                                        className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                                            showVoice
+                                                ? 'bg-amber-500 text-white'
+                                                : 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500'
+                                        }`}
+                                        aria-label="Voice input"
+                                    >
+                                        <Mic className="w-5 h-5" />
+                                    </button>
                                 </div>
 
-                                <VoiceNarrationRecorder
-                onTranscriptChange={setStoryTitle}
-                initialTranscript={storyTitle} />
+                                <AnimatePresence>
+                                    {showVoice && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            style={{ overflow: 'hidden' }}
+                                        >
+                                            <div className="bg-zinc-800 rounded-xl p-4">
+                                                <VoiceNarrationRecorder
+                                                    onTranscriptChange={setPendingTitle}
+                                                    initialTranscript={pendingTitle}
+                                                />
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
 
+                            {/* ── Camera button (primary action) ─────────────── */}
+                            <div className="flex-1 flex items-center justify-center px-5 py-8">
+                                <input
+                                    ref={cameraRef}
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    onChange={(e) => handlePhotoCapture(e.target.files?.[0])}
+                                    className="hidden"
+                                />
+                                <button
+                                    onClick={() => cameraRef.current?.click()}
+                                    disabled={saving}
+                                    className="w-44 h-44 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 disabled:opacity-50 flex flex-col items-center justify-center gap-2 shadow-2xl shadow-amber-900/40 transition-all"
+                                >
+                                    {saving ? (
+                                        <>
+                                            <Loader2 className="w-14 h-14 animate-spin" />
+                                            <span className="text-sm font-medium">Saving…</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Camera className="w-14 h-14" />
+                                            <span className="text-sm font-semibold">Take Photo</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
 
-                                <div className="flex gap-2">
-                                    <Button
-                  onClick={() => setCurrentStep(1)}
-                  variant="outline"
-                  className="flex-1">
+                            {/* Saved flash */}
+                            <AnimatePresence>
+                                {savedFlash && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0 }}
+                                        className="mx-5 mb-3 bg-green-600 rounded-xl py-2.5 text-center text-sm font-semibold flex items-center justify-center gap-2"
+                                    >
+                                        <Check className="w-4 h-4" /> Photo saved!
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                                        <ChevronLeft className="w-4 h-4 mr-2" />
-                                        Back
-                                    </Button>
-                                    {storyTitle &&
-                <Button
-                  onClick={() => setCurrentStep(1)}
-                  className="flex-1 bg-amber-600 hover:bg-amber-700">
-
-                                            Done
-                                            <Check className="w-4 h-4 ml-2" />
-                                        </Button>
-                }
-                                </div>
-                            </motion.div>
-            }
-
-                        {/* Review Story Setup Screen */}
-                        {currentStep === 2 &&
-            <motion.div
-              key="review-setup"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="p-6 space-y-6">
-
-                                <div>
-                                    <h2 className="text-slate-800 mb-2 text-2xl font-bold text-center">Review Story
-
-                </h2>
-                                    <p className="text-sm text-slate-600">
-                                        Confirm the initial details for your story.
-                                    </p>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {/* Story Title Review */}
-                                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <FileText className="w-5 h-5 text-slate-600" />
-                                            <h3 className="font-semibold text-slate-800">Story Title</h3>
-                                        </div>
-                                        <p className="text-sm text-slate-600">
-                                            {storyTitle || <span className="italic">No title recorded yet.</span>}
-                                        </p>
-                                    </div>
-
-                                    {/* Cover Photo Review */}
-                                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <ImageIcon className="w-5 h-5 text-slate-600" />
-                                            <h3 className="font-semibold text-slate-800">Cover Photo</h3>
-                                        </div>
-                                        {coverPhoto ?
-                  <img
-                    src={coverPhoto.url}
-                    alt="Cover"
-                    className="w-full h-40 object-cover rounded-lg mt-2" /> :
-
-
-                  <p className="text-sm text-slate-600 italic">No cover photo selected.</p>
-                  }
-                                    </div>
-
-                                    {/* Starting Location Review */}
-                                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <MapPin className="w-5 h-5 text-slate-600" />
-                                            <h3 className="font-semibold text-slate-800">Starting Location</h3>
-                                        </div>
-                                        <p className="text-sm text-slate-600">
-                                            {startingLocation ?
-                    startingLocation.coords :
-
-                    <span className="italic">No starting location captured.</span>
-                    }
-                                        </p>
+                            {/* Thumbnail strip */}
+                            {slides.length > 0 && (
+                                <div className="px-5 pb-4">
+                                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                                        {slides.map((slide) => (
+                                            <div
+                                                key={slide.id}
+                                                className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-zinc-800 ring-1 ring-zinc-700"
+                                            >
+                                                <img
+                                                    src={slide.image}
+                                                    alt={slide.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
+                            )}
 
-                                {/* Action Buttons */}
-                                <div className="flex flex-col gap-3 mt-6">
-                                    <Button
-                  onClick={() => setCurrentStep(1)}
-                  variant="outline"
-                  className="w-full h-14 text-base font-semibold border-2">
+                            {/* ── Footer actions ──────────────────────────────── */}
+                            <div className="px-5 pb-8 pt-2 flex gap-3">
+                                <button
+                                    onClick={startNewChapter}
+                                    className="flex-1 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center gap-2 text-sm font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    New Chapter
+                                </button>
+                                <button
+                                    onClick={finishStory}
+                                    className="flex-1 h-12 rounded-xl bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 flex items-center justify-center gap-2 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
+                                >
+                                    <Check className="w-4 h-4" />
+                                    Finish Story
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
 
-                                        <ChevronLeft className="w-6 h-6 mr-2" />
-                                        Make Changes
-                                    </Button>
-                                    <Button
-                  onClick={handleCreateStory}
-                  className="w-full bg-green-600 hover:bg-green-700 h-16 text-lg font-bold shadow-lg"
-                  disabled={isSaving}>
-
-                                        {isSaving ?
-                  <>
-                                                <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                                                Creating...
-                                            </> :
-
-                  <>
-                                                All Good? Let's Create a Chapter
-                                                <ChevronRight className="w-6 h-6 ml-2" />
-                                            </>
-                  }
-                                    </Button>
-                                </div>
-                            </motion.div>
-            }
-
-                        {/* Chapter Title Recording Screen */}
-                        {currentStep === 3 &&
-            <motion.div
-              key="create-chapter"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="p-6 space-y-6">
-
-                                <div>
-                                    <Badge className="bg-green-100 text-green-700 mb-2">Chapter Title</Badge>
-                                    <h2 className="text-slate-800 mb-2 text-2xl font-bold text-center">Record Chapter Title
-
-                </h2>
-                                    <p className="text-sm text-slate-600">
-                                        Dictate the title for this chapter. The first slide will provide location and visual content.
-                                    </p>
-                                </div>
-
-                                <VoiceNarrationRecorder
-                onTranscriptChange={setChapterTitle}
-                initialTranscript={chapterTitle} />
-
-
-                                <div className="flex gap-3">
-                                    <Button
-                  onClick={() => setCurrentStep(4)}
-                  variant="outline"
-                  className="flex-1 h-16 text-base font-semibold border-2">
-
-                                        <ChevronLeft className="w-6 h-6 mr-2" />
-                                        Cancel
-                                    </Button>
-                                    <Button
-                  onClick={handleMakeSlides}
-                  className="flex-1 bg-green-600 hover:bg-green-700 h-16 text-xl font-bold shadow-lg"
-                  disabled={isSaving || !chapterTitle}>
-
-                                        {isSaving ?
-                  <>
-                                                <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                                                Creating...
-                                            </> :
-
-                  <>
-                                                Make Slides
-                                                <ChevronRight className="w-6 h-6 ml-2" />
-                                            </>
-                  }
-                                    </Button>
-                                </div>
-                            </motion.div>
-            }
-
-                        {/* Slide Creation Screen */}
-                        {currentStep === 4 &&
-            <motion.div
-              key="create-slide"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="p-6 space-y-6">
-
-                                {/* Upload Overlay */}
-                                {isUploading &&
-              <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-                                        <div className="bg-white rounded-lg p-8 max-w-sm mx-4 text-center">
-                                            <Loader2 className="w-16 h-16 mx-auto mb-4 animate-spin text-blue-600" />
-                                            <h3 className="text-xl font-bold text-slate-800 mb-2">
-                                                Uploading Image
-                                            </h3>
-                                            <p className="text-sm text-slate-600">
-                                                Please wait while your image is being processed and uploaded...
-                                            </p>
-                                        </div>
-                                    </div>
-              }
-
-                                <div className="mb-6">
-                                    <Badge className="bg-blue-100 text-blue-700 mb-2">
-                                        {currentSlideId ? 'Edit Slide' : 'New Slide'}
-                                    </Badge>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                        {currentSlideId ? 'Edit Slide' : 'Create a Slide'}
-                                    </h2>
-                                    <p className="text-sm text-slate-600">
-                                        Add content for this slide: title, image with location, and description.
-                                    </p>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {/* Slide Title Button */}
-                                    <Button
-                  onClick={() => setCurrentStep(11)}
-                  className={`w-full h-28 justify-between border-0 shadow-lg ${
-                  slideTitle ?
-                  'bg-green-500 hover:bg-green-600' :
-                  'bg-indigo-500 hover:bg-indigo-600'}`
-                  }
-                  disabled={isUploading}>
-
-                                        <Mic className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                                        <p className="font-black text-white text-2xl flex-1 text-center">SLIDE TITLE</p>
-                                        {slideTitle && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
-                                    </Button>
-
-                                    {/* Slide Image Button */}
-                                    <input
-                  ref={slideImageInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleSlideImageUpload}
-                  className="hidden" />
-
-                                    <Button
-                  onClick={() => slideImageInputRef.current?.click()}
-                  className={`w-full h-28 justify-between border-0 shadow-lg ${
-                  slideImage ?
-                  'bg-green-500 hover:bg-green-600' :
-                  'bg-cyan-500 hover:bg-cyan-600'}`
-                  }
-                  disabled={isUploading}>
-
-                                        {isUploading ?
-                  <Loader2 className="w-24 h-24 text-white flex-shrink-0 animate-spin" strokeWidth={2.5} /> :
-
-                  <Camera className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                  }
-                                        <p className="font-black text-white text-2xl flex-1 text-center">TAKE PHOTO</p>
-                                        {slideImage && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
-                                    </Button>
-
-                                    {/* Preview Image */}
-                                    {slideImage &&
-                <div className="relative w-full h-40 rounded-lg overflow-hidden border-2 border-slate-200">
-                                            <img src={slideImage.url} alt="Slide" className="w-full h-full object-cover" />
-                                            {slideLocation &&
-                  <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                                                    <MapPin className="w-3 h-3" />
-                                                    {slideLocation.coords}
-                                                </div>
-                  }
-                                        </div>
-                }
-
-                                    {/* Slide Description Button */}
-                                    <Button
-                  onClick={() => setCurrentStep(12)}
-                  className={`w-full h-28 justify-between border-0 shadow-lg ${
-                  slideDescription ?
-                  'bg-green-500 hover:bg-green-600' :
-                  'bg-pink-500 hover:bg-pink-600'}`
-                  }
-                  disabled={isUploading}>
-
-                                        <Mic className="w-24 h-24 text-white flex-shrink-0" strokeWidth={2.5} />
-                                        <p className="font-black text-white text-2xl flex-1 text-center">DESCRIPTION</p>
-                                        {slideDescription && <Check className="w-16 h-16 text-white flex-shrink-0" strokeWidth={4} />}
-                                    </Button>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-col gap-3 pt-4">
-                                        <Button
-                    onClick={handleSaveAndAddAnotherSlide}
-                    className="w-full bg-green-600 hover:bg-green-700 h-16 text-lg font-bold shadow-lg"
-                    disabled={isSaving || !slideTitle || isUploading}>
-
-                                            {isSaving ?
-                    <>
-                                                    <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                                                    Saving...
-                                                </> :
-
-                    <>
-                                                    Add Another Slide
-                                                    <ChevronRight className="w-6 h-6 ml-2" />
-                                                </>
-                    }
-                                        </Button>
-                                        <Button
-                    onClick={handleSaveAndReviewSlides}
-                    variant="outline"
-                    className="w-full h-14 text-base font-semibold border-2"
-                    disabled={isUploading}>
-
-                                            <FileText className="w-6 h-6 mr-2" />
-                                            Review Slides ({slides.length + (slideTitle && !currentSlideId ? 1 : 0)})
-                                        </Button>
-                                        <Button
-                    onClick={handleSaveAndAddNewChapter}
-                    variant="outline"
-                    className="w-full h-14 text-base font-semibold border-2"
-                    disabled={isUploading}>
-
-                                            <ChevronRight className="w-6 h-6 mr-2" />
-                                            Add New Chapter
-                                        </Button>
-                                        <Button
-                    onClick={handleExitStory}
-                    variant="outline"
-                    className="w-full h-14 text-base font-semibold border-2"
-                    disabled={isUploading}>
-
-                                            <X className="w-6 h-6 mr-2" />
-                                            Exit Story
-                                        </Button>
-                                    </div>
-                                </div>
-                            </motion.div>
-            }
-
-                        {/* Slide Title Recording Screen */}
-                        {currentStep === 11 &&
-            <motion.div
-              key="slide-title-recording"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="p-6 space-y-6">
-
-                                <div>
-                                    <Badge className="bg-blue-100 text-blue-700 mb-2">Slide Title</Badge>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                        Dictate Slide Title
-                                    </h2>
-                                    <p className="text-sm text-slate-600">
-                                        Record the title for this slide.
-                                    </p>
-                                </div>
-
-                                <VoiceNarrationRecorder
-                onTranscriptChange={setSlideTitle}
-                initialTranscript={slideTitle} />
-
-
-                                <div className="flex gap-2">
-                                    <Button
-                  onClick={() => setCurrentStep(4)}
-                  variant="outline"
-                  className="flex-1">
-
-                                        <ChevronLeft className="w-4 h-4 mr-2" />
-                                        Back
-                                    </Button>
-                                    {slideTitle &&
-                <Button
-                  onClick={() => setCurrentStep(4)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700">
-
-                                            Done
-                                            <Check className="w-4 h-4 ml-2" />
-                                        </Button>
-                }
-                                </div>
-                            </motion.div>
-            }
-
-                        {/* Slide Description Recording Screen */}
-                        {currentStep === 12 &&
-            <motion.div
-              key="slide-description-recording"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="p-6 space-y-6">
-
-                                <div>
-                                    <Badge className="bg-blue-100 text-blue-700 mb-2">Slide Description</Badge>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                        Dictate Description
-                                    </h2>
-                                    <p className="text-sm text-slate-600">
-                                        Record a short paragraph describing this slide.
-                                    </p>
-                                </div>
-
-                                <VoiceNarrationRecorder
-                onTranscriptChange={setSlideDescription}
-                initialTranscript={slideDescription} />
-
-
-                                <div className="flex gap-2">
-                                    <Button
-                  onClick={() => setCurrentStep(4)}
-                  variant="outline"
-                  className="flex-1">
-
-                                        <ChevronLeft className="w-4 h-4 mr-2" />
-                                        Back
-                                    </Button>
-                                    <Button
-                  onClick={() => setCurrentStep(4)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700">
-
-                                        Done
-                                        <Check className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </div>
-                            </motion.div>
-            }
-
-                        {/* Review Slides Screen */}
-                        {currentStep === 5 &&
-            <motion.div
-              key="review-slides"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="p-6 space-y-6">
-
-                                <div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                                        Review Slides
-                                    </h2>
-                                    <p className="text-sm text-slate-600">
-                                        {slides.length} slide{slides.length !== 1 ? 's' : ''} created for this chapter.
-                                    </p>
-                                </div>
-
-                                {isLoadingSlides ?
-              <div className="text-center py-12">
-                                        <Loader2 className="w-8 h-8 mx-auto animate-spin text-slate-400" />
-                                    </div> :
-              slides.length === 0 ?
-              <div className="text-center py-12 text-slate-500">
-                                        <p>No slides yet. Create your first slide!</p>
-                                    </div> :
-
-              <div className="space-y-3">
-                                        {slides.map((slide, index) =>
-                <button
-                  key={slide.id}
-                  onClick={() => loadSlideForEdit(slide)}
-                  className="w-full bg-slate-50 border-2 border-slate-200 hover:border-blue-600 hover:bg-blue-50 rounded-lg p-4 text-left transition-colors">
-
-                                                <div className="flex gap-3">
-                                                    {slide.image &&
-                    <img
-                      src={slide.image}
-                      alt={slide.title}
-                      className="w-20 h-20 object-cover rounded flex-shrink-0" />
-
-                    }
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <Badge variant="outline" className="text-xs">
-                                                                Slide {index + 1}
-                                                            </Badge>
-                                                            {slide.coordinates &&
-                        <MapPin className="w-3 h-3 text-green-600" />
-                        }
-                                                        </div>
-                                                        <h3 className="font-semibold text-slate-800 mb-1 truncate">
-                                                            {slide.title}
-                                                        </h3>
-                                                        {slide.description &&
-                      <p className="text-xs text-slate-600 line-clamp-2">
-                                                                {slide.description}
-                                                            </p>
-                      }
-                                                    </div>
-                                                    <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0 self-center" />
-                                                </div>
-                                            </button>
-                )}
-                                    </div>
-              }
-
-                                <div className="flex gap-2 pt-4">
-                                    <Button
-                  onClick={() => setCurrentStep(4)}
-                  variant="outline"
-                  className="flex-1">
-
-                                        <ChevronLeft className="w-4 h-4 mr-2" />
-                                        Back to Slide Entry
-                                    </Button>
-                                    <Button
-                  onClick={() => {
-                    alert('Chapter complete! Navigate to desktop editor to finalize.');
-                  }}
-                  className="flex-1 bg-green-600 hover:bg-green-700">
-
-                                        Done
-                                        <Check className="w-4 h-4 ml-2" />
-                                    </Button>
-                                </div>
-                            </motion.div>
-            }
-
-
-                    </AnimatePresence>
-                </div>
+                </AnimatePresence>
             </div>
-        </div>);
-
-}
-
-function Label({ children, className = '' }) {
-  return <label className={`block font-medium ${className}`}>{children}</label>;
+        </div>
+    );
 }
