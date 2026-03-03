@@ -66,6 +66,11 @@ export default function FullScreenImageViewer({
 
     const currentSlide = slides[currentIndex];
     const hasMultipleSlides = slides.length > 1;
+    const pdfTitle = currentSlide?.pdf_title ||
+        (currentSlide?.pdf_url
+            ? decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0])
+                .replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')
+            : null);
 
     const handlePrevious = () => {
         const newIndex = currentIndex === 0 ? slides.length - 1 : currentIndex - 1;
@@ -149,6 +154,7 @@ export default function FullScreenImageViewer({
                             onClose={onClose}
                             hasMultipleSlides={hasMultipleSlides}
                             pdfUrl={currentSlide?.pdf_url || null}
+                            pdfTitle={pdfTitle}
                         />
                     </motion.div>
 

@@ -5,24 +5,42 @@ import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 /**
  * FloatingControlStrip
  *
- * Bottom pill for fullscreen image navigation.
- * Optionally shows a PDF thumbnail immediately to the left of the pill
- * when the current slide has a pdf_url attached.
+ * Bottom-left pill for fullscreen image navigation.
+ * When the current slide has a PDF, shows a thumbnail + label + title
+ * immediately to the left of the nav pill, bottom-aligned.
  */
-export default function FloatingControlStrip({ onPrev, onNext, onClose, hasMultipleSlides, pdfUrl }) {
+export default function FloatingControlStrip({ onPrev, onNext, onClose, hasMultipleSlides, pdfUrl, pdfTitle }) {
     return (
-        <div className="fixed bottom-8 left-0 z-[9999] flex justify-end items-center gap-3 pr-2 pointer-events-none" style={{ width: 380 }}>
+        <div className="fixed bottom-8 left-0 z-[9999] flex justify-end items-end gap-5 pr-2 pointer-events-none" style={{ width: 380 }}>
 
-            {/* PDF thumbnail — shown when current slide has a PDF */}
+            {/* PDF section — label, thumbnail, and doc title */}
             {pdfUrl && (
-                <div className="pointer-events-none flex-shrink-0 rounded-lg overflow-hidden shadow-xl"
-                     style={{ height: 60, width: 43 }}>
-                    <PdfThumbnail url={pdfUrl} className="w-full h-full object-cover" />
+                <div className="pointer-events-none flex-shrink-0 flex flex-col gap-1.5">
+                    <span className="text-[10px] text-white/80 uppercase tracking-wider font-medium drop-shadow">
+                        Related Documents
+                    </span>
+                    <div className="flex items-end gap-2.5">
+                        <div className="rounded-lg overflow-hidden shadow-xl flex-shrink-0"
+                             style={{ height: 90, width: 64 }}>
+                            <PdfThumbnail url={pdfUrl} className="w-full h-full object-cover" />
+                        </div>
+                        {pdfTitle && (
+                            <span className="text-xs text-white font-medium leading-snug drop-shadow max-w-[100px]"
+                                  style={{
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 4,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                  }}>
+                                {pdfTitle}
+                            </span>
+                        )}
+                    </div>
                 </div>
             )}
 
             {/* Control pill */}
-            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md rounded-full px-2 py-2 shadow-2xl pointer-events-auto">
+            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md rounded-full px-2 py-2 shadow-2xl pointer-events-auto flex-shrink-0">
                 <button
                     onClick={onPrev}
                     disabled={!hasMultipleSlides}
