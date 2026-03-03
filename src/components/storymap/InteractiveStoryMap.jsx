@@ -118,12 +118,16 @@ export default function InteractiveStoryMap({
       pauseRotation();
     }
 
+    // Re-resolve overlaps after every pan/zoom when in featured mode
+    map.current.on('moveend', resolveMarkerOverlaps);
+
     return () => {
       pauseRotation();
       if (map.current) {
         map.current.off('mousedown', stopRotation);
         map.current.off('touchstart', stopRotation);
         map.current.off('wheel', stopRotation);
+        map.current.off('moveend', resolveMarkerOverlaps);
       }
     };
   }, [isVisible, mapInitialized]);
@@ -354,7 +358,50 @@ export default function InteractiveStoryMap({
     if (source) {
       source.setData({ type: 'FeatureCollection', features });
       updateUnclusteredMarkers();
+      if (isFeatured) setTimeout(resolveMarkerOverlaps, 120);
     }
+  };
+
+  // Screen-space overlap resolution for HTML markers.
+  // Mapbox's built-in collision detection only covers symbol layers; HTML markers
+  // require manual separation. Projects each marker to screen pixels, detects
+  // AABB overlaps, and applies marker.setOffset() to push overlapping cards apart.
+  const resolveMarkerOverlaps = () => {
+    if (!map.current || selectedCategoryRef.current !== 'featured') return;
+
+    const W = 256; // card width + padding
+    const H = 52;  // card height + padding
+
+    const entries = Object.values(markers.current).map(marker => {
+      const lngLat = marker.getLngLat();
+      const orig = map.current.project(lngLat);
+      return { marker, origX: orig.x, origY: orig.y, simX: orig.x, simY: orig.y };
+    });
+
+    // Iterative separation — up to 8 passes, exit early if stable
+    for (let pass = 0; pass < 8; pass++) {
+      let moved = false;
+      for (let i = 0; i < entries.length; i++) {
+        for (let j = i + 1; j < entries.length; j++) {
+          const a = entries[i], b = entries[j];
+          const overlapX = W - Math.abs(a.simX - b.simX);
+          const overlapY = H - Math.abs(a.simY - b.simY);
+          if (overlapX > 0 && overlapY > 0) {
+            // Separate vertically (markers are wide and short)
+            const push = overlapY / 2 + 3;
+            if (a.simY <= b.simY) { a.simY -= push; b.simY += push; }
+            else                  { a.simY += push; b.simY -= push; }
+            moved = true;
+          }
+        }
+      }
+      if (!moved) break;
+    }
+
+    // Apply the computed pixel offsets
+    entries.forEach(({ marker, origX, origY, simX, simY }) => {
+      marker.setOffset([simX - origX, simY - origY]);
+    });
   };
 
   const updateUnclusteredMarkers = () => {
