@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2, Check } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
+import * as exifr from 'exifr';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
@@ -608,6 +609,13 @@ export default function TabbedContentEditor({
             if (!file) return;
             setIsUploadingImage(true);
             try {
+                // Extract capture date from EXIF before upload
+                let captureDate = null;
+                try {
+                    const exif = await exifr.parse(file, ['DateTimeOriginal', 'CreateDate']);
+                    captureDate = exif?.DateTimeOriginal || exif?.CreateDate || null;
+                } catch (_) {}
+
                 const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
                 const filePath = `${generateId()}-${safeName}`;
                 const { error: uploadError } = await supabase.storage
@@ -615,7 +623,14 @@ export default function TabbedContentEditor({
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (uploadError) throw uploadError;
                 const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
-                onUpdate({ ...item, image: file_url });
+                onUpdate({
+                    ...item,
+                    image: file_url,
+                    ...(captureDate ? {
+                        capture_date: captureDate.toISOString(),
+                        story_date: captureDate.toISOString().split('T')[0],
+                    } : {}),
+                });
             } finally {
                 setIsUploadingImage(false);
             }
@@ -708,9 +723,33 @@ export default function TabbedContentEditor({
                                 />
                             </div>
                             <div>
+                                <Label>Story Date</Label>
+                                <Input
+                                    type="date"
+                                    value={item.story_date || ''}
+                                    onChange={(e) => onUpdate({ ...item, story_date: e.target.value || null })}
+                                />
+                                {item.capture_date && (() => {
+                                    const captureDay = item.capture_date.split('T')[0];
+                                    return captureDay !== item.story_date ? (
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            Photo taken: {captureDay}{' '}
+                                            <button
+                                                type="button"
+                                                onClick={() => onUpdate({ ...item, story_date: captureDay })}
+                                                className="text-amber-500 hover:text-amber-600 underline"
+                                            >
+                                                reset
+                                            </button>
+                                        </p>
+                                    ) : null;
+                                })()}
+                                <p className="text-xs text-slate-500 mt-1">The contextual date for this slide — used in the story timeline</p>
+                            </div>
+                            <div>
                                 <Label>Card Style</Label>
-                                <Select 
-                                    value={item.card_style || 'default'} 
+                                <Select
+                                    value={item.card_style || 'default'}
                                     onValueChange={(value) => onUpdate({ ...item, card_style: value })}
                                 >
                                     <SelectTrigger>

@@ -165,78 +165,84 @@ export default function StoryTimeline() {
                 </div>
             </div>
 
-            {/* ── Carousel: 70% of (100vh − fixed zones) ────────────────────── */}
+            {/* ── Carousel: 70% of (100vh − fixed zones), 70% width centred ── */}
             {/*   Fixed zones: header 56 + timeline 72 + filmstrip 120 = 248px   */}
             {/*   Full carousel would be (100vh − 248px); 70% = calc(70vh − 174px) */}
             <div
-                className="relative flex-shrink-0 overflow-hidden"
+                className="flex-shrink-0 flex items-stretch bg-black"
                 style={{ height: 'calc(70vh - 174px)' }}
             >
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentIndex}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.35 }}
-                        className="absolute inset-0"
+                {/* ← Prev — in the black gutter */}
+                <div className="flex items-center justify-center" style={{ width: '15%' }}>
+                    <button
+                        onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
+                        disabled={currentIndex === 0}
+                        className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center transition-all"
                     >
-                        {/* Background image */}
-                        {currentSlide?.image
-                            ? <img src={currentSlide.image} alt={currentSlide.title}
-                                   className="absolute inset-0 w-full h-full object-cover" />
-                            : <div className="absolute inset-0 bg-slate-900" />
-                        }
-                        {/* Gradient — heavier at bottom for text legibility */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+                        <ChevronLeft className="w-5 h-5 text-white" />
+                    </button>
+                </div>
 
-                        {/* Slide info overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 px-10 pb-5">
-                            {currentSlide?.chapter_name && (
-                                <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-2">
-                                    {currentSlide.chapter_name}
-                                </span>
-                            )}
-                            {currentSlide?.title && (
-                                <h2 className="text-white text-2xl md:text-3xl font-light leading-tight mb-1">
-                                    {currentSlide.title}
-                                </h2>
-                            )}
-                            {currentSlide?.location && (
-                                <p className="text-white/50 text-sm mb-2">{currentSlide.location}</p>
-                            )}
-                            {currentSlide?.description && (
-                                <div
-                                    className="text-white/65 text-sm leading-relaxed prose prose-sm prose-invert max-w-none overflow-y-auto"
-                                    style={{ maxHeight: 96 }}
-                                    dangerouslySetInnerHTML={{ __html: currentSlide.description }}
-                                />
-                            )}
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
+                {/* Centred image frame: 70% wide */}
+                <div className="relative flex-1 overflow-hidden">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentIndex}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.35 }}
+                            className="absolute inset-0"
+                        >
+                            {currentSlide?.image
+                                ? <img src={currentSlide.image} alt={currentSlide.title}
+                                       className="absolute inset-0 w-full h-full object-cover" />
+                                : <div className="absolute inset-0 bg-slate-900" />
+                            }
+                            {/* Gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-                {/* ← Prev */}
-                <button
-                    onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
-                    disabled={currentIndex === 0}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center transition-all z-10"
-                >
-                    <ChevronLeft className="w-5 h-5 text-white" />
-                </button>
+                            {/* Slide info */}
+                            <div className="absolute bottom-0 left-0 right-0 px-8 pb-5">
+                                {currentSlide?.chapter_name && (
+                                    <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-2">
+                                        {currentSlide.chapter_name}
+                                    </span>
+                                )}
+                                {currentSlide?.title && (
+                                    <h2 className="text-white text-2xl md:text-3xl font-light leading-tight mb-1">
+                                        {currentSlide.title}
+                                    </h2>
+                                )}
+                                {currentSlide?.location && (
+                                    <p className="text-white/50 text-sm mb-2">{currentSlide.location}</p>
+                                )}
+                                {currentSlide?.description && (
+                                    <div
+                                        className="text-white/65 text-sm leading-relaxed prose prose-sm prose-invert max-w-none overflow-y-auto"
+                                        style={{ maxHeight: 96 }}
+                                        dangerouslySetInnerHTML={{ __html: currentSlide.description }}
+                                    />
+                                )}
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
 
-                {/* → Next */}
-                <button
-                    onClick={() => setCurrentIndex(i => Math.min(slides.length - 1, i + 1))}
-                    disabled={currentIndex === slides.length - 1}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center transition-all z-10"
-                >
-                    <ChevronRight className="w-5 h-5 text-white" />
-                </button>
+                    {/* Slide count */}
+                    <div className="absolute top-4 right-4 text-white/30 text-xs z-10 tabular-nums">
+                        {currentIndex + 1} / {slides.length}
+                    </div>
+                </div>
 
-                {/* Slide count */}
-                <div className="absolute top-4 right-5 text-white/30 text-xs z-10 tabular-nums">
-                    {currentIndex + 1} / {slides.length}
+                {/* → Next — in the black gutter */}
+                <div className="flex items-center justify-center" style={{ width: '15%' }}>
+                    <button
+                        onClick={() => setCurrentIndex(i => Math.min(slides.length - 1, i + 1))}
+                        disabled={currentIndex === slides.length - 1}
+                        className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+                    >
+                        <ChevronRight className="w-5 h-5 text-white" />
+                    </button>
                 </div>
             </div>
 
