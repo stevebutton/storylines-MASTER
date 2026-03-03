@@ -142,13 +142,6 @@ export default function FullScreenImageViewer({
                             mapStyle={mapStyle}
                         />
 
-                        {/* Filmstrip — full-width bottom thumbnail row */}
-                        <FilmstripBar
-                            slides={slides}
-                            currentIndex={currentIndex}
-                            onNavigate={onNavigate}
-                        />
-
                         {/* Control strip — bottom centre */}
                         <FloatingControlStrip
                             onPrev={handlePrevious}
@@ -158,6 +151,14 @@ export default function FullScreenImageViewer({
                             hasMultipleSlides={hasMultipleSlides}
                         />
                     </motion.div>
+
+                    {/* Filmstrip — outside the transformed motion.div so fixed positioning
+                        is relative to the viewport, not the transformed parent */}
+                    <FilmstripBar
+                        slides={slides}
+                        currentIndex={currentIndex}
+                        onNavigate={onNavigate}
+                    />
                 </>
             )}
         </AnimatePresence>
