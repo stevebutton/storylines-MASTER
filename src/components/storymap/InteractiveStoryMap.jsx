@@ -425,13 +425,8 @@ export default function InteractiveStoryMap({
   };
 
   return (
-    <div className="relative h-screen w-full flex flex-col">
-      {/* Section header */}
-      <div className="flex-shrink-0 px-8 py-6 bg-white border-b border-slate-100">
-        <h2 className="text-3xl font-light text-slate-800">Explore our Stories</h2>
-      </div>
-
-      <div ref={mapContainer} className="flex-1 w-full" />
+    <div className="relative h-screen w-full">
+      <div ref={mapContainer} className="h-full w-full" />
 
       <AnimatePresence>
         {categories.length > 0 && showCategories && (

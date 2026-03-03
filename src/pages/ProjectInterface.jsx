@@ -207,6 +207,13 @@ export default function ProjectInterface() {
           />
       </div>
 
+      {/* Banner — animates in when map section scrolls into view */}
+      <StoryMapBanner
+        isVisible={isMapSectionVisible}
+        storyTitle="Explore our Stories"
+        hasChapters={false}
+      />
+
       {/* What is Storylines Panel */}
       <WhatIsStorylinesPanel
         isOpen={showStorylinesPanel}
