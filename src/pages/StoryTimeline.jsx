@@ -119,9 +119,7 @@ export default function StoryTimeline() {
         ? dateToPercent(currentSlide.story_date, minMs, maxMs)
         : null;
 
-    const goBack = () => navigate(
-        storyId ? createPageUrl(`StoryMapView?id=${storyId}`) : createPageUrl('Stories')
-    );
+    const goBack = () => navigate(-1);
 
     // ── States ─────────────────────────────────────────────────────────────────
     if (loading) {
