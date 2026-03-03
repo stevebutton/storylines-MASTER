@@ -134,6 +134,20 @@ export default function Stories() {
     }
   };
 
+  const toggleFeatured = async (story) => {
+    const isFeatured = story.category === 'featured';
+    try {
+      const { error } = await supabase
+        .from('stories')
+        .update({ category: isFeatured ? null : 'featured' })
+        .eq('id', story.id);
+      if (error) throw error;
+      loadStories();
+    } catch (error) {
+      console.error('Failed to update featured status:', error);
+    }
+  };
+
   const setAsMainStory = async (story) => {
     try {
       // Unset any current main story
@@ -411,52 +425,50 @@ export default function Stories() {
 
                                     {/* Status bar */}
                                     <div className={`px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between ${story.is_main_story ? 'bg-purple-50' : story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                                                            <div className="flex items-center gap-2">
-                                                                                                {story.is_main_story &&
-                  <>
-                                                                                                        <Star className="w-3 h-3 md:w-3.5 md:h-3.5 text-purple-600 fill-purple-600" />
-                                                                                                        <span className="text-[10px] md:text-xs font-medium text-purple-700">Main Story</span>
-                                                                                                    </>
-                  }
-                                                                                                {!story.is_main_story && story.is_published &&
-                  <>
-                                                                                                        <Globe className="w-3 h-3 md:w-3.5 md:h-3.5 text-green-600" />
-                                                                                                        <span className="text-[10px] md:text-xs font-medium text-green-700">Published</span>
-                                                                                                    </>
-                  }
-                                                                                                {!story.is_main_story && !story.is_published &&
-                  <>
-                                                                                                        <FileEdit className="w-3 h-3 md:w-3.5 md:h-3.5 text-amber-600" />
-                                                                                                        <span className="text-[10px] md:text-xs font-medium text-amber-700">Draft</span>
-                                                                                                    </>
-                  }
-                                                                                            </div>
-                                                                                            <div className="flex items-center gap-1">
-                                                                                                {!story.is_main_story &&
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setAsMainStory(story)}
-                    className="h-6 text-xs"
-                    title="Set as Main Story">
-
-                                                                                                        <Star className="w-3 h-3 mr-1" /> Set Main
-                                                                                                    </Button>
-                  }
-                                                                                                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => togglePublishStatus(story)}
-                    className="h-6 text-xs">
-
-                                                                                                    {story.is_published ?
-                    <><Lock className="w-3 h-3 mr-1" /> Unpublish</> :
-
-                    <><Globe className="w-3 h-3 mr-1" /> Publish</>
-                    }
-                                                                                                </Button>
-                                                                                            </div>
-                                                                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {story.is_main_story && <>
+                                                <Star className="w-3 h-3 md:w-3.5 md:h-3.5 text-purple-600 fill-purple-600" />
+                                                <span className="text-[10px] md:text-xs font-medium text-purple-700">Main Story</span>
+                                            </>}
+                                            {!story.is_main_story && story.is_published && <>
+                                                <Globe className="w-3 h-3 md:w-3.5 md:h-3.5 text-green-600" />
+                                                <span className="text-[10px] md:text-xs font-medium text-green-700">Published</span>
+                                            </>}
+                                            {!story.is_main_story && !story.is_published && <>
+                                                <FileEdit className="w-3 h-3 md:w-3.5 md:h-3.5 text-amber-600" />
+                                                <span className="text-[10px] md:text-xs font-medium text-amber-700">Draft</span>
+                                            </>}
+                                            {story.category === 'featured' && <>
+                                                <Star className="w-3 h-3 md:w-3.5 md:h-3.5 text-amber-500 fill-amber-500 ml-1" />
+                                                <span className="text-[10px] md:text-xs font-medium text-amber-600">Featured</span>
+                                            </>}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => toggleFeatured(story)}
+                                                className={`h-6 text-xs ${story.category === 'featured' ? 'text-amber-600' : ''}`}
+                                                title={story.category === 'featured' ? 'Remove from Featured' : 'Add to Featured'}
+                                            >
+                                                {story.category === 'featured'
+                                                    ? <><StarOff className="w-3 h-3 mr-1" /> Unfeature</>
+                                                    : <><Star className="w-3 h-3 mr-1" /> Feature</>
+                                                }
+                                            </Button>
+                                            {!story.is_main_story &&
+                                                <Button variant="ghost" size="sm" onClick={() => setAsMainStory(story)} className="h-6 text-xs" title="Set as Main Story">
+                                                    <Star className="w-3 h-3 mr-1" /> Set Main
+                                                </Button>
+                                            }
+                                            <Button variant="ghost" size="sm" onClick={() => togglePublishStatus(story)} className="h-6 text-xs">
+                                                {story.is_published
+                                                    ? <><Lock className="w-3 h-3 mr-1" /> Unpublish</>
+                                                    : <><Globe className="w-3 h-3 mr-1" /> Publish</>
+                                                }
+                                            </Button>
+                                        </div>
+                                    </div>
 
                                     <div className="p-2.5 md:p-5">
                                         <div className="flex items-start justify-between mb-1.5 md:mb-2">
