@@ -140,9 +140,9 @@ export default function StoryChapter({
             style={{ minHeight: '85vh', paddingTop: '60px' }}
         >
             <motion.div
-                initial={index === 0 ? { opacity: 0, x: 100 } : { opacity: 0, y: 40 }}
-                whileInView={index === 0 ? { opacity: 1, x: 0 } : { opacity: 1, y: 0 }}
-                transition={index === 0 ? { duration: 4, ease: "easeOut", delay: delay / 1000 } : { duration: 0.8, ease: "easeOut" }}
+                initial={{ opacity: 0, x: 250 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 4, ease: "easeOut", delay: delay / 1000 }}
                 viewport={{ once: false, amount: 0.3 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
             >
@@ -173,25 +173,38 @@ export default function StoryChapter({
                             <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px', paddingRight: '14rem' }}>
                                 <div className="flex-1" />
 
-                                {/* Chapter number + name */}
+                                {/* Chapter number + name — staggered build */}
                                 <div className="mb-5">
-                                    <span className="block text-xs font-medium text-amber-400 uppercase tracking-widest mb-2"
-                                          style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}>
+                                    <motion.span
+                                        className="block text-xs font-medium text-amber-400 uppercase tracking-widest mb-2"
+                                        style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.0 }}
+                                    >
                                         Chapter {String(index + 1).padStart(2, '0')}
-                                    </span>
+                                    </motion.span>
                                     {chapter.name && (
-                                        <span className="block text-5xl font-light text-amber-400"
-                                              style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}>
+                                        <motion.span
+                                            className="block text-5xl font-light text-amber-400"
+                                            style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.4 }}
+                                        >
                                             {chapter.name}
-                                        </span>
+                                        </motion.span>
                                     )}
                                 </div>
 
                                 {/* Chapter description */}
                                 {chapter.description && (
-                                    <div
+                                    <motion.div
                                         className="text-white/90 text-base font-light leading-relaxed"
                                         style={{ fontFamily: 'Raleway, sans-serif', paddingBottom: '40px' }}
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.8 }}
                                         dangerouslySetInnerHTML={{ __html: chapter.description }}
                                     />
                                 )}
