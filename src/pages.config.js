@@ -88,7 +88,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "StoryMapView",
+    mainPage: "ProjectInterface",
     Pages: PAGES,
     Layout: __Layout,
 };
