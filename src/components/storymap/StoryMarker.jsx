@@ -73,6 +73,17 @@ export default function StoryMarker({
     onMouseLeave();
   };
 
+  // Delay navigation so the expanded card's exit animation plays before the page changes
+  const handleClick = () => {
+    if (isHovered) {
+      setIsHovered(false);
+      onMouseLeave();
+      setTimeout(onClick, 650);
+    } else {
+      onClick();
+    }
+  };
+
   const stripHtml = (html) => {
     if (!html) return '';
     const tmp = document.createElement('div');
@@ -87,7 +98,8 @@ export default function StoryMarker({
         ref={markerRef}
         className="story-marker"
         style={{
-          width: '240px',
+          width: 'max-content',
+          maxWidth: '380px',
           borderRadius: '10px',
           backgroundColor: 'white',
           boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
@@ -98,51 +110,35 @@ export default function StoryMarker({
           overflow: 'hidden',
           opacity: isHovered ? 0 : 1
         }}
-        animate={{ 
-          height: '40px'
-        }}
-        transition={{ 
-          opacity: { duration: 0.2 }
-        }}
+        animate={{ height: '40px' }}
+        transition={{ opacity: { duration: 0.2 } }}
         onMouseEnter={handleMouseEnter}
-        onClick={onClick}
+        onClick={handleClick}
       >
-        <div style={{ display: 'flex', width: '100%', height: '40px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', height: '40px' }}>
           {/* Thumbnail */}
-          <div style={{
-            width: '40px',
-            height: '40px',
-            flexShrink: 0,
-            overflow: 'hidden'
-          }}>
+          <div style={{ width: '40px', height: '40px', flexShrink: 0, overflow: 'hidden' }}>
             {storyProps.hero_image && (
-              <img 
-                src={storyProps.hero_image} 
+              <img
+                src={storyProps.hero_image}
                 alt={storyProps.title}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             )}
           </div>
 
-          {/* Title */}
-          <div 
+          {/* Title — nowrap so card grows to fit, capped by maxWidth */}
+          <div
             className="text-xs sm:text-sm"
             style={{
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: '15px',
-            color: '#1e293b',
-            fontWeight: 500,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            fontFamily: 'Raleway, sans-serif',
-            flex: 1
-          }}>
+              paddingLeft: '12px',
+              paddingRight: '14px',
+              color: '#1e293b',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              fontFamily: 'Raleway, sans-serif',
+            }}
+          >
             {storyProps.title}
           </div>
         </div>
@@ -173,7 +169,7 @@ export default function StoryMarker({
                 pointerEvents: 'auto'
               }}
               onMouseLeave={handleMouseLeave}
-              onClick={onClick}
+              onClick={handleClick}
             >
           {/* Thumbnail */}
           <motion.div
