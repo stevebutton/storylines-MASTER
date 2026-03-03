@@ -1,62 +1,58 @@
 import React, { useState } from 'react';
-import { X, FileEdit, Upload, FileText, Map, MessageSquare, Smartphone, ChevronRight } from 'lucide-react';
+import { X, FileEdit, Images, Map, MessageSquare, Smartphone, ChevronRight, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import InterviewModePanel from './InterviewModePanel';
 import MapDataImportPanel from './MapDataImportPanel';
-import DocumentUploadPanel from './DocumentUploadPanel';
 
 export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [isInterviewModeOpen, setIsInterviewModeOpen] = useState(false);
     const [isMapDataImportOpen, setIsMapDataImportOpen] = useState(false);
-    const [isDocumentUploadOpen, setIsDocumentUploadOpen] = useState(false);
     const [storyboarderExpanded, setStoryboarderExpanded] = useState(false);
+    const [emailAddress, setEmailAddress] = useState('');
+    const [emailSent, setEmailSent] = useState(false);
 
     const handleStartFromScratch = () => {
         navigate(createPageUrl('StoryEditor'));
         onClose();
     };
 
+    const handleSendEmail = () => {
+        if (!emailAddress.trim()) return;
+        const url = `${window.location.origin}${createPageUrl('Storyboarder')}`;
+        const subject = encodeURIComponent('Your Storyboarder link');
+        const body = encodeURIComponent(
+            `Open this link on your mobile device to start capturing your story:\n\n${url}\n\nStoryboarder lets you capture chapters, photos, voice descriptions, and GPS locations in the field — ready to finish in the Storylines Story Editor.`
+        );
+        window.location.href = `mailto:${emailAddress.trim()}?subject=${subject}&body=${body}`;
+        setEmailSent(true);
+        setTimeout(() => setEmailSent(false), 3000);
+    };
+
     const options = [
         {
             id: 'scratch',
             title: 'Start from Scratch',
-            description: 'Build your project narrative from the ground up with complete creative control',
+            description: 'Build your story from the ground up with complete creative control',
             icon: FileEdit,
             isActive: true,
             onClick: handleStartFromScratch
         },
         {
-            id: 'upload',
-            title: 'Upload an Outline Document',
-            description: 'Transform existing project documentation or reports into an interactive narrative',
-            icon: Upload,
-            isActive: true,
-            onClick: () => setIsDocumentUploadOpen(true)
-        },
-        {
-            id: 'template',
-            title: 'Start from a Template',
-            description: 'Leverage pre-structured frameworks designed for impact reporting and case studies',
-            icon: FileText,
-            isActive: false,
-            onClick: null
-        },
-        {
             id: 'map',
-            title: 'Import from Map Data',
-            description: 'Generate location-based narratives from field documentation and geotagged media',
-            icon: Map,
+            title: 'Build a Story from Your Photographs',
+            description: 'Import a folder of photos and let Storylines build a location-based narrative from your geotagged images',
+            icon: Images,
             isActive: true,
             onClick: () => setIsMapDataImportOpen(true)
         },
         {
             id: 'interview',
             title: 'Interview Mode',
-            description: 'Use AI-guided prompts to structure your project story systematically',
+            description: 'Use AI-guided prompts to structure your story systematically',
             icon: MessageSquare,
             isActive: true,
             onClick: () => setIsInterviewModeOpen(true)
@@ -64,12 +60,19 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
         {
             id: 'storyboarder',
             title: 'Storyboarder',
-            description: 'Capture stories on location using voice, photos, and GPS — designed for mobile field use',
+            description: 'Capture in the field, finish in the Story Editor — a mobile-first tool for collaborative field storytelling',
             icon: Smartphone,
             isActive: true,
             onClick: () => setStoryboarderExpanded(v => !v)
         }
     ];
+
+    const colors = {
+        scratch:      { bg: 'bg-blue-50',   hover: 'hover:bg-blue-100',   icon: 'text-blue-600',   text: 'text-blue-700'   },
+        map:          { bg: 'bg-amber-50',   hover: 'hover:bg-amber-100',  icon: 'text-amber-600',  text: 'text-amber-700'  },
+        interview:    { bg: 'bg-indigo-50',  hover: 'hover:bg-indigo-100', icon: 'text-indigo-600', text: 'text-indigo-700' },
+        storyboarder: { bg: 'bg-orange-50',  hover: 'hover:bg-orange-100', icon: 'text-orange-600', text: 'text-orange-700' }
+    };
 
     return (
         <AnimatePresence>
@@ -95,12 +98,7 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b">
                             <h2 className="text-4xl font-bold text-slate-800">Create a New Story</h2>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={onClose}
-                                className="hover:bg-slate-100"
-                            >
+                            <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-slate-100">
                                 <X className="w-5 h-5" />
                             </Button>
                         </div>
@@ -108,59 +106,46 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6">
                             <p className="text-sm text-slate-600 mb-6">
-                                Select your preferred approach to creating an interactive project narrative. Each method is designed to accommodate different workflows—from developing new content to leveraging existing documentation and field data.
+                                Choose how you want to start. Each method is designed for a different workflow — from building in the editor to capturing on location.
                             </p>
 
                             <div className="space-y-4">
                                 {options.map((option) => {
                                     const Icon = option.icon;
-                                    const colors = {
-                                        scratch: { bg: 'bg-blue-50', hover: 'hover:bg-blue-100', icon: 'text-blue-600', text: 'text-blue-700' },
-                                        upload: { bg: 'bg-green-50', hover: 'hover:bg-green-100', icon: 'text-green-600', text: 'text-green-700' },
-                                        template: { bg: 'bg-purple-50', hover: 'hover:bg-purple-100', icon: 'text-purple-600', text: 'text-purple-700' },
-                                        map: { bg: 'bg-amber-50', hover: 'hover:bg-amber-100', icon: 'text-amber-600', text: 'text-amber-700' },
-                                        interview: { bg: 'bg-indigo-50', hover: 'hover:bg-indigo-100', icon: 'text-indigo-600', text: 'text-indigo-700' },
-                                        storyboarder: { bg: 'bg-orange-50', hover: 'hover:bg-orange-100', icon: 'text-orange-600', text: 'text-orange-700' }
-                                    };
                                     const colorSet = colors[option.id];
                                     return (
                                         <div key={option.id}
-                                            className={`w-full rounded-lg text-left transition-all overflow-hidden ${
-                                                option.isActive
-                                                    ? `${colorSet.bg} cursor-pointer`
-                                                    : 'bg-slate-100 opacity-50 cursor-not-allowed'
-                                            }`}
+                                            className={`w-full rounded-lg text-left overflow-hidden ${colorSet.bg}`}
                                         >
                                             <button
-                                                onClick={option.isActive ? option.onClick : undefined}
-                                                disabled={!option.isActive}
-                                                className={`w-full text-left ${option.isActive ? colorSet.hover : ''} transition-all`}
+                                                onClick={option.onClick}
+                                                className={`w-full text-left ${colorSet.hover} transition-colors`}
                                             >
                                                 <div className="flex items-center gap-4 p-4">
-                                                    <div className="flex flex-col items-center justify-center p-3">
-                                                        <Icon className={`w-8 h-8 ${option.isActive ? colorSet.icon : 'text-slate-400'}`} />
+                                                    <div className="p-3">
+                                                        <Icon className={`w-8 h-8 ${colorSet.icon}`} />
                                                     </div>
                                                     <div className="flex-1">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <h3 className={`text-lg font-semibold ${option.isActive ? colorSet.text : 'text-slate-500'}`}>
-                                                                {option.title}
-                                                            </h3>
-                                                            {!option.isActive && (
-                                                                <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">
-                                                                    Coming Soon
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className={`text-sm ${option.isActive ? 'text-slate-600' : 'text-slate-400'}`}>
+                                                        <h3 className={`text-lg font-semibold mb-1 ${colorSet.text}`}>
+                                                            {option.title}
+                                                        </h3>
+                                                        <p className="text-sm text-slate-600">
                                                             {option.description}
                                                         </p>
                                                     </div>
                                                 </div>
                                             </button>
 
-                                            {/* Storyboarder how-to — expands on selection */}
+                                            {/* ── Storyboarder expanded detail ── */}
                                             {option.id === 'storyboarder' && storyboarderExpanded && (
-                                                <div className="px-5 pb-5 border-t border-orange-200">
+                                                <div className="px-5 pb-6 border-t border-orange-200">
+
+                                                    {/* Concept */}
+                                                    <p className="mt-4 text-sm text-slate-700 leading-relaxed">
+                                                        Storyboarder is a mobile capture tool for teams working in the field. One person captures — voice notes, photos, GPS — while another finishes the story in the desktop Story Editor. Everything syncs in real time, so the editor can be working while the field team is still shooting.
+                                                    </p>
+
+                                                    {/* Steps */}
                                                     <ol className="mt-4 space-y-2.5 text-sm text-slate-700">
                                                         <li className="flex gap-3">
                                                             <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">1</span>
@@ -172,26 +157,52 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                                                         </li>
                                                         <li className="flex gap-3">
                                                             <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">3</span>
-                                                            <span><strong>Take photos</strong> — tap the camera button. Each photo saves instantly with your GPS location.</span>
+                                                            <span><strong>Take photos</strong> — each photo saves instantly with your GPS location.</span>
                                                         </li>
                                                         <li className="flex gap-3">
                                                             <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">4</span>
-                                                            <span><strong>Add a description</strong> — record a voice note in the lower half of the screen after each shot (optional).</span>
+                                                            <span><strong>Record descriptions</strong> — voice note after each shot to brief the editor (optional).</span>
                                                         </li>
                                                         <li className="flex gap-3">
                                                             <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">5</span>
-                                                            <span><strong>Continue or finish</strong> — tap New Chapter to add another, or Finish Story when you're done.</span>
+                                                            <span><strong>Finish in Story Editor</strong> — content appears in the desktop editor as it's captured, ready to edit, sequence, and publish.</span>
                                                         </li>
                                                     </ol>
-                                                    <p className="mt-4 text-xs text-slate-400 italic">
-                                                        Best used on a mobile device in the field.
-                                                    </p>
-                                                    <button
-                                                        onClick={() => { navigate(createPageUrl('Storyboarder')); onClose(); }}
-                                                        className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-xl transition-colors"
-                                                    >
-                                                        Open Storyboarder <ChevronRight className="w-4 h-4" />
-                                                    </button>
+
+                                                    {/* Actions row */}
+                                                    <div className="mt-5 flex flex-col gap-3">
+
+                                                        {/* Open on this device */}
+                                                        <button
+                                                            onClick={() => { navigate(createPageUrl('Storyboarder')); onClose(); }}
+                                                            className="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-xl transition-colors w-fit"
+                                                        >
+                                                            Open Storyboarder <ChevronRight className="w-4 h-4" />
+                                                        </button>
+
+                                                        {/* Send to mobile */}
+                                                        <div>
+                                                            <p className="text-xs text-slate-500 mb-2">Or send the link to your phone:</p>
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="email"
+                                                                    value={emailAddress}
+                                                                    onChange={(e) => setEmailAddress(e.target.value)}
+                                                                    onKeyDown={(e) => e.key === 'Enter' && handleSendEmail()}
+                                                                    placeholder="your@email.com"
+                                                                    className="flex-1 px-4 py-2.5 rounded-xl border border-orange-200 bg-white text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-orange-400 transition-colors"
+                                                                />
+                                                                <button
+                                                                    onClick={handleSendEmail}
+                                                                    disabled={!emailAddress.trim()}
+                                                                    className="flex items-center gap-2 px-4 py-2.5 bg-orange-100 hover:bg-orange-200 disabled:opacity-40 text-orange-700 text-sm font-semibold rounded-xl transition-colors border border-orange-200 flex-shrink-0"
+                                                                >
+                                                                    <Mail className="w-4 h-4" />
+                                                                    {emailSent ? 'Sent!' : 'Send'}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -202,23 +213,17 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                     </motion.div>
                 </>
             )}
-            
+
             {/* Interview Mode Panel */}
             <InterviewModePanel
                 isOpen={isInterviewModeOpen}
                 onClose={() => setIsInterviewModeOpen(false)}
             />
 
-            {/* Map Data Import Panel */}
+            {/* Map / Photo Import Panel */}
             <MapDataImportPanel
                 isOpen={isMapDataImportOpen}
                 onClose={() => setIsMapDataImportOpen(false)}
-            />
-
-            {/* Document Upload Panel */}
-            <DocumentUploadPanel
-                isOpen={isDocumentUploadOpen}
-                onClose={() => setIsDocumentUploadOpen(false)}
             />
         </AnimatePresence>
     );
