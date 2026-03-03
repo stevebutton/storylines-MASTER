@@ -251,6 +251,30 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                             </div>
                             <div className="space-y-2">
                                 <div>
+                                    <Label className="text-xs">Story Date</Label>
+                                    <Input
+                                        type="date"
+                                        value={slide.story_date || ''}
+                                        onChange={(e) => onUpdate({ ...slide, story_date: e.target.value || null })}
+                                        className="h-9"
+                                    />
+                                    {slide.capture_date && (() => {
+                                        const captureDay = slide.capture_date.split('T')[0];
+                                        return captureDay !== slide.story_date ? (
+                                            <p className="text-xs text-slate-400 mt-1">
+                                                Photo taken: {captureDay}{' '}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onUpdate({ ...slide, story_date: captureDay })}
+                                                    className="text-amber-500 hover:text-amber-600 underline"
+                                                >
+                                                    reset
+                                                </button>
+                                            </p>
+                                        ) : null;
+                                    })()}
+                                </div>
+                                <div>
                                     <Label className="text-xs">Card Style</Label>
                                     <Select 
                                         value={slide.card_style || 'default'} 
