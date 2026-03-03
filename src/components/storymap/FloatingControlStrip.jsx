@@ -11,7 +11,8 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
  */
 export default function FloatingControlStrip({ onPrev, onNext, onClose, counter, hasMultipleSlides }) {
     return (
-        <div className="fixed bottom-8 right-8 z-[9999] flex flex-col items-end gap-2 pointer-events-auto">
+        <div className="fixed bottom-8 left-0 z-[9999] flex justify-end pr-2 pointer-events-none" style={{ width: 380 }}>
+            <div className="flex flex-col items-end gap-2 pointer-events-auto">
 
             {/* Control pill */}
             <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md rounded-full px-2 py-2 shadow-2xl">
@@ -43,6 +44,7 @@ export default function FloatingControlStrip({ onPrev, onNext, onClose, counter,
                 >
                     <ChevronRight className="w-5 h-5" />
                 </button>
+            </div>
             </div>
         </div>
     );
