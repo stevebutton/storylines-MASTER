@@ -5,16 +5,17 @@ import { Play } from 'lucide-react';
 /**
  * FilmstripBar
  *
- * Sits beside the FloatingControlStrip pill at bottom-8.
- * Collapsed height matches the pill (~60px). Hover expands to 120px.
- * White ring follows the hovered thumbnail; falls back to current slide.
- * Hovering near the edges auto-scrolls to reveal off-screen thumbnails.
+ * Collapsed: 60px, vertically centred alongside the nav pill.
+ * Hover: expands to 120px, full filmstrip scrollable.
+ * Edge zones auto-scroll the strip so the mouse never leaves the component.
+ * Background gradient fades out when collapsed — no resting shadow.
  */
 export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [hoveredIndex, setHoveredIndex] = useState(null);
     const stripRef = useRef(null);
     const thumbRefs = useRef([]);
+    const scrollIntervalRef = useRef(null);
 
     const scrollToCurrent = (behavior = 'smooth') => {
         const strip = stripRef.current;
@@ -26,35 +27,52 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
         });
     };
 
-    // Snap to current on slide change; smooth-scroll when strip opens
     useEffect(() => { scrollToCurrent('instant'); }, [currentIndex]);
     useEffect(() => { if (isExpanded) scrollToCurrent(); }, [isExpanded]);
 
-    // Bring hovered thumbnail into view
+    // Bring individually hovered thumbnail into view
     useEffect(() => {
         if (hoveredIndex === null) return;
-        const thumb = thumbRefs.current[hoveredIndex];
-        if (thumb) thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        thumbRefs.current[hoveredIndex]?.scrollIntoView({
+            behavior: 'smooth', block: 'nearest', inline: 'nearest',
+        });
     }, [hoveredIndex]);
+
+    const startEdgeScroll = (direction) => {
+        if (scrollIntervalRef.current) return;
+        scrollIntervalRef.current = setInterval(() => {
+            if (stripRef.current) stripRef.current.scrollLeft += direction * 8;
+        }, 16);
+    };
+
+    const stopEdgeScroll = () => {
+        clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+    };
+
+    useEffect(() => () => stopEdgeScroll(), []);
 
     if (!slides || slides.length < 2) return null;
 
-    // Ring follows hovered thumbnail; falls back to current
     const activeRingIndex = hoveredIndex ?? currentIndex;
 
     return (
         <motion.div
-            className="fixed bottom-8 right-0 z-[9998] pointer-events-auto"
-            style={{ left: 380, overflow: 'hidden' }}
+            className="fixed bottom-8 right-0 z-[9998] pointer-events-auto overflow-hidden"
+            style={{ left: 380 }}
             onMouseEnter={() => setIsExpanded(true)}
-            onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); }}
+            onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
             animate={{ height: isExpanded ? 120 : 60 }}
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         >
-            {/* Dark gradient backing */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+            {/* Background gradient — fades out when collapsed so no resting shadow */}
+            <motion.div
+                className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none"
+                animate={{ opacity: isExpanded ? 1 : 0 }}
+                transition={{ duration: 0.35 }}
+            />
 
-            {/* Scrollable thumbnail row — vertically centred */}
+            {/* Scrollable thumbnail row */}
             <div
                 ref={stripRef}
                 className="absolute inset-0 flex items-center px-3"
@@ -113,8 +131,21 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                 })}
             </div>
 
-            {/* Right edge fade mask */}
-            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black/60 to-transparent pointer-events-none" />
+            {/* Left edge scroll zone — keeps mouse inside filmstrip + scrolls left */}
+            <div
+                className="absolute left-0 top-0 bottom-0 w-12 pointer-events-auto"
+                style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.35), transparent)' }}
+                onMouseEnter={() => startEdgeScroll(-1)}
+                onMouseLeave={stopEdgeScroll}
+            />
+
+            {/* Right edge scroll zone — keeps mouse inside filmstrip + scrolls right */}
+            <div
+                className="absolute right-0 top-0 bottom-0 w-12 pointer-events-auto"
+                style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.35), transparent)' }}
+                onMouseEnter={() => startEdgeScroll(1)}
+                onMouseLeave={stopEdgeScroll}
+            />
         </motion.div>
     );
 }
