@@ -145,6 +145,11 @@ create table if not exists slides (
   fly_duration        float8,
   mapbox_layer_id     text,
   card_style          text default 'default',
+  -- Date fields for timeline feature
+  -- capture_date: extracted from image EXIF at upload time; read-only provenance
+  -- story_date:   editable contextual date (defaults to capture_date); used by timeline view
+  capture_date        timestamptz,
+  story_date          date,
   is_sample           boolean default false,
   created_date        timestamptz,
   updated_date        timestamptz,
@@ -153,6 +158,7 @@ create table if not exists slides (
 );
 
 create index if not exists slides_chapter_id_idx on slides(chapter_id);
+create index if not exists slides_story_date_idx   on slides(story_date);
 
 
 -- =============================================================================
