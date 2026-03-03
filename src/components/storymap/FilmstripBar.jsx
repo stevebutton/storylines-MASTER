@@ -5,19 +5,20 @@ import { Play } from 'lucide-react';
 /**
  * FilmstripBar
  *
- * Collapsed: current thumbnail centred, adjacent (±1) partially visible,
- * all others collapsed to thin slivers indicating more content.
- * Hover: full filmstrip expands — all slides at full size, scrollable,
- * current highlighted with white ring.
+ * Sits beside the FloatingControlStrip pill at bottom-8.
+ * Collapsed height matches the pill (~60px). Hover expands to 120px.
+ * White ring follows the hovered thumbnail; falls back to current slide.
+ * Hovering near the edges auto-scrolls to reveal off-screen thumbnails.
  */
 export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [hoveredIndex, setHoveredIndex] = useState(null);
     const stripRef = useRef(null);
-    const currentThumbRef = useRef(null);
+    const thumbRefs = useRef([]);
 
     const scrollToCurrent = (behavior = 'smooth') => {
         const strip = stripRef.current;
-        const thumb = currentThumbRef.current;
+        const thumb = thumbRefs.current[currentIndex];
         if (!strip || !thumb) return;
         strip.scrollTo({
             left: thumb.offsetLeft - strip.offsetWidth / 2 + thumb.offsetWidth / 2,
@@ -25,36 +26,43 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
         });
     };
 
-    // Snap to current slide instantly on slide change
+    // Snap to current on slide change; smooth-scroll when strip opens
     useEffect(() => { scrollToCurrent('instant'); }, [currentIndex]);
-
-    // Smooth-scroll to current when filmstrip opens
     useEffect(() => { if (isExpanded) scrollToCurrent(); }, [isExpanded]);
+
+    // Bring hovered thumbnail into view
+    useEffect(() => {
+        if (hoveredIndex === null) return;
+        const thumb = thumbRefs.current[hoveredIndex];
+        if (thumb) thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }, [hoveredIndex]);
 
     if (!slides || slides.length < 2) return null;
 
+    // Ring follows hovered thumbnail; falls back to current
+    const activeRingIndex = hoveredIndex ?? currentIndex;
+
     return (
         <motion.div
-            className="fixed bottom-0 right-0 z-[9998] pointer-events-auto"
+            className="fixed bottom-8 right-0 z-[9998] pointer-events-auto"
             style={{ left: 380, overflow: 'hidden' }}
             onMouseEnter={() => setIsExpanded(true)}
-            onMouseLeave={() => setIsExpanded(false)}
-            animate={{ height: isExpanded ? 124 : 76 }}
+            onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); }}
+            animate={{ height: isExpanded ? 120 : 60 }}
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* Dark gradient backing */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
 
-            {/* Scrollable thumbnail row — aligns to bottom so thumbnails grow upward */}
+            {/* Scrollable thumbnail row — vertically centred */}
             <div
                 ref={stripRef}
-                className="absolute bottom-0 left-0 right-0 flex items-end pb-3 px-4"
+                className="absolute inset-0 flex items-center px-3"
                 style={{
                     gap: 6,
                     overflowX: 'auto',
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none',
-                    height: '100%',
                 }}
             >
                 {slides.map((slide, i) => {
@@ -65,14 +73,15 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                     return (
                         <motion.button
                             key={i}
-                            ref={isCurrent ? currentThumbRef : null}
+                            ref={el => thumbRefs.current[i] = el}
                             onClick={() => onNavigate(i)}
+                            onMouseEnter={() => setHoveredIndex(i)}
+                            onMouseLeave={() => setHoveredIndex(null)}
                             animate={{
-                                // Collapsed: current full, ±1 partial, rest = 8px slivers
                                 width:   isCurrent ? 108 : isExpanded ? 88 : dist === 1 ? 72 : 8,
-                                height:  isCurrent ? (isExpanded ? 84 : 60)
+                                height:  isCurrent ? (isExpanded ? 84 : 46)
                                                    : isExpanded ? 72
-                                                   : dist === 1 ? 48 : 48,
+                                                   : dist === 1 ? 42 : 42,
                                 opacity: isCurrent ? 1
                                                    : isExpanded ? 0.8
                                                    : dist === 1 ? 0.55 : 0.15,
@@ -80,7 +89,7 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
                             className="relative flex-shrink-0 rounded-md overflow-hidden focus:outline-none"
                             style={{
-                                boxShadow: isCurrent
+                                boxShadow: i === activeRingIndex
                                     ? '0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.5)'
                                     : 'none',
                                 minWidth: 0,
