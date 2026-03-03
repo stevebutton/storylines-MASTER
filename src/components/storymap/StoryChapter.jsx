@@ -160,7 +160,7 @@ export default function StoryChapter({
                         exit={{ opacity: 0, x: -80 }}
                         transition={{ duration: 0.35, ease: 'easeOut' }}
                     >
-                        <div className="relative rounded-2xl shadow-2xl pointer-events-auto border border-white/20" style={{ minHeight: '500px' }}>
+                        <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35), 0 25px 50px -12px rgba(0,0,0,0.5)' }}>
                             {/* Background layers — clipped independently so the explore button can overflow */}
                             <div className="absolute inset-0 rounded-2xl overflow-hidden">
                                 {bgImage && (
@@ -191,9 +191,9 @@ export default function StoryChapter({
                                         <motion.span
                                             className="block text-5xl font-light text-amber-400"
                                             style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}
-                                            initial={{ opacity: 0, y: 8 }}
-                                            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                                            transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.9 }}
+                                            initial={{ opacity: 0, y: 48, scale: 1.25 }}
+                                            animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 48, scale: 1.25 }}
+                                            transition={{ duration: 1.1, ease: 'easeOut', delay: delay / 1000 + 2.9 }}
                                         >
                                             {chapter.name}
                                         </motion.span>
