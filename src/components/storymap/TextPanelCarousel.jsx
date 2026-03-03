@@ -112,7 +112,7 @@ const TextPanelCarousel = ({
 
                     {/* Chapter eyebrow */}
                     {chapterTitle && (
-                        <p className="text-xs font-medium text-white uppercase tracking-widest text-right"
+                        <p className="text-2xl font-medium text-white uppercase tracking-widest text-right"
                            style={{ fontFamily: themeFont }}>
                             {chapterTitle}
                         </p>
@@ -134,7 +134,7 @@ const TextPanelCarousel = ({
                     {/* Slide title */}
                     {slideTitle && (
                         <h3
-                            className="text-3xl font-light text-white text-right"
+                            className="text-5xl font-light text-white text-right"
                             style={{ fontFamily: themeFont, lineHeight: '1.1' }}
                         >
                             {slideTitle}
@@ -189,7 +189,7 @@ const TextPanelCarousel = ({
                                         />
                                     ))}
 
-                                    <span className="text-xs text-white/50 tabular-nums">
+                                    <span className="text-xs text-white/50 tabular-nums ml-auto">
                                         {currentPage + 1}/{pages.length}
                                     </span>
 
