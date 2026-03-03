@@ -259,9 +259,9 @@ export default function Stories() {
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
                             <Link to={createPageUrl('ProjectInterface')}>
-                                <img 
-                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png" 
-                                    alt="Storylines" 
+                                <img
+                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
+                                    alt="Storylines"
                                     width="250"
                                     height="100"
                                     className="hover:opacity-80 transition-opacity cursor-pointer"
@@ -274,6 +274,12 @@ export default function Stories() {
                                 <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
                             </div>
                         </div>
+                        <Link
+                            to={createPageUrl('StoriesDebug')}
+                            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                            Debug view
+                        </Link>
                     </div>
 
                     {/* Stats & Actions */}
