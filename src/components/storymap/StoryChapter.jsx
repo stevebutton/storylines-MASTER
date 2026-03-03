@@ -160,7 +160,7 @@ export default function StoryChapter({
                         exit={{ opacity: 0, x: -80 }}
                         transition={{ duration: 0.35, ease: 'easeOut' }}
                     >
-                        <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
+                        <div className="relative rounded-2xl shadow-2xl pointer-events-auto border border-white/20" style={{ minHeight: '500px' }}>
                             {/* Background layers — clipped independently so the explore button can overflow */}
                             <div className="absolute inset-0 rounded-2xl overflow-hidden">
                                 {bgImage && (
@@ -183,7 +183,7 @@ export default function StoryChapter({
                                         style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                                        transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.0 }}
+                                        transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.5 }}
                                     >
                                         Chapter {String(index + 1).padStart(2, '0')}
                                     </motion.span>
@@ -193,7 +193,7 @@ export default function StoryChapter({
                                             style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}
                                             initial={{ opacity: 0, y: 8 }}
                                             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                                            transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.4 }}
+                                            transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.9 }}
                                         >
                                             {chapter.name}
                                         </motion.span>
@@ -207,7 +207,7 @@ export default function StoryChapter({
                                         style={{ fontFamily: 'Raleway, sans-serif', paddingBottom: '40px' }}
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-                                        transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.8 }}
+                                        transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 3.3 }}
                                         dangerouslySetInnerHTML={{ __html: chapter.description }}
                                     />
                                 )}
