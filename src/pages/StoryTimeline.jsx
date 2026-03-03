@@ -1,33 +1,46 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, ArrowLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
-const formatMonthYear = (dateStr) => {
-    if (!dateStr) return null;
-    // Add T12:00:00 to avoid UTC midnight off-by-one day issues
+// "June 2024" — used for edge labels
+const formatLong = (dateStr) => {
+    if (!dateStr) return '';
     return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
-        month: 'long',
-        year: 'numeric',
+        month: 'long', year: 'numeric',
     });
+};
+
+// "Jun '24" — used for tick labels
+const formatShort = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short' }) + " '" + String(d.getFullYear()).slice(2);
+};
+
+const dateToMs = (dateStr) => new Date(dateStr + 'T12:00:00').getTime();
+
+const dateToPercent = (dateStr, minMs, maxMs) => {
+    if (minMs === maxMs) return 50;
+    return Math.max(0, Math.min(100, ((dateToMs(dateStr) - minMs) / (maxMs - minMs)) * 100));
 };
 
 export default function StoryTimeline() {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const storyId = searchParams.get('storyId');
+    const navigate       = useNavigate();
+    const storyId        = searchParams.get('storyId');
 
-    const [story, setStory]             = useState(null);
-    const [slides, setSlides]           = useState([]);
+    const [story, setStory]               = useState(null);
+    const [slides, setSlides]             = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [loading, setLoading]         = useState(true);
+    const [loading, setLoading]           = useState(true);
 
     const filmstripRef = useRef(null);
     const thumbRefs    = useRef([]);
 
-    // ── Load story + slides ────────────────────────────────────────────────────
+    // ── Load ──────────────────────────────────────────────────────────────────
     useEffect(() => {
         if (!storyId) return;
         const load = async () => {
@@ -41,12 +54,9 @@ export default function StoryTimeline() {
                         .order('"order"'),
                 ]);
                 setStory(storyData);
-
-                // Flatten + inject chapter_name
                 const all = (chapters || []).flatMap(ch =>
                     (ch.slides || []).map(sl => ({ ...sl, chapter_name: ch.name }))
                 );
-                // Dated slides sorted ascending; undated appended at end
                 const dated   = all.filter(s => s.story_date).sort((a, b) => a.story_date.localeCompare(b.story_date));
                 const undated = all.filter(s => !s.story_date);
                 setSlides([...dated, ...undated]);
@@ -59,7 +69,7 @@ export default function StoryTimeline() {
         load();
     }, [storyId]);
 
-    // ── Keep active thumb centred in filmstrip ─────────────────────────────────
+    // ── Filmstrip auto-scroll ──────────────────────────────────────────────────
     useEffect(() => {
         const strip = filmstripRef.current;
         const thumb = thumbRefs.current[currentIndex];
@@ -80,16 +90,41 @@ export default function StoryTimeline() {
         return () => window.removeEventListener('keydown', handle);
     }, [slides.length]);
 
-    const currentSlide = slides[currentIndex];
-    const dateLabel    = currentSlide?.story_date
-        ? formatMonthYear(currentSlide.story_date)
-        : 'Undated';
+    // ── Timeline data ─────────────────────────────────────────────────────────
+    const { minDate, maxDate, minMs, maxMs, monthTicks } = useMemo(() => {
+        const dated = slides.filter(s => s.story_date);
+        if (!dated.length) return { minDate: null, maxDate: null, minMs: 0, maxMs: 0, monthTicks: [] };
+
+        const minDate = dated[0].story_date;
+        const maxDate = dated[dated.length - 1].story_date;
+        const minMs   = dateToMs(minDate);
+        const maxMs   = dateToMs(maxDate);
+
+        // One tick per calendar month boundary between min and max
+        const ticks = [];
+        const d = new Date(minMs);
+        d.setDate(1);
+        d.setMonth(d.getMonth() + 1); // first boundary after minDate
+        while (d.getTime() <= maxMs) {
+            ticks.push({
+                dateStr: d.toISOString().split('T')[0],
+                label:   formatShort(d.toISOString().split('T')[0]),
+            });
+            d.setMonth(d.getMonth() + 1);
+        }
+        return { minDate, maxDate, minMs, maxMs, monthTicks: ticks };
+    }, [slides]);
+
+    const currentSlide   = slides[currentIndex];
+    const cursorPercent  = currentSlide?.story_date && minDate
+        ? dateToPercent(currentSlide.story_date, minMs, maxMs)
+        : null;
 
     const goBack = () => navigate(
         storyId ? createPageUrl(`StoryMapView?id=${storyId}`) : createPageUrl('Stories')
     );
 
-    // ── Loading ────────────────────────────────────────────────────────────────
+    // ── States ─────────────────────────────────────────────────────────────────
     if (loading) {
         return (
             <div className="fixed inset-0 bg-black flex items-center justify-center">
@@ -98,7 +133,6 @@ export default function StoryTimeline() {
         );
     }
 
-    // ── No dated slides ────────────────────────────────────────────────────────
     if (!slides.length) {
         return (
             <div className="fixed inset-0 bg-slate-950 flex flex-col items-center justify-center gap-4 text-white">
@@ -114,7 +148,7 @@ export default function StoryTimeline() {
     return (
         <div className="fixed inset-0 bg-black flex flex-col overflow-hidden select-none">
 
-            {/* ── Header ────────────────────────────────────────────────────── */}
+            {/* ── Header: 56px ──────────────────────────────────────────────── */}
             <div className="flex-shrink-0 flex items-center gap-3 px-5 bg-black/70 backdrop-blur-sm border-b border-white/10 z-10"
                  style={{ height: 56 }}>
                 <button
@@ -131,9 +165,13 @@ export default function StoryTimeline() {
                 </div>
             </div>
 
-            {/* ── Carousel ──────────────────────────────────────────────────── */}
-            <div className="flex-1 relative min-h-0">
-
+            {/* ── Carousel: 70% of (100vh − fixed zones) ────────────────────── */}
+            {/*   Fixed zones: header 56 + timeline 72 + filmstrip 120 = 248px   */}
+            {/*   Full carousel would be (100vh − 248px); 70% = calc(70vh − 174px) */}
+            <div
+                className="relative flex-shrink-0 overflow-hidden"
+                style={{ height: 'calc(70vh - 174px)' }}
+            >
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={currentIndex}
@@ -144,34 +182,35 @@ export default function StoryTimeline() {
                         className="absolute inset-0"
                     >
                         {/* Background image */}
-                        {currentSlide?.image && (
-                            <img
-                                src={currentSlide.image}
-                                alt={currentSlide.title}
-                                className="absolute inset-0 w-full h-full object-cover"
-                            />
-                        )}
-                        {!currentSlide?.image && (
-                            <div className="absolute inset-0 bg-slate-900" />
-                        )}
+                        {currentSlide?.image
+                            ? <img src={currentSlide.image} alt={currentSlide.title}
+                                   className="absolute inset-0 w-full h-full object-cover" />
+                            : <div className="absolute inset-0 bg-slate-900" />
+                        }
+                        {/* Gradient — heavier at bottom for text legibility */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
 
-                        {/* Gradient overlay — heavier at bottom for text legibility */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-
-                        {/* Slide metadata */}
-                        <div className="absolute bottom-0 left-0 right-0 px-10 pb-6">
+                        {/* Slide info overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 px-10 pb-5">
                             {currentSlide?.chapter_name && (
                                 <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-2">
                                     {currentSlide.chapter_name}
                                 </span>
                             )}
                             {currentSlide?.title && (
-                                <h2 className="text-white text-3xl md:text-4xl font-light leading-tight mb-1">
+                                <h2 className="text-white text-2xl md:text-3xl font-light leading-tight mb-1">
                                     {currentSlide.title}
                                 </h2>
                             )}
                             {currentSlide?.location && (
-                                <p className="text-white/50 text-sm">{currentSlide.location}</p>
+                                <p className="text-white/50 text-sm mb-2">{currentSlide.location}</p>
+                            )}
+                            {currentSlide?.description && (
+                                <div
+                                    className="text-white/65 text-sm leading-relaxed prose prose-sm prose-invert max-w-none overflow-y-auto"
+                                    style={{ maxHeight: 96 }}
+                                    dangerouslySetInnerHTML={{ __html: currentSlide.description }}
+                                />
                             )}
                         </div>
                     </motion.div>
@@ -201,25 +240,103 @@ export default function StoryTimeline() {
                 </div>
             </div>
 
-            {/* ── Date bridge ───────────────────────────────────────────────── */}
-            <div className="flex-shrink-0 flex items-center gap-5 px-8 bg-black" style={{ height: 48 }}>
-                <div className="flex-1 h-px bg-white/12" />
-                <AnimatePresence mode="wait">
-                    <motion.span
-                        key={dateLabel}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-xs font-medium text-white/45 tracking-[0.18em] uppercase whitespace-nowrap"
-                    >
-                        {dateLabel}
-                    </motion.span>
-                </AnimatePresence>
-                <div className="flex-1 h-px bg-white/12" />
+            {/* ── Timeline bar: 72px ────────────────────────────────────────── */}
+            {/*                                                                  */}
+            {/*  tick labels  Jun '24   Jul '24   Aug '24   Sep '24             */}
+            {/*  tick marks      |         |         |         |                */}
+            {/*  line      ──────┼─────────┼─────────●─────────┼──────          */}
+            {/*  edge labels  Jun 2024                        Sep 2024          */}
+            {/*                                                                  */}
+            <div className="flex-shrink-0 bg-black relative" style={{ height: 72 }}>
+
+                {/* Track line — positioned at top: 44, leaving 28px above for ticks/labels */}
+                <div
+                    className="absolute"
+                    style={{ left: 40, right: 40, top: 44, height: 1, background: 'rgba(255,255,255,0.18)' }}
+                >
+                    {/* Month tick marks + labels (above line) */}
+                    {monthTicks.map(tick => {
+                        const pct = dateToPercent(tick.dateStr, minMs, maxMs);
+                        return (
+                            <React.Fragment key={tick.dateStr}>
+                                {/* Tick mark */}
+                                <div style={{
+                                    position: 'absolute',
+                                    left: `${pct}%`,
+                                    top: -7,
+                                    width: 1,
+                                    height: 7,
+                                    background: 'rgba(255,255,255,0.22)',
+                                    transform: 'translateX(-50%)',
+                                }} />
+                                {/* Label */}
+                                <span style={{
+                                    position: 'absolute',
+                                    left: `${pct}%`,
+                                    top: -22,
+                                    transform: 'translateX(-50%)',
+                                    fontSize: 9,
+                                    color: 'rgba(255,255,255,0.28)',
+                                    whiteSpace: 'nowrap',
+                                    pointerEvents: 'none',
+                                }}>
+                                    {tick.label}
+                                </span>
+                            </React.Fragment>
+                        );
+                    })}
+
+                    {/* Amber cursor — animates along the line */}
+                    {cursorPercent !== null && (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                left: `${cursorPercent}%`,
+                                top: -5,
+                                width: 10,
+                                height: 10,
+                                borderRadius: '50%',
+                                background: '#f59e0b',
+                                boxShadow: '0 0 10px rgba(245,158,11,0.55)',
+                                transform: 'translateX(-50%)',
+                                transition: 'left 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)',
+                            }}
+                        />
+                    )}
+
+                    {/* Left edge label (below line) */}
+                    {minDate && (
+                        <span style={{
+                            position: 'absolute',
+                            left: 0,
+                            top: 8,
+                            transform: 'translateX(-50%)',
+                            fontSize: 9,
+                            color: 'rgba(255,255,255,0.4)',
+                            whiteSpace: 'nowrap',
+                        }}>
+                            {formatLong(minDate)}
+                        </span>
+                    )}
+
+                    {/* Right edge label (below line) */}
+                    {maxDate && maxDate !== minDate && (
+                        <span style={{
+                            position: 'absolute',
+                            right: 0,
+                            top: 8,
+                            transform: 'translateX(50%)',
+                            fontSize: 9,
+                            color: 'rgba(255,255,255,0.4)',
+                            whiteSpace: 'nowrap',
+                        }}>
+                            {formatLong(maxDate)}
+                        </span>
+                    )}
+                </div>
             </div>
 
-            {/* ── Filmstrip ─────────────────────────────────────────────────── */}
+            {/* ── Filmstrip: 120px ──────────────────────────────────────────── */}
             <div className="flex-shrink-0 bg-black" style={{ paddingBottom: 16 }}>
                 <div
                     ref={filmstripRef}
@@ -234,13 +351,14 @@ export default function StoryTimeline() {
                                 key={slide.id}
                                 ref={el => thumbRefs.current[i] = el}
                                 onClick={() => setCurrentIndex(i)}
-                                className="flex-shrink-0 rounded-lg overflow-hidden focus:outline-none transition-all duration-300"
+                                className="flex-shrink-0 rounded-lg overflow-hidden focus:outline-none"
                                 style={{
                                     width:     isCurrent ? 114 : 80,
                                     height:    isCurrent ? 90  : 68,
                                     marginTop: isCurrent ? 0   : 11,
                                     opacity:   isCurrent ? 1   : 0.45,
                                     boxShadow: isCurrent ? '0 0 0 2px white, 0 2px 12px rgba(0,0,0,0.6)' : 'none',
+                                    transition: 'all 0.3s ease',
                                 }}
                             >
                                 {src
