@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, FileEdit, Upload, FileText, Map, MessageSquare } from 'lucide-react';
+import { X, FileEdit, Upload, FileText, Map, MessageSquare, Smartphone, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,7 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
     const [isInterviewModeOpen, setIsInterviewModeOpen] = useState(false);
     const [isMapDataImportOpen, setIsMapDataImportOpen] = useState(false);
     const [isDocumentUploadOpen, setIsDocumentUploadOpen] = useState(false);
+    const [storyboarderExpanded, setStoryboarderExpanded] = useState(false);
 
     const handleStartFromScratch = () => {
         navigate(createPageUrl('StoryEditor'));
@@ -59,6 +60,14 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
             icon: MessageSquare,
             isActive: true,
             onClick: () => setIsInterviewModeOpen(true)
+        },
+        {
+            id: 'storyboarder',
+            title: 'Storyboarder',
+            description: 'Capture stories on location using voice, photos, and GPS — designed for mobile field use',
+            icon: Smartphone,
+            isActive: true,
+            onClick: () => setStoryboarderExpanded(v => !v)
         }
     ];
 
@@ -110,52 +119,82 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                                         upload: { bg: 'bg-green-50', hover: 'hover:bg-green-100', icon: 'text-green-600', text: 'text-green-700' },
                                         template: { bg: 'bg-purple-50', hover: 'hover:bg-purple-100', icon: 'text-purple-600', text: 'text-purple-700' },
                                         map: { bg: 'bg-amber-50', hover: 'hover:bg-amber-100', icon: 'text-amber-600', text: 'text-amber-700' },
-                                        interview: { bg: 'bg-indigo-50', hover: 'hover:bg-indigo-100', icon: 'text-indigo-600', text: 'text-indigo-700' }
+                                        interview: { bg: 'bg-indigo-50', hover: 'hover:bg-indigo-100', icon: 'text-indigo-600', text: 'text-indigo-700' },
+                                        storyboarder: { bg: 'bg-orange-50', hover: 'hover:bg-orange-100', icon: 'text-orange-600', text: 'text-orange-700' }
                                     };
                                     const colorSet = colors[option.id];
                                     return (
-                                        <button
-                                            key={option.id}
-                                            onClick={option.isActive ? option.onClick : undefined}
-                                            disabled={!option.isActive}
-                                            className={`
-                                                w-full rounded-lg text-left transition-all
-                                                ${option.isActive 
-                                                    ? `${colorSet.bg} ${colorSet.hover} cursor-pointer` 
+                                        <div key={option.id}
+                                            className={`w-full rounded-lg text-left transition-all overflow-hidden ${
+                                                option.isActive
+                                                    ? `${colorSet.bg} cursor-pointer`
                                                     : 'bg-slate-100 opacity-50 cursor-not-allowed'
-                                                }
-                                            `}
+                                            }`}
                                         >
-                                            <div className="flex items-center gap-4 p-4">
-                                                <div className="flex flex-col items-center justify-center p-3">
-                                                    <Icon className={`
-                                                        w-8 h-8 
-                                                        ${option.isActive ? colorSet.icon : 'text-slate-400'}
-                                                    `} />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <h3 className={`
-                                                            text-lg font-semibold 
-                                                            ${option.isActive ? colorSet.text : 'text-slate-500'}
-                                                        `}>
-                                                            {option.title}
-                                                        </h3>
-                                                        {!option.isActive && (
-                                                            <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">
-                                                                Coming Soon
-                                                            </span>
-                                                        )}
+                                            <button
+                                                onClick={option.isActive ? option.onClick : undefined}
+                                                disabled={!option.isActive}
+                                                className={`w-full text-left ${option.isActive ? colorSet.hover : ''} transition-all`}
+                                            >
+                                                <div className="flex items-center gap-4 p-4">
+                                                    <div className="flex flex-col items-center justify-center p-3">
+                                                        <Icon className={`w-8 h-8 ${option.isActive ? colorSet.icon : 'text-slate-400'}`} />
                                                     </div>
-                                                    <p className={`
-                                                        text-sm 
-                                                        ${option.isActive ? 'text-slate-600' : 'text-slate-400'}
-                                                    `}>
-                                                        {option.description}
-                                                    </p>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <h3 className={`text-lg font-semibold ${option.isActive ? colorSet.text : 'text-slate-500'}`}>
+                                                                {option.title}
+                                                            </h3>
+                                                            {!option.isActive && (
+                                                                <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">
+                                                                    Coming Soon
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className={`text-sm ${option.isActive ? 'text-slate-600' : 'text-slate-400'}`}>
+                                                            {option.description}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </button>
+                                            </button>
+
+                                            {/* Storyboarder how-to — expands on selection */}
+                                            {option.id === 'storyboarder' && storyboarderExpanded && (
+                                                <div className="px-5 pb-5 border-t border-orange-200">
+                                                    <ol className="mt-4 space-y-2.5 text-sm text-slate-700">
+                                                        <li className="flex gap-3">
+                                                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">1</span>
+                                                            <span><strong>Name your story</strong> — say the title into the mic when prompted.</span>
+                                                        </li>
+                                                        <li className="flex gap-3">
+                                                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">2</span>
+                                                            <span><strong>Name your first chapter</strong> — speak the chapter name to begin.</span>
+                                                        </li>
+                                                        <li className="flex gap-3">
+                                                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">3</span>
+                                                            <span><strong>Take photos</strong> — tap the camera button. Each photo saves instantly with your GPS location.</span>
+                                                        </li>
+                                                        <li className="flex gap-3">
+                                                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">4</span>
+                                                            <span><strong>Add a description</strong> — record a voice note in the lower half of the screen after each shot (optional).</span>
+                                                        </li>
+                                                        <li className="flex gap-3">
+                                                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-semibold">5</span>
+                                                            <span><strong>Continue or finish</strong> — tap New Chapter to add another, or Finish Story when you're done.</span>
+                                                        </li>
+                                                    </ol>
+                                                    <p className="mt-4 text-xs text-slate-400 italic">
+                                                        Best used on a mobile device in the field.
+                                                    </p>
+                                                    <button
+                                                        onClick={() => { navigate(createPageUrl('Storyboarder')); onClose(); }}
+                                                        className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-xl transition-colors"
+                                                    >
+                                                        Open Storyboarder <ChevronRight className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     );
                                 })}
                             </div>
