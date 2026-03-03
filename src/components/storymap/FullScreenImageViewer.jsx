@@ -147,8 +147,8 @@ export default function FullScreenImageViewer({
                             onPrev={handlePrevious}
                             onNext={handleNext}
                             onClose={onClose}
-                            counter={hasMultipleSlides ? `${currentIndex + 1} / ${slides.length}` : null}
                             hasMultipleSlides={hasMultipleSlides}
+                            pdfUrl={currentSlide?.pdf_url || null}
                         />
                     </motion.div>
 

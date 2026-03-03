@@ -106,7 +106,10 @@ const TextPanelCarousel = ({
             {/* ── Text panel ── */}
             <div
                 className="backdrop-blur-xl overflow-y-auto flex-shrink-0 rounded-br-2xl"
-                style={{ width: PANEL_WIDTH }}
+                style={{
+                    width: PANEL_WIDTH,
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0px, rgba(0,0,0,0) 300px)',
+                }}
             >
                 <div className="p-8 space-y-5">
 

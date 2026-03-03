@@ -1,21 +1,28 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 
 /**
  * FloatingControlStrip
  *
- * Bottom-centre pill for fullscreen image navigation.
- * Intentionally contains no text content — only navigation actions.
- * Designed to be reused in other contexts (e.g. map layer controls)
- * by swapping the action set.
+ * Bottom pill for fullscreen image navigation.
+ * Optionally shows a PDF thumbnail immediately to the left of the pill
+ * when the current slide has a pdf_url attached.
  */
-export default function FloatingControlStrip({ onPrev, onNext, onClose, counter, hasMultipleSlides }) {
+export default function FloatingControlStrip({ onPrev, onNext, onClose, hasMultipleSlides, pdfUrl }) {
     return (
-        <div className="fixed bottom-8 left-0 z-[9999] flex justify-end pr-2 pointer-events-none" style={{ width: 380 }}>
-            <div className="flex flex-col items-end gap-2 pointer-events-auto">
+        <div className="fixed bottom-8 left-0 z-[9999] flex justify-end items-center gap-3 pr-2 pointer-events-none" style={{ width: 380 }}>
+
+            {/* PDF thumbnail — shown when current slide has a PDF */}
+            {pdfUrl && (
+                <div className="pointer-events-none flex-shrink-0 rounded-lg overflow-hidden shadow-xl"
+                     style={{ height: 60, width: 43 }}>
+                    <PdfThumbnail url={pdfUrl} className="w-full h-full object-cover" />
+                </div>
+            )}
 
             {/* Control pill */}
-            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md rounded-full px-2 py-2 shadow-2xl">
+            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md rounded-full px-2 py-2 shadow-2xl pointer-events-auto">
                 <button
                     onClick={onPrev}
                     disabled={!hasMultipleSlides}
@@ -44,7 +51,6 @@ export default function FloatingControlStrip({ onPrev, onNext, onClose, counter,
                 >
                     <ChevronRight className="w-5 h-5" />
                 </button>
-            </div>
             </div>
         </div>
     );
