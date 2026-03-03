@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import ChapterCarousel from './ChapterCarousel';
 import { X } from 'lucide-react';
 import PdfViewer from '@/components/pdf/PdfViewer';
@@ -36,6 +36,9 @@ export default function StoryChapter({
     const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
     const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
     const [showExploreButton, setShowExploreButton] = useState(false);
+
+    const cardRef = useRef(null);
+    const isInView = useInView(cardRef, { once: false, amount: 0.3 });
 
     const firstSlide = chapter.slides?.[0];
     const currentSlide = chapter.slides?.[activeSlideIndex] || firstSlide;
@@ -140,10 +143,10 @@ export default function StoryChapter({
             style={{ minHeight: '85vh', paddingTop: '60px' }}
         >
             <motion.div
+                ref={cardRef}
                 initial={{ opacity: 0, x: 250 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 250 }}
                 transition={{ duration: 4, ease: "easeOut", delay: delay / 1000 }}
-                viewport={{ once: false, amount: 0.3 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
             >
                 <AnimatePresence mode="wait">
@@ -179,7 +182,7 @@ export default function StoryChapter({
                                         className="block text-xs font-medium text-amber-400 uppercase tracking-widest mb-2"
                                         style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}
                                         initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
+                                        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                                         transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.0 }}
                                     >
                                         Chapter {String(index + 1).padStart(2, '0')}
@@ -189,7 +192,7 @@ export default function StoryChapter({
                                             className="block text-5xl font-light text-amber-400"
                                             style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}
                                             initial={{ opacity: 0, y: 8 }}
-                                            animate={{ opacity: 1, y: 0 }}
+                                            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                                             transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.4 }}
                                         >
                                             {chapter.name}
@@ -203,7 +206,7 @@ export default function StoryChapter({
                                         className="text-white/90 text-base font-light leading-relaxed"
                                         style={{ fontFamily: 'Raleway, sans-serif', paddingBottom: '40px' }}
                                         initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
+                                        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                                         transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.8 }}
                                         dangerouslySetInnerHTML={{ __html: chapter.description }}
                                     />
