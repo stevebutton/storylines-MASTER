@@ -9,21 +9,17 @@ import PdfThumbnail from '@/components/pdf/PdfThumbnail';
  * When the current slide has a PDF, shows a thumbnail + label + title
  * immediately to the left of the nav pill, bottom-aligned.
  */
-export default function FloatingControlStrip({ onPrev, onNext, onClose, hasMultipleSlides, pdfUrl, pdfTitle }) {
+export default function FloatingControlStrip({ onPrev, onNext, onClose, hasMultipleSlides, pdfUrl, pdfTitle, onPdfClick }) {
     return (
         <div className="fixed bottom-8 left-0 z-[9999] flex justify-end items-end gap-5 pr-2 pointer-events-none" style={{ width: 380 }}>
 
-            {/* PDF section — label, thumbnail, and doc title */}
+            {/* PDF section — label above, then title left + thumbnail right */}
             {pdfUrl && (
-                <div className="pointer-events-none flex-shrink-0 flex flex-col gap-1.5">
+                <div className="pointer-events-auto flex-shrink-0 flex flex-col gap-1.5">
                     <span className="text-[10px] text-white/80 uppercase tracking-wider font-medium drop-shadow">
                         Related Documents
                     </span>
-                    <div className="flex items-end gap-2.5">
-                        <div className="rounded-lg overflow-hidden shadow-xl flex-shrink-0"
-                             style={{ height: 90, width: 64 }}>
-                            <PdfThumbnail url={pdfUrl} className="w-full h-full object-cover" />
-                        </div>
+                    <div className="flex items-center gap-2.5">
                         {pdfTitle && (
                             <span className="text-xs text-white font-medium leading-snug drop-shadow max-w-[100px]"
                                   style={{
@@ -35,6 +31,14 @@ export default function FloatingControlStrip({ onPrev, onNext, onClose, hasMulti
                                 {pdfTitle}
                             </span>
                         )}
+                        <button
+                            onClick={onPdfClick}
+                            className="rounded-lg overflow-hidden shadow-xl flex-shrink-0 hover:opacity-80 transition-opacity"
+                            style={{ height: 90, width: 64 }}
+                            aria-label="Open document"
+                        >
+                            <PdfThumbnail url={pdfUrl} className="w-full h-full object-cover" />
+                        </button>
                     </div>
                 </div>
             )}

@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 import TextPanelCarousel from './TextPanelCarousel';
 import FloatingControlStrip from './FloatingControlStrip';
 import FilmstripBar from './FilmstripBar';
+import PdfViewer from '@/components/pdf/PdfViewer';
 
 const VideoPlayer = ({ url, onVideoEnded }) => {
     if (!url) return null;
@@ -64,6 +67,7 @@ export default function FullScreenImageViewer({
 }) {
     if (!slides || slides.length === 0) return null;
 
+    const [showPdfModal, setShowPdfModal] = useState(false);
     const currentSlide = slides[currentIndex];
     const hasMultipleSlides = slides.length > 1;
     const pdfTitle = currentSlide?.pdf_title ||
@@ -155,6 +159,7 @@ export default function FullScreenImageViewer({
                             hasMultipleSlides={hasMultipleSlides}
                             pdfUrl={currentSlide?.pdf_url || null}
                             pdfTitle={pdfTitle}
+                            onPdfClick={() => setShowPdfModal(true)}
                         />
                     </motion.div>
 
@@ -168,5 +173,34 @@ export default function FullScreenImageViewer({
                 </>
             )}
         </AnimatePresence>
+
+        {/* PDF modal — portalled above everything */}
+        {createPortal(
+            <AnimatePresence>
+                {showPdfModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4, ease: 'easeInOut' }}
+                        className="fixed left-0 right-0 bottom-0 top-[100px] z-[10002] bg-white flex flex-col pl-[50px] pr-[50px] pb-[50px]"
+                    >
+                        <div className="flex items-center justify-between px-8 py-5 border-b border-slate-200 flex-shrink-0">
+                            <h2 className="text-2xl font-light text-slate-800">{pdfTitle || 'Document'}</h2>
+                            <button
+                                onClick={() => setShowPdfModal(false)}
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                            <PdfViewer url={currentSlide?.pdf_url} />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>,
+            document.body
+        )}
     );
 }
