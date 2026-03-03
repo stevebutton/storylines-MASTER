@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TextPanelCarousel from './TextPanelCarousel';
 import FloatingControlStrip from './FloatingControlStrip';
+import FilmstripBar from './FilmstripBar';
 
 const VideoPlayer = ({ url, onVideoEnded }) => {
     if (!url) return null;
@@ -139,6 +140,13 @@ export default function FullScreenImageViewer({
                             extendedContent={currentSlide.extended_content || ''}
                             location={currentSlide.location}
                             mapStyle={mapStyle}
+                        />
+
+                        {/* Filmstrip — full-width bottom thumbnail row */}
+                        <FilmstripBar
+                            slides={slides}
+                            currentIndex={currentIndex}
+                            onNavigate={onNavigate}
                         />
 
                         {/* Control strip — bottom centre */}
