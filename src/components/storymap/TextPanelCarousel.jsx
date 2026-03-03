@@ -112,7 +112,7 @@ const TextPanelCarousel = ({
 
                     {/* Chapter eyebrow */}
                     {chapterTitle && (
-                        <p className="text-2xl font-medium text-white uppercase tracking-widest text-right"
+                        <p className="text-xl font-medium text-white uppercase tracking-widest text-right"
                            style={{ fontFamily: themeFont }}>
                             {chapterTitle}
                         </p>
@@ -135,7 +135,7 @@ const TextPanelCarousel = ({
                     {slideTitle && (
                         <h3
                             className="text-5xl font-light text-white text-right"
-                            style={{ fontFamily: themeFont, lineHeight: '1.1' }}
+                            style={{ fontFamily: themeFont, lineHeight: '0.95' }}
                         >
                             {slideTitle}
                         </h3>
@@ -166,7 +166,7 @@ const TextPanelCarousel = ({
 
                             {/* Page navigation */}
                             {pages.length > 1 && (
-                                <div className="flex items-center gap-2 pt-1">
+                                <div className="flex items-center justify-end gap-2 pt-1">
                                     <button
                                         onClick={prevPage}
                                         disabled={currentPage === 0}
@@ -188,10 +188,6 @@ const TextPanelCarousel = ({
                                             aria-label={`Page ${i + 1}`}
                                         />
                                     ))}
-
-                                    <span className="text-xs text-white/50 tabular-nums ml-auto">
-                                        {currentPage + 1}/{pages.length}
-                                    </span>
 
                                     <button
                                         onClick={nextPage}
