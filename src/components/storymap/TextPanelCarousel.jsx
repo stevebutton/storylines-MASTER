@@ -112,8 +112,8 @@ const TextPanelCarousel = ({
 
                     {/* Chapter eyebrow */}
                     {chapterTitle && (
-                        <p className="text-xl font-medium text-white uppercase tracking-widest text-right"
-                           style={{ fontFamily: themeFont }}>
+                        <p className="text-xl font-medium text-white uppercase tracking-widest text-right leading-tight"
+                           style={{ fontFamily: themeFont, lineHeight: '1.1' }}>
                             {chapterTitle}
                         </p>
                     )}

@@ -11,14 +11,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
  */
 export default function FloatingControlStrip({ onPrev, onNext, onClose, counter, hasMultipleSlides }) {
     return (
-        <div className="fixed bottom-8 left-8 z-[9999] flex flex-col items-start gap-2 pointer-events-auto">
-
-            {/* Slide counter — floats above the pill */}
-            {counter && (
-                <span className="text-slate-700 text-sm font-light tabular-nums bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow">
-                    {counter}
-                </span>
-            )}
+        <div className="fixed bottom-8 right-8 z-[9999] flex flex-col items-end gap-2 pointer-events-auto">
 
             {/* Control pill */}
             <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md rounded-full px-2 py-2 shadow-2xl">
