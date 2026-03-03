@@ -84,6 +84,8 @@ export default function StoryMarker({
         const clone = expandedCard.cloneNode(true);
         clone.style.pointerEvents = 'none';
         clone.style.transition = 'none';
+        // Pin above all page content including any black overlays during navigation
+        clone.style.zIndex = '999999';
         document.body.appendChild(clone);
 
         setTimeout(() => {
