@@ -65,9 +65,10 @@ export default function FullScreenImageViewer({
     chapterName,
     mapStyle = 'a',
 }) {
+    const [showPdfModal, setShowPdfModal] = useState(false);
+
     if (!slides || slides.length === 0) return null;
 
-    const [showPdfModal, setShowPdfModal] = useState(false);
     const currentSlide = slides[currentIndex];
     const hasMultipleSlides = slides.length > 1;
     const pdfTitle = currentSlide?.pdf_title ||
