@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Calendar } from 'lucide-react';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
@@ -67,13 +68,24 @@ export default function StoryMapBanner({
                 </motion.div>
             )}
 
+            {/* Timeline link */}
+            {storyId && (
+                <Link
+                    to={createPageUrl(`StoryTimeline?storyId=${storyId}`)}
+                    className="flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 mr-2"
+                    title="Story Timeline"
+                >
+                    <Calendar className="w-5 h-5 text-slate-700" />
+                </Link>
+            )}
+
             {/* Chapters Toggle Button - Right */}
             {hasChapters && (
                 <button
                     onClick={onToggleChapterMenu}
                     className="flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                 >
-                    <img 
+                    <img
                         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
                         alt="Story Chapters"
                         width="50"
