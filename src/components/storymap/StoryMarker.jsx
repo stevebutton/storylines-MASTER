@@ -2,17 +2,26 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function StoryMarker({ 
-  storyProps, 
+// Global event name for coordinating single-open state across all StoryMarker instances
+const MARKER_OPEN_EVENT = 'storylines:marker-open';
+
+export default function StoryMarker({
+  storyProps,
   publicationDate,
-  onMouseEnter, 
-  onMouseLeave, 
-  onClick 
+  onMouseEnter,
+  onMouseLeave,
+  onClick
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [portalContainer, setPortalContainer] = useState(null);
   const markerRef = useRef(null);
   const [markerPosition, setMarkerPosition] = useState({ top: 0, left: 0 });
+  const markerIdRef = useRef(`sm-${storyProps.id}`);
+  const hoverTimerRef = useRef(null);
+  const isHoveredRef = useRef(false);
+
+  // Keep ref in sync for use inside event listeners (avoids stale closure)
+  useEffect(() => { isHoveredRef.current = isHovered; }, [isHovered]);
 
   useEffect(() => {
     let container = document.getElementById('story-marker-portal');
@@ -29,18 +38,37 @@ export default function StoryMarker({
       document.body.appendChild(container);
     }
     setPortalContainer(container);
+
+    // Close this marker when any OTHER marker opens
+    const handleOtherOpen = (e) => {
+      if (e.detail.id !== markerIdRef.current && isHoveredRef.current) {
+        setIsHovered(false);
+        onMouseLeave();
+      }
+    };
+    window.addEventListener(MARKER_OPEN_EVENT, handleOtherOpen);
+    return () => window.removeEventListener(MARKER_OPEN_EVENT, handleOtherOpen);
   }, []);
 
   const handleMouseEnter = () => {
-    if (markerRef.current) {
-      const rect = markerRef.current.getBoundingClientRect();
-      setMarkerPosition({ top: rect.top, left: rect.left });
-    }
-    setIsHovered(true);
-    onMouseEnter();
+    // Small delay — prevents accidental opens when passing through en route to another card
+    hoverTimerRef.current = setTimeout(() => {
+      if (markerRef.current) {
+        const rect = markerRef.current.getBoundingClientRect();
+        setMarkerPosition({ top: rect.top, left: rect.left });
+      }
+      // Notify all other markers to close
+      window.dispatchEvent(new CustomEvent(MARKER_OPEN_EVENT, { detail: { id: markerIdRef.current } }));
+      setIsHovered(true);
+      onMouseEnter();
+    }, 220);
   };
 
   const handleMouseLeave = () => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
     setIsHovered(false);
     onMouseLeave();
   };
