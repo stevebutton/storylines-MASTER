@@ -105,14 +105,14 @@ const TextPanelCarousel = ({
         >
             {/* ── Text panel ── */}
             <div
-                className="bg-white/70 backdrop-blur-xl overflow-y-auto flex-shrink-0 rounded-br-2xl"
+                className="backdrop-blur-xl overflow-y-auto flex-shrink-0 rounded-br-2xl"
                 style={{ width: PANEL_WIDTH }}
             >
                 <div className="p-8 space-y-5">
 
                     {/* Chapter eyebrow */}
                     {chapterTitle && (
-                        <p className="text-xs font-medium text-amber-500 uppercase tracking-widest text-right"
+                        <p className="text-xs font-medium text-white uppercase tracking-widest text-right"
                            style={{ fontFamily: themeFont }}>
                             {chapterTitle}
                         </p>
@@ -121,7 +121,7 @@ const TextPanelCarousel = ({
                     {/* Location */}
                     {location && (
                         <div className="flex items-center justify-end gap-2">
-                            <span className="text-sm text-slate-500" style={{ fontFamily: themeFont }}>
+                            <span className="text-sm text-white" style={{ fontFamily: themeFont }}>
                                 {location}
                             </span>
                             <div
@@ -134,7 +134,7 @@ const TextPanelCarousel = ({
                     {/* Slide title */}
                     {slideTitle && (
                         <h3
-                            className="text-3xl font-light text-slate-800 text-right"
+                            className="text-3xl font-light text-white text-right"
                             style={{ fontFamily: themeFont, lineHeight: '1.1' }}
                         >
                             {slideTitle}
@@ -156,7 +156,7 @@ const TextPanelCarousel = ({
                                         className={index === currentPage ? 'block' : 'hidden'}
                                     >
                                         <div
-                                            className="text-slate-600 leading-relaxed text-base font-light prose prose-sm max-w-none text-right"
+                                            className="text-white leading-relaxed text-base font-light prose prose-sm max-w-none text-right prose-invert"
                                             style={{ fontFamily: themeFont }}
                                             dangerouslySetInnerHTML={{ __html: page.content }}
                                         />
@@ -170,12 +170,12 @@ const TextPanelCarousel = ({
                                     <button
                                         onClick={prevPage}
                                         disabled={currentPage === 0}
-                                        className="w-7 h-7 rounded-full bg-black/10 hover:bg-black/20
+                                        className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30
                                                    disabled:opacity-30 disabled:cursor-not-allowed
                                                    flex items-center justify-center transition-colors"
                                         aria-label="Previous page"
                                     >
-                                        <ChevronLeft className="w-4 h-4 text-black" />
+                                        <ChevronLeft className="w-4 h-4 text-white" />
                                     </button>
 
                                     {pages.map((_, i) => (
@@ -183,25 +183,25 @@ const TextPanelCarousel = ({
                                             key={i}
                                             onClick={() => setCurrentPage(i)}
                                             className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
-                                                i === currentPage ? 'w-8 bg-black' : 'w-8 bg-black/25 hover:bg-black/50'
+                                                i === currentPage ? 'w-8 bg-white' : 'w-8 bg-white/30 hover:bg-white/50'
                                             }`}
                                             aria-label={`Page ${i + 1}`}
                                         />
                                     ))}
 
-                                    <span className="text-xs text-black/40 tabular-nums">
+                                    <span className="text-xs text-white/50 tabular-nums">
                                         {currentPage + 1}/{pages.length}
                                     </span>
 
                                     <button
                                         onClick={nextPage}
                                         disabled={currentPage === pages.length - 1}
-                                        className="w-7 h-7 rounded-full bg-black/10 hover:bg-black/20
+                                        className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30
                                                    disabled:opacity-30 disabled:cursor-not-allowed
                                                    flex items-center justify-center transition-colors"
                                         aria-label="Next page"
                                     >
-                                        <ChevronRight className="w-4 h-4 text-black" />
+                                        <ChevronRight className="w-4 h-4 text-white" />
                                     </button>
                                 </div>
                             )}
@@ -213,13 +213,13 @@ const TextPanelCarousel = ({
             {/* ── Collapse tab — stays at left edge when panel is hidden ── */}
             <button
                 onClick={() => setIsPanelOpen(open => !open)}
-                className="self-center w-8 h-16 bg-white/70 backdrop-blur-xl rounded-r-xl
+                className="self-center w-8 h-16 backdrop-blur-xl rounded-r-xl
                            flex items-center justify-center shadow-lg flex-shrink-0
-                           hover:bg-white/90 transition-colors"
+                           hover:bg-white/10 transition-colors"
                 aria-label={isPanelOpen ? 'Hide panel' : 'Show panel'}
             >
                 <ChevronLeft
-                    className="w-5 h-5 text-slate-500 transition-transform duration-300"
+                    className="w-5 h-5 text-white transition-transform duration-300"
                     style={{ transform: isPanelOpen ? 'rotate(0deg)' : 'rotate(180deg)' }}
                 />
             </button>
