@@ -73,15 +73,27 @@ export default function StoryMarker({
     onMouseLeave();
   };
 
-  // Delay navigation so the expanded card's exit animation plays before the page changes
+  // On click: snapshot the expanded card as a raw DOM clone so it survives
+  // React unmounting during navigation. Clone stays visible for 5s (long enough
+  // to remain open while the destination story's hero loads), then fades out.
   const handleClick = () => {
     if (isHovered) {
-      setIsHovered(false);
-      onMouseLeave();
-      setTimeout(onClick, 650);
-    } else {
-      onClick();
+      const portalEl = document.getElementById('story-marker-portal');
+      const expandedCard = portalEl?.firstChild;
+      if (expandedCard) {
+        const clone = expandedCard.cloneNode(true);
+        clone.style.pointerEvents = 'none';
+        clone.style.transition = 'none';
+        document.body.appendChild(clone);
+
+        setTimeout(() => {
+          clone.style.transition = 'opacity 0.8s ease-in-out';
+          clone.style.opacity = '0';
+          setTimeout(() => clone.remove(), 800);
+        }, 5000);
+      }
     }
+    onClick();
   };
 
   const stripHtml = (html) => {
