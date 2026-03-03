@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import VoiceNarrationRecorder from '@/components/mobile/VoiceNarrationRecorder';
 import { resizeImage } from '@/components/mobile/ImageResizer';
+import * as exifr from 'exifr';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 
@@ -163,6 +164,13 @@ export default function Storyboarder() {
         setSaving(true);
         setSavedFlash(false);
         try {
+            // Extract EXIF date from original file before resize strips it
+            let captureDate = null;
+            try {
+                const exif = await exifr.parse(file, ['DateTimeOriginal', 'CreateDate']);
+                captureDate = exif?.DateTimeOriginal || exif?.CreateDate || null;
+            } catch (_) {}
+
             const [resized, gps] = await Promise.all([resizeImage(file, 800), captureGPS()]);
 
             const filePath = `${generateId()}-${file.name}`;
@@ -181,6 +189,10 @@ export default function Storyboarder() {
                 image: publicUrl,
                 order: slides.length,
                 ...(gps ? { coordinates: [gps.lat, gps.lng], zoom: 15 } : {}),
+                ...(captureDate ? {
+                    capture_date: captureDate.toISOString(),
+                    story_date: captureDate.toISOString().split('T')[0],
+                } : {}),
             });
             if (slideErr) throw slideErr;
 

@@ -123,18 +123,21 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                     const blob = await img.entry.async('blob');
                     const imageFile = new File([blob], safeName, { type: contentType });
 
-                    // Extract GPS from the original file before any processing
+                    // Extract GPS + capture date from the original file before any processing
                     let coordinates = null;
+                    let captureDate = null;
                     try {
-                        const gps = await exifr.gps(imageFile);
-                        if (gps?.latitude && gps?.longitude) {
-                            coordinates = [gps.latitude, gps.longitude];
-                            slidesWithGps++;
-                        } else {
-                            console.warn('[EXIF] No GPS in', rawName, gps);
+                        const exif = await exifr.parse(imageFile, ['DateTimeOriginal', 'CreateDate', 'GPSLatitude', 'GPSLongitude', 'GPSLatitudeRef', 'GPSLongitudeRef']);
+                        if (exif?.GPSLatitude && exif?.GPSLongitude) {
+                            const gps = await exifr.gps(imageFile);
+                            if (gps?.latitude && gps?.longitude) {
+                                coordinates = [gps.latitude, gps.longitude];
+                                slidesWithGps++;
+                            }
                         }
+                        captureDate = exif?.DateTimeOriginal || exif?.CreateDate || null;
                     } catch (e) {
-                        console.warn('[EXIF] Failed to read GPS from', rawName, e);
+                        console.warn('[EXIF] Failed to read from', rawName, e);
                     }
 
                     // Upload — non-fatal: if this image fails, skip it and continue
@@ -157,6 +160,10 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                         title: rawName.replace(/\.[^.]+$/, ''),
                         image: image_url,
                         coordinates,
+                        ...(captureDate ? {
+                            capture_date: captureDate.toISOString(),
+                            story_date: captureDate.toISOString().split('T')[0],
+                        } : {}),
                     });
                     if (slideErr) throw slideErr;
                     allSlideIds.push(slideId);

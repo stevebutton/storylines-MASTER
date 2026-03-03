@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2, FileText, Video } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
+import * as exifr from 'exifr';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Link } from 'react-router-dom';
@@ -64,13 +65,27 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
 
         setIsUploading(true);
         try {
+            // Extract capture date from EXIF before upload (silently skip if absent)
+            let captureDate = null;
+            try {
+                const exif = await exifr.parse(file, ['DateTimeOriginal', 'CreateDate']);
+                captureDate = exif?.DateTimeOriginal || exif?.CreateDate || null;
+            } catch (_) {}
+
             const filePath = `${generateId()}-${file.name}`;
             const { error: uploadError } = await supabase.storage
                 .from('media')
                 .upload(filePath, file, { contentType: file.type, upsert: false });
             if (uploadError) throw uploadError;
             const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
-            onUpdate({ ...slide, image: file_url });
+            onUpdate({
+                ...slide,
+                image: file_url,
+                ...(captureDate ? {
+                    capture_date: captureDate.toISOString(),
+                    story_date: captureDate.toISOString().split('T')[0],
+                } : {}),
+            });
         } catch (error) {
             console.error('Failed to upload image:', error);
         } finally {
