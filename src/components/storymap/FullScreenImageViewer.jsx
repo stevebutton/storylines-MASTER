@@ -151,6 +151,7 @@ export default function FullScreenImageViewer({
                             extendedContent={currentSlide.extended_content || ''}
                             location={currentSlide.location}
                             mapStyle={mapStyle}
+                            initialOpen={!currentSlide.video_url}
                         />
 
                         {/* Control strip — bottom centre */}

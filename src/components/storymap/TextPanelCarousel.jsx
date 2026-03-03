@@ -50,10 +50,11 @@ const TextPanelCarousel = ({
     extendedContent,
     location,
     mapStyle = 'a',
+    initialOpen = true,
 }) => {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const [currentPage, setCurrentPage] = useState(0);
-    const [isPanelOpen, setIsPanelOpen] = useState(true);
+    const [isPanelOpen, setIsPanelOpen] = useState(initialOpen);
     const [contentHeight, setContentHeight] = useState('auto');
     const pageRefs = useRef([]);
 
