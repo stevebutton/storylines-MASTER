@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, ArrowLeft, FileText } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 
@@ -195,16 +195,18 @@ export default function StoryTimeline() {
                 style={{ top: 172, bottom: 150, padding: 50 }}
             >
 
-                {/* ── Carousel: flex-1, right-aligned at 45% width ─────────── */}
-                <div className="flex-1 min-h-0 flex items-stretch">
+                {/* ── Carousel: fixed clamp height, right-aligned at 50% width ── */}
+                {/* clamp(360px, 100vh-600px, 550px) keeps it portrait-ish */}
+                <div className="flex-shrink-0 flex items-stretch"
+                     style={{ height: 'clamp(360px, calc(100vh - 600px), 550px)' }}>
 
                     {/* Left area — transparent, shows hero through */}
                     <div className="flex-1" />
 
-                    {/* Right panel: 50% wide */}
+                    {/* Right panel: 50% wide, 1px white border */}
                     <div
                         className="relative overflow-hidden rounded-2xl shadow-2xl"
-                        style={{ width: '50%' }}
+                        style={{ width: '50%', border: '1px solid rgba(255,255,255,0.5)' }}
                     >
                         <AnimatePresence mode="wait">
                             <motion.div
@@ -364,46 +366,84 @@ export default function StoryTimeline() {
                     </div>
                 </div>
 
-                {/* ── Filmstrip ────────────────────────────────────────────── */}
+                {/* ── Filmstrip — portrait mini-cards with title + PDF indicator ── */}
+                {/*   Each item: [portrait card] + [pdf badge below, always reserved]  */}
                 <div
                     className="flex-shrink-0 mt-3"
-                    style={{ borderRadius: 12, background: 'rgba(0,0,0,0.50)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', paddingBottom: 8 }}
+                    style={{ borderRadius: 12, background: 'rgba(0,0,0,0.50)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', padding: '10px 0' }}
                 >
                     <div
                         ref={filmstripRef}
-                        className="flex items-center gap-2 px-4 overflow-x-auto"
-                        style={{ height: 104, scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        className="flex items-end gap-3 px-4 overflow-x-auto"
+                        style={{ height: 176, scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                     >
                         {slides.map((slide, i) => {
-                            const isCurrent = i === currentIndex;
-                            const src = slide.video_thumbnail_url || slide.image;
+                            const isCurrent  = i === currentIndex;
+                            const isHovered  = hoveredThumb === i;
+                            const src        = slide.video_thumbnail_url || slide.image;
+                            const cardW      = isCurrent ? 90 : 70;
+                            const cardH      = isCurrent ? 130 : 104; // ~4:5.8 portrait
+
                             return (
-                                <button
+                                <div
                                     key={slide.id}
                                     ref={el => thumbRefs.current[i] = el}
-                                    onClick={() => setCurrentIndex(i)}
-                                    className="flex-shrink-0 rounded-lg overflow-hidden focus:outline-none"
-                                    onMouseEnter={() => setHoveredThumb(i)}
-                                    onMouseLeave={() => setHoveredThumb(null)}
-                                    style={{
-                                        width:      isCurrent ? 114 : 80,
-                                        height:     isCurrent ? 90  : 68,
-                                        marginTop:  isCurrent ? 0   : 11,
-                                        opacity:    isCurrent ? 1 : (hoveredThumb === i ? 0.85 : 0.5),
-                                        boxShadow:  isCurrent
-                                            ? '0 0 0 2px white, 0 2px 12px rgba(0,0,0,0.6)'
-                                            : (hoveredThumb === i ? '0 0 0 2px rgba(255,255,255,0.65)' : 'none'),
-                                        transition: 'all 0.2s ease',
-                                        outline: 'none',
-                                    }}
+                                    className="flex-shrink-0 flex flex-col items-center"
+                                    style={{ gap: 4 }}
                                 >
-                                    {src
-                                        ? <img src={src} alt={slide.title} className="w-full h-full object-cover" />
-                                        : <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                                            <span className="text-slate-600 text-xs">—</span>
-                                          </div>
-                                    }
-                                </button>
+                                    {/* Portrait image card */}
+                                    <button
+                                        onClick={() => setCurrentIndex(i)}
+                                        onMouseEnter={() => setHoveredThumb(i)}
+                                        onMouseLeave={() => setHoveredThumb(null)}
+                                        className="relative overflow-hidden rounded-lg focus:outline-none"
+                                        style={{
+                                            width:      cardW,
+                                            height:     cardH,
+                                            flexShrink: 0,
+                                            opacity:    isCurrent ? 1 : (isHovered ? 0.85 : 0.5),
+                                            boxShadow:  isCurrent
+                                                ? '0 0 0 2px white, 0 4px 16px rgba(0,0,0,0.7)'
+                                                : (isHovered ? '0 0 0 2px rgba(255,255,255,0.65)' : 'none'),
+                                            transition: 'all 0.2s ease',
+                                        }}
+                                    >
+                                        {src
+                                            ? <img src={src} alt={slide.title} className="w-full h-full object-cover" />
+                                            : <div className="w-full h-full bg-slate-800" />
+                                        }
+                                        {/* Gradient + title overlay */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+                                        {slide.title && (
+                                            <span
+                                                className="absolute bottom-1.5 left-1.5 right-1.5 text-white leading-tight"
+                                                style={{ fontSize: 9, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                                            >
+                                                {slide.title}
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    {/* PDF badge — always reserves space; only shown when pdf_url exists */}
+                                    <div
+                                        style={{
+                                            width:      cardW,
+                                            height:     30,
+                                            borderRadius: 6,
+                                            display:    'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap:        4,
+                                            visibility: slide.pdf_url ? 'visible' : 'hidden',
+                                            background: 'rgba(255,255,255,0.12)',
+                                            cursor:     slide.pdf_url ? 'pointer' : 'default',
+                                        }}
+                                        onClick={() => slide.pdf_url && window.open(slide.pdf_url, '_blank')}
+                                    >
+                                        <FileText style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.75)', flexShrink: 0 }} />
+                                        <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 500 }}>PDF</span>
+                                    </div>
+                                </div>
                             );
                         })}
                     </div>
