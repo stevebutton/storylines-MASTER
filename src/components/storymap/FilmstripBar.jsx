@@ -120,6 +120,30 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                                     <Play className="w-3 h-3 text-white fill-white drop-shadow" />
                                 </div>
                             )}
+                            {/* Slide title label */}
+                            {slide.title && (
+                                <div style={{
+                                    position:   'absolute',
+                                    bottom:     0,
+                                    left:       0,
+                                    right:      0,
+                                    padding:    '10px 4px 3px',
+                                    background: 'linear-gradient(to top, rgba(0,0,0,0.82), transparent)',
+                                    pointerEvents: 'none',
+                                }}>
+                                    <span style={{
+                                        display:      'block',
+                                        fontSize:     8,
+                                        lineHeight:   1.2,
+                                        color:        'rgba(255,255,255,0.9)',
+                                        overflow:     'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace:   'nowrap',
+                                    }}>
+                                        {slide.title}
+                                    </span>
+                                </div>
+                            )}
                         </motion.button>
                     );
                 })}

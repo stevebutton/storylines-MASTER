@@ -269,14 +269,50 @@ export default function StoryFullscreen() {
                 hideTextPanel={mode === 'picture'}
             />
 
-            {/* ScaleBar — fixed above filmstrip, hidden in Picture mode */}
+            {/* ScaleBar + chapter cards — fixed above filmstrip, hidden in Picture mode */}
             {mode !== 'picture' && (
                 <div
                     className="fixed z-[9999] pointer-events-none"
-                    style={{ left: 380, right: 0, bottom: 140 }}
+                    style={{ left: 380, right: 0, bottom: 190 }}
                 >
+                    {/* Chapter cards row — Story mode only, above the axis */}
+                    {mode === 'story' && scaleSegments.length > 1 && (
+                        <div style={{
+                            display: 'flex',
+                            padding: '0 48px 8px',
+                            gap:     4,
+                        }}>
+                            {scaleSegments.map(seg => (
+                                <button
+                                    key={seg.id}
+                                    onClick={seg.onClick}
+                                    title={seg.label}
+                                    style={{
+                                        flex:          `${seg.widthPercent} 1 0%`,
+                                        minWidth:      0,
+                                        fontSize:      10,
+                                        color:         'rgba(255,255,255,0.6)',
+                                        background:    'rgba(255,255,255,0.08)',
+                                        border:        '1px solid rgba(255,255,255,0.14)',
+                                        borderRadius:  5,
+                                        padding:       '3px 6px',
+                                        textAlign:     'center',
+                                        overflow:      'hidden',
+                                        textOverflow:  'ellipsis',
+                                        whiteSpace:    'nowrap',
+                                        cursor:        'pointer',
+                                        pointerEvents: 'auto',
+                                    }}
+                                >
+                                    {seg.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <ScaleBar
                         mode={mode === 'timeline' ? 'dates' : 'chapters'}
+                        legend={mode === 'timeline' ? 'Project Timeline' : 'Follow the Story'}
                         cursorPercent={cursorPercent}
                         segments={scaleSegments}
                         ticks={scaleTicks}

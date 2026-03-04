@@ -81,7 +81,7 @@ const VARIANTS = { picture: pictureVariants, story: storyVariants, timeline: tim
 const TRANSITIONS = {
     picture:  { duration: 2,    ease: 'easeInOut' },
     story:    { duration: 0.4,  ease: 'easeOut' },
-    timeline: { duration: 0.45, ease: [0.4, 0, 0.2, 1] },
+    timeline: { duration: 1,    ease: [0.4, 0, 0.2, 1] },
 };
 
 export default function FullScreenImageViewer({

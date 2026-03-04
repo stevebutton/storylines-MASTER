@@ -16,6 +16,7 @@ import React from 'react';
  *   cursorPercent   number 0–100   amber dot position along the track
  *   mode            'chapters' | 'dates'
  *   height          number         container height in px (default 95)
+ *   legend          string         small label above-left of the track
  *
  * Props — chapters mode:
  *   segments   [{ id, label, widthPercent, onClick }]
@@ -31,6 +32,7 @@ export default function ScaleBar({
     cursorPercent = 0,
     mode          = 'chapters',
     height        = 95,
+    legend        = '',
     // chapters
     segments      = [],
     // dates
@@ -40,6 +42,25 @@ export default function ScaleBar({
 }) {
     return (
         <div className="relative flex-shrink-0 select-none" style={{ height }}>
+
+            {/* ── Legend — just above the left edge of the track ── */}
+            {legend && (
+                <span style={{
+                    position:      'absolute',
+                    left:          48,
+                    top:           5,
+                    fontSize:      9,
+                    fontWeight:    700,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    color:         'rgba(255,255,255,0.45)',
+                    whiteSpace:    'nowrap',
+                    pointerEvents: 'none',
+                    lineHeight:    1,
+                }}>
+                    {legend}
+                </span>
+            )}
 
             {/* ── Track line ── */}
             <div
@@ -96,48 +117,45 @@ export default function ScaleBar({
                             })}
 
                             {/* Chapter labels + click targets */}
-                            {segments.map((seg, i) => {
-                                const centerPct = starts[i] + seg.widthPercent / 2;
-                                return (
-                                    <button
-                                        key={`lbl-${seg.id}`}
-                                        onClick={seg.onClick}
-                                        title={seg.label}
-                                        style={{
-                                            position:      'absolute',
-                                            left:          `${starts[i]}%`,
-                                            width:         `${seg.widthPercent}%`,
-                                            top:           10,
-                                            height:        50,
-                                            display:       'flex',
-                                            alignItems:    'flex-start',
-                                            justifyContent:'center',
-                                            paddingTop:    6,
-                                            background:    'none',
-                                            border:        'none',
-                                            cursor:        'pointer',
-                                            padding:       0,
-                                            paddingTop:    8,
-                                            overflow:      'hidden',
-                                        }}
-                                    >
-                                        <span style={{
-                                            fontSize:      13,
-                                            fontWeight:    500,
-                                            color:         'rgba(255,255,255,0.72)',
-                                            whiteSpace:    'nowrap',
-                                            letterSpacing: '0.04em',
-                                            lineHeight:    1,
-                                            overflow:      'hidden',
-                                            textOverflow:  'ellipsis',
-                                            maxWidth:      '90%',
-                                            display:       'block',
-                                        }}>
-                                            {seg.label}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                            {segments.map((seg, i) => (
+                                <button
+                                    key={`lbl-${seg.id}`}
+                                    onClick={seg.onClick}
+                                    title={seg.label}
+                                    style={{
+                                        position:      'absolute',
+                                        left:          `${starts[i]}%`,
+                                        width:         `${seg.widthPercent}%`,
+                                        top:           10,
+                                        height:        50,
+                                        display:       'flex',
+                                        alignItems:    'flex-start',
+                                        justifyContent:'center',
+                                        background:    'none',
+                                        border:        'none',
+                                        cursor:        'pointer',
+                                        padding:       0,
+                                        paddingTop:    8,
+                                        overflow:      'hidden',
+                                        pointerEvents: 'auto',
+                                    }}
+                                >
+                                    <span style={{
+                                        fontSize:      13,
+                                        fontWeight:    500,
+                                        color:         'rgba(255,255,255,0.72)',
+                                        whiteSpace:    'nowrap',
+                                        letterSpacing: '0.04em',
+                                        lineHeight:    1,
+                                        overflow:      'hidden',
+                                        textOverflow:  'ellipsis',
+                                        maxWidth:      '90%',
+                                        display:       'block',
+                                    }}>
+                                        {seg.label}
+                                    </span>
+                                </button>
+                            ))}
                         </>
                     );
                 })()}
