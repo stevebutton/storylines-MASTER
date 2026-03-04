@@ -336,13 +336,33 @@ export default function StoryMapView() {
         }
     };
 
-    // Restore scroll position after returning from StoryTimeline
+    // Continuously save chapter + slide state so timeline exit can restore exact position
+    useEffect(() => {
+        if (!storyIdParam || activeChapter < 0 || !activeSlide?.id) return;
+        sessionStorage.setItem(`view_state_${storyIdParam}`, JSON.stringify({
+            chapter: activeChapter,
+            slideId: activeSlide.id,
+        }));
+    }, [activeChapter, activeSlide?.id, storyIdParam]);
+
+    // Restore scroll + exact chapter/slide after returning from StoryTimeline
     useEffect(() => {
         if (chapters.length === 0 || pendingScrollRef.current === null) return;
         const target = pendingScrollRef.current;
         pendingScrollRef.current = null;
-        // Two rAF frames give the browser time to lay out the chapters before scrolling
-        requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, target)));
+        // Restore the carousel to the exact slide the user was viewing
+        const savedStateRaw = sessionStorage.getItem(`view_state_${storyIdParam}`);
+        if (savedStateRaw) {
+            try {
+                const { chapter, slideId } = JSON.parse(savedStateRaw);
+                if (typeof chapter === 'number' && chapter >= 0 && chapters[chapter]) {
+                    const slideIdx = chapters[chapter].slides?.findIndex(s => s.id === slideId) ?? -1;
+                    if (slideIdx >= 0) setTargetSlide({ chapter, slide: slideIdx });
+                }
+            } catch (_) { /* ignore malformed state */ }
+        }
+        // Longer delay gives all chapter components time to render before scrolling
+        setTimeout(() => window.scrollTo(0, target), 300);
     }, [chapters]);
 
     useEffect(() => {

@@ -37,8 +37,9 @@ export default function StoryTimeline() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading]           = useState(true);
 
-    const filmstripRef = useRef(null);
-    const thumbRefs    = useRef([]);
+    const filmstripRef  = useRef(null);
+    const thumbRefs     = useRef([]);
+    const [hoveredThumb, setHoveredThumb] = useState(null);
 
     // ── Load ──────────────────────────────────────────────────────────────────
     useEffect(() => {
@@ -171,12 +172,27 @@ export default function StoryTimeline() {
                 <ArrowLeft className="w-4 h-4" /> Back
             </button>
 
+            {/* ── "Project Timeline" heading — below banner, aligned with story title ── */}
+            {/*   Spacer (382px) pushes text past the logo area, matching banner layout   */}
+            <div
+                className="fixed left-0 right-0 z-[9999] flex items-center px-6 md:px-12"
+                style={{ top: 100, height: 72 }}
+            >
+                <span className="hidden md:block flex-shrink-0" style={{ width: 382 }} />
+                <h1
+                    className="text-white font-light text-3xl md:text-5xl"
+                    style={{ fontFamily: 'Raleway, sans-serif' }}
+                >
+                    Project Timeline
+                </h1>
+            </div>
+
             {/* ── Main content ──────────────────────────────────────────────── */}
-            {/*   top: 100px (banner), bottom: 150px (reserved info zone)       */}
+            {/*   top: 172px (100 banner + 72 heading), bottom: 150px reserved  */}
             {/*   padding: 50px all round for breathing room                    */}
             <div
                 className="absolute left-0 right-0 flex flex-col z-10"
-                style={{ top: 100, bottom: 150, padding: 50 }}
+                style={{ top: 172, bottom: 150, padding: 50 }}
             >
 
                 {/* ── Carousel: flex-1, right-aligned at 45% width ─────────── */}
@@ -210,14 +226,9 @@ export default function StoryTimeline() {
                                 {/* Bottom gradient */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-                                {/* Slide info: date → chapter → title → description */}
-                                {/* Text constrained to 50% of carousel width */}
-                                <div className="absolute bottom-0 left-0 right-0 px-7 pb-6" style={{ maxWidth: '50%' }}>
-                                    {currentSlide?.story_date && (
-                                        <span className="block text-amber-300/80 text-2xl md:text-3xl font-light leading-tight mb-1">
-                                            {formatLong(currentSlide.story_date)}
-                                        </span>
-                                    )}
+                                {/* Slide info: chapter → title → description → date */}
+                                {/* Text constrained to 60% of carousel width */}
+                                <div className="absolute bottom-0 left-0 right-0 px-7 pb-6" style={{ maxWidth: '60%' }}>
                                     {currentSlide?.chapter_name && (
                                         <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-1">
                                             {currentSlide.chapter_name}
@@ -231,9 +242,14 @@ export default function StoryTimeline() {
                                     {currentSlide?.description && (
                                         <div
                                             className="text-white/65 text-sm leading-relaxed prose prose-sm prose-invert max-w-none overflow-y-auto"
-                                            style={{ maxHeight: 80 }}
+                                            style={{ maxHeight: 72 }}
                                             dangerouslySetInnerHTML={{ __html: currentSlide.description }}
                                         />
+                                    )}
+                                    {currentSlide?.story_date && (
+                                        <span className="block text-amber-300 text-2xl md:text-3xl font-bold leading-tight mt-2">
+                                            {formatLong(currentSlide.story_date)}
+                                        </span>
                                     )}
                                 </div>
                             </motion.div>
@@ -366,20 +382,20 @@ export default function StoryTimeline() {
                                     key={slide.id}
                                     ref={el => thumbRefs.current[i] = el}
                                     onClick={() => setCurrentIndex(i)}
-                                    className="flex-shrink-0 rounded-lg overflow-hidden focus:outline-none group"
+                                    className="flex-shrink-0 rounded-lg overflow-hidden focus:outline-none"
+                                    onMouseEnter={() => setHoveredThumb(i)}
+                                    onMouseLeave={() => setHoveredThumb(null)}
                                     style={{
                                         width:      isCurrent ? 114 : 80,
                                         height:     isCurrent ? 90  : 68,
                                         marginTop:  isCurrent ? 0   : 11,
-                                        opacity:    isCurrent ? 1   : 0.5,
+                                        opacity:    isCurrent ? 1 : (hoveredThumb === i ? 0.85 : 0.5),
                                         boxShadow:  isCurrent
                                             ? '0 0 0 2px white, 0 2px 12px rgba(0,0,0,0.6)'
-                                            : '0 0 0 0px rgba(255,255,255,0)',
-                                        transition: 'all 0.25s ease',
+                                            : (hoveredThumb === i ? '0 0 0 2px rgba(255,255,255,0.65)' : 'none'),
+                                        transition: 'all 0.2s ease',
                                         outline: 'none',
                                     }}
-                                    onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.55)'; }}
-                                    onMouseLeave={e => { if (!isCurrent) e.currentTarget.style.boxShadow = '0 0 0 0px rgba(255,255,255,0)'; }}
                                 >
                                     {src
                                         ? <img src={src} alt={slide.title} className="w-full h-full object-cover" />
