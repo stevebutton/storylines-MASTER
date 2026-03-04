@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -56,6 +56,20 @@ const VideoPlayer = ({ url, onVideoEnded }) => {
     );
 };
 
+// Slide transition variants ─────────────────────────────────────────────────
+// Story mode: subtle scale-fade (original feel)
+const storyVariants = {
+    enter: { opacity: 0, scale: 0.97 },
+    center: { opacity: 1, scale: 1 },
+    exit:  { opacity: 0, scale: 0.97 },
+};
+// Timeline mode: hard horizontal push — direction 1 = forward, -1 = backward
+const timelineVariants = {
+    enter:  (dir) => ({ x: dir >= 0 ? '100%' : '-100%' }),
+    center: { x: 0 },
+    exit:   (dir) => ({ x: dir >= 0 ? '-100%' : '100%' }),
+};
+
 export default function FullScreenImageViewer({
     isOpen,
     onClose,
@@ -63,11 +77,20 @@ export default function FullScreenImageViewer({
     currentIndex,
     onNavigate,
     chapterName,
-    mapStyle = 'a',
+    mapStyle     = 'a',
+    viewMode     = 'story',    // 'picture' | 'story' | 'timeline'
     hideControlStrip = false,
     hideTextPanel    = false,
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
+
+    // Track slide navigation direction for timeline push transition
+    const prevIndexRef = useRef(currentIndex);
+    const directionRef = useRef(1);
+    useEffect(() => {
+        directionRef.current = currentIndex >= prevIndexRef.current ? 1 : -1;
+        prevIndexRef.current = currentIndex;
+    }, [currentIndex]);
 
     if (!slides || slides.length === 0) return null;
 
@@ -126,18 +149,26 @@ export default function FullScreenImageViewer({
                     >
                         {/* Image or Video Display */}
                         <div className="relative w-full h-full flex items-center justify-center z-10">
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence
+                        mode="wait"
+                        custom={directionRef.current}
+                    >
                         {currentSlide.video_url ? (
                             <VideoPlayer url={currentSlide.video_url} key={currentIndex} onVideoEnded={handleNext} />
                         ) : (
                             <motion.img
                                 key={currentIndex}
+                                custom={directionRef.current}
+                                variants={viewMode === 'timeline' ? timelineVariants : storyVariants}
+                                initial="enter"
+                                animate="center"
+                                exit="exit"
+                                transition={{
+                                    duration: viewMode === 'timeline' ? 0.35 : 0.4,
+                                    ease: viewMode === 'timeline' ? [0.4, 0, 0.2, 1] : 'easeOut',
+                                }}
                                 src={currentSlide.image}
                                 alt={currentSlide.title}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.4, ease: "easeOut" }}
                                 className="w-full h-full object-cover"
                             />
                         )}

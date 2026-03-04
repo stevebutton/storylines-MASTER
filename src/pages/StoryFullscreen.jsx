@@ -264,6 +264,7 @@ export default function StoryFullscreen() {
                 onNavigate={setCurrentIndex}
                 chapterName={activeSlides[currentIndex]?.chapter_name || ''}
                 mapStyle={mapStyle}
+                viewMode={mode}
                 hideControlStrip={true}
                 hideTextPanel={mode === 'picture'}
             />
