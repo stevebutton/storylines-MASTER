@@ -65,6 +65,7 @@ export default function FullScreenImageViewer({
     chapterName,
     mapStyle = 'a',
     hideControlStrip = false,
+    hideTextPanel    = false,
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
 
@@ -144,6 +145,7 @@ export default function FullScreenImageViewer({
                         </div>
 
                         {/* Text panel — full-bleed left, manages its own position */}
+                        {!hideTextPanel && (
                         <TextPanelCarousel
                             key={currentIndex}
                             chapterTitle={chapterName}
@@ -154,6 +156,7 @@ export default function FullScreenImageViewer({
                             mapStyle={mapStyle}
                             initialOpen={!currentSlide.video_url}
                         />
+                        )}
 
                         {/* Control strip — bottom centre (suppressed in page mode) */}
                         {!hideControlStrip && (

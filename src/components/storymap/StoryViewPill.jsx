@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map, Maximize2, Calendar, Layers } from 'lucide-react';
+import { Map, Maximize2, Layers } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 
@@ -49,8 +49,8 @@ export const pillDivider = (
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VIEW_ICONS  = { map: Map, fullscreen: Maximize2, timeline: Calendar };
-const VIEW_LABELS = { map: 'Map', fullscreen: 'Story', timeline: 'Timeline' };
+const VIEW_ICONS  = { map: Map, fullscreen: Maximize2 };
+const VIEW_LABELS = { map: 'Map', fullscreen: 'Story' };
 
 export default function StoryViewPill({
     storyId,
@@ -103,13 +103,6 @@ export default function StoryViewPill({
             label: 'Story',
             icon:  Maximize2,
             url:   createPageUrl(`StoryFullscreen?storyId=${storyId}`),
-            onNav: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
-        },
-        {
-            key:   'timeline',
-            label: 'Timeline',
-            icon:  Calendar,
-            url:   createPageUrl(`StoryTimeline?storyId=${storyId}`),
             onNav: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
         },
     ];
