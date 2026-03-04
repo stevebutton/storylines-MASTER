@@ -273,11 +273,27 @@ export default function StoryFullscreen() {
                 hideTextPanel={mode === 'picture'}
             />
 
+            {/* Bottom gradient — blurs + darkens the lower portion so filmstrip titles read */}
+            <div
+                className="fixed z-[9997] pointer-events-none"
+                style={{
+                    left:   380,
+                    right:  0,
+                    bottom: 0,
+                    height: 250,
+                    background:            'linear-gradient(to top, rgba(0,0,0,0.32), transparent)',
+                    backdropFilter:        'blur(6px)',
+                    WebkitBackdropFilter:  'blur(6px)',
+                    WebkitMaskImage:       'linear-gradient(to top, black 0%, transparent 70%)',
+                    maskImage:             'linear-gradient(to top, black 0%, transparent 70%)',
+                }}
+            />
+
             {/* ScaleBar stack — fixed above filmstrip, hidden in Picture mode */}
             {mode !== 'picture' && (
                 <div
                     className="fixed z-[9999] pointer-events-none"
-                    style={{ left: 380, right: 0, bottom: 260 }}
+                    style={{ left: 380, right: 0, bottom: 200 }}
                 >
                     {/* 2xl legend label */}
                     <div style={{ padding: '0 48px 10px' }}>
@@ -294,112 +310,6 @@ export default function StoryFullscreen() {
                         </span>
                     </div>
 
-                    {/* Chapter portrait cards — Story mode only.
-                        Each card is absolutely positioned at its chapter's start
-                        percentage along the track (matching the scale bar). */}
-                    {mode === 'story' && scaleSegments.length > 1 && (() => {
-                        let cumPct = 0;
-                        return (
-                            <div style={{
-                                position:     'relative',
-                                margin:       '0 48px',
-                                height:       120,
-                                marginBottom: 12,
-                            }}>
-                                {scaleSegments.map(seg => {
-                                    const startPct = cumPct;
-                                    cumPct += seg.widthPercent;
-                                    return (
-                                        <button
-                                            key={seg.id}
-                                            onClick={seg.onClick}
-                                            title={seg.label}
-                                            style={{
-                                                position:      'absolute',
-                                                left:          `${startPct}%`,
-                                                top:           0,
-                                                width:         100,
-                                                height:        120,
-                                                borderRadius:  14,
-                                                overflow:      'hidden',
-                                                cursor:        'pointer',
-                                                pointerEvents: 'auto',
-                                                background:    'rgba(0,0,0,0.5)',
-                                            }}
-                                        >
-                                            {/* Background image */}
-                                            {seg.firstImage && (
-                                                <img
-                                                    src={seg.firstImage}
-                                                    alt=""
-                                                    style={{
-                                                        position:  'absolute',
-                                                        inset:     0,
-                                                        width:     '100%',
-                                                        height:    '100%',
-                                                        objectFit: 'cover',
-                                                    }}
-                                                />
-                                            )}
-                                            {/* Dark overlay — Map View black/30 */}
-                                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.30)' }} />
-                                            {/* White inset border — Map View signature */}
-                                            <div style={{
-                                                position:      'absolute',
-                                                inset:         0,
-                                                borderRadius:  14,
-                                                boxShadow:     'inset 0 0 0 1.5px rgba(255,255,255,0.60)',
-                                                pointerEvents: 'none',
-                                                zIndex:        3,
-                                            }} />
-                                            {/* Text — bottom-left, amber, Raleway */}
-                                            <div style={{
-                                                position:       'absolute',
-                                                inset:          0,
-                                                zIndex:         2,
-                                                display:        'flex',
-                                                flexDirection:  'column',
-                                                justifyContent: 'flex-end',
-                                                padding:        '8px',
-                                                textAlign:      'left',
-                                            }}>
-                                                <span style={{
-                                                    display:       'block',
-                                                    fontSize:      9,
-                                                    fontWeight:    500,
-                                                    color:         '#f59e0b',
-                                                    textTransform: 'uppercase',
-                                                    letterSpacing: '0.10em',
-                                                    lineHeight:    1,
-                                                    fontFamily:    'Raleway, sans-serif',
-                                                }}>
-                                                    Chapter {String(seg.chapterNum).padStart(2, '0')}
-                                                </span>
-                                                {seg.name && (
-                                                    <span style={{
-                                                        display:         '-webkit-box',
-                                                        WebkitLineClamp: 2,
-                                                        WebkitBoxOrient: 'vertical',
-                                                        overflow:        'hidden',
-                                                        fontSize:        24,
-                                                        fontWeight:      300,
-                                                        color:           '#f59e0b',
-                                                        lineHeight:      1.0,
-                                                        marginTop:       4,
-                                                        fontFamily:      'Raleway, sans-serif',
-                                                        textAlign:       'left',
-                                                    }}>
-                                                        {seg.name}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        );
-                    })()}
-
                     <ScaleBar
                         mode={mode === 'timeline' ? 'dates' : 'chapters'}
                         cursorPercent={cursorPercent}
@@ -407,7 +317,7 @@ export default function StoryFullscreen() {
                         ticks={scaleTicks}
                         startLabel={scaleStartLabel}
                         endLabel={scaleEndLabel}
-                        height={95}
+                        height={mode === 'timeline' ? 95 : 72}
                     />
                 </div>
             )}
