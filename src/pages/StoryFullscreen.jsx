@@ -118,17 +118,21 @@ export default function StoryFullscreen() {
         return chapters
             .filter(ch => ch.slideCount > 0)
             .map((ch, i) => {
-                const startIdx = running;
+                const startIdx    = running;
                 const widthPercent = (ch.slideCount / total) * 100;
+                const firstSlide  = slides.find(sl => sl._chapter_id === ch.id);
                 running += ch.slideCount;
                 return {
-                    id: ch.id,
-                    label: ch.name || `Ch ${i + 1}`,
+                    id:          ch.id,
+                    label:       ch.name || `Ch ${i + 1}`,
+                    name:        ch.name || '',
+                    chapterNum:  i + 1,
                     widthPercent,
-                    onClick: () => setCurrentIndex(startIdx),
+                    firstImage:  firstSlide?.image || '',
+                    onClick:     () => setCurrentIndex(startIdx),
                 };
             });
-    }, [chapters, slides.length]);
+    }, [chapters, slides]);
 
     // ── ScaleBar: date ticks (timeline mode) ──────────────────────────────────
     const { scaleTicks, scaleStartLabel, scaleEndLabel } = useMemo(() => {
@@ -269,19 +273,30 @@ export default function StoryFullscreen() {
                 hideTextPanel={mode === 'picture'}
             />
 
-            {/* ScaleBar + chapter cards — fixed above filmstrip, hidden in Picture mode */}
+            {/* ScaleBar stack — fixed above filmstrip, hidden in Picture mode */}
             {mode !== 'picture' && (
                 <div
                     className="fixed z-[9999] pointer-events-none"
                     style={{ left: 380, right: 0, bottom: 190 }}
                 >
-                    {/* Chapter cards row — Story mode only, above the axis */}
-                    {mode === 'story' && scaleSegments.length > 1 && (
-                        <div style={{
-                            display: 'flex',
-                            padding: '0 48px 8px',
-                            gap:     4,
+                    {/* 2xl legend label */}
+                    <div style={{ padding: '0 48px 10px' }}>
+                        <span style={{
+                            fontSize:      24,
+                            fontWeight:    300,
+                            letterSpacing: '0.05em',
+                            color:         'rgba(255,255,255,0.88)',
+                            whiteSpace:    'nowrap',
+                            display:       'block',
+                            pointerEvents: 'none',
                         }}>
+                            {mode === 'timeline' ? 'Project Timeline' : 'Follow the Story'}
+                        </span>
+                    </div>
+
+                    {/* Chapter image cards — Story mode only */}
+                    {mode === 'story' && scaleSegments.length > 1 && (
+                        <div style={{ display: 'flex', padding: '0 48px 10px', gap: 4 }}>
                             {scaleSegments.map(seg => (
                                 <button
                                     key={seg.id}
@@ -290,21 +305,67 @@ export default function StoryFullscreen() {
                                     style={{
                                         flex:          `${seg.widthPercent} 1 0%`,
                                         minWidth:      0,
-                                        fontSize:      10,
-                                        color:         'rgba(255,255,255,0.6)',
-                                        background:    'rgba(255,255,255,0.08)',
-                                        border:        '1px solid rgba(255,255,255,0.14)',
-                                        borderRadius:  5,
-                                        padding:       '3px 6px',
-                                        textAlign:     'center',
+                                        height:        80,
+                                        position:      'relative',
+                                        borderRadius:  8,
                                         overflow:      'hidden',
-                                        textOverflow:  'ellipsis',
-                                        whiteSpace:    'nowrap',
+                                        border:        '1px solid rgba(255,255,255,0.22)',
                                         cursor:        'pointer',
                                         pointerEvents: 'auto',
+                                        flexShrink:    0,
+                                        background:    'rgba(0,0,0,0.4)',
                                     }}
                                 >
-                                    {seg.label}
+                                    {/* Background image */}
+                                    {seg.firstImage && (
+                                        <img
+                                            src={seg.firstImage}
+                                            alt=""
+                                            style={{
+                                                position:  'absolute',
+                                                inset:     0,
+                                                width:     '100%',
+                                                height:    '100%',
+                                                objectFit: 'cover',
+                                            }}
+                                        />
+                                    )}
+                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.42)' }} />
+                                    {/* Text */}
+                                    <div style={{
+                                        position:       'relative',
+                                        zIndex:         1,
+                                        height:         '100%',
+                                        display:        'flex',
+                                        flexDirection:  'column',
+                                        justifyContent: 'flex-end',
+                                        padding:        '8px 10px',
+                                    }}>
+                                        <span style={{
+                                            display:       'block',
+                                            fontSize:      9,
+                                            letterSpacing: '0.10em',
+                                            textTransform: 'uppercase',
+                                            color:         'rgba(255,255,255,0.6)',
+                                            lineHeight:    1,
+                                        }}>
+                                            Chapter {String(seg.chapterNum).padStart(2, '0')}
+                                        </span>
+                                        {seg.name && (
+                                            <span style={{
+                                                display:      'block',
+                                                fontSize:     13,
+                                                fontWeight:   500,
+                                                color:        'white',
+                                                overflow:     'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace:   'nowrap',
+                                                marginTop:    3,
+                                            }}>
+                                                {seg.name}
+                                            </span>
+                                        )}
+                                    </div>
                                 </button>
                             ))}
                         </div>
@@ -312,7 +373,6 @@ export default function StoryFullscreen() {
 
                     <ScaleBar
                         mode={mode === 'timeline' ? 'dates' : 'chapters'}
-                        legend={mode === 'timeline' ? 'Project Timeline' : 'Follow the Story'}
                         cursorPercent={cursorPercent}
                         segments={scaleSegments}
                         ticks={scaleTicks}

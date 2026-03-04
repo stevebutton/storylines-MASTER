@@ -5,10 +5,10 @@ import { Play } from 'lucide-react';
 /**
  * FilmstripBar
  *
- * Collapsed: 60px, vertically centred alongside the nav pill.
- * Hover: expands to 120px, full filmstrip scrollable.
- * Edge zones auto-scroll the strip so the mouse never leaves the component.
- * Background gradient fades out when collapsed — no resting shadow.
+ * Collapsed: 80px — thumbnail + slide title below, vertically centred.
+ * Hover: expands to 150px — larger thumbnails, titles fully legible.
+ * Title sits below each thumbnail, left-aligned at 12px, as the primary
+ * navigation cue rather than the image.
  */
 export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -30,7 +30,6 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     useEffect(() => { scrollToCurrent('instant'); }, [currentIndex]);
     useEffect(() => { if (isExpanded) scrollToCurrent(); }, [isExpanded]);
 
-    // Bring individually hovered thumbnail into view
     useEffect(() => {
         if (hoveredIndex === null) return;
         thumbRefs.current[hoveredIndex]?.scrollIntoView({
@@ -62,19 +61,19 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
             style={{ left: 380, bottom: 72 }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
-            animate={{ height: isExpanded ? 120 : 60 }}
+            animate={{ height: isExpanded ? 150 : 80 }}
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         >
-
             {/* Scrollable thumbnail row */}
             <div
                 ref={stripRef}
                 className="absolute inset-0 flex items-center px-3"
                 style={{
-                    gap: 6,
-                    overflowX: 'auto',
-                    scrollbarWidth: 'none',
+                    gap:             6,
+                    overflowX:       'auto',
+                    scrollbarWidth:  'none',
                     msOverflowStyle: 'none',
+                    alignItems:      'center',
                 }}
             >
                 {slides.map((slide, i) => {
@@ -83,73 +82,74 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                     const src = slide.video_thumbnail_url || slide.image;
 
                     return (
-                        <motion.button
+                        // Wrapper: image button above, title below
+                        <div
                             key={i}
                             ref={el => thumbRefs.current[i] = el}
-                            onClick={() => onNavigate(i)}
+                            className="flex-shrink-0 flex flex-col"
+                            style={{ gap: 4, alignItems: 'flex-start' }}
                             onMouseEnter={() => setHoveredIndex(i)}
                             onMouseLeave={() => setHoveredIndex(null)}
-                            animate={{
-                                width:   isCurrent ? 108 : isExpanded ? 88 : dist === 1 ? 72 : 8,
-                                height:  isCurrent ? (isExpanded ? 84 : 46)
-                                                   : isExpanded ? 72
-                                                   : dist === 1 ? 42 : 42,
-                                opacity: isCurrent ? 1
-                                                   : isExpanded ? 0.8
-                                                   : dist === 1 ? 0.55 : 0.15,
-                            }}
-                            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                            className="relative flex-shrink-0 rounded-md overflow-hidden focus:outline-none"
-                            style={{
-                                boxShadow: i === activeRingIndex
-                                    ? '0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.5)'
-                                    : 'none',
-                                minWidth: 0,
-                            }}
                         >
-                            {src
-                                ? <img
-                                    src={src}
-                                    alt={slide.title || `Slide ${i + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                : <div className="w-full h-full bg-slate-700" />
-                            }
-                            {slide.video_url && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <Play className="w-3 h-3 text-white fill-white drop-shadow" />
-                                </div>
-                            )}
-                            {/* Slide title label */}
-                            {slide.title && (
-                                <div style={{
-                                    position:   'absolute',
-                                    bottom:     0,
-                                    left:       0,
-                                    right:      0,
-                                    padding:    '10px 4px 3px',
-                                    background: 'linear-gradient(to top, rgba(0,0,0,0.82), transparent)',
-                                    pointerEvents: 'none',
+                            <motion.button
+                                onClick={() => onNavigate(i)}
+                                animate={{
+                                    width:   isCurrent ? 108 : isExpanded ? 88 : dist === 1 ? 72 : 8,
+                                    height:  isCurrent ? (isExpanded ? 100 : 52)
+                                                       : isExpanded ? 84
+                                                       : dist === 1 ? 48 : 48,
+                                    opacity: isCurrent ? 1
+                                                       : isExpanded ? 0.8
+                                                       : dist === 1 ? 0.55 : 0.15,
+                                }}
+                                transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                                className="relative flex-shrink-0 rounded-md overflow-hidden focus:outline-none"
+                                style={{
+                                    boxShadow: i === activeRingIndex
+                                        ? '0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.5)'
+                                        : 'none',
+                                    minWidth: 0,
+                                }}
+                            >
+                                {src
+                                    ? <img
+                                        src={src}
+                                        alt={slide.title || `Slide ${i + 1}`}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    : <div className="w-full h-full bg-slate-700" />
+                                }
+                                {slide.video_url && (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Play className="w-3 h-3 text-white fill-white drop-shadow" />
+                                    </div>
+                                )}
+                            </motion.button>
+
+                            {/* Slide title — visible for current slide + neighbours */}
+                            {slide.title && dist <= 5 && (
+                                <span style={{
+                                    display:      'block',
+                                    fontSize:     12,
+                                    lineHeight:   1.3,
+                                    color:        isCurrent
+                                        ? 'rgba(255,255,255,0.92)'
+                                        : 'rgba(255,255,255,0.48)',
+                                    overflow:     'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace:   'nowrap',
+                                    maxWidth:     isCurrent ? 108 : 88,
+                                    textAlign:    'left',
                                 }}>
-                                    <span style={{
-                                        display:      'block',
-                                        fontSize:     8,
-                                        lineHeight:   1.2,
-                                        color:        'rgba(255,255,255,0.9)',
-                                        overflow:     'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace:   'nowrap',
-                                    }}>
-                                        {slide.title}
-                                    </span>
-                                </div>
+                                    {slide.title}
+                                </span>
                             )}
-                        </motion.button>
+                        </div>
                     );
                 })}
             </div>
 
-            {/* Left edge scroll zone — keeps mouse inside filmstrip + scrolls left */}
+            {/* Left edge scroll zone */}
             <div
                 className="absolute left-0 top-0 bottom-0 w-12 pointer-events-auto"
                 style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.35), transparent)' }}
@@ -157,7 +157,7 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                 onMouseLeave={stopEdgeScroll}
             />
 
-            {/* Right edge scroll zone — keeps mouse inside filmstrip + scrolls right */}
+            {/* Right edge scroll zone */}
             <div
                 className="absolute right-0 top-0 bottom-0 w-12 pointer-events-auto"
                 style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.35), transparent)' }}
