@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Map, Maximize2, Calendar, Layers } from 'lucide-react';
@@ -8,17 +8,20 @@ import { cn } from '@/lib/utils';
 /**
  * StoryViewPill — Master navigation pill + optional sub-pill stack.
  *
- * Collapsed (default): small pill showing "Story View" + current-view icon.
- * Hover: smoothly expands via CSS max-width transition to reveal all three
- * segments; the sub-pill slides in below the master.
- * Mouse leave: both contract/hide.
+ * Behaviour:
+ *   ENTERING  – arrives expanded showing all 3 choices (entrance orientation)
+ *   SETTLING  – collapses after 1.5 s to current-view label only
+ *   ACTIVE    – sub-pill fades in 500 ms after collapse (stable idle)
+ *   HOVERED   – expands again on mouse-enter; sub-pill stays visible
  *
- * CSS max-width transitions are used instead of framer-motion layout
- * animations to avoid layout-recalculation jank on the inner items.
- * The outer entrance/exit (fade + slide) still uses framer-motion.
+ * The sub-pill is always rendered in the DOM (opacity-controlled) so the
+ * master pill never jumps position when the sub-pill appears/disappears.
+ *
+ * Inner expand/collapse uses CSS max-width transitions — no framer-motion
+ * layout recalculations, no jank.
  */
 
-// ── Shared style tokens ──────────────────────────────────────────────────────
+// ── Shared style tokens (imported by all sub-pill components) ────────────────
 export const pillShell = [
     'flex items-center gap-0.5',
     'bg-black/30 backdrop-blur-xl',
@@ -48,14 +51,18 @@ export const pillDivider = (
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
-const DUR  = '0.3s';
+const CSS_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+const CSS_DUR  = '0.3s';
 
-const VIEW_ICONS = {
-    map:        Map,
-    fullscreen: Maximize2,
-    timeline:   Calendar,
+const PHASE = {
+    ENTERING: 'entering', // expanded — all 3 choices visible, no sub-pill
+    SETTLING: 'settling', // collapsing — transitioning to current-view label
+    ACTIVE:   'active',   // stable idle — current-view label + sub-pill visible
+    HOVERED:  'hovered',  // user hovering — expanded + sub-pill visible
 };
+
+const VIEW_ICONS  = { map: Map, fullscreen: Maximize2, timeline: Calendar };
+const VIEW_LABELS = { map: 'Map', fullscreen: 'Story', timeline: 'Timeline' };
 
 export default function StoryViewPill({
     storyId,
@@ -63,11 +70,51 @@ export default function StoryViewPill({
     isVisible   = false,
     subPill,
 }) {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [phase, setPhase] = useState(PHASE.ENTERING);
+    const timersRef = useRef([]);
+
+    const clearTimers = () => {
+        timersRef.current.forEach(clearTimeout);
+        timersRef.current = [];
+    };
+
+    // Entrance sequence — runs each time the pill becomes visible
+    useEffect(() => {
+        if (!isVisible) {
+            clearTimers();
+            setPhase(PHASE.ENTERING);
+            return;
+        }
+        setPhase(PHASE.ENTERING);
+        timersRef.current = [
+            // 1.5 s: collapse to current-view label
+            setTimeout(() => {
+                setPhase(p => p === PHASE.HOVERED ? p : PHASE.SETTLING);
+            }, 1500),
+            // 2.0 s: sub-pill fades in (500 ms after collapse starts)
+            setTimeout(() => {
+                setPhase(p => p === PHASE.HOVERED ? p : PHASE.ACTIVE);
+            }, 2000),
+        ];
+        return clearTimers;
+    }, [isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleMouseEnter = () => {
+        clearTimers();
+        setPhase(PHASE.HOVERED);
+    };
+
+    const handleMouseLeave = () => {
+        setPhase(PHASE.ACTIVE);
+    };
 
     if (!storyId) return null;
 
-    const ActiveIcon = VIEW_ICONS[currentView] || Layers;
+    const isExpanded   = phase === PHASE.ENTERING || phase === PHASE.HOVERED;
+    const subPillReady = phase === PHASE.ACTIVE    || phase === PHASE.HOVERED;
+
+    const ActiveIcon  = VIEW_ICONS[currentView]  || Layers;
+    const activeLabel = VIEW_LABELS[currentView] || 'Story View';
 
     const views = [
         {
@@ -75,21 +122,21 @@ export default function StoryViewPill({
             label:   'Map',
             icon:    Map,
             url:     createPageUrl(`StoryMapView?id=${storyId}`),
-            onClick: null,
+            onNav:   null,
         },
         {
             key:     'fullscreen',
             label:   'Story',
             icon:    Maximize2,
             url:     createPageUrl(`StoryFullscreen?storyId=${storyId}`),
-            onClick: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
+            onNav:   () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
         },
         {
             key:     'timeline',
             label:   'Timeline',
             icon:    Calendar,
             url:     createPageUrl(`StoryTimeline?storyId=${storyId}`),
-            onClick: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
+            onNav:   () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
         },
     ];
 
@@ -101,30 +148,31 @@ export default function StoryViewPill({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 24 }}
                     transition={{ duration: 0.45, ease: 'easeOut' }}
-                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100020] flex flex-col items-center gap-2 pointer-events-none"
-                    onMouseEnter={() => setIsExpanded(true)}
-                    onMouseLeave={() => setIsExpanded(false)}
+                    // pointer-events-auto on the container so onMouseEnter/Leave
+                    // fire correctly across the gap between master and sub-pill
+                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100020] flex flex-col items-center gap-2 pointer-events-auto"
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                 >
-
                     {/* ── Master pill ── */}
-                    <div className={cn(pillShell, 'pointer-events-auto overflow-hidden')}>
+                    <div className={cn(pillShell, 'overflow-hidden')}>
 
-                        {/* Collapsed label — "Story View" */}
+                        {/* Collapsed: current-view label */}
                         <div style={{
-                            maxWidth:   isExpanded ? 0 : '180px',
+                            maxWidth:   isExpanded ? 0 : '160px',
                             opacity:    isExpanded ? 0 : 1,
                             overflow:   'hidden',
-                            transition: `max-width ${DUR} ${EASE}, opacity 0.15s ease`,
+                            transition: `max-width ${CSS_DUR} ${CSS_EASE}, opacity 0.15s ease`,
                             whiteSpace: 'nowrap',
                         }}>
-                            <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/70 select-none cursor-default">
+                            <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 select-none cursor-default">
                                 <ActiveIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                                Story View
+                                {activeLabel}
                             </span>
                         </div>
 
-                        {/* Expanded segments — Map / Story / Timeline */}
-                        {views.map(({ key, label, icon: Icon, url, onClick }) => {
+                        {/* Expanded: all three choices */}
+                        {views.map(({ key, label, icon: Icon, url, onNav }) => {
                             const isActive = currentView === key;
                             return (
                                 <div
@@ -133,18 +181,24 @@ export default function StoryViewPill({
                                         maxWidth:   isExpanded ? '200px' : 0,
                                         opacity:    isExpanded ? 1 : 0,
                                         overflow:   'hidden',
-                                        transition: `max-width ${DUR} ${EASE}, opacity 0.2s ease`,
+                                        transition: `max-width ${CSS_DUR} ${CSS_EASE}, opacity 0.2s ease`,
                                         whiteSpace: 'nowrap',
                                     }}
                                 >
                                     <Link
                                         to={url}
-                                        onClick={onClick}
+                                        onClick={() => {
+                                            if (onNav) onNav();
+                                            // Collapse immediately on selection;
+                                            // entrance animation plays on the destination page
+                                            clearTimers();
+                                            setPhase(PHASE.ACTIVE);
+                                        }}
                                         className={cn(
-                                            'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors duration-150',
+                                            'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150',
                                             isActive
                                                 ? 'bg-white text-slate-900 shadow-sm'
-                                                : 'text-white/70 hover:text-white hover:bg-white/15'
+                                                : 'text-white/70 hover:bg-white/20 hover:text-white'
                                         )}
                                     >
                                         <Icon className="w-3.5 h-3.5 flex-shrink-0" />
@@ -155,22 +209,20 @@ export default function StoryViewPill({
                         })}
                     </div>
 
-                    {/* ── Sub-pill — slides in below master when expanded ── */}
-                    <AnimatePresence>
-                        {subPill && isExpanded && (
-                            <motion.div
-                                key="sub-pill"
-                                initial={{ opacity: 0, y: -6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{ duration: 0.2, ease: 'easeOut' }}
-                                className="pointer-events-auto"
-                            >
-                                {subPill}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
+                    {/* ── Sub-pill ──
+                        Always rendered when subPill is provided so the master pill
+                        position never changes when the sub-pill appears/disappears.
+                        Visibility is controlled via opacity + pointer-events only. */}
+                    {subPill && (
+                        <div style={{
+                            opacity:       subPillReady ? 1 : 0,
+                            pointerEvents: subPillReady ? 'auto' : 'none',
+                            transform:     subPillReady ? 'translateY(0)' : 'translateY(-4px)',
+                            transition:    'opacity 0.25s ease, transform 0.25s ease',
+                        }}>
+                            {subPill}
+                        </div>
+                    )}
                 </motion.div>
             )}
         </AnimatePresence>
