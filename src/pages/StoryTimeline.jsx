@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar, ArrowLeft, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, ArrowLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 
@@ -156,6 +156,17 @@ export default function StoryTimeline() {
             {/* 20% dark overlay — lighter so hero shows through */}
             <div className="absolute inset-0 z-0" style={{ background: 'rgba(0,0,0,0.20)' }} />
 
+            {/* Blur gradient — full blur at bottom, fades to zero at mid-viewport */}
+            <div
+                className="absolute inset-0 z-[1] pointer-events-none"
+                style={{
+                    backdropFilter:       'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
+                    maskImage:            'linear-gradient(to top, black 0%, black 30%, transparent 55%)',
+                    WebkitMaskImage:      'linear-gradient(to top, black 0%, black 30%, transparent 55%)',
+                }}
+            />
+
             {/* ── Banner ────────────────────────────────────────────────────── */}
             <StoryMapBanner
                 isVisible={true}
@@ -285,7 +296,7 @@ export default function StoryTimeline() {
                 {/* ── Timeline bar ─────────────────────────────────────────── */}
                 <div
                     className="flex-shrink-0 relative mt-3"
-                    style={{ height: 140, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderRadius: 12 }}
+                    style={{ height: 140 }}
                 >
                     {/* Track line — at y=32, ticks + labels hang DOWN */}
                     <div
@@ -366,83 +377,64 @@ export default function StoryTimeline() {
                     </div>
                 </div>
 
-                {/* ── Filmstrip — portrait mini-cards with title + PDF indicator ── */}
-                {/*   Each item: [portrait card] + [pdf badge below, always reserved]  */}
-                <div
-                    className="flex-shrink-0 mt-3"
-                    style={{ borderRadius: 12, background: 'rgba(0,0,0,0.50)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', padding: '10px 0' }}
-                >
+                {/* ── Filmstrip — landscape thumbs with slide title below left ── */}
+                <div className="flex-shrink-0 mt-3" style={{ padding: '8px 0' }}>
                     <div
                         ref={filmstripRef}
-                        className="flex items-end gap-3 px-4 overflow-x-auto"
-                        style={{ height: 176, scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        className="flex items-end gap-2 px-4 overflow-x-auto"
+                        style={{ height: 140, scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                     >
                         {slides.map((slide, i) => {
-                            const isCurrent  = i === currentIndex;
-                            const isHovered  = hoveredThumb === i;
-                            const src        = slide.video_thumbnail_url || slide.image;
-                            const cardW      = isCurrent ? 90 : 70;
-                            const cardH      = isCurrent ? 130 : 104; // ~4:5.8 portrait
+                            const isCurrent = i === currentIndex;
+                            const isHovered = hoveredThumb === i;
+                            const src       = slide.video_thumbnail_url || slide.image;
+                            const thumbW    = isCurrent ? 114 : 80;
+                            const thumbH    = isCurrent ? 90  : 68;
 
                             return (
                                 <div
                                     key={slide.id}
                                     ref={el => thumbRefs.current[i] = el}
-                                    className="flex-shrink-0 flex flex-col items-center"
-                                    style={{ gap: 4 }}
+                                    className="flex-shrink-0 flex flex-col"
+                                    style={{ width: thumbW, gap: 4, transition: 'width 0.2s ease' }}
                                 >
-                                    {/* Portrait image card */}
+                                    {/* Landscape image thumb */}
                                     <button
                                         onClick={() => setCurrentIndex(i)}
                                         onMouseEnter={() => setHoveredThumb(i)}
                                         onMouseLeave={() => setHoveredThumb(null)}
-                                        className="relative overflow-hidden rounded-lg focus:outline-none"
+                                        className="flex-shrink-0 rounded-lg overflow-hidden focus:outline-none"
                                         style={{
-                                            width:      cardW,
-                                            height:     cardH,
-                                            flexShrink: 0,
+                                            width:      thumbW,
+                                            height:     thumbH,
                                             opacity:    isCurrent ? 1 : (isHovered ? 0.85 : 0.5),
                                             boxShadow:  isCurrent
-                                                ? '0 0 0 2px white, 0 4px 16px rgba(0,0,0,0.7)'
+                                                ? '0 0 0 2px white, 0 2px 12px rgba(0,0,0,0.6)'
                                                 : (isHovered ? '0 0 0 2px rgba(255,255,255,0.65)' : 'none'),
                                             transition: 'all 0.2s ease',
                                         }}
                                     >
                                         {src
                                             ? <img src={src} alt={slide.title} className="w-full h-full object-cover" />
-                                            : <div className="w-full h-full bg-slate-800" />
+                                            : <div className="w-full h-full bg-slate-800/60" />
                                         }
-                                        {/* Gradient + title overlay */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-                                        {slide.title && (
-                                            <span
-                                                className="absolute bottom-1.5 left-1.5 right-1.5 text-white leading-tight"
-                                                style={{ fontSize: 9, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-                                            >
-                                                {slide.title}
-                                            </span>
-                                        )}
                                     </button>
 
-                                    {/* PDF badge — always reserves space; only shown when pdf_url exists */}
-                                    <div
+                                    {/* Slide title below, left-aligned, 2-line clamp */}
+                                    <span
+                                        className="text-left text-white/70 leading-tight"
                                         style={{
-                                            width:      cardW,
-                                            height:     30,
-                                            borderRadius: 6,
-                                            display:    'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap:        4,
-                                            visibility: slide.pdf_url ? 'visible' : 'hidden',
-                                            background: 'rgba(255,255,255,0.12)',
-                                            cursor:     slide.pdf_url ? 'pointer' : 'default',
+                                            fontSize:          10,
+                                            display:           '-webkit-box',
+                                            WebkitLineClamp:   2,
+                                            WebkitBoxOrient:   'vertical',
+                                            overflow:          'hidden',
+                                            opacity:           isCurrent ? 1 : (isHovered ? 0.8 : 0.5),
+                                            transition:        'opacity 0.2s ease',
                                         }}
-                                        onClick={() => slide.pdf_url && window.open(slide.pdf_url, '_blank')}
                                     >
-                                        <FileText style={{ width: 11, height: 11, color: 'rgba(255,255,255,0.75)', flexShrink: 0 }} />
-                                        <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 500 }}>PDF</span>
-                                    </div>
+                                        {slide.title || ''}
+                                    </span>
                                 </div>
                             );
                         })}
