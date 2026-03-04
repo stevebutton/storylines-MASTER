@@ -9,6 +9,7 @@ import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import BottomPillBar from '@/components/storymap/BottomPillBar';
 import StoryViewPill from '@/components/storymap/StoryViewPill';
+import EditorialPill from '@/components/storymap/EditorialPill';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
@@ -1026,7 +1027,7 @@ export default function StoryMapView() {
                 }}
             />
 
-            {/* Story View Pill — master nav + map context sub-pill */}
+            {/* Story View Pill — master nav + map controls sub-pill */}
             <StoryViewPill
                 storyId={storyId}
                 currentView="map"
@@ -1041,11 +1042,16 @@ export default function StoryMapView() {
                         showMarkers={showMarkers}
                         onToggleMarkers={() => setShowMarkers(v => !v)}
                         onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
-                        onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                        onOpenLibrary={() => setShowLibraryModal(true)}
-                        onEditStory={() => setIsEditTransitioning(true)}
                     />
                 }
+            />
+
+            {/* Editorial Pill — fixed bottom-right, constant across views */}
+            <EditorialPill
+                isVisible={isBannerVisible}
+                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
+                onOpenLibrary={() => setShowLibraryModal(true)}
+                onEditStory={() => setIsEditTransitioning(true)}
             />
 
             {/* White dissolve overlay for edit-story transition */}

@@ -99,14 +99,7 @@ export default function StoryViewPill({
                     transition={{ duration: 0.45, ease: 'easeOut' }}
                     className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100020] flex flex-col items-center gap-2 pointer-events-none"
                 >
-                    {/* Sub-pill — context controls, renders above master */}
-                    {subPill && (
-                        <div className="pointer-events-auto">
-                            {subPill}
-                        </div>
-                    )}
-
-                    {/* Master navigation pill */}
+                    {/* Master navigation pill — top of stack */}
                     <div className={cn(pillShell, 'pointer-events-auto')}>
                         {views.map(({ key, label, icon: Icon, url, onClick }) => {
                             const isActive = currentView === key;
@@ -128,6 +121,13 @@ export default function StoryViewPill({
                             );
                         })}
                     </div>
+
+                    {/* Sub-pill — context controls, below master */}
+                    {subPill && (
+                        <div className="pointer-events-auto">
+                            {subPill}
+                        </div>
+                    )}
                 </motion.div>
             )}
         </AnimatePresence>
