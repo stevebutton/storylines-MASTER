@@ -1,43 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Calendar } from 'lucide-react';
+import { List, BookOpen, Library, Pencil } from 'lucide-react';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
 };
 
+const btn = [
+    'w-9 h-9 rounded-full flex items-center justify-center',
+    'transition-all duration-200',
+    'text-slate-500 hover:text-slate-800 hover:bg-slate-200',
+].join(' ');
+
+const btnActive = [
+    'w-9 h-9 rounded-full flex items-center justify-center',
+    'transition-all duration-200',
+    'bg-slate-800 text-white',
+].join(' ');
+
+const divider = <div className="w-px h-5 bg-slate-200 mx-0.5 flex-shrink-0" />;
+
 export default function StoryMapBanner({
-    isVisible = true,
-    storyTitle = '',
-    hasExplored = false,
-    storyId = '',
-    isShareable = false,
+    isVisible          = true,
+    storyTitle         = '',
+    hasExplored        = false,
+    storyId            = '',
+    isShareable        = false,
     isChapterMenuOpen,
     onToggleChapterMenu,
-    hasChapters = false,
-    mapStyle = 'a',
+    hasChapters        = false,
+    mapStyle           = 'a',
+    // Editorial actions — only wired in StoryMapView
+    onViewOtherStories,
+    onOpenLibrary,
+    onEditStory,
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
-    const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
 
-    // Auth handled by Supabase — stubbed until Supabase Auth is wired up
-    const handleLogin = () => {};
-    const handleLogout = () => { setUser(null); };
+    const hasEditorial = onViewOtherStories || onOpenLibrary || onEditStory;
+    const showPill     = (hasChapters && onToggleChapterMenu) || hasEditorial;
 
     return (
-        <div 
+        <div
             className={cn(
-                "fixed top-0 left-0 right-0 z-[10000] h-[100px] transition-all duration-700",
-                "bg-white/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50",
-                "flex items-center justify-between px-6 md:px-12",
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
+                'fixed top-0 left-0 right-0 z-[10000] h-[100px] transition-all duration-700',
+                'bg-white/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50',
+                'flex items-center justify-between px-6 md:px-12',
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
             )}
         >
-            {/* Logo - slides in from left after banner settles */}
+            {/* Logo */}
             <motion.div
                 className="hidden md:block flex-shrink-0 ml-[100px]"
                 initial={{ opacity: 0, x: -80 }}
@@ -55,7 +70,7 @@ export default function StoryMapBanner({
                 </Link>
             </motion.div>
 
-            {/* Story title - slides in from right after banner settles */}
+            {/* Story title */}
             {storyTitle && (
                 <motion.div
                     className="text-slate-800 flex-grow text-left font-light text-3xl md:text-5xl mx-4 md:mx-8"
@@ -68,31 +83,41 @@ export default function StoryMapBanner({
                 </motion.div>
             )}
 
-            {/* Timeline link */}
-            {storyId && (
-                <Link
-                    to={createPageUrl(`StoryTimeline?storyId=${storyId}`)}
-                    onClick={() => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY))}
-                    className="flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 mr-2"
-                    title="Story Timeline"
-                >
-                    <Calendar className="w-5 h-5 text-slate-700" />
-                </Link>
-            )}
+            {/* Right-side action pill */}
+            {showPill && (
+                <div className="flex-shrink-0 flex items-center gap-0.5 bg-slate-100 border border-slate-200 rounded-full px-1.5 py-1.5">
 
-            {/* Chapters Toggle Button - Right */}
-            {hasChapters && (
-                <button
-                    onClick={onToggleChapterMenu}
-                    className="flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity duration-300 cursor-pointer"
-                >
-                    <img
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/55fddbe88_Menubutton.png"
-                        alt="Story Chapters"
-                        width="50"
-                        height="100"
-                    />
-                </button>
+                    {/* Chapter menu toggle */}
+                    {hasChapters && onToggleChapterMenu && (
+                        <>
+                            <button
+                                onClick={onToggleChapterMenu}
+                                className={isChapterMenuOpen ? btnActive : btn}
+                                title="Chapter menu"
+                            >
+                                <List className="w-4 h-4" />
+                            </button>
+                            {hasEditorial && divider}
+                        </>
+                    )}
+
+                    {/* Editorial actions */}
+                    {onViewOtherStories && (
+                        <button onClick={onViewOtherStories} className={btn} title="More stories">
+                            <BookOpen className="w-4 h-4" />
+                        </button>
+                    )}
+                    {onOpenLibrary && (
+                        <button onClick={onOpenLibrary} className={btn} title="Library">
+                            <Library className="w-4 h-4" />
+                        </button>
+                    )}
+                    {onEditStory && (
+                        <button onClick={onEditStory} className={btn} title="Edit story">
+                            <Pencil className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
             )}
         </div>
     );

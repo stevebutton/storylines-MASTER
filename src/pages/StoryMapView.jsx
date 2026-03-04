@@ -9,7 +9,6 @@ import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import BottomPillBar from '@/components/storymap/BottomPillBar';
 import StoryViewPill from '@/components/storymap/StoryViewPill';
-import EditorialPill from '@/components/storymap/EditorialPill';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
@@ -666,6 +665,9 @@ export default function StoryMapView() {
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
                 mapStyle={story?.map_style || 'a'}
+                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
+                onOpenLibrary={() => setShowLibraryModal(true)}
+                onEditStory={() => setIsEditTransitioning(true)}
             />
             </div>
 
@@ -1046,13 +1048,6 @@ export default function StoryMapView() {
                 }
             />
 
-            {/* Editorial Pill — fixed bottom-right, constant across views */}
-            <EditorialPill
-                isVisible={isBannerVisible}
-                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                onOpenLibrary={() => setShowLibraryModal(true)}
-                onEditStory={() => setIsEditTransitioning(true)}
-            />
 
             {/* White dissolve overlay for edit-story transition */}
             <AnimatePresence>
