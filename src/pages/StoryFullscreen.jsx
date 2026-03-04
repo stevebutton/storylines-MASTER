@@ -294,26 +294,30 @@ export default function StoryFullscreen() {
                         </span>
                     </div>
 
-                    {/* Chapter image cards — Story mode only */}
+                    {/* Chapter portrait cards — Story mode only, fixed 80×120 */}
                     {mode === 'story' && scaleSegments.length > 1 && (
-                        <div style={{ display: 'flex', padding: '0 48px 10px', gap: 4 }}>
+                        <div style={{
+                            display:    'flex',
+                            padding:    '0 48px 12px',
+                            gap:        6,
+                            flexWrap:   'nowrap',
+                            overflowX:  'auto',
+                        }}>
                             {scaleSegments.map(seg => (
                                 <button
                                     key={seg.id}
                                     onClick={seg.onClick}
                                     title={seg.label}
                                     style={{
-                                        flex:          `${seg.widthPercent} 1 0%`,
-                                        minWidth:      0,
-                                        height:        80,
                                         position:      'relative',
-                                        borderRadius:  8,
+                                        width:         80,
+                                        height:        120,
+                                        flexShrink:    0,
+                                        borderRadius:  14,
                                         overflow:      'hidden',
-                                        border:        '1px solid rgba(255,255,255,0.22)',
                                         cursor:        'pointer',
                                         pointerEvents: 'auto',
-                                        flexShrink:    0,
-                                        background:    'rgba(0,0,0,0.4)',
+                                        background:    'rgba(0,0,0,0.5)',
                                     }}
                                 >
                                     {/* Background image */}
@@ -330,37 +334,51 @@ export default function StoryFullscreen() {
                                             }}
                                         />
                                     )}
-                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.42)' }} />
-                                    {/* Text */}
+                                    {/* Dark overlay — same as Map View black/30 */}
+                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.30)' }} />
+                                    {/* White inset border — Map View signature */}
                                     <div style={{
-                                        position:       'relative',
-                                        zIndex:         1,
-                                        height:         '100%',
+                                        position:     'absolute',
+                                        inset:        0,
+                                        borderRadius: 14,
+                                        boxShadow:    'inset 0 0 0 1.5px rgba(255,255,255,0.60)',
+                                        pointerEvents:'none',
+                                        zIndex:       3,
+                                    }} />
+                                    {/* Text — bottom-left, amber, Raleway */}
+                                    <div style={{
+                                        position:       'absolute',
+                                        inset:          0,
+                                        zIndex:         2,
                                         display:        'flex',
                                         flexDirection:  'column',
                                         justifyContent: 'flex-end',
-                                        padding:        '8px 10px',
+                                        padding:        '8px',
                                     }}>
                                         <span style={{
                                             display:       'block',
                                             fontSize:      9,
-                                            letterSpacing: '0.10em',
+                                            fontWeight:    500,
+                                            color:         '#f59e0b',
                                             textTransform: 'uppercase',
-                                            color:         'rgba(255,255,255,0.6)',
+                                            letterSpacing: '0.10em',
                                             lineHeight:    1,
+                                            fontFamily:    'Raleway, sans-serif',
                                         }}>
                                             Chapter {String(seg.chapterNum).padStart(2, '0')}
                                         </span>
                                         {seg.name && (
                                             <span style={{
-                                                display:      'block',
-                                                fontSize:     13,
-                                                fontWeight:   500,
-                                                color:        'white',
-                                                overflow:     'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace:   'nowrap',
-                                                marginTop:    3,
+                                                display:         '-webkit-box',
+                                                WebkitLineClamp: 2,
+                                                WebkitBoxOrient: 'vertical',
+                                                overflow:        'hidden',
+                                                fontSize:        12,
+                                                fontWeight:      300,
+                                                color:           '#f59e0b',
+                                                lineHeight:      1.15,
+                                                marginTop:       3,
+                                                fontFamily:      'Raleway, sans-serif',
                                             }}>
                                                 {seg.name}
                                             </span>

@@ -5,10 +5,9 @@ import { Play } from 'lucide-react';
 /**
  * FilmstripBar
  *
- * Collapsed: 80px — thumbnail + slide title below, vertically centred.
- * Hover: expands to 150px — larger thumbnails, titles fully legible.
- * Title sits below each thumbnail, left-aligned at 12px, as the primary
- * navigation cue rather than the image.
+ * All thumbnails are shown at readable opacity — no feathering.
+ * Slide title sits below the thumbnail, left-aligned, up to 2 lines.
+ * Collapsed: 88px. Expanded (hover): 152px.
  */
 export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -61,7 +60,7 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
             style={{ left: 380, bottom: 72 }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
-            animate={{ height: isExpanded ? 150 : 80 }}
+            animate={{ height: isExpanded ? 152 : 88 }}
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* Scrollable thumbnail row */}
@@ -78,11 +77,9 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
             >
                 {slides.map((slide, i) => {
                     const isCurrent = i === currentIndex;
-                    const dist = Math.abs(i - currentIndex);
                     const src = slide.video_thumbnail_url || slide.image;
 
                     return (
-                        // Wrapper: image button above, title below
                         <div
                             key={i}
                             ref={el => thumbRefs.current[i] = el}
@@ -91,16 +88,13 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                             onMouseEnter={() => setHoveredIndex(i)}
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
+                            {/* Thumbnail */}
                             <motion.button
                                 onClick={() => onNavigate(i)}
                                 animate={{
-                                    width:   isCurrent ? 108 : isExpanded ? 88 : dist === 1 ? 72 : 8,
-                                    height:  isCurrent ? (isExpanded ? 100 : 52)
-                                                       : isExpanded ? 84
-                                                       : dist === 1 ? 48 : 48,
-                                    opacity: isCurrent ? 1
-                                                       : isExpanded ? 0.8
-                                                       : dist === 1 ? 0.55 : 0.15,
+                                    width:   isCurrent ? (isExpanded ? 108 : 92) : (isExpanded ? 88 : 74),
+                                    height:  isCurrent ? (isExpanded ? 96 : 48) : (isExpanded ? 80 : 44),
+                                    opacity: isCurrent ? 1 : (isExpanded ? 0.85 : 0.72),
                                 }}
                                 transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
                                 className="relative flex-shrink-0 rounded-md overflow-hidden focus:outline-none"
@@ -126,20 +120,21 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                                 )}
                             </motion.button>
 
-                            {/* Slide title — visible for current slide + neighbours */}
-                            {slide.title && dist <= 5 && (
+                            {/* Slide title — 2 lines, left-aligned */}
+                            {slide.title && (
                                 <span style={{
-                                    display:      'block',
-                                    fontSize:     12,
-                                    lineHeight:   1.3,
-                                    color:        isCurrent
+                                    display:           '-webkit-box',
+                                    WebkitLineClamp:   2,
+                                    WebkitBoxOrient:   'vertical',
+                                    overflow:          'hidden',
+                                    fontSize:          12,
+                                    lineHeight:        1.3,
+                                    color:             isCurrent
                                         ? 'rgba(255,255,255,0.92)'
-                                        : 'rgba(255,255,255,0.48)',
-                                    overflow:     'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace:   'nowrap',
-                                    maxWidth:     isCurrent ? 108 : 88,
-                                    textAlign:    'left',
+                                        : 'rgba(255,255,255,0.55)',
+                                    maxWidth:          isCurrent ? (isExpanded ? 108 : 92) : (isExpanded ? 88 : 74),
+                                    textAlign:         'left',
+                                    whiteSpace:        'normal',
                                 }}>
                                     {slide.title}
                                 </span>
@@ -151,16 +146,16 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
 
             {/* Left edge scroll zone */}
             <div
-                className="absolute left-0 top-0 bottom-0 w-12 pointer-events-auto"
-                style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.35), transparent)' }}
+                className="absolute left-0 top-0 bottom-0 w-10 pointer-events-auto"
+                style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.4), transparent)' }}
                 onMouseEnter={() => startEdgeScroll(-1)}
                 onMouseLeave={stopEdgeScroll}
             />
 
             {/* Right edge scroll zone */}
             <div
-                className="absolute right-0 top-0 bottom-0 w-12 pointer-events-auto"
-                style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.35), transparent)' }}
+                className="absolute right-0 top-0 bottom-0 w-10 pointer-events-auto"
+                style={{ background: 'linear-gradient(to left, rgba(0,0,0,0.4), transparent)' }}
                 onMouseEnter={() => startEdgeScroll(1)}
                 onMouseLeave={stopEdgeScroll}
             />
