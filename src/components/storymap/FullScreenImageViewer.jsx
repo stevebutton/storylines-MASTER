@@ -57,17 +57,31 @@ const VideoPlayer = ({ url, onVideoEnded }) => {
 };
 
 // Slide transition variants ─────────────────────────────────────────────────
-// Story mode: subtle scale-fade (original feel)
-const storyVariants = {
-    enter: { opacity: 0, scale: 0.97 },
-    center: { opacity: 1, scale: 1 },
-    exit:  { opacity: 0, scale: 0.97 },
+// picture: 2s cross-dissolve, no scale
+const pictureVariants = {
+    enter:  { opacity: 0 },
+    center: { opacity: 1 },
+    exit:   { opacity: 0 },
 };
-// Timeline mode: hard horizontal push — direction 1 = forward, -1 = backward
+// story: subtle scale-fade
+const storyVariants = {
+    enter:  { opacity: 0, scale: 0.97 },
+    center: { opacity: 1, scale: 1 },
+    exit:   { opacity: 0, scale: 0.97 },
+};
+// timeline: simultaneous horizontal push — dir 1 = forward, -1 = backward
+// Requires mode="sync" on AnimatePresence + overflow:hidden on the container
 const timelineVariants = {
     enter:  (dir) => ({ x: dir >= 0 ? '100%' : '-100%' }),
-    center: { x: 0 },
+    center: { x: '0%' },
     exit:   (dir) => ({ x: dir >= 0 ? '-100%' : '100%' }),
+};
+
+const VARIANTS = { picture: pictureVariants, story: storyVariants, timeline: timelineVariants };
+const TRANSITIONS = {
+    picture:  { duration: 2,    ease: 'easeInOut' },
+    story:    { duration: 0.4,  ease: 'easeOut' },
+    timeline: { duration: 0.45, ease: [0.4, 0, 0.2, 1] },
 };
 
 export default function FullScreenImageViewer({
@@ -148,9 +162,12 @@ export default function FullScreenImageViewer({
                         className="fixed inset-0 z-[9998] bg-white overflow-y-auto pointer-events-auto"
                     >
                         {/* Image or Video Display */}
-                        <div className="relative w-full h-full flex items-center justify-center z-10">
+                        {/* overflow-hidden clips the push slides so they don't show
+                            outside the container; absolute img allows mode="sync"
+                            to run enter+exit simultaneously for the push effect.   */}
+                        <div className="absolute inset-0 overflow-hidden z-10">
                     <AnimatePresence
-                        mode="wait"
+                        mode="sync"
                         custom={directionRef.current}
                     >
                         {currentSlide.video_url ? (
@@ -159,17 +176,14 @@ export default function FullScreenImageViewer({
                             <motion.img
                                 key={currentIndex}
                                 custom={directionRef.current}
-                                variants={viewMode === 'timeline' ? timelineVariants : storyVariants}
+                                variants={VARIANTS[viewMode] ?? storyVariants}
                                 initial="enter"
                                 animate="center"
                                 exit="exit"
-                                transition={{
-                                    duration: viewMode === 'timeline' ? 0.35 : 0.4,
-                                    ease: viewMode === 'timeline' ? [0.4, 0, 0.2, 1] : 'easeOut',
-                                }}
+                                transition={TRANSITIONS[viewMode] ?? TRANSITIONS.story}
                                 src={currentSlide.image}
                                 alt={currentSlide.title}
-                                className="w-full h-full object-cover"
+                                className="absolute inset-0 w-full h-full object-cover"
                             />
                         )}
                             </AnimatePresence>
