@@ -275,7 +275,7 @@ export default function StoryFullscreen() {
 
             {/* Bottom gradient — full-width blur + dark fade so filmstrip titles read */}
             <div
-                className="fixed z-[9997] pointer-events-none"
+                className="fixed z-[9998] pointer-events-none"
                 style={{
                     left:                 0,
                     right:                0,

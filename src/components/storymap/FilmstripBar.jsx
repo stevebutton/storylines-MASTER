@@ -57,7 +57,7 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
 
     return (
         <motion.div
-            className="fixed right-0 z-[9998] pointer-events-auto overflow-hidden"
+            className="fixed right-0 z-[9999] pointer-events-auto overflow-hidden"
             style={{ left: 380, bottom: 72 }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
