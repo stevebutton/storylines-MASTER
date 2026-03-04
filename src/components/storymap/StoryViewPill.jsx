@@ -8,14 +8,14 @@ import { cn } from '@/lib/utils';
 /**
  * StoryViewPill — Master navigation pill + optional sub-pill stack.
  *
- * Collapsed (default): compact pill showing "Story View" label.
- * Hover: smoothly expands to reveal Map / Story / Timeline segments.
- * Mouse leave: contracts back to collapsed state.
+ * Collapsed (default): small pill showing "Story View" + current-view icon.
+ * Hover: smoothly expands via CSS max-width transition to reveal all three
+ * segments; the sub-pill slides in below the master.
+ * Mouse leave: both contract/hide.
  *
- * The optional `subPill` node renders below the master (context controls).
- *
- * Shared style tokens are exported so all sub-pills in the app use the
- * same dark frosted-glass visual language.
+ * CSS max-width transitions are used instead of framer-motion layout
+ * animations to avoid layout-recalculation jank on the inner items.
+ * The outer entrance/exit (fade + slide) still uses framer-motion.
  */
 
 // ── Shared style tokens ──────────────────────────────────────────────────────
@@ -48,47 +48,50 @@ export const pillDivider = (
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+const DUR  = '0.3s';
+
 const VIEW_ICONS = {
-    map: Map,
+    map:        Map,
     fullscreen: Maximize2,
-    timeline: Calendar,
+    timeline:   Calendar,
 };
 
 export default function StoryViewPill({
     storyId,
     currentView = 'map',
-    isVisible = false,
+    isVisible   = false,
     subPill,
 }) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     if (!storyId) return null;
 
+    const ActiveIcon = VIEW_ICONS[currentView] || Layers;
+
     const views = [
         {
-            key: 'map',
-            label: 'Map',
-            icon: Map,
-            url: createPageUrl(`StoryMapView?id=${storyId}`),
+            key:     'map',
+            label:   'Map',
+            icon:    Map,
+            url:     createPageUrl(`StoryMapView?id=${storyId}`),
             onClick: null,
         },
         {
-            key: 'fullscreen',
-            label: 'Story',
-            icon: Maximize2,
-            url: createPageUrl(`StoryFullscreen?storyId=${storyId}`),
+            key:     'fullscreen',
+            label:   'Story',
+            icon:    Maximize2,
+            url:     createPageUrl(`StoryFullscreen?storyId=${storyId}`),
             onClick: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
         },
         {
-            key: 'timeline',
-            label: 'Timeline',
-            icon: Calendar,
-            url: createPageUrl(`StoryTimeline?storyId=${storyId}`),
+            key:     'timeline',
+            label:   'Timeline',
+            icon:    Calendar,
+            url:     createPageUrl(`StoryTimeline?storyId=${storyId}`),
             onClick: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
         },
     ];
-
-    const ActiveIcon = VIEW_ICONS[currentView] || Layers;
 
     return (
         <AnimatePresence>
@@ -99,68 +102,75 @@ export default function StoryViewPill({
                     exit={{ opacity: 0, y: 24 }}
                     transition={{ duration: 0.45, ease: 'easeOut' }}
                     className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100020] flex flex-col items-center gap-2 pointer-events-none"
+                    onMouseEnter={() => setIsExpanded(true)}
+                    onMouseLeave={() => setIsExpanded(false)}
                 >
-                    {/* ── Master pill — hover to expand ── */}
-                    <motion.div
-                        layout
-                        transition={{ layout: { duration: 0.35, ease: [0.4, 0, 0.2, 1] } }}
-                        className={cn(pillShell, 'pointer-events-auto')}
-                        style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}
-                        onMouseEnter={() => setIsExpanded(true)}
-                        onMouseLeave={() => setIsExpanded(false)}
-                    >
-                        <AnimatePresence mode="popLayout" initial={false}>
-                            {!isExpanded ? (
-                                /* Collapsed: "Story View" label */
-                                <motion.span
-                                    key="collapsed"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/70 select-none cursor-default"
-                                >
-                                    <ActiveIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                                    Story View
-                                </motion.span>
-                            ) : (
-                                /* Expanded: three segments */
-                                views.map(({ key, label, icon: Icon, url, onClick }) => {
-                                    const isActive = currentView === key;
-                                    return (
-                                        <motion.div
-                                            key={key}
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{ duration: 0.15 }}
-                                        >
-                                            <Link
-                                                to={url}
-                                                onClick={onClick}
-                                                className={cn(
-                                                    'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200',
-                                                    isActive
-                                                        ? 'bg-white text-slate-900 shadow-sm'
-                                                        : 'text-white/70 hover:text-white hover:bg-white/15'
-                                                )}
-                                            >
-                                                <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                                                {label}
-                                            </Link>
-                                        </motion.div>
-                                    );
-                                })
-                            )}
-                        </AnimatePresence>
-                    </motion.div>
 
-                    {/* Sub-pill — context controls, always shown below master */}
-                    {subPill && (
-                        <div className="pointer-events-auto">
-                            {subPill}
+                    {/* ── Master pill ── */}
+                    <div className={cn(pillShell, 'pointer-events-auto overflow-hidden')}>
+
+                        {/* Collapsed label — "Story View" */}
+                        <div style={{
+                            maxWidth:   isExpanded ? 0 : '180px',
+                            opacity:    isExpanded ? 0 : 1,
+                            overflow:   'hidden',
+                            transition: `max-width ${DUR} ${EASE}, opacity 0.15s ease`,
+                            whiteSpace: 'nowrap',
+                        }}>
+                            <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/70 select-none cursor-default">
+                                <ActiveIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                                Story View
+                            </span>
                         </div>
-                    )}
+
+                        {/* Expanded segments — Map / Story / Timeline */}
+                        {views.map(({ key, label, icon: Icon, url, onClick }) => {
+                            const isActive = currentView === key;
+                            return (
+                                <div
+                                    key={key}
+                                    style={{
+                                        maxWidth:   isExpanded ? '200px' : 0,
+                                        opacity:    isExpanded ? 1 : 0,
+                                        overflow:   'hidden',
+                                        transition: `max-width ${DUR} ${EASE}, opacity 0.2s ease`,
+                                        whiteSpace: 'nowrap',
+                                    }}
+                                >
+                                    <Link
+                                        to={url}
+                                        onClick={onClick}
+                                        className={cn(
+                                            'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors duration-150',
+                                            isActive
+                                                ? 'bg-white text-slate-900 shadow-sm'
+                                                : 'text-white/70 hover:text-white hover:bg-white/15'
+                                        )}
+                                    >
+                                        <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                                        {label}
+                                    </Link>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* ── Sub-pill — slides in below master when expanded ── */}
+                    <AnimatePresence>
+                        {subPill && isExpanded && (
+                            <motion.div
+                                key="sub-pill"
+                                initial={{ opacity: 0, y: -6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.2, ease: 'easeOut' }}
+                                className="pointer-events-auto"
+                            >
+                                {subPill}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
                 </motion.div>
             )}
         </AnimatePresence>
