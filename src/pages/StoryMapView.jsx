@@ -1026,27 +1026,26 @@ export default function StoryMapView() {
                 }}
             />
 
-            {/* Story View Pill — three-segment nav: Map / Story / Timeline */}
+            {/* Story View Pill — master nav + map context sub-pill */}
             <StoryViewPill
                 storyId={storyId}
                 currentView="map"
                 isVisible={isBannerVisible}
-            />
-
-            {/* Bottom Pill Bar — appears when chapter 1 first activates */}
-            <BottomPillBar
-                isVisible={carouselOpened}
-                onZoomIn={() => mapInstanceRef.current?.zoomIn()}
-                onZoomOut={() => mapInstanceRef.current?.zoomOut()}
-                onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}
-                showRoute={showRoute}
-                onToggleRoute={() => setShowRoute(v => !v)}
-                showMarkers={showMarkers}
-                onToggleMarkers={() => setShowMarkers(v => !v)}
-                onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
-                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                onOpenLibrary={() => setShowLibraryModal(true)}
-                onEditStory={() => setIsEditTransitioning(true)}
+                subPill={
+                    <BottomPillBar
+                        onZoomIn={() => mapInstanceRef.current?.zoomIn()}
+                        onZoomOut={() => mapInstanceRef.current?.zoomOut()}
+                        onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}
+                        showRoute={showRoute}
+                        onToggleRoute={() => setShowRoute(v => !v)}
+                        showMarkers={showMarkers}
+                        onToggleMarkers={() => setShowMarkers(v => !v)}
+                        onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
+                        onViewOtherStories={() => setIsStorySlideshowOpen(true)}
+                        onOpenLibrary={() => setShowLibraryModal(true)}
+                        onEditStory={() => setIsEditTransitioning(true)}
+                    />
+                }
             />
 
             {/* White dissolve overlay for edit-story transition */}

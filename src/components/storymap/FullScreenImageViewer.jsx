@@ -64,6 +64,7 @@ export default function FullScreenImageViewer({
     onNavigate,
     chapterName,
     mapStyle = 'a',
+    hideControlStrip = false,
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
 
@@ -154,7 +155,8 @@ export default function FullScreenImageViewer({
                             initialOpen={!currentSlide.video_url}
                         />
 
-                        {/* Control strip — bottom centre */}
+                        {/* Control strip — bottom centre (suppressed in page mode) */}
+                        {!hideControlStrip && (
                         <FloatingControlStrip
                             onPrev={handlePrevious}
                             onNext={handleNext}
@@ -164,6 +166,7 @@ export default function FullScreenImageViewer({
                             pdfTitle={pdfTitle}
                             onPdfClick={() => setShowPdfModal(true)}
                         />
+                        )}
                     </motion.div>
 
                     {/* Filmstrip — outside the transformed motion.div so fixed positioning

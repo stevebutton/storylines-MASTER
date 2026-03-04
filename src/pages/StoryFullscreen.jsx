@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
 import StoryViewPill from '@/components/storymap/StoryViewPill';
+import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
 import { Loader2 } from 'lucide-react';
 
 /**
@@ -17,9 +18,9 @@ import { Loader2 } from 'lucide-react';
  *   chapterId – chapter to start at (optional; falls back to first chapter)
  *   slideId   – slide to start at within that chapter (optional; falls back to 0)
  *
- * On close (Escape, close button, or StoryViewPill → Map) the user is returned
- * to StoryMapView with the same scroll position they left from, if stored in
- * sessionStorage under "return_scroll_${storyId}".
+ * Navigation controls are provided by FullscreenNavPill (sub-pill in the
+ * master StoryViewPill stack).  FullScreenImageViewer's built-in control strip
+ * is suppressed via hideControlStrip={true}.
  */
 export default function StoryFullscreen() {
     const [searchParams] = useSearchParams();
@@ -30,7 +31,7 @@ export default function StoryFullscreen() {
     const slideId   = searchParams.get('slideId');
 
     const [story,        setStory]        = useState(null);
-    const [slides,       setSlides]       = useState([]);   // flattened with chapter_name
+    const [slides,       setSlides]       = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading,      setLoading]      = useState(true);
     const [mapStyle,     setMapStyle]     = useState('a');
@@ -54,7 +55,6 @@ export default function StoryFullscreen() {
                     setMapStyle(storyData.map_style || 'a');
                 }
 
-                // Flatten all slides, preserving chapter info
                 const allSlides = (chapters || []).flatMap((ch, chIdx) =>
                     (ch.slides || [])
                         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -68,7 +68,6 @@ export default function StoryFullscreen() {
                 );
                 setSlides(allSlides);
 
-                // Find starting index
                 let startIdx = 0;
                 if (chapterId || slideId) {
                     const idx = allSlides.findIndex(sl =>
@@ -87,13 +86,12 @@ export default function StoryFullscreen() {
         load();
     }, [storyId]);
 
-    // ── Close handler — return to map, restore scroll ──────────────────────
+    // ── Navigation handlers wired to FullscreenNavPill ─────────────────────
+    const handlePrev  = () => setCurrentIndex(i => Math.max(0, i - 1));
+    const handleNext  = () => setCurrentIndex(i => Math.min(slides.length - 1, i + 1));
     const handleClose = () => {
-        if (storyId) {
-            navigate(`/StoryMapView?id=${storyId}`);
-        } else {
-            navigate(-1);
-        }
+        if (storyId) navigate(`/StoryMapView?id=${storyId}`);
+        else navigate(-1);
     };
 
     // ── Loading / empty states ─────────────────────────────────────────────
@@ -116,27 +114,35 @@ export default function StoryFullscreen() {
         );
     }
 
-    const currentChapterName = slides[currentIndex]?.chapter_name || '';
-
     return (
         <>
-            {/* FullScreenImageViewer in always-open page mode */}
+            {/* Viewer — always open in page mode; built-in control strip suppressed */}
             <FullScreenImageViewer
                 isOpen={true}
                 onClose={handleClose}
                 slides={slides}
                 currentIndex={currentIndex}
                 onNavigate={setCurrentIndex}
-                chapterName={currentChapterName}
+                chapterName={slides[currentIndex]?.chapter_name || ''}
                 mapStyle={mapStyle}
+                hideControlStrip={true}
             />
 
-            {/* Story View Pill — above the filmstrip bar */}
+            {/* Master pill + fullscreen nav sub-pill */}
             <StoryViewPill
                 storyId={storyId}
                 currentView="fullscreen"
                 isVisible={true}
-                bottomClass="bottom-24"
+                subPill={
+                    <FullscreenNavPill
+                        onPrev={handlePrev}
+                        onNext={handleNext}
+                        onClose={handleClose}
+                        hasMultiple={slides.length > 1}
+                        current={currentIndex + 1}
+                        total={slides.length}
+                    />
+                }
             />
         </>
     );
