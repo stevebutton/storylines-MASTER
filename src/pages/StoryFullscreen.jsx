@@ -277,7 +277,7 @@ export default function StoryFullscreen() {
             {mode !== 'picture' && (
                 <div
                     className="fixed z-[9999] pointer-events-none"
-                    style={{ left: 380, right: 0, bottom: 190 }}
+                    style={{ left: 380, right: 0, bottom: 260 }}
                 >
                     {/* 2xl legend label */}
                     <div style={{ padding: '0 48px 10px' }}>
@@ -294,100 +294,111 @@ export default function StoryFullscreen() {
                         </span>
                     </div>
 
-                    {/* Chapter portrait cards — Story mode only, fixed 80×120 */}
-                    {mode === 'story' && scaleSegments.length > 1 && (
-                        <div style={{
-                            display:    'flex',
-                            padding:    '0 48px 12px',
-                            gap:        6,
-                            flexWrap:   'nowrap',
-                            overflowX:  'auto',
-                        }}>
-                            {scaleSegments.map(seg => (
-                                <button
-                                    key={seg.id}
-                                    onClick={seg.onClick}
-                                    title={seg.label}
-                                    style={{
-                                        position:      'relative',
-                                        width:         80,
-                                        height:        120,
-                                        flexShrink:    0,
-                                        borderRadius:  14,
-                                        overflow:      'hidden',
-                                        cursor:        'pointer',
-                                        pointerEvents: 'auto',
-                                        background:    'rgba(0,0,0,0.5)',
-                                    }}
-                                >
-                                    {/* Background image */}
-                                    {seg.firstImage && (
-                                        <img
-                                            src={seg.firstImage}
-                                            alt=""
+                    {/* Chapter portrait cards — Story mode only.
+                        Each card is absolutely positioned at its chapter's start
+                        percentage along the track (matching the scale bar). */}
+                    {mode === 'story' && scaleSegments.length > 1 && (() => {
+                        let cumPct = 0;
+                        return (
+                            <div style={{
+                                position:     'relative',
+                                margin:       '0 48px',
+                                height:       120,
+                                marginBottom: 12,
+                            }}>
+                                {scaleSegments.map(seg => {
+                                    const startPct = cumPct;
+                                    cumPct += seg.widthPercent;
+                                    return (
+                                        <button
+                                            key={seg.id}
+                                            onClick={seg.onClick}
+                                            title={seg.label}
                                             style={{
-                                                position:  'absolute',
-                                                inset:     0,
-                                                width:     '100%',
-                                                height:    '100%',
-                                                objectFit: 'cover',
+                                                position:      'absolute',
+                                                left:          `${startPct}%`,
+                                                top:           0,
+                                                width:         100,
+                                                height:        120,
+                                                borderRadius:  14,
+                                                overflow:      'hidden',
+                                                cursor:        'pointer',
+                                                pointerEvents: 'auto',
+                                                background:    'rgba(0,0,0,0.5)',
                                             }}
-                                        />
-                                    )}
-                                    {/* Dark overlay — same as Map View black/30 */}
-                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.30)' }} />
-                                    {/* White inset border — Map View signature */}
-                                    <div style={{
-                                        position:     'absolute',
-                                        inset:        0,
-                                        borderRadius: 14,
-                                        boxShadow:    'inset 0 0 0 1.5px rgba(255,255,255,0.60)',
-                                        pointerEvents:'none',
-                                        zIndex:       3,
-                                    }} />
-                                    {/* Text — bottom-left, amber, Raleway */}
-                                    <div style={{
-                                        position:       'absolute',
-                                        inset:          0,
-                                        zIndex:         2,
-                                        display:        'flex',
-                                        flexDirection:  'column',
-                                        justifyContent: 'flex-end',
-                                        padding:        '8px',
-                                    }}>
-                                        <span style={{
-                                            display:       'block',
-                                            fontSize:      9,
-                                            fontWeight:    500,
-                                            color:         '#f59e0b',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.10em',
-                                            lineHeight:    1,
-                                            fontFamily:    'Raleway, sans-serif',
-                                        }}>
-                                            Chapter {String(seg.chapterNum).padStart(2, '0')}
-                                        </span>
-                                        {seg.name && (
-                                            <span style={{
-                                                display:         '-webkit-box',
-                                                WebkitLineClamp: 2,
-                                                WebkitBoxOrient: 'vertical',
-                                                overflow:        'hidden',
-                                                fontSize:        12,
-                                                fontWeight:      300,
-                                                color:           '#f59e0b',
-                                                lineHeight:      1.15,
-                                                marginTop:       3,
-                                                fontFamily:      'Raleway, sans-serif',
+                                        >
+                                            {/* Background image */}
+                                            {seg.firstImage && (
+                                                <img
+                                                    src={seg.firstImage}
+                                                    alt=""
+                                                    style={{
+                                                        position:  'absolute',
+                                                        inset:     0,
+                                                        width:     '100%',
+                                                        height:    '100%',
+                                                        objectFit: 'cover',
+                                                    }}
+                                                />
+                                            )}
+                                            {/* Dark overlay — Map View black/30 */}
+                                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.30)' }} />
+                                            {/* White inset border — Map View signature */}
+                                            <div style={{
+                                                position:      'absolute',
+                                                inset:         0,
+                                                borderRadius:  14,
+                                                boxShadow:     'inset 0 0 0 1.5px rgba(255,255,255,0.60)',
+                                                pointerEvents: 'none',
+                                                zIndex:        3,
+                                            }} />
+                                            {/* Text — bottom-left, amber, Raleway */}
+                                            <div style={{
+                                                position:       'absolute',
+                                                inset:          0,
+                                                zIndex:         2,
+                                                display:        'flex',
+                                                flexDirection:  'column',
+                                                justifyContent: 'flex-end',
+                                                padding:        '8px',
+                                                textAlign:      'left',
                                             }}>
-                                                {seg.name}
-                                            </span>
-                                        )}
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                                                <span style={{
+                                                    display:       'block',
+                                                    fontSize:      9,
+                                                    fontWeight:    500,
+                                                    color:         '#f59e0b',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.10em',
+                                                    lineHeight:    1,
+                                                    fontFamily:    'Raleway, sans-serif',
+                                                }}>
+                                                    Chapter {String(seg.chapterNum).padStart(2, '0')}
+                                                </span>
+                                                {seg.name && (
+                                                    <span style={{
+                                                        display:         '-webkit-box',
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical',
+                                                        overflow:        'hidden',
+                                                        fontSize:        24,
+                                                        fontWeight:      300,
+                                                        color:           '#f59e0b',
+                                                        lineHeight:      1.0,
+                                                        marginTop:       4,
+                                                        fontFamily:      'Raleway, sans-serif',
+                                                        textAlign:       'left',
+                                                    }}>
+                                                        {seg.name}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })()}
 
                     <ScaleBar
                         mode={mode === 'timeline' ? 'dates' : 'chapters'}

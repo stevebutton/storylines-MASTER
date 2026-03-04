@@ -5,9 +5,10 @@ import { Play } from 'lucide-react';
 /**
  * FilmstripBar
  *
- * All thumbnails are shown at readable opacity — no feathering.
- * Slide title sits below the thumbnail, left-aligned, up to 2 lines.
- * Collapsed: 88px. Expanded (hover): 152px.
+ * All thumbnails visible at consistent opacity — no feathering.
+ * Slide title below thumbnail: 14px, left-aligned, up to 2 lines.
+ * Thumbnails sized +30% vs. previous, gap 46px between items.
+ * Collapsed: 112px. Expanded (hover): 172px.
  */
 export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -60,15 +61,15 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
             style={{ left: 380, bottom: 72 }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
-            animate={{ height: isExpanded ? 152 : 88 }}
+            animate={{ height: isExpanded ? 172 : 112 }}
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* Scrollable thumbnail row */}
             <div
                 ref={stripRef}
-                className="absolute inset-0 flex items-center px-3"
+                className="absolute inset-0 flex items-center px-4"
                 style={{
-                    gap:             6,
+                    gap:             46,
                     overflowX:       'auto',
                     scrollbarWidth:  'none',
                     msOverflowStyle: 'none',
@@ -84,16 +85,16 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                             key={i}
                             ref={el => thumbRefs.current[i] = el}
                             className="flex-shrink-0 flex flex-col"
-                            style={{ gap: 4, alignItems: 'flex-start' }}
+                            style={{ gap: 5, alignItems: 'flex-start' }}
                             onMouseEnter={() => setHoveredIndex(i)}
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
-                            {/* Thumbnail */}
+                            {/* Thumbnail — 30% larger than previous iteration */}
                             <motion.button
                                 onClick={() => onNavigate(i)}
                                 animate={{
-                                    width:   isCurrent ? (isExpanded ? 108 : 92) : (isExpanded ? 88 : 74),
-                                    height:  isCurrent ? (isExpanded ? 96 : 48) : (isExpanded ? 80 : 44),
+                                    width:   isCurrent ? (isExpanded ? 140 : 120) : (isExpanded ? 114 : 96),
+                                    height:  isCurrent ? (isExpanded ? 125 : 62)  : (isExpanded ? 104 : 57),
                                     opacity: isCurrent ? 1 : (isExpanded ? 0.85 : 0.72),
                                 }}
                                 transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
@@ -115,26 +116,26 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                                 }
                                 {slide.video_url && (
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <Play className="w-3 h-3 text-white fill-white drop-shadow" />
+                                        <Play className="w-4 h-4 text-white fill-white drop-shadow" />
                                     </div>
                                 )}
                             </motion.button>
 
-                            {/* Slide title — 2 lines, left-aligned */}
+                            {/* Slide title — 2 lines, left-aligned, 14px */}
                             {slide.title && (
                                 <span style={{
-                                    display:           '-webkit-box',
-                                    WebkitLineClamp:   2,
-                                    WebkitBoxOrient:   'vertical',
-                                    overflow:          'hidden',
-                                    fontSize:          12,
-                                    lineHeight:        1.3,
-                                    color:             isCurrent
+                                    display:         '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow:        'hidden',
+                                    fontSize:        14,
+                                    lineHeight:      1.3,
+                                    color:           isCurrent
                                         ? 'rgba(255,255,255,0.92)'
                                         : 'rgba(255,255,255,0.55)',
-                                    maxWidth:          isCurrent ? (isExpanded ? 108 : 92) : (isExpanded ? 88 : 74),
-                                    textAlign:         'left',
-                                    whiteSpace:        'normal',
+                                    maxWidth:        isCurrent ? (isExpanded ? 140 : 120) : (isExpanded ? 114 : 96),
+                                    textAlign:       'left',
+                                    whiteSpace:      'normal',
                                 }}>
                                     {slide.title}
                                 </span>
