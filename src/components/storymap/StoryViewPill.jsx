@@ -118,15 +118,14 @@ export default function StoryViewPill({
         <AnimatePresence>
             {isVisible && (
                 <motion.div
-                    layout
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 16 }}
                     transition={{ duration: 0.35, ease: 'easeOut' }}
-                    // flex-col: title first → top of stack; rows 2 & 3 grow downward.
-                    // fixed bottom-6 anchors the container's bottom edge; as rows are
-                    // added the container grows upward, keeping the lowest row stable.
+                    // Fixed height reserves space for all 3 rows so Story View
+                    // stays pinned at the top and never shifts as rows appear below.
                     className="fixed bottom-6 left-6 z-[100020] flex flex-col items-start gap-2 pointer-events-auto"
+                    style={{ height: '160px' }}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >
