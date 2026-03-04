@@ -9,13 +9,14 @@ import { cn } from '@/lib/utils';
  * StoryViewPill — Master navigation pill + optional sub-pill stack.
  *
  * Behaviour:
- *   ENTERING  – arrives expanded showing all 3 choices (entrance orientation)
- *   SETTLING  – collapses after 1.5 s to current-view label only
- *   ACTIVE    – sub-pill fades in 500 ms after collapse (stable idle)
- *   HOVERED   – expands again on mouse-enter; sub-pill stays visible
+ *   IDLE      – default: collapsed "Story View" label, no sub-pill
+ *   HOVERED   – hover: expanded showing all 3 choices; sub-pill visible only
+ *               if the previous phase was ACTIVE
+ *   SETTLING  – after view selection: collapsed to view name, sub-pill hidden,
+ *               1 s timer running
+ *   ACTIVE    – stable: view name label + sub-pill visible
  *
- * The sub-pill is always rendered in the DOM (opacity-controlled) so the
- * master pill never jumps position when the sub-pill appears/disappears.
+ * Position: fixed bottom-right (less dominant than center).
  *
  * Inner expand/collapse uses CSS max-width transitions — no framer-motion
  * layout recalculations, no jank.
@@ -55,10 +56,10 @@ const CSS_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
 const CSS_DUR  = '0.3s';
 
 const PHASE = {
-    ENTERING: 'entering', // expanded — all 3 choices visible, no sub-pill
-    SETTLING: 'settling', // collapsing — transitioning to current-view label
-    ACTIVE:   'active',   // stable idle — current-view label + sub-pill visible
-    HOVERED:  'hovered',  // user hovering — expanded + sub-pill visible
+    IDLE:     'idle',     // default: collapsed "Story View", no sub-pill
+    HOVERED:  'hovered',  // expanded choices; sub-pill shows only if was ACTIVE
+    SETTLING: 'settling', // just selected: collapsed to view name, sub-pill hidden
+    ACTIVE:   'active',   // stable: view name + sub-pill visible
 };
 
 const VIEW_ICONS  = { map: Map, fullscreen: Maximize2, timeline: Calendar };
@@ -70,73 +71,78 @@ export default function StoryViewPill({
     isVisible   = false,
     subPill,
 }) {
-    const [phase, setPhase] = useState(PHASE.ENTERING);
-    const timersRef = useRef([]);
+    const [phase, setPhase]   = useState(PHASE.IDLE);
+    const timerRef            = useRef(null);
+    // Tracks whether sub-pill was showing before the current hover began
+    const subWasActiveRef     = useRef(false);
 
-    const clearTimers = () => {
-        timersRef.current.forEach(clearTimeout);
-        timersRef.current = [];
+    const clearTimer = () => {
+        if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     };
 
-    // Entrance sequence — runs each time the pill becomes visible
+    // Reset to IDLE whenever the pill hides (e.g. navigating back to hero)
     useEffect(() => {
         if (!isVisible) {
-            clearTimers();
-            setPhase(PHASE.ENTERING);
-            return;
+            clearTimer();
+            setPhase(PHASE.IDLE);
+            subWasActiveRef.current = false;
         }
-        setPhase(PHASE.ENTERING);
-        timersRef.current = [
-            // 1.5 s: collapse to current-view label
-            setTimeout(() => {
-                setPhase(p => p === PHASE.HOVERED ? p : PHASE.SETTLING);
-            }, 1500),
-            // 2.0 s: sub-pill fades in (500 ms after collapse starts)
-            setTimeout(() => {
-                setPhase(p => p === PHASE.HOVERED ? p : PHASE.ACTIVE);
-            }, 2000),
-        ];
-        return clearTimers;
     }, [isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleMouseEnter = () => {
-        clearTimers();
+        clearTimer();
+        subWasActiveRef.current = phase === PHASE.ACTIVE;
         setPhase(PHASE.HOVERED);
     };
 
     const handleMouseLeave = () => {
-        setPhase(PHASE.ACTIVE);
+        clearTimer();
+        // Return to whichever stable state we came from
+        setPhase(subWasActiveRef.current ? PHASE.ACTIVE : PHASE.IDLE);
+    };
+
+    const handleViewSelect = () => {
+        clearTimer();
+        subWasActiveRef.current = false;
+        setPhase(PHASE.SETTLING);
+        // Sub-pill appears 1 s after selection
+        timerRef.current = setTimeout(() => setPhase(PHASE.ACTIVE), 1000);
     };
 
     if (!storyId) return null;
 
-    const isExpanded   = phase === PHASE.ENTERING || phase === PHASE.HOVERED;
-    const subPillReady = phase === PHASE.ACTIVE    || phase === PHASE.HOVERED;
+    const isExpanded   = phase === PHASE.HOVERED;
+    // Sub-pill visible when ACTIVE, or when hovering from ACTIVE
+    const subPillReady = phase === PHASE.ACTIVE
+        || (phase === PHASE.HOVERED && subWasActiveRef.current);
 
-    const ActiveIcon  = VIEW_ICONS[currentView]  || Layers;
-    const activeLabel = VIEW_LABELS[currentView] || 'Story View';
+    // Collapsed label: "Story View" until a view is explicitly selected
+    const hasSelected    = phase === PHASE.SETTLING || phase === PHASE.ACTIVE
+        || (phase === PHASE.HOVERED && subWasActiveRef.current);
+    const CollapsedIcon  = hasSelected ? (VIEW_ICONS[currentView] || Layers) : Layers;
+    const collapsedLabel = hasSelected ? (VIEW_LABELS[currentView] || 'Story View') : 'Story View';
 
     const views = [
         {
-            key:     'map',
-            label:   'Map',
-            icon:    Map,
-            url:     createPageUrl(`StoryMapView?id=${storyId}`),
-            onNav:   null,
+            key:   'map',
+            label: 'Map',
+            icon:  Map,
+            url:   createPageUrl(`StoryMapView?id=${storyId}`),
+            onNav: null,
         },
         {
-            key:     'fullscreen',
-            label:   'Story',
-            icon:    Maximize2,
-            url:     createPageUrl(`StoryFullscreen?storyId=${storyId}`),
-            onNav:   () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
+            key:   'fullscreen',
+            label: 'Story',
+            icon:  Maximize2,
+            url:   createPageUrl(`StoryFullscreen?storyId=${storyId}`),
+            onNav: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
         },
         {
-            key:     'timeline',
-            label:   'Timeline',
-            icon:    Calendar,
-            url:     createPageUrl(`StoryTimeline?storyId=${storyId}`),
-            onNav:   () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
+            key:   'timeline',
+            label: 'Timeline',
+            icon:  Calendar,
+            url:   createPageUrl(`StoryTimeline?storyId=${storyId}`),
+            onNav: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
         },
     ];
 
@@ -148,16 +154,14 @@ export default function StoryViewPill({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 24 }}
                     transition={{ duration: 0.45, ease: 'easeOut' }}
-                    // pointer-events-auto on the container so onMouseEnter/Leave
-                    // fire correctly across the gap between master and sub-pill
-                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100020] flex flex-col items-center gap-2 pointer-events-auto"
+                    className="fixed bottom-6 right-6 z-[100020] flex flex-col items-end gap-2 pointer-events-auto"
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >
                     {/* ── Master pill ── */}
                     <div className={cn(pillShell, 'overflow-hidden')}>
 
-                        {/* Collapsed: current-view label */}
+                        {/* Collapsed: "Story View" or selected view label */}
                         <div style={{
                             maxWidth:   isExpanded ? 0 : '160px',
                             opacity:    isExpanded ? 0 : 1,
@@ -166,8 +170,8 @@ export default function StoryViewPill({
                             whiteSpace: 'nowrap',
                         }}>
                             <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 select-none cursor-default">
-                                <ActiveIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                                {activeLabel}
+                                <CollapsedIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                                {collapsedLabel}
                             </span>
                         </div>
 
@@ -189,10 +193,7 @@ export default function StoryViewPill({
                                         to={url}
                                         onClick={() => {
                                             if (onNav) onNav();
-                                            // Collapse immediately on selection;
-                                            // entrance animation plays on the destination page
-                                            clearTimers();
-                                            setPhase(PHASE.ACTIVE);
+                                            handleViewSelect();
                                         }}
                                         className={cn(
                                             'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150',
@@ -217,7 +218,7 @@ export default function StoryViewPill({
                         <div style={{
                             opacity:       subPillReady ? 1 : 0,
                             pointerEvents: subPillReady ? 'auto' : 'none',
-                            transform:     subPillReady ? 'translateY(0)' : 'translateY(-4px)',
+                            transform:     subPillReady ? 'translateY(0)' : 'translateY(4px)',
                             transition:    'opacity 0.25s ease, transform 0.25s ease',
                         }}>
                             {subPill}
