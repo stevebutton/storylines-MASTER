@@ -185,10 +185,10 @@ export default function StoryTimeline() {
                     {/* Left area — transparent, shows hero through */}
                     <div className="flex-1" />
 
-                    {/* Right panel: 45% wide */}
+                    {/* Right panel: 50% wide */}
                     <div
                         className="relative overflow-hidden rounded-2xl shadow-2xl"
-                        style={{ width: '45%' }}
+                        style={{ width: '50%' }}
                     >
                         <AnimatePresence mode="wait">
                             <motion.div
@@ -211,14 +211,15 @@ export default function StoryTimeline() {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
                                 {/* Slide info: date → chapter → title → description */}
-                                <div className="absolute bottom-0 left-0 right-0 px-7 pb-6">
+                                {/* Text constrained to 50% of carousel width */}
+                                <div className="absolute bottom-0 left-0 right-0 px-7 pb-6" style={{ maxWidth: '50%' }}>
                                     {currentSlide?.story_date && (
-                                        <span className="block text-amber-300/80 text-xs uppercase tracking-widest font-medium mb-1">
+                                        <span className="block text-amber-300/80 text-2xl md:text-3xl font-light leading-tight mb-1">
                                             {formatLong(currentSlide.story_date)}
                                         </span>
                                     )}
                                     {currentSlide?.chapter_name && (
-                                        <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-2">
+                                        <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-1">
                                             {currentSlide.chapter_name}
                                         </span>
                                     )}
@@ -266,7 +267,7 @@ export default function StoryTimeline() {
                 {/* ── Timeline bar ─────────────────────────────────────────── */}
                 <div
                     className="flex-shrink-0 relative mt-3"
-                    style={{ height: 140, background: 'rgba(0,0,0,0.50)', borderRadius: 12 }}
+                    style={{ height: 140, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderRadius: 12 }}
                 >
                     {/* Track line — at y=32, ticks + labels hang DOWN */}
                     <div
@@ -350,7 +351,7 @@ export default function StoryTimeline() {
                 {/* ── Filmstrip ────────────────────────────────────────────── */}
                 <div
                     className="flex-shrink-0 mt-3"
-                    style={{ borderRadius: 12, background: 'rgba(0,0,0,0.55)', paddingBottom: 8 }}
+                    style={{ borderRadius: 12, background: 'rgba(0,0,0,0.50)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', paddingBottom: 8 }}
                 >
                     <div
                         ref={filmstripRef}
@@ -365,15 +366,20 @@ export default function StoryTimeline() {
                                     key={slide.id}
                                     ref={el => thumbRefs.current[i] = el}
                                     onClick={() => setCurrentIndex(i)}
-                                    className="flex-shrink-0 rounded-lg overflow-hidden focus:outline-none"
+                                    className="flex-shrink-0 rounded-lg overflow-hidden focus:outline-none group"
                                     style={{
                                         width:      isCurrent ? 114 : 80,
                                         height:     isCurrent ? 90  : 68,
                                         marginTop:  isCurrent ? 0   : 11,
-                                        opacity:    isCurrent ? 1   : 0.45,
-                                        boxShadow:  isCurrent ? '0 0 0 2px white, 0 2px 12px rgba(0,0,0,0.6)' : 'none',
-                                        transition: 'all 0.3s ease',
+                                        opacity:    isCurrent ? 1   : 0.5,
+                                        boxShadow:  isCurrent
+                                            ? '0 0 0 2px white, 0 2px 12px rgba(0,0,0,0.6)'
+                                            : '0 0 0 0px rgba(255,255,255,0)',
+                                        transition: 'all 0.25s ease',
+                                        outline: 'none',
                                     }}
+                                    onMouseEnter={e => { if (!isCurrent) e.currentTarget.style.boxShadow = '0 0 0 2px rgba(255,255,255,0.55)'; }}
+                                    onMouseLeave={e => { if (!isCurrent) e.currentTarget.style.boxShadow = '0 0 0 0px rgba(255,255,255,0)'; }}
                                 >
                                     {src
                                         ? <img src={src} alt={slide.title} className="w-full h-full object-cover" />

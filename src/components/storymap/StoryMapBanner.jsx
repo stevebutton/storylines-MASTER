@@ -72,6 +72,7 @@ export default function StoryMapBanner({
             {storyId && (
                 <Link
                     to={createPageUrl(`StoryTimeline?storyId=${storyId}`)}
+                    onClick={() => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY))}
                     className="flex-shrink-0 opacity-30 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100 mr-2"
                     title="Story Timeline"
                 >

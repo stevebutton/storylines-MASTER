@@ -23,6 +23,7 @@ export default function FloatingNavButtons({
             {storyId && (
                 <Link
                     to={createPageUrl(`StoryTimeline?storyId=${storyId}`)}
+                    onClick={() => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY))}
                     className="opacity-30 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center w-9 h-9 rounded-full bg-black/30 hover:bg-black/50"
                     title="Story Timeline"
                 >

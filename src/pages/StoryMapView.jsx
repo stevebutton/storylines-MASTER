@@ -127,6 +127,8 @@ export default function StoryMapView() {
     const prevStoryIdRef = useRef(null);
     // Holds the pending setShowBlackOverlay(false) timeout so we can cancel it on story switch.
     const overlayTimeoutRef = useRef(null);
+    // Scroll position to restore after returning from StoryTimeline
+    const pendingScrollRef = useRef(null);
 
     // When storyId changes (SPA story switch via navigate()), immediately raise
     // the black overlay and reset all per-story visual state so the old story
@@ -164,7 +166,15 @@ export default function StoryMapView() {
             segmentCacheRef.current = {};
             suppressNextOnSlideChangeMapConfig.current = false;
             chapterRefs.current = [];
-            window.scrollTo(0, 0);
+            // If returning from StoryTimeline, restore scroll; otherwise reset to top
+            const savedScrollKey = `return_scroll_${storyIdParam}`;
+            const savedScroll = sessionStorage.getItem(savedScrollKey);
+            if (savedScroll) {
+                sessionStorage.removeItem(savedScrollKey);
+                pendingScrollRef.current = parseInt(savedScroll, 10);
+            } else {
+                window.scrollTo(0, 0);
+            }
         }
         prevStoryIdRef.current = storyIdParam;
     }, [storyIdParam]);
@@ -325,6 +335,15 @@ export default function StoryMapView() {
             setIsLoading(false);
         }
     };
+
+    // Restore scroll position after returning from StoryTimeline
+    useEffect(() => {
+        if (chapters.length === 0 || pendingScrollRef.current === null) return;
+        const target = pendingScrollRef.current;
+        pendingScrollRef.current = null;
+        // Two rAF frames give the browser time to lay out the chapters before scrolling
+        requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, target)));
+    }, [chapters]);
 
     useEffect(() => {
         if (chapters.length === 0) return;
