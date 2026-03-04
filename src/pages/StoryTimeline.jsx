@@ -295,14 +295,15 @@ export default function StoryTimeline() {
                 </div>
 
                 {/* ── Timeline bar ─────────────────────────────────────────── */}
+                {/* Height 95px: line at y=20, year labels end at ~82px, 13px spare  */}
                 <div
                     className="flex-shrink-0 relative mt-3"
-                    style={{ height: 140 }}
+                    style={{ height: 95 }}
                 >
-                    {/* Track line — at y=32, ticks + labels hang DOWN */}
+                    {/* Track line — at y=20, ticks + labels hang DOWN */}
                     <div
                         className="absolute"
-                        style={{ left: 48, right: 48, top: 32, height: 2, background: 'rgba(255,255,255,0.6)' }}
+                        style={{ left: 48, right: 48, top: 20, height: 2, background: 'rgba(255,255,255,0.6)' }}
                     >
                         {monthTicks.map(tick => {
                             const pct    = dateToPercent(tick.dateStr, minMs, maxMs);
@@ -379,7 +380,7 @@ export default function StoryTimeline() {
                 </div>
 
                 {/* ── Filmstrip — landscape thumbs with slide title below left ── */}
-                <div className="flex-shrink-0" style={{ marginTop: 20 }}>
+                <div className="flex-shrink-0 mt-2">
                     <div
                         ref={filmstripRef}
                         className="flex items-end gap-2 px-4 overflow-x-auto"
