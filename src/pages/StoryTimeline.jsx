@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, ArrowLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
+import StoryViewPill from '@/components/storymap/StoryViewPill';
 
 // "June 2024" — used for edge labels and slide date display
 const formatLong = (dateStr) => {
@@ -458,6 +459,13 @@ export default function StoryTimeline() {
                 </div>
 
             </div>
+
+            {/* Story View Pill — always visible in timeline view */}
+            <StoryViewPill
+                storyId={storyId}
+                currentView="timeline"
+                isVisible={true}
+            />
         </div>
     );
 }

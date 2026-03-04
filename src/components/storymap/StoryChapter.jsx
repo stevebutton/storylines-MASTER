@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import ChapterCarousel from './ChapterCarousel';
 import { X } from 'lucide-react';
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
-import FullScreenImageViewer from './FullScreenImageViewer';
+import { createPageUrl } from '@/utils';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
@@ -18,12 +19,13 @@ export default function StoryChapter({
     index,
     onSlideChange,
     delay = 0,
-    onFullScreenChange,
     targetSlideIndex,
     mapStyle = 'a',
     onExplore,
+    storyId = null,
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
+    const navigate = useNavigate();
     const [showCarousel, setShowCarousel] = useState(false);
 
     const handleOpenCarousel = () => {
@@ -33,8 +35,6 @@ export default function StoryChapter({
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
     const carouselScrollToRef = useRef(null);
     const [showPdfModal, setShowPdfModal] = useState(false);
-    const [showFullScreenViewer, setShowFullScreenViewer] = useState(false);
-    const [fullScreenImageIndex, setFullScreenImageIndex] = useState(0);
     const [showExploreButton, setShowExploreButton] = useState(false);
 
     const cardRef = useRef(null);
@@ -43,11 +43,6 @@ export default function StoryChapter({
     const firstSlide = chapter.slides?.[0];
     const currentSlide = chapter.slides?.[activeSlideIndex] || firstSlide;
     const bgImage = chapter.background_image || firstSlide?.image;
-
-    // Notify parent when fullscreen state changes
-    useEffect(() => {
-        if (onFullScreenChange) onFullScreenChange(showFullScreenViewer);
-    }, [showFullScreenViewer, onFullScreenChange]);
 
     // Reset to title card when chapter deactivates so each visit starts fresh
     useEffect(() => {
@@ -121,10 +116,17 @@ export default function StoryChapter({
         handleSlideChange(activeSlideIndex);
     }, [showCarousel]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleFullScreenClose = () => {
-        setShowFullScreenViewer(false);
-        if (carouselScrollToRef.current) carouselScrollToRef.current(fullScreenImageIndex);
-        handleSlideChange(fullScreenImageIndex);
+    // Navigate to StoryFullscreen route when user clicks a slide image.
+    // Saves scroll position so returning from fullscreen lands back here.
+    const handleImageClick = (slideIndex) => {
+        if (storyId) {
+            const slide = chapter.slides?.[slideIndex];
+            sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY));
+            const url = createPageUrl(
+                `StoryFullscreen?storyId=${storyId}&chapterId=${chapter.id}${slide?.id ? `&slideId=${slide.id}` : ''}`
+            );
+            navigate(url);
+        }
     };
 
     const handleSlideChange = (slideIndex) => {
@@ -267,10 +269,7 @@ export default function StoryChapter({
                                         slides={chapter.slides}
                                         onSlideChange={handleSlideChange}
                                         scrollToRef={carouselScrollToRef}
-                                        onImageClick={(idx) => {
-                                            setFullScreenImageIndex(idx);
-                                            setShowFullScreenViewer(true);
-                                        }}
+                                        onImageClick={handleImageClick}
                                     />
                                 </motion.div>
                             )}
@@ -382,16 +381,6 @@ export default function StoryChapter({
             </AnimatePresence>,
             document.body)}
 
-            {/* Full Screen Image Viewer */}
-            <FullScreenImageViewer
-                isOpen={showFullScreenViewer}
-                onClose={handleFullScreenClose}
-                slides={chapter.slides}
-                currentIndex={fullScreenImageIndex}
-                onNavigate={setFullScreenImageIndex}
-                chapterName={chapter.name ? `Chapter ${String(index + 1).padStart(2, '0')}: ${chapter.name}` : `Chapter ${String(index + 1).padStart(2, '0')}`}
-                mapStyle={mapStyle}
-            />
         </div>
     );
 }

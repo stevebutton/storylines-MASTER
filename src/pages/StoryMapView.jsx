@@ -8,6 +8,7 @@ import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import BottomPillBar from '@/components/storymap/BottomPillBar';
+import StoryViewPill from '@/components/storymap/StoryViewPill';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
@@ -89,7 +90,6 @@ export default function StoryMapView() {
     const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     const [hasExplored, setHasExplored] = useState(false);
-    const [isFullScreenOpen, setIsFullScreenOpen] = useState(false);
     const [storyMarkers, setStoryMarkers] = useState([]);
     const [activeMarkerIdx, setActiveMarkerIdx] = useState(-1);
     const [targetSlide, setTargetSlide] = useState(null);
@@ -103,10 +103,6 @@ export default function StoryMapView() {
     const mapInstanceRef = useRef(null);
     const navigate = useNavigate();
 
-    // Close the live map editor when fullscreen carousel opens
-    useEffect(() => {
-        if (isFullScreenOpen) setIsLiveEditorOpen(false);
-    }, [isFullScreenOpen]);
 
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
@@ -149,7 +145,6 @@ export default function StoryMapView() {
             setHeroMediaLoaded(false);
             setIsBannerVisible(false);
             setIsStorySlideshowOpen(false);
-            setIsFullScreenOpen(false);
             setStoryMarkers([]);
             setActiveMarkerIdx(-1);
             setTargetSlide(null);
@@ -819,7 +814,7 @@ export default function StoryMapView() {
                             alignment={chapter.alignment}
                             index={index}
                             delay={index === 0 ? 1000 : 0}
-                            onFullScreenChange={setIsFullScreenOpen}
+                            storyId={storyId}
                             targetSlideIndex={targetSlide?.chapter === index ? targetSlide.slide : undefined}
                             mapStyle={chapter.map_style || story?.map_style || 'a'}
                             onSlideChange={(slide) => {
@@ -1000,7 +995,7 @@ export default function StoryMapView() {
                     totalChapters={chapters.length}
                     activeIndex={activeChapter}
                     onNavigate={navigateToChapter}
-                    hideForFullscreen={isFullScreenOpen}
+                    hideForFullscreen={false}
                 />
                 </div>
             )}
@@ -1031,9 +1026,16 @@ export default function StoryMapView() {
                 }}
             />
 
+            {/* Story View Pill — three-segment nav: Map / Story / Timeline */}
+            <StoryViewPill
+                storyId={storyId}
+                currentView="map"
+                isVisible={isBannerVisible}
+            />
+
             {/* Bottom Pill Bar — appears when chapter 1 first activates */}
             <BottomPillBar
-                isVisible={carouselOpened && !isFullScreenOpen}
+                isVisible={carouselOpened}
                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
                 onZoomOut={() => mapInstanceRef.current?.zoomOut()}
                 onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}

@@ -64,6 +64,7 @@ import StoryLibrary from './pages/StoryLibrary';
 import StoryMap from './pages/StoryMap';
 import StoryMapView from './pages/StoryMapView';
 import Storyboarder from './pages/Storyboarder';
+import StoryFullscreen from './pages/StoryFullscreen';
 import StoryTimeline from './pages/StoryTimeline';
 import __Layout from './Layout.jsx';
 
@@ -82,6 +83,7 @@ export const PAGES = {
     "StoriesDebug": StoriesDebug,
     "StoriesMap": StoriesMap,
     "StoryEditor": StoryEditor,
+    "StoryFullscreen": StoryFullscreen,
     "StoryLibrary": StoryLibrary,
     "StoryMap": StoryMap,
     "StoryMapView": StoryMapView,
