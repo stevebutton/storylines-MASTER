@@ -1031,7 +1031,7 @@ export default function StoryMapView() {
             <StoryViewPill
                 storyId={storyId}
                 currentView="map"
-                isVisible={!!story}
+                isVisible={!!storyId}
                 subPill={
                     <BottomPillBar
                         onZoomIn={() => mapInstanceRef.current?.zoomIn()}

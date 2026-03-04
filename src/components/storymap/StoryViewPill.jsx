@@ -154,7 +154,7 @@ export default function StoryViewPill({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 24 }}
                     transition={{ duration: 0.45, ease: 'easeOut' }}
-                    className="fixed bottom-6 right-6 z-[100020] flex flex-col items-end gap-2 pointer-events-auto"
+                    className="fixed bottom-6 left-6 z-[100020] flex flex-col items-start gap-2 pointer-events-auto"
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >
