@@ -156,10 +156,11 @@ export default function StoryTimeline() {
             {/* 20% dark overlay — lighter so hero shows through */}
             <div className="absolute inset-0 z-0" style={{ background: 'rgba(0,0,0,0.20)' }} />
 
-            {/* Blur gradient — full blur at bottom, fades to zero at mid-viewport */}
+            {/* Blur + black gradient — from bottom 30% to mid-viewport */}
             <div
                 className="absolute inset-0 z-[1] pointer-events-none"
                 style={{
+                    background:           'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.3) 35%, transparent 55%)',
                     backdropFilter:       'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
                     maskImage:            'linear-gradient(to top, black 0%, black 30%, transparent 55%)',
@@ -378,7 +379,7 @@ export default function StoryTimeline() {
                 </div>
 
                 {/* ── Filmstrip — landscape thumbs with slide title below left ── */}
-                <div className="flex-shrink-0 mt-3" style={{ padding: '8px 0' }}>
+                <div className="flex-shrink-0" style={{ marginTop: 20 }}>
                     <div
                         ref={filmstripRef}
                         className="flex items-end gap-2 px-4 overflow-x-auto"
@@ -424,7 +425,7 @@ export default function StoryTimeline() {
                                     <span
                                         className="text-left text-white/70 leading-tight"
                                         style={{
-                                            fontSize:          10,
+                                            fontSize:          14,
                                             display:           '-webkit-box',
                                             WebkitLineClamp:   2,
                                             WebkitBoxOrient:   'vertical',
