@@ -193,6 +193,19 @@ export default function TabbedContentEditor({
                             />
                         </div>
 
+                        {/* Project Overview */}
+                        <div>
+                            <Label>Project Overview</Label>
+                            <p className="text-xs text-slate-500 mb-1">Displayed as a text panel on the left of the carousel in the Project Timeline view.</p>
+                            <Textarea
+                                value={item.project_overview || ''}
+                                onChange={(e) => onUpdate({ ...item, project_overview: e.target.value })}
+                                placeholder="Provide context, background, and significance of this project..."
+                                rows={5}
+                                className="resize-none"
+                            />
+                        </div>
+
                         {/* Opening Map View */}
                         <div>
                             <Label>Story Opening Map View</Label>

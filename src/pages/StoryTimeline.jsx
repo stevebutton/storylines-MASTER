@@ -212,8 +212,22 @@ export default function StoryTimeline() {
                 <div className="flex-shrink-0 flex items-stretch"
                      style={{ height: 'clamp(360px, calc(100vh - 600px), 550px)' }}>
 
-                    {/* Left area — transparent, shows hero through */}
-                    <div className="flex-1" />
+                    {/* Left panel — Project Overview */}
+                    <div className="flex-1 flex flex-col justify-end pr-10 pb-6">
+                        {story?.project_overview && (
+                            <>
+                                <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-3">
+                                    Project Overview
+                                </span>
+                                <div
+                                    className="text-white/80 text-sm leading-relaxed overflow-y-auto"
+                                    style={{ maxHeight: '70%' }}
+                                >
+                                    {story.project_overview}
+                                </div>
+                            </>
+                        )}
+                    </div>
 
                     {/* Right panel: 50% wide, 1px white border */}
                     <div
