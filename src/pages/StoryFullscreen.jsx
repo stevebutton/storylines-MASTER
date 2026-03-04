@@ -4,6 +4,7 @@ import { supabase } from '@/api/supabaseClient';
 import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
 import StoryViewPill from '@/components/storymap/StoryViewPill';
 import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
+import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import { Loader2 } from 'lucide-react';
 
 /**
@@ -116,6 +117,14 @@ export default function StoryFullscreen() {
 
     return (
         <>
+            {/* Banner */}
+            <StoryMapBanner
+                isVisible={true}
+                storyTitle={story?.title || ''}
+                storyId={storyId}
+                hasChapters={false}
+            />
+
             {/* Viewer — always open in page mode; built-in control strip suppressed */}
             <FullScreenImageViewer
                 isOpen={true}

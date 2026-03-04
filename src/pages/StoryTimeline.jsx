@@ -208,20 +208,20 @@ export default function StoryTimeline() {
                 style={{ top: 172, bottom: 150, paddingTop: 50, paddingRight: 50, paddingBottom: 50, paddingLeft: 250 }}
             >
 
-                {/* ── Carousel: fixed clamp height, right-aligned at 50% width ── */}
+                {/* ── Carousel: fixed clamp height — 70% carousel / 30% overview ── */}
                 {/* clamp(360px, 100vh-600px, 550px) keeps it portrait-ish */}
                 <div className="flex-shrink-0 flex items-stretch"
                      style={{ height: 'clamp(360px, calc(100vh - 600px), 550px)' }}>
 
-                    {/* Left panel — Project Overview */}
-                    <div className="flex-1 flex flex-col justify-end pr-10 pb-6">
+                    {/* Left panel — Project Overview (30%) */}
+                    <div className="flex flex-col justify-end pr-10 pb-6" style={{ width: '30%' }}>
                         {story?.project_overview && (
                             <>
-                                <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-3">
+                                <span className="block text-right text-amber-400 text-xs uppercase tracking-widest font-medium mb-3">
                                     Project Overview
                                 </span>
                                 <div
-                                    className="text-white/80 text-sm leading-relaxed overflow-y-auto"
+                                    className="text-right text-white/80 text-sm leading-relaxed overflow-y-auto"
                                     style={{ maxHeight: '70%' }}
                                 >
                                     {story.project_overview}
@@ -230,10 +230,10 @@ export default function StoryTimeline() {
                         )}
                     </div>
 
-                    {/* Right panel: 50% wide, 1px white border */}
+                    {/* Right panel: 70% wide, 1px white border */}
                     <div
                         className="relative overflow-hidden rounded-2xl shadow-2xl"
-                        style={{ width: '50%', border: '1px solid rgba(255,255,255,0.5)' }}
+                        style={{ width: '70%', border: '1px solid rgba(255,255,255,0.5)' }}
                     >
                         <AnimatePresence mode="wait">
                             <motion.div
@@ -256,8 +256,8 @@ export default function StoryTimeline() {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
                                 {/* Slide info: chapter → title → description → date */}
-                                {/* Text constrained to 60% of carousel width */}
-                                <div className="absolute bottom-0 left-0 right-0 px-7 pb-6" style={{ maxWidth: '60%' }}>
+                                {/* Text constrained to 30% of carousel width */}
+                                <div className="absolute bottom-0 left-0 right-0 px-7 pb-6" style={{ maxWidth: '30%' }}>
                                     {currentSlide?.chapter_name && (
                                         <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-1">
                                             {currentSlide.chapter_name}
