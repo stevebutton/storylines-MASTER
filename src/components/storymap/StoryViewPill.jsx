@@ -9,13 +9,14 @@ import { cn } from '@/lib/utils';
  * StoryViewPill — Three-row bottom-left navigation stack.
  *
  * Row 1 (title)   — "Story View" — always visible, hover target
- * Row 2 (choices) — Map / Story / Timeline — slides up on hover, collapses on
- *                   mouse-leave or after a choice is made
+ * Row 2 (choices) — Map / Story / Timeline — slides down on hover, collapses
+ *                   on mouse-leave or after a choice is made
  * Row 3 (sub-pill)— context controls — fades in 1 s after a choice is made,
  *                   stays visible; hover still re-opens row 2 above it
  *
  * State: two booleans — showChoices + subPillReady.
- * Layout: flex-col-reverse so title anchors at bottom, rows grow upward.
+ * Layout: flex-col, title first in DOM so stack reads top-to-bottom.
+ *         layout prop on container smooths repositioning as rows appear.
  */
 
 // ── Shared style tokens (imported by all sub-pill components) ────────────────
@@ -117,16 +118,19 @@ export default function StoryViewPill({
         <AnimatePresence>
             {isVisible && (
                 <motion.div
+                    layout
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 16 }}
                     transition={{ duration: 0.35, ease: 'easeOut' }}
-                    // flex-col-reverse: title stays at bottom, rows 2 & 3 grow upward
-                    className="fixed bottom-6 left-6 z-[100020] flex flex-col-reverse items-start gap-2 pointer-events-auto"
+                    // flex-col: title first → top of stack; rows 2 & 3 grow downward.
+                    // fixed bottom-6 anchors the container's bottom edge; as rows are
+                    // added the container grows upward, keeping the lowest row stable.
+                    className="fixed bottom-6 left-6 z-[100020] flex flex-col items-start gap-2 pointer-events-auto"
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >
-                    {/* Row 1 — Title (always visible) */}
+                    {/* Row 1 — Title (always visible, top of stack) */}
                     <div className={pillShell}>
                         <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 select-none">
                             <Layers className="w-3.5 h-3.5 flex-shrink-0" />
@@ -138,9 +142,9 @@ export default function StoryViewPill({
                     <AnimatePresence>
                         {showChoices && (
                             <motion.div
-                                initial={{ opacity: 0, y: 8 }}
+                                initial={{ opacity: 0, y: -6 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 8 }}
+                                exit={{ opacity: 0, y: -6 }}
                                 transition={{ duration: 0.2, ease: 'easeOut' }}
                                 className={pillShell}
                             >
@@ -171,9 +175,9 @@ export default function StoryViewPill({
                     <AnimatePresence>
                         {subPillReady && subPill && (
                             <motion.div
-                                initial={{ opacity: 0, y: 8 }}
+                                initial={{ opacity: 0, y: -6 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 8 }}
+                                exit={{ opacity: 0, y: -6 }}
                                 transition={{ duration: 0.25, ease: 'easeOut' }}
                             >
                                 {subPill}
