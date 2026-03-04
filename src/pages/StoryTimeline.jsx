@@ -205,7 +205,7 @@ export default function StoryTimeline() {
             {/*   padding: 50px all round for breathing room                    */}
             <div
                 className="absolute left-0 right-0 flex flex-col z-10"
-                style={{ top: 172, bottom: 150, padding: 50 }}
+                style={{ top: 172, bottom: 150, paddingTop: 50, paddingRight: 50, paddingBottom: 50, paddingLeft: 250 }}
             >
 
                 {/* ── Carousel: fixed clamp height, right-aligned at 50% width ── */}
