@@ -59,18 +59,12 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     return (
         <motion.div
             className="fixed right-0 z-[9998] pointer-events-auto overflow-hidden"
-            style={{ left: 380, bottom: 80 }}
+            style={{ left: 380, bottom: 72 }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
             animate={{ height: isExpanded ? 120 : 60 }}
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         >
-            {/* Background gradient — fades out when collapsed so no resting shadow */}
-            <motion.div
-                className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none"
-                animate={{ opacity: isExpanded ? 1 : 0 }}
-                transition={{ duration: 0.35 }}
-            />
 
             {/* Scrollable thumbnail row */}
             <div

@@ -216,17 +216,23 @@ export default function StoryTimeline() {
                     {/* Left panel — Project Overview (30%) */}
                     <div className="flex flex-col justify-end pr-10 pb-6" style={{ width: '30%' }}>
                         {story?.project_overview && (
-                            <>
+                            <div
+                                className="rounded-xl p-4"
+                                style={{
+                                    backdropFilter:       'blur(12px)',
+                                    WebkitBackdropFilter: 'blur(12px)',
+                                }}
+                            >
                                 <span className="block text-right text-amber-400 text-xs uppercase tracking-widest font-medium mb-3">
                                     Project Overview
                                 </span>
                                 <div
-                                    className="text-right text-white/80 text-sm leading-relaxed overflow-y-auto"
+                                    className="text-right text-white/80 text-base leading-relaxed overflow-y-auto"
                                     style={{ maxHeight: '70%' }}
                                 >
                                     {story.project_overview}
                                 </div>
-                            </>
+                            </div>
                         )}
                     </div>
 
@@ -252,19 +258,19 @@ export default function StoryTimeline() {
                                       />
                                     : <div className="absolute inset-0 bg-slate-900/80" />
                                 }
-                                {/* Bottom gradient */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                                {/* Left-to-right gradient — 30% black at left, clear at midpoint */}
+                                <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%)' }} />
 
                                 {/* Slide info: chapter → title → description → date */}
                                 {/* Text constrained to 30% of carousel width */}
                                 <div className="absolute bottom-0 left-0 right-0 px-7 pb-6" style={{ maxWidth: '30%' }}>
                                     {currentSlide?.chapter_name && (
-                                        <span className="block text-amber-400 text-xs uppercase tracking-widest font-medium mb-1">
+                                        <span className="block text-amber-400 text-sm uppercase tracking-widest font-medium mb-1">
                                             {currentSlide.chapter_name}
                                         </span>
                                     )}
                                     {currentSlide?.title && (
-                                        <h2 className="text-white text-2xl md:text-3xl font-light leading-tight mb-2">
+                                        <h2 className="text-white text-3xl md:text-4xl font-light leading-tight mb-2">
                                             {currentSlide.title}
                                         </h2>
                                     )}
@@ -424,7 +430,7 @@ export default function StoryTimeline() {
                                         style={{
                                             width:      thumbW,
                                             height:     thumbH,
-                                            opacity:    isCurrent ? 1 : (isHovered ? 0.85 : 0.5),
+                                            opacity:    isCurrent ? 1 : (isHovered ? 0.85 : 0.65),
                                             boxShadow:  isCurrent
                                                 ? '0 0 0 2px white, 0 2px 12px rgba(0,0,0,0.6)'
                                                 : (isHovered ? '0 0 0 2px rgba(255,255,255,0.65)' : 'none'),
