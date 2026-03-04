@@ -273,19 +273,19 @@ export default function StoryFullscreen() {
                 hideTextPanel={mode === 'picture'}
             />
 
-            {/* Bottom gradient — blurs + darkens the lower portion so filmstrip titles read */}
+            {/* Bottom gradient — full-width blur + dark fade so filmstrip titles read */}
             <div
                 className="fixed z-[9997] pointer-events-none"
                 style={{
-                    left:   380,
-                    right:  0,
-                    bottom: 0,
-                    height: 250,
-                    background:            'linear-gradient(to top, rgba(0,0,0,0.32), transparent)',
-                    backdropFilter:        'blur(6px)',
-                    WebkitBackdropFilter:  'blur(6px)',
-                    WebkitMaskImage:       'linear-gradient(to top, black 0%, transparent 70%)',
-                    maskImage:             'linear-gradient(to top, black 0%, transparent 70%)',
+                    left:                 0,
+                    right:                0,
+                    bottom:               0,
+                    height:               250,
+                    background:           'linear-gradient(to top, rgba(0,0,0,0.30) 0%, transparent 100%)',
+                    backdropFilter:       'blur(6px)',
+                    WebkitBackdropFilter: 'blur(6px)',
+                    WebkitMaskImage:      'linear-gradient(to top, black 0%, transparent 100%)',
+                    maskImage:            'linear-gradient(to top, black 0%, transparent 100%)',
                 }}
             />
 
