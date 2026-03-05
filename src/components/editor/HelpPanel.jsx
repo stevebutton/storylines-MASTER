@@ -146,6 +146,31 @@ const helpTopics = [
         )
     },
     {
+        id: 'map-style',
+        title: 'Working with the map',
+        content: (
+            <>
+                <p className="text-slate-600 mb-4">
+                    Customise the look of your story map by choosing or designing a map style.
+                </p>
+                <ul className="text-sm text-slate-600 space-y-2 ml-4">
+                    <li><strong>How to style the map</strong> — use the Map Style selector in Story Settings or in each Chapter's Map Settings to choose from the available styles.</li>
+                    <li>To design your own custom map style, use the Mapbox Cartogram tool:
+                        <br />
+                        <a
+                            href="https://apps.mapbox.com/cartogram/#13.01/40.7251/-74.0051"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-amber-600 hover:text-amber-700 underline break-all"
+                        >
+                            apps.mapbox.com/cartogram
+                        </a>
+                    </li>
+                </ul>
+            </>
+        )
+    },
+    {
         id: 'save-preview',
         title: 'Save & Preview',
         content: (

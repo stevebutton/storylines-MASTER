@@ -512,6 +512,7 @@ export default function StoryEditor() {
                             routeComputeStatus={routeComputeStatus}
                             chapterRouteCount={chapters.filter(c => c.route_geometry?.length).length}
                             totalChapterCount={chapters.length}
+                            storyMapStyle={story.map_style || 'a'}
                         />
                     </div>
                 </div>

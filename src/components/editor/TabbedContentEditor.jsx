@@ -77,7 +77,8 @@ export default function TabbedContentEditor({
     isComputingRoutes,
     routeComputeStatus,
     chapterRouteCount,
-    totalChapterCount
+    totalChapterCount,
+    storyMapStyle,
 }) {
     const [activeTab, setActiveTab] = useState('content');
     const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -246,6 +247,7 @@ export default function TabbedContentEditor({
                                         pitch: newLocation.pitch
                                     });
                                 }}
+                                mapStyle={item.map_style || storyMapStyle || 'a'}
                             />
                         </div>
 
@@ -607,6 +609,7 @@ export default function TabbedContentEditor({
                                             pitch: newLocation.pitch,
                                         });
                                     }}
+                                    mapStyle={storyMapStyle || 'a'}
                                 />
                             </div>
 
@@ -829,6 +832,7 @@ export default function TabbedContentEditor({
                                         location: newLocation.name || item.location
                                     });
                                 }}
+                                mapStyle={storyMapStyle || 'a'}
                             />
                             
                             <div className="pt-4 border-t">

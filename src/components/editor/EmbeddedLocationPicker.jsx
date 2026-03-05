@@ -8,7 +8,17 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
-export default function EmbeddedLocationPicker({ location, onLocationChange }) {
+const MAP_STYLES = {
+    a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
+    b: 'mapbox://styles/stevebutton/cktf8ygms085117nnzm4a97d0',
+    c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
+    d: 'mapbox://styles/stevebutton/cmm9edvor004m01sc0wyug8vz',
+    e: 'mapbox://styles/stevebutton/cmmanazrf000f01qvaghi0jhv',
+    f: 'mapbox://styles/stevebutton/cmmd2lwzp001m01s24puoahpd',
+    g: 'mapbox://styles/stevebutton/cmmd3clf0001o01s2biib8ju2',
+};
+
+export default function EmbeddedLocationPicker({ location, onLocationChange, mapStyle = 'a' }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -22,7 +32,7 @@ export default function EmbeddedLocationPicker({ location, onLocationChange }) {
 
         mapRef.current = new mapboxgl.Map({
             container: mapContainerRef.current,
-            style: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
+            style: MAP_STYLES[mapStyle] || MAP_STYLES['a'],
             center: [location.lng || 0, location.lat || 0],
             zoom: location.zoom || 12,
             bearing: location.bearing || 0,
