@@ -1259,8 +1259,8 @@ export default function StoryMapView() {
                 }
                 isVisible={!!storyId}
                 onOpenMap={showStoryOverlay ? handleOverlayClose : null}
-                onOpenStory={() => showStoryOverlay ? handleOverlayModeChange('story') : openOverlay(null, null, 'story')}
-                onOpenTimeline={() => showStoryOverlay ? handleOverlayModeChange('timeline') : openOverlay(null, null, 'timeline')}
+                onOpenStory={() => showStoryOverlay ? handleOverlayModeChange('story') : openOverlay(null, activeSlide?.id || null, 'story')}
+                onOpenTimeline={() => showStoryOverlay ? handleOverlayModeChange('timeline') : openOverlay(null, activeSlide?.id || null, 'timeline')}
                 onOpenLibrary={handleLibraryOpen}
                 subPill={showStoryOverlay ? (
                     <FullscreenNavPill
