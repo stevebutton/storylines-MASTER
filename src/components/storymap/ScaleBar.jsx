@@ -23,7 +23,7 @@ export default function ScaleBar({
     startLabel    = '',
     endLabel      = '',
 }) {
-    const trackTop = mode === 'chapters' ? 44 : 20;
+    const trackTop = mode === 'chapters' ? 52 : 20;
 
     // Pre-compute cumulative start positions for chapters mode
     const starts = mode === 'chapters' && segments.length > 0
@@ -69,22 +69,34 @@ export default function ScaleBar({
                                 pointerEvents:  'auto',
                             }}
                         >
-                            <span style={{
-                                display:         '-webkit-box',
-                                WebkitLineClamp: 1,
-                                WebkitBoxOrient: 'vertical',
-                                overflow:        'hidden',
-                                fontSize:        24,
-                                fontWeight:      300,
-                                color:           'rgba(255,255,255,0.88)',
-                                letterSpacing:   '0.02em',
-                                lineHeight:      1,
-                                fontFamily:      'Raleway, sans-serif',
-                                maxWidth:        '100%',
-                                textAlign:       'left',
-                            }}>
-                                {seg.label}
-                            </span>
+                            <div style={{ overflow: 'hidden', maxWidth: '100%' }}>
+                                <div style={{
+                                    fontSize:      11,
+                                    fontWeight:    600,
+                                    color:         'rgba(255,255,255,0.6)',
+                                    letterSpacing: '0.12em',
+                                    textTransform: 'uppercase',
+                                    lineHeight:    1.3,
+                                    whiteSpace:    'nowrap',
+                                    overflow:      'hidden',
+                                    textOverflow:  'ellipsis',
+                                }}>
+                                    {`CHAPTER ${String(seg.chapterNum).padStart(2, '0')}:`}
+                                </div>
+                                <div style={{
+                                    fontSize:      13,
+                                    fontWeight:    500,
+                                    color:         'rgba(255,255,255,0.9)',
+                                    letterSpacing: '0.1em',
+                                    textTransform: 'uppercase',
+                                    lineHeight:    1.3,
+                                    whiteSpace:    'nowrap',
+                                    overflow:      'hidden',
+                                    textOverflow:  'ellipsis',
+                                }}>
+                                    {seg.label}
+                                </div>
+                            </div>
                         </button>
                     ))}
                 </div>

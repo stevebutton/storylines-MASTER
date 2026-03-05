@@ -1353,19 +1353,10 @@ export default function StoryMapView() {
                             maskImage: 'linear-gradient(to top, black 0%, transparent 100%)',
                         }} />
 
-                        {/* ScaleBar */}
+                        {/* ScaleBar — top of screen, below banner */}
                         {overlayMode !== 'picture' && (
                             <div className="fixed pointer-events-none"
-                                 style={{ left: 380, right: 0, bottom: 200, zIndex: 9999 }}>
-                                <div style={{ padding: '0 48px 10px' }}>
-                                    <span style={{
-                                        fontSize: 24, fontWeight: 300, letterSpacing: '0.05em',
-                                        color: 'rgba(255,255,255,0.88)', whiteSpace: 'nowrap',
-                                        display: 'block', pointerEvents: 'none',
-                                    }}>
-                                        {overlayMode === 'timeline' ? 'Project Timeline' : 'Follow the Story'}
-                                    </span>
-                                </div>
+                                 style={{ left: 380, right: 0, top: 100, zIndex: 9999 }}>
                                 <ScaleBar
                                     mode={overlayMode === 'timeline' ? 'dates' : 'chapters'}
                                     cursorPercent={cursorPercent}
@@ -1373,7 +1364,7 @@ export default function StoryMapView() {
                                     ticks={scaleTicks}
                                     startLabel={scaleStartLabel}
                                     endLabel={scaleEndLabel}
-                                    height={overlayMode === 'timeline' ? 95 : 72}
+                                    height={overlayMode === 'timeline' ? 95 : 80}
                                 />
                             </div>
                         )}
