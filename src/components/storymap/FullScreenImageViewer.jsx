@@ -174,10 +174,10 @@ export default function FullScreenImageViewer({
                         custom={directionRef.current}
                     >
                         {currentSlide.video_url ? (
-                            <VideoPlayer url={currentSlide.video_url} key={currentIndex} onVideoEnded={handleNext} />
+                            <VideoPlayer url={currentSlide.video_url} key={currentSlide.id} onVideoEnded={handleNext} />
                         ) : (
                             <motion.img
-                                key={currentIndex}
+                                key={currentSlide.id}
                                 custom={directionRef.current}
                                 variants={VARIANTS[viewMode] ?? storyVariants}
                                 initial="enter"
@@ -195,7 +195,7 @@ export default function FullScreenImageViewer({
                         {/* Text panel — full-bleed left, manages its own position */}
                         {!hideTextPanel && (
                         <TextPanelCarousel
-                            key={currentIndex}
+                            key={currentSlide.id}
                             chapterTitle={chapterName}
                             slideTitle={currentSlide.title}
                             description={currentSlide.description || ''}

@@ -1249,15 +1249,31 @@ export default function StoryMapView() {
                 }}
             />
 
-            {/* Story View Pill — master nav + map controls sub-pill (hidden while story overlay is open) */}
+            {/* Story View Pill — single instance, always above all overlays (z-200020) */}
             <StoryViewPill
                 storyId={storyId}
-                currentView={showLibraryModal ? 'library' : 'map'}
-                isVisible={!!storyId && !showStoryOverlay}
-                onOpenStory={() => openOverlay(null, null, 'story')}
-                onOpenTimeline={() => openOverlay(null, null, 'timeline')}
+                currentView={
+                    showLibraryModal ? 'library' :
+                    showStoryOverlay ? (overlayMode === 'timeline' ? 'timeline' : 'fullscreen') :
+                    'map'
+                }
+                isVisible={!!storyId}
+                onOpenMap={showStoryOverlay ? handleOverlayClose : null}
+                onOpenStory={() => showStoryOverlay ? handleOverlayModeChange('story') : openOverlay(null, null, 'story')}
+                onOpenTimeline={() => showStoryOverlay ? handleOverlayModeChange('timeline') : openOverlay(null, null, 'timeline')}
                 onOpenLibrary={handleLibraryOpen}
-                subPill={
+                subPill={showStoryOverlay ? (
+                    <FullscreenNavPill
+                        onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
+                        onNext={() => setOverlayCurrentIndex(i => Math.min(overlayActiveSlides.length - 1, i + 1))}
+                        onClose={handleOverlayClose}
+                        hasMultiple={overlayActiveSlides.length > 1}
+                        current={overlayCurrentIndex + 1}
+                        total={overlayActiveSlides.length}
+                        mode={overlayMode}
+                        onModeChange={handleOverlayModeChange}
+                    />
+                ) : (
                     <BottomPillBar
                         onZoomIn={() => mapInstanceRef.current?.zoomIn()}
                         onZoomOut={() => mapInstanceRef.current?.zoomOut()}
@@ -1268,7 +1284,7 @@ export default function StoryMapView() {
                         onToggleMarkers={() => setShowMarkers(v => !v)}
                         onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
                     />
-                }
+                )}
             />
 
 
@@ -1341,27 +1357,6 @@ export default function StoryMapView() {
                             </div>
                         )}
 
-                        {/* StoryViewPill with fullscreen nav sub-pill */}
-                        <StoryViewPill
-                            storyId={storyId}
-                            currentView={showLibraryModal ? 'library' : overlayMode === 'timeline' ? 'timeline' : 'fullscreen'}
-                            isVisible={true}
-                            onOpenMap={handleOverlayClose}
-                            onOpenTimeline={() => handleOverlayModeChange('timeline')}
-                            onOpenLibrary={handleLibraryOpen}
-                            subPill={
-                                <FullscreenNavPill
-                                    onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
-                                    onNext={() => setOverlayCurrentIndex(i => Math.min(overlayActiveSlides.length - 1, i + 1))}
-                                    onClose={handleOverlayClose}
-                                    hasMultiple={overlayActiveSlides.length > 1}
-                                    current={overlayCurrentIndex + 1}
-                                    total={overlayActiveSlides.length}
-                                    mode={overlayMode}
-                                    onModeChange={handleOverlayModeChange}
-                                />
-                            }
-                        />
                     </motion.div>
                 )}
             </AnimatePresence>

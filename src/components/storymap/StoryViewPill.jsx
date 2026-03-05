@@ -131,7 +131,7 @@ export default function StoryViewPill({
                     transition={{ duration: 0.35, ease: 'easeOut' }}
                     // Fixed height reserves space for all 3 rows so Story View
                     // stays pinned at the top and never shifts as rows appear below.
-                    className="fixed bottom-6 left-6 z-[100020] flex flex-col items-start gap-2 pointer-events-auto"
+                    className="fixed bottom-6 left-6 z-[200020] flex flex-col items-start gap-2 pointer-events-auto"
                     style={{ height: '160px' }}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
