@@ -115,12 +115,20 @@ const TextPanelCarousel = ({
                 <div className="p-8 space-y-5">
 
                     {/* Chapter eyebrow */}
-                    {chapterTitle && (
-                        <p className="text-xl font-medium text-white uppercase tracking-widest text-right leading-tight"
-                           style={{ fontFamily: themeFont, lineHeight: '1.1' }}>
-                            {chapterTitle}
-                        </p>
-                    )}
+                    {chapterTitle && (() => {
+                        const colonIdx = chapterTitle.indexOf(': ');
+                        const prefix = colonIdx !== -1 ? chapterTitle.slice(0, colonIdx + 1) : null;
+                        const title  = colonIdx !== -1 ? chapterTitle.slice(colonIdx + 2) : chapterTitle;
+                        return (
+                            <div className="text-right uppercase tracking-widest leading-snug"
+                                 style={{ fontFamily: themeFont }}>
+                                {prefix && (
+                                    <p className="text-lg font-medium text-white/70">{prefix}</p>
+                                )}
+                                <p className="text-xl font-medium text-white">{title}</p>
+                            </div>
+                        );
+                    })()}
 
                     {/* Location */}
                     {location && (
