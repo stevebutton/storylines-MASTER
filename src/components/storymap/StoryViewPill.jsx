@@ -58,6 +58,7 @@ export default function StoryViewPill({
     isVisible   = false,
     subPill,
     onOpenStory = null,
+    onOpenMap   = null,
 }) {
     const [showChoices,  setShowChoices]  = useState(false);
     const [subPillReady, setSubPillReady] = useState(false);
@@ -96,8 +97,8 @@ export default function StoryViewPill({
             key:   'map',
             label: 'Map',
             icon:  Map,
-            url:   createPageUrl(`StoryMapView?id=${storyId}`),
-            onNav: null,
+            url:   onOpenMap ? null : createPageUrl(`StoryMapView?id=${storyId}`),
+            onNav: onOpenMap || null,
         },
         {
             key:   'fullscreen',

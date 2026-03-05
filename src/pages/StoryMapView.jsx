@@ -1306,6 +1306,7 @@ export default function StoryMapView() {
                             storyId={storyId}
                             currentView="fullscreen"
                             isVisible={true}
+                            onOpenMap={handleOverlayClose}
                             subPill={
                                 <FullscreenNavPill
                                     onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
