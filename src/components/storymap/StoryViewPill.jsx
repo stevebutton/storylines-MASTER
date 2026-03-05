@@ -6,17 +6,16 @@ import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 
 /**
- * StoryViewPill — Three-row bottom-left navigation stack.
+ * StoryViewPill — Two-row bottom-left navigation stack.
  *
- * Row 1 (title)   — "Story View" — always visible, hover target
- * Row 2 (choices) — Map / Story / Timeline — slides down on hover, collapses
- *                   on mouse-leave or after a choice is made
- * Row 3 (sub-pill)— context controls — fades in 1 s after a choice is made,
- *                   stays visible; hover still re-opens row 2 above it
+ * Row 1 (nav pill)  — Shows "Story View" label at rest; expands horizontally
+ *                     on hover to reveal Map / Story / Timeline / Library choices
+ *                     inline. Collapses back on mouse-leave or after a choice.
+ * Row 2 (sub-pill)  — Context controls — fades in 1 s after a choice is made,
+ *                     stays visible; hovering anywhere re-expands row 1 above it.
  *
- * State: two booleans — showChoices + subPillReady.
- * Layout: flex-col, title first in DOM so stack reads top-to-bottom.
- *         layout prop on container smooths repositioning as rows appear.
+ * State: showChoices (hover) + subPillReady (1 s post-selection).
+ * Layout: Framer Motion `layout` on the pill animates the width change smoothly.
  */
 
 // ── Shared style tokens (imported by all sub-pill components) ────────────────
@@ -49,7 +48,6 @@ export const pillDivider = (
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VIEW_ICONS  = { map: Map, fullscreen: Maximize2, timeline: Clock, library: Library };
 const VIEW_LABELS = { map: 'Map', fullscreen: 'Story', timeline: 'Timeline', library: 'Library' };
 
 export default function StoryViewPill({
@@ -70,7 +68,7 @@ export default function StoryViewPill({
         if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     };
 
-    // Reset when pill hides (story unloads or navigates away)
+    // Reset when pill hides
     useEffect(() => {
         if (!isVisible) {
             clearTimer();
@@ -129,60 +127,72 @@ export default function StoryViewPill({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 16 }}
                     transition={{ duration: 0.35, ease: 'easeOut' }}
-                    // Fixed height reserves space for all 3 rows so Story View
-                    // stays pinned at the top and never shifts as rows appear below.
+                    // Fixed height reserves space for both rows so the pill stays
+                    // pinned at the bottom as the sub-pill appears below it.
                     className="fixed bottom-6 left-6 z-[200020] flex flex-col items-start gap-2 pointer-events-auto"
-                    style={{ height: '160px' }}
+                    style={{ height: '100px' }}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >
-                    {/* Row 1 — Title (always visible, top of stack) */}
-                    <div className={pillShell}>
-                        <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 select-none">
-                            <Layers className="w-3.5 h-3.5 flex-shrink-0" />
-                            Story View
-                        </span>
-                    </div>
+                    {/* Row 1 — Expandable pill: label at rest, choices on hover */}
+                    <motion.div
+                        layout
+                        transition={{ layout: { duration: 0.25, ease: [0.4, 0, 0.2, 1] } }}
+                        className={pillShell}
+                        style={{ overflow: 'hidden' }}
+                    >
+                        <AnimatePresence mode="wait" initial={false}>
+                            {showChoices ? (
+                                <motion.div
+                                    key="choices"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.12 }}
+                                    className="flex items-center"
+                                >
+                                    {views.map(({ key, icon: Icon, url, onNav }) => {
+                                        const label = VIEW_LABELS[key];
+                                        const btnClass = cn(
+                                            'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap',
+                                            currentView === key
+                                                ? 'bg-white text-slate-900 shadow-sm'
+                                                : 'text-white/70 hover:bg-white/20 hover:text-white'
+                                        );
+                                        const handleClick = () => {
+                                            if (onNav) onNav();
+                                            handleViewSelect();
+                                        };
+                                        return url ? (
+                                            <Link key={key} to={url} onClick={handleClick} className={btnClass}>
+                                                <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                                                {label}
+                                            </Link>
+                                        ) : (
+                                            <button key={key} onClick={handleClick} className={btnClass}>
+                                                <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                </motion.div>
+                            ) : (
+                                <motion.span
+                                    key="label"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.12 }}
+                                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 select-none whitespace-nowrap"
+                                >
+                                    <Layers className="w-3.5 h-3.5 flex-shrink-0" />
+                                    Story View
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
 
-                    {/* Row 2 — Choices (hover) */}
-                    <AnimatePresence>
-                        {showChoices && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{ duration: 0.2, ease: 'easeOut' }}
-                                className={pillShell}
-                            >
-                                {views.map(({ key, icon: Icon, url, onNav }) => {
-                                    const label = VIEW_LABELS[key];
-                                    const btnClass = cn(
-                                        'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150',
-                                        currentView === key
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-white/70 hover:bg-white/20 hover:text-white'
-                                    );
-                                    const handleClick = () => {
-                                        if (onNav) onNav();
-                                        handleViewSelect();
-                                    };
-                                    return url ? (
-                                        <Link key={key} to={url} onClick={handleClick} className={btnClass}>
-                                            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                                            {label}
-                                        </Link>
-                                    ) : (
-                                        <button key={key} onClick={handleClick} className={btnClass}>
-                                            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                                            {label}
-                                        </button>
-                                    );
-                                })}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Row 3 — Sub-pill (1 s after selection, persists) */}
+                    {/* Row 2 — Sub-pill (1 s after selection, persists) */}
                     <AnimatePresence>
                         {subPillReady && subPill && (
                             <motion.div
