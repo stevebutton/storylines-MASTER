@@ -825,9 +825,11 @@ export default function StoryMapView() {
         }, { replace: true });
     };
 
-    // Deep-link: open overlay/library when ?view param is present after chapters load
+    // Deep-link: open overlay/library when ?view param is present.
+    // Wait for the hero black overlay to clear first so the hero title
+    // sequence is not covered by the story overlay on page load.
     useEffect(() => {
-        if (!chapters.length) return;
+        if (!chapters.length || showBlackOverlay) return;
         const view = searchParams.get('view');
         if (view === 'story') {
             openOverlay(searchParams.get('chapterId'), searchParams.get('slideId'), 'story');
@@ -836,7 +838,7 @@ export default function StoryMapView() {
         } else if (view === 'library') {
             setShowLibraryModal(true);
         }
-    }, [chapters.length]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [chapters.length, showBlackOverlay]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (isLoading) {
         return (
