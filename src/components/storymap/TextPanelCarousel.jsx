@@ -112,7 +112,7 @@ const TextPanelCarousel = ({
                     background: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0px, rgba(0,0,0,0) 300px)',
                 }}
             >
-                <div className="p-8 space-y-5" style={{ paddingTop: chapterTitle ? 32 : 82 }}>
+                <div className="p-8 space-y-5" style={{ paddingTop: chapterTitle ? 32 : 112 }}>
 
                     {/* Chapter eyebrow */}
                     {chapterTitle && (() => {

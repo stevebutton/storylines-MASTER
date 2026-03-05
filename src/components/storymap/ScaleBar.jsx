@@ -28,7 +28,7 @@ export default function ScaleBar({
     startLabel         = '',
     endLabel           = '',
 }) {
-    const trackTop = mode === 'chapters' ? 72 : 20;
+    const trackTop = mode === 'chapters' ? 102 : 20;
 
     // ── Draggable label row (chapters mode) ──────────────────────────────────
     const x         = useMotionValue(0);
