@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map, Maximize2, Layers, Library } from 'lucide-react';
+import { Map, Maximize2, Layers, Library, Clock } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 
@@ -49,16 +49,17 @@ export const pillDivider = (
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VIEW_ICONS  = { map: Map, fullscreen: Maximize2, library: Library };
-const VIEW_LABELS = { map: 'Map', fullscreen: 'Story', library: 'Library' };
+const VIEW_ICONS  = { map: Map, fullscreen: Maximize2, timeline: Clock, library: Library };
+const VIEW_LABELS = { map: 'Map', fullscreen: 'Story', timeline: 'Timeline', library: 'Library' };
 
 export default function StoryViewPill({
     storyId,
-    currentView  = 'map',
-    isVisible    = false,
+    currentView   = 'map',
+    isVisible     = false,
     subPill,
     onOpenStory    = null,
     onOpenMap      = null,
+    onOpenTimeline = null,
     onOpenLibrary  = null,
 }) {
     const [showChoices,  setShowChoices]  = useState(false);
@@ -106,6 +107,12 @@ export default function StoryViewPill({
             url:   onOpenStory ? null : createPageUrl(`StoryFullscreen?storyId=${storyId}`),
             onNav: onOpenStory || (() => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY))),
         },
+        ...(onOpenTimeline ? [{
+            key:   'timeline',
+            icon:  Clock,
+            url:   null,
+            onNav: onOpenTimeline,
+        }] : []),
         ...(onOpenLibrary ? [{
             key:   'library',
             icon:  Library,

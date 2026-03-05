@@ -759,18 +759,19 @@ export default function StoryMapView() {
             : 0;
     }, [overlayMode, overlayCurrentIndex, overlayActiveSlides, overlayTimelineSlides]);
 
-    const openOverlay = (chapterId, slideId) => {
-        const idx = overlaySlides.findIndex(sl =>
+    const openOverlay = (chapterId, slideId, mode = 'story') => {
+        const sourceSlides = mode === 'timeline' ? overlayTimelineSlides : overlaySlides;
+        const idx = sourceSlides.findIndex(sl =>
             (chapterId ? sl._chapter_id === chapterId : true) &&
             (slideId   ? sl.id         === slideId   : true)
         );
         overlayScrollRef.current = window.scrollY;
         setOverlayCurrentIndex(idx !== -1 ? idx : 0);
-        setOverlayMode('story');
+        setOverlayMode(mode);
         setShowStoryOverlay(true);
         setSearchParams(prev => {
             const next = new URLSearchParams(prev);
-            next.set('view', 'story');
+            next.set('view', mode === 'timeline' ? 'timeline' : 'story');
             return next;
         }, { replace: true });
     };
@@ -793,6 +794,11 @@ export default function StoryMapView() {
         const newIdx = currentSlide ? newSlides.findIndex(sl => sl.id === currentSlide.id) : 0;
         setOverlayCurrentIndex(newIdx !== -1 ? newIdx : 0);
         setOverlayMode(newMode);
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set('view', newMode === 'timeline' ? 'timeline' : 'story');
+            return next;
+        }, { replace: true });
     };
 
     const handleLibraryOpen = () => {
@@ -823,9 +829,12 @@ export default function StoryMapView() {
     // Deep-link: open overlay/library when ?view param is present after chapters load
     useEffect(() => {
         if (!chapters.length) return;
-        if (searchParams.get('view') === 'story') {
-            openOverlay(searchParams.get('chapterId'), searchParams.get('slideId'));
-        } else if (searchParams.get('view') === 'library') {
+        const view = searchParams.get('view');
+        if (view === 'story') {
+            openOverlay(searchParams.get('chapterId'), searchParams.get('slideId'), 'story');
+        } else if (view === 'timeline') {
+            openOverlay(null, null, 'timeline');
+        } else if (view === 'library') {
             setShowLibraryModal(true);
         }
     }, [chapters.length]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1245,7 +1254,8 @@ export default function StoryMapView() {
                 storyId={storyId}
                 currentView={showLibraryModal ? 'library' : 'map'}
                 isVisible={!!storyId && !showStoryOverlay}
-                onOpenStory={() => openOverlay(null, null)}
+                onOpenStory={() => openOverlay(null, null, 'story')}
+                onOpenTimeline={() => openOverlay(null, null, 'timeline')}
                 onOpenLibrary={handleLibraryOpen}
                 subPill={
                     <BottomPillBar
@@ -1334,9 +1344,10 @@ export default function StoryMapView() {
                         {/* StoryViewPill with fullscreen nav sub-pill */}
                         <StoryViewPill
                             storyId={storyId}
-                            currentView={showLibraryModal ? 'library' : 'fullscreen'}
+                            currentView={showLibraryModal ? 'library' : overlayMode === 'timeline' ? 'timeline' : 'fullscreen'}
                             isVisible={true}
                             onOpenMap={handleOverlayClose}
+                            onOpenTimeline={() => handleOverlayModeChange('timeline')}
                             onOpenLibrary={handleLibraryOpen}
                             subPill={
                                 <FullscreenNavPill

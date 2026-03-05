@@ -2,12 +2,11 @@ import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 /**
- * StoryTimeline — retired route.
+ * StoryTimeline — redirect shim.
  *
- * Timeline is now a mode within StoryFullscreen (toggle the Clock icon in the
- * nav pill).  This shim redirects any old /StoryTimeline?storyId=X links so
- * they land on the equivalent StoryFullscreen URL and immediately switch to
- * timeline mode.
+ * Timeline is a mode within the story overlay inside StoryMapView.
+ * Old /StoryTimeline?storyId=X links are redirected to the equivalent
+ * StoryMapView URL so the overlay opens directly in timeline mode.
  */
 export default function StoryTimeline() {
     const [searchParams] = useSearchParams();
@@ -15,11 +14,9 @@ export default function StoryTimeline() {
 
     useEffect(() => {
         const storyId = searchParams.get('storyId');
-        const target  = storyId
-            ? `/StoryFullscreen?storyId=${storyId}`
-            : '/ProjectInterface';
-        navigate(target, { replace: true });
-    }, []);
+        if (!storyId) { navigate('/ProjectInterface', { replace: true }); return; }
+        navigate(`/StoryMapView?id=${storyId}&view=timeline`, { replace: true });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     return null;
 }
