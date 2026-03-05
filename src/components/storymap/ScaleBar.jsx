@@ -28,7 +28,7 @@ export default function ScaleBar({
     startLabel         = '',
     endLabel           = '',
 }) {
-    const trackTop = mode === 'chapters' ? 62 : 20;
+    const trackTop = mode === 'chapters' ? 72 : 20;
 
     // ── Draggable label row (chapters mode) ──────────────────────────────────
     const x         = useMotionValue(0);
@@ -83,7 +83,7 @@ export default function ScaleBar({
                         top:           0,
                         left:          0,
                         width:         segments.length * SLOT_WIDTH,
-                        height:        trackTop - 4,
+                        height:        trackTop,
                         pointerEvents: 'auto',
                         touchAction:   'none',
                     }}
@@ -98,7 +98,7 @@ export default function ScaleBar({
                             style={{
                                 width:          SLOT_WIDTH,
                                 flexShrink:     0,
-                                paddingLeft:    16,
+                                paddingLeft:    40,
                                 paddingRight:   32,
                                 height:         '100%',
                                 display:        'flex',
@@ -110,7 +110,7 @@ export default function ScaleBar({
                                 textAlign:      'right',
                             }}
                         >
-                            <div style={{ overflow: 'hidden', maxWidth: '100%' }}>
+                            <div style={{ maxWidth: '100%' }}>
                                 <div style={{
                                     fontSize:      18,
                                     fontWeight:    500,
@@ -119,8 +119,6 @@ export default function ScaleBar({
                                     textTransform: 'uppercase',
                                     lineHeight:    1.2,
                                     whiteSpace:    'nowrap',
-                                    overflow:      'hidden',
-                                    textOverflow:  'ellipsis',
                                 }}>
                                     {`CHAPTER ${String(seg.chapterNum).padStart(2, '0')}:`}
                                 </div>
@@ -131,9 +129,6 @@ export default function ScaleBar({
                                     letterSpacing: '0.1em',
                                     textTransform: 'uppercase',
                                     lineHeight:    1.2,
-                                    whiteSpace:    'nowrap',
-                                    overflow:      'hidden',
-                                    textOverflow:  'ellipsis',
                                 }}>
                                     {seg.label}
                                 </div>

@@ -1378,7 +1378,7 @@ export default function StoryMapView() {
                                     ticks={scaleTicks}
                                     startLabel={scaleStartLabel}
                                     endLabel={scaleEndLabel}
-                                    height={overlayMode === 'timeline' ? 95 : 90}
+                                    height={overlayMode === 'timeline' ? 95 : 105}
                                 />
                             </div>
                         )}
