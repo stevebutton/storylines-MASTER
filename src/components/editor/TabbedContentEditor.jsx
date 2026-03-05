@@ -44,6 +44,12 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'cmm9edvor004m01sc0wyug8vz',
     },
+    e: {
+        label: 'Style E',
+        description: 'Custom style',
+        owner: 'stevebutton',
+        id: 'cmmanazrf000f01qvaghi0jhv',
+    },
 };
 
 export default function TabbedContentEditor({
