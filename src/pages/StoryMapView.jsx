@@ -775,13 +775,14 @@ export default function StoryMapView() {
     };
 
     const handleOverlayClose = () => {
+        const savedScroll = overlayScrollRef.current;
         setShowStoryOverlay(false);
         setSearchParams(prev => {
             const next = new URLSearchParams(prev);
             next.delete('view');
             return next;
         }, { replace: true });
-        requestAnimationFrame(() => window.scrollTo(0, overlayScrollRef.current));
+        setTimeout(() => window.scrollTo(0, savedScroll), 50);
     };
 
     const handleOverlayModeChange = (newMode) => {
