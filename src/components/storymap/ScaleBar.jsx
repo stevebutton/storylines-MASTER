@@ -1,31 +1,61 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { motion, useMotionValue, animate } from 'framer-motion';
 
 /**
  * ScaleBar — horizontal navigation axis, shared by Story and Timeline modes.
  *
- *   'chapters' — chapter labels float ABOVE the track (2xl amber Raleway),
- *                dividers at boundaries, amber cursor.
+ * chapters mode:
+ *   - Full-width draggable label row (each chapter = 380px slot).
+ *     Active chapter snaps to position 0 (left edge, above the text panel).
+ *     Drag left/right to reveal adjacent chapters; release snaps to nearest.
+ *   - Track line starts at x=380 (right of text panel), cursor + dividers only.
  *
- *   'dates'    — month / year ticks with labels hanging below the track.
- *
- * Track position:
- *   chapters mode: top 44  (leaves 40px above for 2xl labels)
- *   dates mode:    top 20  (labels hang downward, matching old Timeline bar)
+ * dates mode:
+ *   - Month/year ticks with labels, unchanged from before.
  */
+
+const SLOT_WIDTH = 380;
+
 export default function ScaleBar({
-    cursorPercent = 0,
-    mode          = 'chapters',
-    height        = 95,
+    cursorPercent      = 0,
+    mode               = 'chapters',
+    height             = 95,
+    activeChapterIndex = 0,
     // chapters
-    segments      = [],
+    segments           = [],
     // dates
-    ticks         = [],
-    startLabel    = '',
-    endLabel      = '',
+    ticks              = [],
+    startLabel         = '',
+    endLabel           = '',
 }) {
     const trackTop = mode === 'chapters' ? 62 : 20;
 
-    // Pre-compute cumulative start positions for chapters mode
+    // ── Draggable label row (chapters mode) ──────────────────────────────────
+    const x         = useMotionValue(0);
+    const draggedRef = useRef(false); // suppress click if we actually dragged
+
+    // Snap to active chapter whenever it changes
+    useEffect(() => {
+        if (mode !== 'chapters' || !segments.length) return;
+        animate(x, -(activeChapterIndex * SLOT_WIDTH), {
+            type:      'spring',
+            stiffness: 400,
+            damping:   40,
+        });
+    }, [activeChapterIndex, mode, segments.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleDragEnd = () => {
+        const currentX   = x.get();
+        const nearestIdx = Math.round(-currentX / SLOT_WIDTH);
+        const clamped    = Math.max(0, Math.min(segments.length - 1, nearestIdx));
+        animate(x, -(clamped * SLOT_WIDTH), {
+            type:      'spring',
+            stiffness: 400,
+            damping:   40,
+        });
+    };
+
+    // Pre-compute cumulative start % positions for track dividers
     const starts = mode === 'chapters' && segments.length > 0
         ? segments.reduce((acc, seg, i) => {
             acc.push(i === 0 ? 0 : acc[i - 1] + segments[i - 1].widthPercent);
@@ -34,39 +64,50 @@ export default function ScaleBar({
         : [];
 
     return (
-        <div className="relative flex-shrink-0 select-none" style={{ height }}>
+        <div className="relative flex-shrink-0 select-none" style={{ height, overflow: 'hidden' }}>
 
-            {/* ══ CHAPTER LABELS — above track, chapters mode only ════════════
-                Rendered as a sibling div matching the track's left/right margins
-                so that percentage positions map directly to track positions.     */}
+            {/* ══ CHAPTER LABEL ROW — full-width, draggable ═══════════════════
+                Each chapter occupies a SLOT_WIDTH (380px) wide slot.
+                translateX snaps to -(activeChapterIndex * 380) so the active
+                chapter is always positioned above the text panel.             */}
             {mode === 'chapters' && segments.length > 0 && (
-                <div style={{
-                    position: 'absolute',
-                    left:     48,
-                    right:    48,
-                    top:      0,
-                    height:   trackTop - 4,   // fills space from top to just above track
-                }}>
-                    {segments.map((seg, i) => (
+                <motion.div
+                    drag="x"
+                    dragConstraints={{ left: -(segments.length - 1) * SLOT_WIDTH, right: 0 }}
+                    dragElastic={0.05}
+                    dragMomentum={false}
+                    style={{
+                        x,
+                        display:       'flex',
+                        position:      'absolute',
+                        top:           0,
+                        left:          0,
+                        width:         segments.length * SLOT_WIDTH,
+                        height:        trackTop - 4,
+                        pointerEvents: 'auto',
+                        touchAction:   'none',
+                    }}
+                    onDragStart={() => { draggedRef.current = false; }}
+                    onDrag={(_, info) => { if (Math.abs(info.offset.x) > 5) draggedRef.current = true; }}
+                    onDragEnd={handleDragEnd}
+                >
+                    {segments.map((seg) => (
                         <button
                             key={`lbl-${seg.id}`}
-                            onClick={seg.onClick}
-                            title={seg.label}
+                            onClick={() => { if (!draggedRef.current) seg.onClick?.(); }}
                             style={{
-                                position:       'absolute',
-                                left:           `${starts[i]}%`,
-                                width:          `${seg.widthPercent}%`,
-                                top:            0,
+                                width:          SLOT_WIDTH,
+                                flexShrink:     0,
+                                paddingLeft:    48,
+                                paddingRight:   16,
                                 height:         '100%',
                                 display:        'flex',
-                                alignItems:     'center',
-                                justifyContent: 'flex-start',
-                                paddingLeft:    4,
+                                flexDirection:  'column',
+                                justifyContent: 'flex-end',
                                 background:     'none',
                                 border:         'none',
                                 cursor:         'pointer',
-                                overflow:       'hidden',
-                                pointerEvents:  'auto',
+                                textAlign:      'left',
                             }}
                         >
                             <div style={{ overflow: 'hidden', maxWidth: '100%' }}>
@@ -99,14 +140,14 @@ export default function ScaleBar({
                             </div>
                         </button>
                     ))}
-                </div>
+                </motion.div>
             )}
 
-            {/* ── Track line ── */}
+            {/* ── Track line — starts at x=380 (right of text panel) ── */}
             <div
                 className="absolute"
                 style={{
-                    left:       48,
+                    left:       mode === 'chapters' ? 380 : 48,
                     right:      48,
                     top:        trackTop,
                     height:     3,
@@ -129,7 +170,7 @@ export default function ScaleBar({
                     pointerEvents: 'none',
                 }} />
 
-                {/* ══ CHAPTERS MODE — dividers only (labels are above) ═══════ */}
+                {/* ── Chapter dividers ── */}
                 {mode === 'chapters' && segments.length > 0 && (
                     <>
                         {segments.slice(0, -1).map((seg, i) => (
@@ -147,7 +188,7 @@ export default function ScaleBar({
                     </>
                 )}
 
-                {/* ══ DATES MODE ═════════════════════════════════════════════ */}
+                {/* ══ DATES MODE ══════════════════════════════════════════════ */}
                 {mode === 'dates' && (
                     <>
                         {ticks.map((tick, i) => (

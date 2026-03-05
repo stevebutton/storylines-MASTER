@@ -93,9 +93,10 @@ export default function FullScreenImageViewer({
     chapterName,
     mapStyle     = 'a',
     viewMode     = 'story',    // 'picture' | 'story' | 'timeline'
-    hideControlStrip = false,
-    hideTextPanel    = false,
-    inOverlay        = false,  // true when rendered as an overlay inside StoryMapView
+    hideControlStrip  = false,
+    hideTextPanel     = false,
+    hideChapterTitle  = false,
+    inOverlay         = false,  // true when rendered as an overlay inside StoryMapView
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
 
@@ -196,7 +197,7 @@ export default function FullScreenImageViewer({
                         {!hideTextPanel && (
                         <TextPanelCarousel
                             key={currentSlide.id}
-                            chapterTitle={chapterName}
+                            chapterTitle={hideChapterTitle ? '' : chapterName}
                             slideTitle={currentSlide.title}
                             description={currentSlide.description || ''}
                             extendedContent={currentSlide.extended_content || ''}

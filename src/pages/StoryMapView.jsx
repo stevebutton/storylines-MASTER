@@ -685,6 +685,8 @@ export default function StoryMapView() {
                     name:        ch.name || '',
                     chapterNum:  i + 1,
                     widthPercent,
+                    startIdx,
+                    slideCount:  ch.slides?.length || 0,
                     firstImage:  firstSlide?.image || '',
                     onClick:     () => setOverlayCurrentIndex(startIdx),
                 };
@@ -765,6 +767,16 @@ export default function StoryMapView() {
             ? (overlayCurrentIndex / (overlayActiveSlides.length - 1)) * 100
             : 0;
     }, [overlayMode, overlayCurrentIndex, overlayActiveSlides, overlayTimelineSlides]);
+
+    // Which chapter is currently active (for ScaleBar label snap)
+    const activeChapterIndex = useMemo(() => {
+        if (!scaleSegments.length) return 0;
+        for (let i = 0; i < scaleSegments.length; i++) {
+            const { startIdx, slideCount } = scaleSegments[i];
+            if (overlayCurrentIndex >= startIdx && overlayCurrentIndex < startIdx + slideCount) return i;
+        }
+        return scaleSegments.length - 1;
+    }, [overlayCurrentIndex, scaleSegments]);
 
     const openOverlay = (chapterId, slideId, mode = 'story') => {
         const sourceSlides = mode === 'timeline' ? overlayTimelineSlides : overlaySlides;
@@ -1341,6 +1353,7 @@ export default function StoryMapView() {
                             viewMode={overlayMode}
                             hideControlStrip={true}
                             hideTextPanel={overlayMode === 'picture'}
+                            hideChapterTitle={true}
                             inOverlay={true}
                         />
 
@@ -1353,13 +1366,14 @@ export default function StoryMapView() {
                             maskImage: 'linear-gradient(to top, black 0%, transparent 100%)',
                         }} />
 
-                        {/* ScaleBar — top of screen, below banner */}
+                        {/* ScaleBar — top of screen, full width, below banner */}
                         {overlayMode !== 'picture' && (
                             <div className="fixed pointer-events-none"
-                                 style={{ left: 380, right: 0, top: 115, zIndex: 9999 }}>
+                                 style={{ left: 0, right: 0, top: 115, zIndex: 9999 }}>
                                 <ScaleBar
                                     mode={overlayMode === 'timeline' ? 'dates' : 'chapters'}
                                     cursorPercent={cursorPercent}
+                                    activeChapterIndex={activeChapterIndex}
                                     segments={scaleSegments}
                                     ticks={scaleTicks}
                                     startLabel={scaleStartLabel}
