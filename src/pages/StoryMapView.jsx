@@ -13,6 +13,9 @@ import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
 import LiveMapEditor from '@/components/storymap/LiveMapEditor';
+import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
+import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
+import ScaleBar from '@/components/storymap/ScaleBar';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -53,7 +56,7 @@ function buildRouteFromVisited(visited, segCache) {
 }
 
 export default function StoryMapView() {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const storyIdParam = searchParams.get('id');
 
     const [story, setStory] = useState(null);
@@ -102,6 +105,12 @@ export default function StoryMapView() {
     const [carouselOpened, setCarouselOpened] = useState(false);
     const mapInstanceRef = useRef(null);
     const navigate = useNavigate();
+
+    // ── Story overlay (immersive reader over the map) ──────────────────────────
+    const [showStoryOverlay, setShowStoryOverlay] = useState(false);
+    const [overlayCurrentIndex, setOverlayCurrentIndex] = useState(0);
+    const [overlayMode, setOverlayMode] = useState('story'); // 'picture' | 'story' | 'timeline'
+    const overlayScrollRef = useRef(0);
 
 
     const chapterRefs = useRef([]);
@@ -319,7 +328,9 @@ export default function StoryMapView() {
                         video_url: s.video_url,
                         video_thumbnail_url: s.video_thumbnail_url,
                         mapbox_layer_id: s.mapbox_layer_id,
-                        extended_content: s.extended_content
+                        extended_content: s.extended_content,
+                        story_date: s.story_date,
+                        capture_date: s.capture_date,
                     }))
             }));
 
@@ -620,6 +631,176 @@ export default function StoryMapView() {
         setIsChapterMenuOpen(false);
     };
 
+    // ── Overlay: flat slide list (built from already-loaded chapters, no extra fetch) ──
+    const overlaySlides = useMemo(() => {
+        return chapters.flatMap((ch, chIdx) =>
+            (ch.slides || []).map(sl => ({
+                ...sl,
+                chapter_name: ch.name
+                    ? `Chapter ${String(chIdx + 1).padStart(2, '0')}: ${ch.name}`
+                    : `Chapter ${String(chIdx + 1).padStart(2, '0')}`,
+                _chapter_id: ch.id,
+            }))
+        );
+    }, [chapters]);
+
+    const overlayTimelineSlides = useMemo(() => {
+        const dated = overlaySlides.filter(sl => sl.story_date || sl.capture_date);
+        if (dated.length < 2) return overlaySlides;
+        return [...overlaySlides].sort((a, b) => {
+            const da = a.story_date || a.capture_date;
+            const db = b.story_date || b.capture_date;
+            if (da && db) return new Date(da) - new Date(db);
+            if (da) return -1;
+            if (db) return  1;
+            return 0;
+        });
+    }, [overlaySlides]);
+
+    const overlayActiveSlides = overlayMode === 'timeline' ? overlayTimelineSlides : overlaySlides;
+
+    // ScaleBar: chapter segments (story mode)
+    const scaleSegments = useMemo(() => {
+        const total = overlaySlides.length;
+        if (!total || !chapters.length) return [];
+        let running = 0;
+        return chapters
+            .filter(ch => (ch.slides?.length || 0) > 0)
+            .map((ch, i) => {
+                const startIdx    = running;
+                const widthPercent = ((ch.slides?.length || 0) / total) * 100;
+                const firstSlide  = overlaySlides.find(sl => sl._chapter_id === ch.id);
+                running += ch.slides?.length || 0;
+                return {
+                    id:          ch.id,
+                    label:       ch.name || `Ch ${i + 1}`,
+                    name:        ch.name || '',
+                    chapterNum:  i + 1,
+                    widthPercent,
+                    firstImage:  firstSlide?.image || '',
+                    onClick:     () => setOverlayCurrentIndex(startIdx),
+                };
+            });
+    }, [chapters, overlaySlides]);
+
+    // ScaleBar: date ticks (timeline mode)
+    const { scaleTicks, scaleStartLabel, scaleEndLabel } = useMemo(() => {
+        if (!overlayTimelineSlides.length) return { scaleTicks: [], scaleStartLabel: '', scaleEndLabel: '' };
+
+        const times = overlayTimelineSlides
+            .map(sl => sl.story_date || sl.capture_date)
+            .filter(Boolean)
+            .map(d => new Date(d).getTime())
+            .filter(t => !isNaN(t));
+
+        if (times.length < 2) return { scaleTicks: [], scaleStartLabel: '', scaleEndLabel: '' };
+
+        const minTime = Math.min(...times);
+        const maxTime = Math.max(...times);
+        const range   = maxTime - minTime;
+
+        const ticks = [];
+        const cur = new Date(minTime);
+        cur.setDate(1);
+        cur.setHours(0, 0, 0, 0);
+        const endDate = new Date(maxTime);
+
+        while (cur <= endDate) {
+            const pct = ((cur.getTime() - minTime) / range) * 100;
+            if (pct >= 0 && pct <= 100) {
+                const isYear = cur.getMonth() === 0;
+                ticks.push({
+                    percent: pct,
+                    label:   isYear
+                        ? cur.getFullYear().toString()
+                        : cur.toLocaleString('default', { month: 'short' }),
+                    isYear,
+                });
+            }
+            cur.setMonth(cur.getMonth() + 1);
+        }
+
+        const fmt = d => new Date(d).toLocaleString('default', { month: 'short', year: 'numeric' });
+        return {
+            scaleTicks:      ticks,
+            scaleStartLabel: fmt(minTime),
+            scaleEndLabel:   fmt(maxTime),
+        };
+    }, [overlayTimelineSlides]);
+
+    // ScaleBar cursor position
+    const cursorPercent = useMemo(() => {
+        if (!overlayActiveSlides.length) return 0;
+
+        if (overlayMode === 'timeline') {
+            const currentSlide = overlayActiveSlides[overlayCurrentIndex];
+            const times = overlayTimelineSlides
+                .map(sl => sl.story_date || sl.capture_date)
+                .filter(Boolean)
+                .map(d => new Date(d).getTime())
+                .filter(t => !isNaN(t));
+
+            if (times.length < 2) {
+                return overlayActiveSlides.length > 1
+                    ? (overlayCurrentIndex / (overlayActiveSlides.length - 1)) * 100
+                    : 0;
+            }
+            const minTime = Math.min(...times);
+            const maxTime = Math.max(...times);
+            const slDate  = currentSlide?.story_date || currentSlide?.capture_date;
+            if (!slDate) return 50;
+            const t = new Date(slDate).getTime();
+            return Math.max(0, Math.min(100, ((t - minTime) / (maxTime - minTime)) * 100));
+        }
+
+        return overlayActiveSlides.length > 1
+            ? (overlayCurrentIndex / (overlayActiveSlides.length - 1)) * 100
+            : 0;
+    }, [overlayMode, overlayCurrentIndex, overlayActiveSlides, overlayTimelineSlides]);
+
+    const openOverlay = (chapterId, slideId) => {
+        const idx = overlaySlides.findIndex(sl =>
+            (chapterId ? sl._chapter_id === chapterId : true) &&
+            (slideId   ? sl.id         === slideId   : true)
+        );
+        overlayScrollRef.current = window.scrollY;
+        setOverlayCurrentIndex(idx !== -1 ? idx : 0);
+        setOverlayMode('story');
+        setShowStoryOverlay(true);
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set('view', 'story');
+            return next;
+        }, { replace: true });
+    };
+
+    const handleOverlayClose = () => {
+        setShowStoryOverlay(false);
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.delete('view');
+            return next;
+        }, { replace: true });
+        requestAnimationFrame(() => window.scrollTo(0, overlayScrollRef.current));
+    };
+
+    const handleOverlayModeChange = (newMode) => {
+        if (newMode === overlayMode) return;
+        const currentSlide = overlayActiveSlides[overlayCurrentIndex];
+        const newSlides = newMode === 'timeline' ? overlayTimelineSlides : overlaySlides;
+        const newIdx = currentSlide ? newSlides.findIndex(sl => sl.id === currentSlide.id) : 0;
+        setOverlayCurrentIndex(newIdx !== -1 ? newIdx : 0);
+        setOverlayMode(newMode);
+    };
+
+    // Deep-link: open overlay when ?view=story is present after chapters load
+    useEffect(() => {
+        if (!chapters.length) return;
+        if (searchParams.get('view') === 'story') {
+            openOverlay(searchParams.get('chapterId'), searchParams.get('slideId'));
+        }
+    }, [chapters.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -820,6 +1001,7 @@ export default function StoryMapView() {
                             storyId={storyId}
                             targetSlideIndex={targetSlide?.chapter === index ? targetSlide.slide : undefined}
                             mapStyle={chapter.map_style || story?.map_style || 'a'}
+                            onOpenFullscreen={(chId, slId) => openOverlay(chId, slId)}
                             onSlideChange={(slide) => {
                                 setActiveSlide(slide);
                                 if (!isValidCoordinatePair(slide.coordinates)) return;
@@ -1029,11 +1211,12 @@ export default function StoryMapView() {
                 }}
             />
 
-            {/* Story View Pill — master nav + map controls sub-pill */}
+            {/* Story View Pill — master nav + map controls sub-pill (hidden while story overlay is open) */}
             <StoryViewPill
                 storyId={storyId}
                 currentView="map"
-                isVisible={!!storyId}
+                isVisible={!!storyId && !showStoryOverlay}
+                onOpenStory={() => openOverlay(null, null)}
                 subPill={
                     <BottomPillBar
                         onZoomIn={() => mapInstanceRef.current?.zoomIn()}
@@ -1048,6 +1231,97 @@ export default function StoryMapView() {
                 }
             />
 
+
+            {/* ── Story overlay ── immersive reader rendered over the live map ── */}
+            <AnimatePresence>
+                {showStoryOverlay && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                        className="fixed inset-0"
+                        style={{ zIndex: 200000 }}
+                    >
+                        <StoryMapBanner
+                            isVisible={true}
+                            storyTitle={story?.title || ''}
+                            storyId={storyId}
+                            hasChapters={false}
+                            onViewOtherStories={handleOverlayClose}
+                            onOpenLibrary={() => setShowLibraryModal(true)}
+                            onEditStory={() => setIsEditTransitioning(true)}
+                        />
+
+                        <FullScreenImageViewer
+                            isOpen={true}
+                            onClose={handleOverlayClose}
+                            slides={overlayActiveSlides}
+                            currentIndex={overlayCurrentIndex}
+                            onNavigate={setOverlayCurrentIndex}
+                            chapterName={overlayActiveSlides[overlayCurrentIndex]?.chapter_name || ''}
+                            mapStyle={story?.map_style || 'a'}
+                            viewMode={overlayMode}
+                            hideControlStrip={true}
+                            hideTextPanel={overlayMode === 'picture'}
+                            inOverlay={true}
+                        />
+
+                        {/* Bottom gradient */}
+                        <div className="fixed pointer-events-none" style={{
+                            left: 0, right: 0, bottom: 0, height: 400, zIndex: 9998,
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)',
+                            backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+                            WebkitMaskImage: 'linear-gradient(to top, black 0%, transparent 100%)',
+                            maskImage: 'linear-gradient(to top, black 0%, transparent 100%)',
+                        }} />
+
+                        {/* ScaleBar */}
+                        {overlayMode !== 'picture' && (
+                            <div className="fixed pointer-events-none"
+                                 style={{ left: 380, right: 0, bottom: 200, zIndex: 9999 }}>
+                                <div style={{ padding: '0 48px 10px' }}>
+                                    <span style={{
+                                        fontSize: 24, fontWeight: 300, letterSpacing: '0.05em',
+                                        color: 'rgba(255,255,255,0.88)', whiteSpace: 'nowrap',
+                                        display: 'block', pointerEvents: 'none',
+                                    }}>
+                                        {overlayMode === 'timeline' ? 'Project Timeline' : 'Follow the Story'}
+                                    </span>
+                                </div>
+                                <ScaleBar
+                                    mode={overlayMode === 'timeline' ? 'dates' : 'chapters'}
+                                    cursorPercent={cursorPercent}
+                                    segments={scaleSegments}
+                                    ticks={scaleTicks}
+                                    startLabel={scaleStartLabel}
+                                    endLabel={scaleEndLabel}
+                                    height={overlayMode === 'timeline' ? 95 : 72}
+                                />
+                            </div>
+                        )}
+
+                        {/* StoryViewPill with fullscreen nav sub-pill */}
+                        <StoryViewPill
+                            storyId={storyId}
+                            currentView="fullscreen"
+                            isVisible={true}
+                            subPill={
+                                <FullscreenNavPill
+                                    onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
+                                    onNext={() => setOverlayCurrentIndex(i => Math.min(overlayActiveSlides.length - 1, i + 1))}
+                                    onClose={handleOverlayClose}
+                                    hasMultiple={overlayActiveSlides.length > 1}
+                                    current={overlayCurrentIndex + 1}
+                                    total={overlayActiveSlides.length}
+                                    mode={overlayMode}
+                                    onModeChange={handleOverlayModeChange}
+                                />
+                            }
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* White dissolve overlay for edit-story transition */}
             <AnimatePresence>

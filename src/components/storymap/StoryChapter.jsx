@@ -23,6 +23,7 @@ export default function StoryChapter({
     mapStyle = 'a',
     onExplore,
     storyId = null,
+    onOpenFullscreen = null,
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
     const navigate = useNavigate();
@@ -116,16 +117,17 @@ export default function StoryChapter({
         handleSlideChange(activeSlideIndex);
     }, [showCarousel]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Navigate to StoryFullscreen route when user clicks a slide image.
-    // Saves scroll position so returning from fullscreen lands back here.
+    // Open the story overlay (or fall back to route navigation) when a slide image is clicked.
     const handleImageClick = (slideIndex) => {
-        if (storyId) {
-            const slide = chapter.slides?.[slideIndex];
+        const slide = chapter.slides?.[slideIndex];
+        if (onOpenFullscreen) {
+            onOpenFullscreen(chapter.id, slide?.id || null);
+        } else if (storyId) {
+            // Legacy fallback — used when StoryChapter is rendered outside StoryMapView
             sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY));
-            const url = createPageUrl(
+            navigate(createPageUrl(
                 `StoryFullscreen?storyId=${storyId}&chapterId=${chapter.id}${slide?.id ? `&slideId=${slide.id}` : ''}`
-            );
-            navigate(url);
+            ));
         }
     };
 

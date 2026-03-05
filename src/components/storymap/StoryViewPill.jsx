@@ -57,6 +57,7 @@ export default function StoryViewPill({
     currentView = 'map',
     isVisible   = false,
     subPill,
+    onOpenStory = null,
 }) {
     const [showChoices,  setShowChoices]  = useState(false);
     const [subPillReady, setSubPillReady] = useState(false);
@@ -102,8 +103,8 @@ export default function StoryViewPill({
             key:   'fullscreen',
             label: 'Story',
             icon:  Maximize2,
-            url:   createPageUrl(`StoryFullscreen?storyId=${storyId}`),
-            onNav: () => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY)),
+            url:   onOpenStory ? null : createPageUrl(`StoryFullscreen?storyId=${storyId}`),
+            onNav: onOpenStory || (() => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY))),
         },
     ];
 
@@ -140,25 +141,29 @@ export default function StoryViewPill({
                                 transition={{ duration: 0.2, ease: 'easeOut' }}
                                 className={pillShell}
                             >
-                                {views.map(({ key, label, icon: Icon, url, onNav }) => (
-                                    <Link
-                                        key={key}
-                                        to={url}
-                                        onClick={() => {
-                                            if (onNav) onNav();
-                                            handleViewSelect();
-                                        }}
-                                        className={cn(
-                                            'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150',
-                                            currentView === key
-                                                ? 'bg-white text-slate-900 shadow-sm'
-                                                : 'text-white/70 hover:bg-white/20 hover:text-white'
-                                        )}
-                                    >
-                                        <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                                        {label}
-                                    </Link>
-                                ))}
+                                {views.map(({ key, label, icon: Icon, url, onNav }) => {
+                                    const btnClass = cn(
+                                        'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150',
+                                        currentView === key
+                                            ? 'bg-white text-slate-900 shadow-sm'
+                                            : 'text-white/70 hover:bg-white/20 hover:text-white'
+                                    );
+                                    const handleClick = () => {
+                                        if (onNav) onNav();
+                                        handleViewSelect();
+                                    };
+                                    return url ? (
+                                        <Link key={key} to={url} onClick={handleClick} className={btnClass}>
+                                            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                                            {label}
+                                        </Link>
+                                    ) : (
+                                        <button key={key} onClick={handleClick} className={btnClass}>
+                                            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                                            {label}
+                                        </button>
+                                    );
+                                })}
                             </motion.div>
                         )}
                     </AnimatePresence>

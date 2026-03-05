@@ -95,6 +95,7 @@ export default function FullScreenImageViewer({
     viewMode     = 'story',    // 'picture' | 'story' | 'timeline'
     hideControlStrip = false,
     hideTextPanel    = false,
+    inOverlay        = false,  // true when rendered as an overlay inside StoryMapView
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
 
@@ -143,23 +144,25 @@ export default function FullScreenImageViewer({
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="fixed inset-0 bg-black/50 z-[9997]"
-                        onClick={onClose}
-                    />
-                    
+                    {/* Backdrop — only shown in standalone (non-overlay) mode */}
+                    {!inOverlay && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed inset-0 bg-black/50 z-[9997]"
+                            onClick={onClose}
+                        />
+                    )}
+
                     {/* Main Content */}
                     <motion.div
-                        initial={{ y: "100vh", opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: "100vh", opacity: 0 }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="fixed inset-0 z-[9998] bg-white overflow-y-auto pointer-events-auto"
+                        initial={inOverlay ? { opacity: 0 } : { y: "100vh", opacity: 0 }}
+                        animate={inOverlay ? { opacity: 1 } : { y: 0, opacity: 1 }}
+                        exit={inOverlay ? { opacity: 0 } : { y: "100vh", opacity: 0 }}
+                        transition={inOverlay ? { duration: 0.4, ease: "easeOut" } : { duration: 1.5, ease: "easeOut" }}
+                        className={`fixed inset-0 z-[9998] overflow-y-auto pointer-events-auto ${inOverlay ? 'bg-slate-950' : 'bg-white'}`}
                     >
                         {/* Image or Video Display */}
                         {/* overflow-hidden clips the push slides so they don't show
