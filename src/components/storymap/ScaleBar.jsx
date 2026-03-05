@@ -98,8 +98,8 @@ export default function ScaleBar({
                             style={{
                                 width:          SLOT_WIDTH,
                                 flexShrink:     0,
-                                paddingLeft:    48,
-                                paddingRight:   16,
+                                paddingLeft:    16,
+                                paddingRight:   32,
                                 height:         '100%',
                                 display:        'flex',
                                 flexDirection:  'column',
@@ -107,7 +107,7 @@ export default function ScaleBar({
                                 background:     'none',
                                 border:         'none',
                                 cursor:         'pointer',
-                                textAlign:      'left',
+                                textAlign:      'right',
                             }}
                         >
                             <div style={{ overflow: 'hidden', maxWidth: '100%' }}>
