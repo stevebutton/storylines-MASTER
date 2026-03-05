@@ -90,6 +90,14 @@ export default function StoryMapView() {
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
     const [showLibraryModal, setShowLibraryModal] = useState(false);
     const libraryPrevViewRef = useRef(null); // 'story' | null — view open beneath library
+    // Capture deep-link params at mount so the effect fires once and doesn't
+    // re-trigger on every searchParams change. Opening early (before showBlackOverlay
+    // clears) prevents the overlay from colliding with the hero title sequence.
+    const deepLinkRef = useRef({
+        view:      searchParams.get('view')      || null,
+        chapterId: searchParams.get('chapterId') || null,
+        slideId:   searchParams.get('slideId')   || null,
+    });
     const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     const [hasExplored, setHasExplored] = useState(false);
@@ -825,20 +833,21 @@ export default function StoryMapView() {
         }, { replace: true });
     };
 
-    // Deep-link: open overlay/library when ?view param is present.
-    // Wait for the hero black overlay to clear first so the hero title
-    // sequence is not covered by the story overlay on page load.
+    // Deep-link: open overlay/library immediately when chapters load.
+    // Captured at mount so it fires once and never conflicts with the hero
+    // title sequence (which only plays on normal loads with no ?view= param).
     useEffect(() => {
-        if (!chapters.length || showBlackOverlay) return;
-        const view = searchParams.get('view');
+        if (!chapters.length || !deepLinkRef.current.view) return;
+        const { view, chapterId, slideId } = deepLinkRef.current;
+        deepLinkRef.current = { view: null, chapterId: null, slideId: null }; // consume
         if (view === 'story') {
-            openOverlay(searchParams.get('chapterId'), searchParams.get('slideId'), 'story');
+            openOverlay(chapterId, slideId, 'story');
         } else if (view === 'timeline') {
             openOverlay(null, null, 'timeline');
         } else if (view === 'library') {
             setShowLibraryModal(true);
         }
-    }, [chapters.length, showBlackOverlay]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [chapters.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (isLoading) {
         return (
