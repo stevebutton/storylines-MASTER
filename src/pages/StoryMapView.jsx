@@ -18,7 +18,6 @@ import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
 import ScaleBar from '@/components/storymap/ScaleBar';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -1294,8 +1293,8 @@ export default function StoryMapView() {
                     <motion.div
                         initial={{ opacity: 0, y: 200 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 200, transition: { duration: 1, ease: [0.25, 1, 0.5, 1] } }}
-                        transition={{ duration: 2, ease: [0.25, 1, 0.5, 1] }}
+                        exit={{ opacity: 0, y: 200, transition: { duration: 2, ease: [0.25, 1, 0.5, 1] } }}
+                        transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }}
                         className="fixed inset-0"
                         style={{ zIndex: 200000 }}
                     >
@@ -1377,47 +1376,25 @@ export default function StoryMapView() {
                 )}
             </AnimatePresence>
 
-            {/* Document Library Sheet */}
-            <Sheet 
-                open={showLibraryModal}
-                onOpenChange={(open) => { if (!open) handleLibraryClose(); }}
-            >
-                <SheetContent
-                    side="bottom"
-                    className="w-full h-[calc(100vh-100px)] top-[100px] z-[200010] pointer-events-auto [&>div:first-child]:bg-transparent [&>div:first-child]:backdrop-blur-none"
-                    style={{
-                        animation: showLibraryModal 
-                            ? 'slideInFromBottom 3s ease-out' 
-                            : 'slideOutToBottom 3s ease-in'
-                    }}
-                >
-                    <SheetHeader className="pl-[200px]">
-                        <SheetTitle className="text-3xl">Document Library</SheetTitle>
-                    </SheetHeader>
-                    <div className="h-[calc(100%-60px)] overflow-auto mt-4">
-                        <DocumentManagerContent storyId={storyId} />
-                    </div>
-                </SheetContent>
-            </Sheet>
-            
-            <style>{`
-                @keyframes slideInFromBottom {
-                    from {
-                        transform: translateY(100%);
-                    }
-                    to {
-                        transform: translateY(0);
-                    }
-                }
-                @keyframes slideOutToBottom {
-                    from {
-                        transform: translateY(0);
-                    }
-                    to {
-                        transform: translateY(100%);
-                    }
-                }
-            `}</style>
+            {/* Document Library — same dissolve + rise transition as story overlay */}
+            <AnimatePresence>
+                {showLibraryModal && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 200 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 200, transition: { duration: 2, ease: [0.25, 1, 0.5, 1] } }}
+                        transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }}
+                        className="fixed left-0 right-0 bottom-0 top-[100px] z-[200010] bg-white pointer-events-auto overflow-hidden flex flex-col"
+                    >
+                        <div className="flex items-center pl-[200px] pr-8 py-5 border-b border-slate-200 flex-shrink-0">
+                            <h2 className="text-3xl font-light text-slate-800">Document Library</h2>
+                        </div>
+                        <div className="flex-1 overflow-auto mt-4">
+                            <DocumentManagerContent storyId={storyId} />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             </div>
             );
             }
