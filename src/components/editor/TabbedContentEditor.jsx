@@ -56,6 +56,12 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'cmmd2lwzp001m01s24puoahpd',
     },
+    g: {
+        label: 'Sauri',
+        description: 'Sauri',
+        owner: 'stevebutton',
+        id: 'cmmd3clf0001o01s2biib8ju2',
+    },
 };
 
 export default function TabbedContentEditor({
