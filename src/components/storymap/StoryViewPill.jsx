@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map, Maximize2, Layers } from 'lucide-react';
+import { Map, Maximize2, Layers, Library } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 
@@ -49,16 +49,17 @@ export const pillDivider = (
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VIEW_ICONS  = { map: Map, fullscreen: Maximize2 };
-const VIEW_LABELS = { map: 'Map', fullscreen: 'Story' };
+const VIEW_ICONS  = { map: Map, fullscreen: Maximize2, library: Library };
+const VIEW_LABELS = { map: 'Map', fullscreen: 'Story', library: 'Library' };
 
 export default function StoryViewPill({
     storyId,
-    currentView = 'map',
-    isVisible   = false,
+    currentView  = 'map',
+    isVisible    = false,
     subPill,
-    onOpenStory = null,
-    onOpenMap   = null,
+    onOpenStory    = null,
+    onOpenMap      = null,
+    onOpenLibrary  = null,
 }) {
     const [showChoices,  setShowChoices]  = useState(false);
     const [subPillReady, setSubPillReady] = useState(false);
@@ -95,18 +96,22 @@ export default function StoryViewPill({
     const views = [
         {
             key:   'map',
-            label: 'Map',
             icon:  Map,
             url:   onOpenMap ? null : createPageUrl(`StoryMapView?id=${storyId}`),
             onNav: onOpenMap || null,
         },
         {
             key:   'fullscreen',
-            label: 'Story',
             icon:  Maximize2,
             url:   onOpenStory ? null : createPageUrl(`StoryFullscreen?storyId=${storyId}`),
             onNav: onOpenStory || (() => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY))),
         },
+        ...(onOpenLibrary ? [{
+            key:   'library',
+            icon:  Library,
+            url:   null,
+            onNav: onOpenLibrary,
+        }] : []),
     ];
 
     return (
@@ -142,7 +147,8 @@ export default function StoryViewPill({
                                 transition={{ duration: 0.2, ease: 'easeOut' }}
                                 className={pillShell}
                             >
-                                {views.map(({ key, label, icon: Icon, url, onNav }) => {
+                                {views.map(({ key, icon: Icon, url, onNav }) => {
+                                    const label = VIEW_LABELS[key];
                                     const btnClass = cn(
                                         'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150',
                                         currentView === key

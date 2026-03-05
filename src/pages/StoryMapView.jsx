@@ -90,6 +90,7 @@ export default function StoryMapView() {
     const [isBannerVisible, setIsBannerVisible] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
     const [showLibraryModal, setShowLibraryModal] = useState(false);
+    const libraryPrevViewRef = useRef(null); // 'story' | null — view open beneath library
     const [heroMediaLoaded, setHeroMediaLoaded] = useState(false);
     const [showBlackOverlay, setShowBlackOverlay] = useState(true);
     const [hasExplored, setHasExplored] = useState(false);
@@ -794,11 +795,38 @@ export default function StoryMapView() {
         setOverlayMode(newMode);
     };
 
-    // Deep-link: open overlay when ?view=story is present after chapters load
+    const handleLibraryOpen = () => {
+        libraryPrevViewRef.current = showStoryOverlay ? 'story' : null;
+        setShowLibraryModal(true);
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set('view', 'library');
+            return next;
+        }, { replace: true });
+    };
+
+    const handleLibraryClose = () => {
+        setShowLibraryModal(false);
+        const prevView = libraryPrevViewRef.current;
+        libraryPrevViewRef.current = null;
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            if (prevView === 'story') {
+                next.set('view', 'story');
+            } else {
+                next.delete('view');
+            }
+            return next;
+        }, { replace: true });
+    };
+
+    // Deep-link: open overlay/library when ?view param is present after chapters load
     useEffect(() => {
         if (!chapters.length) return;
         if (searchParams.get('view') === 'story') {
             openOverlay(searchParams.get('chapterId'), searchParams.get('slideId'));
+        } else if (searchParams.get('view') === 'library') {
+            setShowLibraryModal(true);
         }
     }, [chapters.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -848,7 +876,7 @@ export default function StoryMapView() {
                 hasChapters={chapters.length > 0}
                 mapStyle={story?.map_style || 'a'}
                 onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                onOpenLibrary={() => setShowLibraryModal(true)}
+                onOpenLibrary={handleLibraryOpen}
                 onEditStory={() => setIsEditTransitioning(true)}
             />
             </div>
@@ -1215,9 +1243,10 @@ export default function StoryMapView() {
             {/* Story View Pill — master nav + map controls sub-pill (hidden while story overlay is open) */}
             <StoryViewPill
                 storyId={storyId}
-                currentView="map"
+                currentView={showLibraryModal ? 'library' : 'map'}
                 isVisible={!!storyId && !showStoryOverlay}
                 onOpenStory={() => openOverlay(null, null)}
+                onOpenLibrary={handleLibraryOpen}
                 subPill={
                     <BottomPillBar
                         onZoomIn={() => mapInstanceRef.current?.zoomIn()}
@@ -1250,7 +1279,7 @@ export default function StoryMapView() {
                             storyId={storyId}
                             hasChapters={false}
                             onViewOtherStories={handleOverlayClose}
-                            onOpenLibrary={() => setShowLibraryModal(true)}
+                            onOpenLibrary={handleLibraryOpen}
                             onEditStory={() => setIsEditTransitioning(true)}
                         />
 
@@ -1305,9 +1334,10 @@ export default function StoryMapView() {
                         {/* StoryViewPill with fullscreen nav sub-pill */}
                         <StoryViewPill
                             storyId={storyId}
-                            currentView="fullscreen"
+                            currentView={showLibraryModal ? 'library' : 'fullscreen'}
                             isVisible={true}
                             onOpenMap={handleOverlayClose}
+                            onOpenLibrary={handleLibraryOpen}
                             subPill={
                                 <FullscreenNavPill
                                     onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
@@ -1343,12 +1373,12 @@ export default function StoryMapView() {
 
             {/* Document Library Sheet */}
             <Sheet 
-                open={showLibraryModal} 
-                onOpenChange={setShowLibraryModal}
+                open={showLibraryModal}
+                onOpenChange={(open) => { if (!open) handleLibraryClose(); }}
             >
-                <SheetContent 
-                    side="bottom" 
-                    className="w-full h-[calc(100vh-100px)] top-[100px] z-[95] pointer-events-auto [&>div:first-child]:bg-transparent [&>div:first-child]:backdrop-blur-none"
+                <SheetContent
+                    side="bottom"
+                    className="w-full h-[calc(100vh-100px)] top-[100px] z-[200010] pointer-events-auto [&>div:first-child]:bg-transparent [&>div:first-child]:backdrop-blur-none"
                     style={{
                         animation: showLibraryModal 
                             ? 'slideInFromBottom 3s ease-out' 
