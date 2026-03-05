@@ -235,6 +235,7 @@ export default function ChapterEditor({
                                             <SelectItem value="a">Style A</SelectItem>
                                             <SelectItem value="c">Style C</SelectItem>
                                             <SelectItem value="e">Style E</SelectItem>
+                                            <SelectItem value="f">Plouer</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

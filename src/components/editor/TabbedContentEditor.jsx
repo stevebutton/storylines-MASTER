@@ -50,6 +50,12 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'cmmanazrf000f01qvaghi0jhv',
     },
+    f: {
+        label: 'Plouer',
+        description: 'Plouer',
+        owner: 'stevebutton',
+        id: 'cmmd2lwzp001m01s24puoahpd',
+    },
 };
 
 export default function TabbedContentEditor({
