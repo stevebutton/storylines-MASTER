@@ -1356,7 +1356,7 @@ export default function StoryMapView() {
                         {/* ScaleBar — top of screen, below banner */}
                         {overlayMode !== 'picture' && (
                             <div className="fixed pointer-events-none"
-                                 style={{ left: 380, right: 0, top: 100, zIndex: 9999 }}>
+                                 style={{ left: 380, right: 0, top: 115, zIndex: 9999 }}>
                                 <ScaleBar
                                     mode={overlayMode === 'timeline' ? 'dates' : 'chapters'}
                                     cursorPercent={cursorPercent}
@@ -1364,7 +1364,7 @@ export default function StoryMapView() {
                                     ticks={scaleTicks}
                                     startLabel={scaleStartLabel}
                                     endLabel={scaleEndLabel}
-                                    height={overlayMode === 'timeline' ? 95 : 80}
+                                    height={overlayMode === 'timeline' ? 95 : 90}
                                 />
                             </div>
                         )}

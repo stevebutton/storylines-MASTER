@@ -23,7 +23,7 @@ export default function ScaleBar({
     startLabel    = '',
     endLabel      = '',
 }) {
-    const trackTop = mode === 'chapters' ? 52 : 20;
+    const trackTop = mode === 'chapters' ? 62 : 20;
 
     // Pre-compute cumulative start positions for chapters mode
     const starts = mode === 'chapters' && segments.length > 0
@@ -71,12 +71,12 @@ export default function ScaleBar({
                         >
                             <div style={{ overflow: 'hidden', maxWidth: '100%' }}>
                                 <div style={{
-                                    fontSize:      11,
-                                    fontWeight:    600,
-                                    color:         'rgba(255,255,255,0.6)',
-                                    letterSpacing: '0.12em',
+                                    fontSize:      18,
+                                    fontWeight:    500,
+                                    color:         'rgba(255,255,255,0.7)',
+                                    letterSpacing: '0.1em',
                                     textTransform: 'uppercase',
-                                    lineHeight:    1.3,
+                                    lineHeight:    1.2,
                                     whiteSpace:    'nowrap',
                                     overflow:      'hidden',
                                     textOverflow:  'ellipsis',
@@ -84,12 +84,12 @@ export default function ScaleBar({
                                     {`CHAPTER ${String(seg.chapterNum).padStart(2, '0')}:`}
                                 </div>
                                 <div style={{
-                                    fontSize:      13,
+                                    fontSize:      20,
                                     fontWeight:    500,
-                                    color:         'rgba(255,255,255,0.9)',
+                                    color:         'rgba(255,255,255,1)',
                                     letterSpacing: '0.1em',
                                     textTransform: 'uppercase',
-                                    lineHeight:    1.3,
+                                    lineHeight:    1.2,
                                     whiteSpace:    'nowrap',
                                     overflow:      'hidden',
                                     textOverflow:  'ellipsis',
