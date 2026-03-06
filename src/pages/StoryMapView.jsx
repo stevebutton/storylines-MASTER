@@ -1366,6 +1366,14 @@ export default function StoryMapView() {
                             maskImage: 'linear-gradient(to top, black 0%, transparent 100%)',
                         }} />
 
+                        {/* Top gradient — sits behind ScaleBar, aids track readability */}
+                        {overlayMode !== 'picture' && (
+                            <div className="fixed pointer-events-none" style={{
+                                left: 0, right: 0, top: 100, height: 200, zIndex: 9998,
+                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 100%)',
+                            }} />
+                        )}
+
                         {/* ScaleBar — top of screen, full width, below banner */}
                         {overlayMode !== 'picture' && (
                             <div className="fixed pointer-events-none"
@@ -1378,7 +1386,7 @@ export default function StoryMapView() {
                                     ticks={scaleTicks}
                                     startLabel={scaleStartLabel}
                                     endLabel={scaleEndLabel}
-                                    height={overlayMode === 'timeline' ? 95 : 135}
+                                    height={overlayMode === 'timeline' ? 95 : 140}
                                 />
                             </div>
                         )}
