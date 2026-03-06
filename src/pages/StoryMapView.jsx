@@ -1358,6 +1358,7 @@ export default function StoryMapView() {
                             storyTitle={story?.title || ''}
                             storyId={storyId}
                             hasChapters={false}
+                            mapStyle={story?.map_style || 'a'}
                             onViewOtherStories={handleOverlayClose}
                             onOpenLibrary={handleLibraryOpen}
                             onEditStory={() => setIsEditTransitioning(true)}
@@ -1403,6 +1404,7 @@ export default function StoryMapView() {
                                     mode={overlayMode === 'timeline' ? 'dates' : 'chapters'}
                                     cursorPercent={cursorPercent}
                                     activeChapterIndex={activeChapterIndex}
+                                    mapStyle={story?.map_style || 'a'}
                                     segments={scaleSegments}
                                     ticks={scaleTicks}
                                     startLabel={scaleStartLabel}

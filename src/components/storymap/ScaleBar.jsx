@@ -16,11 +16,14 @@ import { motion, useMotionValue, animate } from 'framer-motion';
 
 const SLOT_WIDTH = 380;
 
+const THEME_FONTS = { c: 'Righteous, cursive' };
+
 export default function ScaleBar({
     cursorPercent      = 0,
     mode               = 'chapters',
     height             = 95,
     activeChapterIndex = 0,
+    mapStyle           = 'a',
     // chapters
     segments           = [],
     // dates
@@ -28,6 +31,7 @@ export default function ScaleBar({
     startLabel         = '',
     endLabel           = '',
 }) {
+    const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const trackTop = 107;
 
     // ── Draggable label row (chapters mode) ──────────────────────────────────
@@ -119,6 +123,7 @@ export default function ScaleBar({
                                     textTransform: 'uppercase',
                                     lineHeight:    1.2,
                                     whiteSpace:    'nowrap',
+                                    fontFamily:    themeFont,
                                 }}>
                                     {`CHAPTER ${String(seg.chapterNum).padStart(2, '0')}:`}
                                 </div>
@@ -129,6 +134,7 @@ export default function ScaleBar({
                                     letterSpacing: '0.1em',
                                     textTransform: 'uppercase',
                                     lineHeight:    1.2,
+                                    fontFamily:    themeFont,
                                 }}>
                                     {seg.label}
                                 </div>

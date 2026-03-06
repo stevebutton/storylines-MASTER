@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map, Maximize2, Layers, Library } from 'lucide-react';
+import { Map, Maximize2, Library } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 
@@ -43,7 +43,7 @@ export const pillDivider = (
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VIEW_LABELS = { map: 'Map', story: 'Story', library: 'Library' };
+const VIEW_LABELS = { map: 'Map View', story: 'Story View', library: 'Library View' };
 
 export default function StoryViewPill({
     storyId,
@@ -88,11 +88,6 @@ export default function StoryViewPill({
                     style={{ top: 108 }}
                 >
                     <div className={pillShell}>
-                        <span className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white/80 select-none whitespace-nowrap">
-                            <Layers className="w-3.5 h-3.5 flex-shrink-0" />
-                            Story View
-                        </span>
-                        {pillDivider}
                         {views.map(({ key, icon: Icon, url, onNav }) => {
                             const btnClass = cn(
                                 'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap',

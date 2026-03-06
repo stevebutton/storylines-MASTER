@@ -16,16 +16,24 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
   // For no-hero stories, immediately re-set to true and fire onHeroLoaded.
   React.useEffect(() => {
     setMediaLoaded(false);
-    // Check whether a media element will actually be rendered —
-    // a video only renders when heroType === 'video' AND heroVideo is set.
-    // An image renders when heroImage is set (and it's not a video story).
     const willRenderVideo = heroType === 'video' && !!heroVideo;
     const willRenderImage = !willRenderVideo && !!heroImage;
-    if (!willRenderVideo && !willRenderImage && onHeroLoaded) {
+    if (!willRenderVideo && !willRenderImage) {
       setMediaLoaded(true);
-      onHeroLoaded();
+      if (onHeroLoaded) onHeroLoaded();
+      return;
     }
-  }, [heroImage, heroVideo, heroType]);
+    // Cached images fire onLoad before React attaches the handler.
+    // Check completion immediately so the content panel always mounts.
+    if (willRenderImage) {
+      const img = new window.Image();
+      img.src = heroImage;
+      if (img.complete && img.naturalWidth > 0) {
+        setMediaLoaded(true);
+        if (onHeroLoaded) onHeroLoaded();
+      }
+    }
+  }, [heroImage, heroVideo, heroType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMediaLoad = () => {
     setMediaLoaded(true);

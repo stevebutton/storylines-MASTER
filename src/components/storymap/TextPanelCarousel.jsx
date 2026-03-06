@@ -165,8 +165,8 @@ const TextPanelCarousel = ({
                                         className={index === currentPage ? 'block' : 'hidden'}
                                     >
                                         <div
-                                            className="text-white leading-relaxed text-base font-light prose prose-sm max-w-none text-right prose-invert"
-                                            style={{ fontFamily: themeFont }}
+                                            className="leading-relaxed text-base font-light prose prose-sm max-w-none text-right prose-invert"
+                                            style={{ color: 'white' }}
                                             dangerouslySetInnerHTML={{ __html: page.content }}
                                         />
                                     </div>
