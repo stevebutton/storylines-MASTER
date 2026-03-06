@@ -83,7 +83,7 @@ export default function ScaleBar({
                         top:           0,
                         left:          0,
                         width:         segments.length * SLOT_WIDTH,
-                        height:        trackTop - 5,
+                        height:        trackTop - 10,
                         pointerEvents: 'auto',
                         touchAction:   'none',
                     }}
@@ -138,11 +138,11 @@ export default function ScaleBar({
                 </motion.div>
             )}
 
-            {/* ── Track line — starts at x=380 (right of text panel) ── */}
+            {/* ── Track line — starts at x=348 (380 minus text panel padding-right 32px) ── */}
             <div
                 className="absolute"
                 style={{
-                    left:       mode === 'chapters' ? 380 : 48,
+                    left:       mode === 'chapters' ? 348 : 48,
                     right:      48,
                     top:        trackTop,
                     height:     3,

@@ -132,14 +132,10 @@ const TextPanelCarousel = ({
 
                     {/* Location */}
                     {location && (
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end">
                             <span className="text-sm text-white" style={{ fontFamily: themeFont }}>
                                 {location}
                             </span>
-                            <div
-                                className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
-                                style={{ background: '#d97706', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
-                            />
                         </div>
                     )}
 

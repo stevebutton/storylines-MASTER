@@ -1369,8 +1369,8 @@ export default function StoryMapView() {
                         {/* Top gradient — sits behind ScaleBar, aids track readability */}
                         {overlayMode !== 'picture' && (
                             <div className="fixed pointer-events-none" style={{
-                                left: 0, right: 0, top: 100, height: 200, zIndex: 9998,
-                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 100%)',
+                                left: 0, right: 0, top: 100, height: 250, zIndex: 9998,
+                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)',
                             }} />
                         )}
 
