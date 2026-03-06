@@ -15,7 +15,7 @@ import { Upload, FileText, Download, Trash2, Edit, Search, Folder } from 'lucide
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 
-export default function DocumentManagerContent({ storyId = null }) {
+export default function DocumentManagerContent({ storyId = null, dark = false }) {
     const queryClient = useQueryClient();
     const [user, setUser] = useState(null);
     const [selectedDocs, setSelectedDocs] = useState([]);
@@ -155,7 +155,7 @@ export default function DocumentManagerContent({ storyId = null }) {
     return (
         <div className="flex flex-col h-full space-y-6 overflow-y-auto">
             {/* Toolbar */}
-            <Card>
+            <Card className={dark ? 'bg-transparent border-white/20' : ''}>
                 <CardContent className="p-4">
                     <div className="flex flex-wrap gap-4 items-center justify-between">
                         <div className="flex gap-2 flex-1">
@@ -224,22 +224,21 @@ export default function DocumentManagerContent({ storyId = null }) {
                 {filteredDocs.map((doc) => (
                     <div
                         key={doc.id}
-                        className="group relative cursor-pointer rounded-xl overflow-hidden bg-slate-900 shadow-lg hover:shadow-2xl transition-shadow duration-200"
+                        className="group relative cursor-pointer rounded-xl overflow-hidden bg-white/10 border border-white/15 hover:bg-white/[0.15] transition-colors duration-200"
                         onClick={() => {
                             setCurrentDoc(doc);
                             setShowPdfDialog(true);
                         }}
                     >
-                        {/* Thumbnail — portrait PDF ratio */}
-                        <div className="aspect-[3/4] overflow-hidden">
-                            <PdfThumbnail url={doc.file_url} className="w-full h-full object-cover" />
+                        {/* Thumbnail — slightly inset, portrait ratio ~10% shorter than 3/4 */}
+                        <div className="m-2 rounded-lg overflow-hidden">
+                            <div className="aspect-[5/6]">
+                                <PdfThumbnail url={doc.file_url} className="w-full h-full object-cover" />
+                            </div>
                         </div>
 
-                        {/* Title bar — always visible */}
-                        <div
-                            className="absolute bottom-0 left-0 right-0 px-3 pt-10 pb-3"
-                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)' }}
-                        >
+                        {/* Title + category */}
+                        <div className="px-3 pb-3">
                             <p className="text-white text-sm font-medium leading-snug line-clamp-2">{doc.title}</p>
                             {doc.category && doc.category !== 'other' && (
                                 <p className="text-white/55 text-xs mt-0.5 uppercase tracking-widest">{doc.category}</p>
@@ -247,7 +246,7 @@ export default function DocumentManagerContent({ storyId = null }) {
                         </div>
 
                         {/* Hover overlay — View button */}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             <span className="bg-white text-slate-900 px-5 py-2 rounded-full text-sm font-medium shadow-lg">
                                 View
                             </span>
@@ -395,7 +394,7 @@ export default function DocumentManagerContent({ storyId = null }) {
             {/* PDF Viewer Dialog */}
             {currentDoc && (
                 <Dialog open={showPdfDialog} onOpenChange={setShowPdfDialog}>
-                    <DialogContent className="max-w-6xl h-[80vh] z-[100000]">
+                    <DialogContent className="max-w-6xl h-[80vh] z-[300000]">
                         <DialogHeader>
                             <DialogTitle>{currentDoc.title}</DialogTitle>
                         </DialogHeader>

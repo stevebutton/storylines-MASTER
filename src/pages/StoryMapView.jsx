@@ -1443,11 +1443,11 @@ export default function StoryMapView() {
                         className="fixed z-[200010] backdrop-blur-xl rounded-2xl pointer-events-auto overflow-hidden flex flex-col"
                         style={{ top: 150, left: 50, right: 50, bottom: 50 }}
                     >
-                        <div className="flex items-center pl-[200px] pr-8 py-5 border-b border-slate-200 flex-shrink-0">
-                            <h2 className="text-3xl font-light text-slate-800">Document Library</h2>
+                        <div className="flex items-center pl-[200px] pr-8 py-5 border-b border-white/20 flex-shrink-0">
+                            <h2 className="text-3xl font-light text-white">Document Library</h2>
                         </div>
                         <div className="flex-1 overflow-auto mt-4">
-                            <DocumentManagerContent storyId={storyId} />
+                            <DocumentManagerContent storyId={storyId} dark />
                         </div>
                     </motion.div>
                 )}
