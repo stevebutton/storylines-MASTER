@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -221,24 +222,27 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
 
             {/* Documents Grid - 5 columns */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {filteredDocs.map((doc) => (
-                    <div
+                {filteredDocs.map((doc, index) => (
+                    <motion.div
                         key={doc.id}
                         className="group relative cursor-pointer rounded-xl overflow-hidden bg-white/10 border border-white/15 hover:bg-white/[0.15] transition-colors duration-200"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, ease: 'easeOut', delay: Math.min(index * 0.04, 0.3) }}
                         onClick={() => {
                             setCurrentDoc(doc);
                             setShowPdfDialog(true);
                         }}
                     >
                         {/* Thumbnail — slightly inset, portrait ratio ~10% shorter than 3/4 */}
-                        <div className="m-2 rounded-lg overflow-hidden">
+                        <div className="m-5 rounded-lg overflow-hidden">
                             <div className="aspect-[5/6]">
                                 <PdfThumbnail url={doc.file_url} className="w-full h-full object-cover" />
                             </div>
                         </div>
 
                         {/* Title + category */}
-                        <div className="px-3 pb-3">
+                        <div className="px-5 pb-5">
                             <p className="text-white text-sm font-medium leading-snug line-clamp-2">{doc.title}</p>
                             {doc.category && doc.category !== 'other' && (
                                 <p className="text-white/55 text-xs mt-0.5 uppercase tracking-widest">{doc.category}</p>
@@ -265,7 +269,7 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
                                 </Button>
                             </div>
                         )}
-                    </div>
+                    </motion.div>
                 ))}
             </div>
 

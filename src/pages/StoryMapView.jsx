@@ -1432,7 +1432,20 @@ export default function StoryMapView() {
                 )}
             </AnimatePresence>
 
-            {/* Document Library — same dissolve + rise transition as story overlay */}
+            {/* Document Library — full-viewport blur layer */}
+            <AnimatePresence>
+                {showLibraryModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                        className="fixed inset-0 z-[200009] backdrop-blur-xl"
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Document Library — panel with margins */}
             <AnimatePresence>
                 {showLibraryModal && (
                     <motion.div
@@ -1440,7 +1453,7 @@ export default function StoryMapView() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 200, transition: { duration: 2, ease: [0.25, 1, 0.5, 1] } }}
                         transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }}
-                        className="fixed z-[200010] backdrop-blur-xl rounded-2xl pointer-events-auto overflow-hidden flex flex-col"
+                        className="fixed z-[200010] rounded-2xl pointer-events-auto overflow-hidden flex flex-col"
                         style={{ top: 150, left: 50, right: 50, bottom: 50 }}
                     >
                         <div className="flex items-center pl-[200px] pr-8 py-5 border-b border-white/20 flex-shrink-0">
