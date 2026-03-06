@@ -67,13 +67,14 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
             {/* Scrollable thumbnail row */}
             <div
                 ref={stripRef}
-                className="absolute inset-0 flex items-center px-4"
+                className="absolute inset-0 flex px-4"
                 style={{
                     gap:             46,
                     overflowX:       'auto',
                     scrollbarWidth:  'none',
                     msOverflowStyle: 'none',
-                    alignItems:      'center',
+                    alignItems:      'flex-end',
+                    paddingBottom:   10,
                 }}
             >
                 {slides.map((slide, i) => {
