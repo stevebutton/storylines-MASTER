@@ -219,85 +219,54 @@ export default function DocumentManagerContent({ storyId = null }) {
                 </CardContent>
             </Card>
 
-            {/* Documents Grid - 4 columns */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Documents Grid - 5 columns */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {filteredDocs.map((doc) => (
-                    <Card key={doc.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between mb-3">
-                                {user && (
-                                    <Checkbox
-                                        checked={selectedDocs.includes(doc.id)}
-                                        onCheckedChange={(checked) => {
-                                            setSelectedDocs(prev =>
-                                                checked ? [...prev, doc.id] : prev.filter(id => id !== doc.id)
-                                            );
-                                        }}
-                                    />
-                                )}
-                                {user && (
-                                    <div className="flex gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => {
-                                                setCurrentDoc(doc);
-                                                setShowEditDialog(true);
-                                            }}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => deleteDocMutation.mutate(doc.id)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
+                    <div
+                        key={doc.id}
+                        className="group relative cursor-pointer rounded-xl overflow-hidden bg-slate-900 shadow-lg hover:shadow-2xl transition-shadow duration-200"
+                        onClick={() => {
+                            setCurrentDoc(doc);
+                            setShowPdfDialog(true);
+                        }}
+                    >
+                        {/* Thumbnail — portrait PDF ratio */}
+                        <div className="aspect-[3/4] overflow-hidden">
+                            <PdfThumbnail url={doc.file_url} className="w-full h-full object-cover" />
+                        </div>
 
-                            {/* PDF Thumbnail */}
-                            <div 
-                                className="rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:border-amber-600 transition-colors"
-                                onClick={() => {
-                                    setCurrentDoc(doc);
-                                    setShowPdfDialog(true);
-                                }}
-                            >
-                                <PdfThumbnail url={doc.file_url} className="w-full h-48" />
-                            </div>
+                        {/* Title bar — always visible */}
+                        <div
+                            className="absolute bottom-0 left-0 right-0 px-3 pt-10 pb-3"
+                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)' }}
+                        >
+                            <p className="text-white text-sm font-medium leading-snug line-clamp-2">{doc.title}</p>
+                            {doc.category && doc.category !== 'other' && (
+                                <p className="text-white/55 text-xs mt-0.5 uppercase tracking-widest">{doc.category}</p>
+                            )}
+                        </div>
 
-                            <CardTitle className="text-lg mt-3">
-                                {doc.title}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-slate-600 mb-3 line-clamp-2">
-                                {doc.description || 'No description'}
-                            </p>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                <Badge variant="secondary">{doc.category}</Badge>
-                                {doc.folder && (
-                                    <Badge variant="outline">
-                                        <Folder className="w-3 h-3 mr-1" />
-                                        {doc.folder}
-                                    </Badge>
-                                )}
+                        {/* Hover overlay — View button */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <span className="bg-white text-slate-900 px-5 py-2 rounded-full text-sm font-medium shadow-lg">
+                                View
+                            </span>
+                        </div>
+
+                        {/* Edit / delete — only for authenticated users */}
+                        {user && (
+                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <Button variant="ghost" size="icon" className="w-7 h-7 bg-black/40 hover:bg-black/60 text-white"
+                                    onClick={(e) => { e.stopPropagation(); setCurrentDoc(doc); setShowEditDialog(true); }}>
+                                    <Edit className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="w-7 h-7 bg-black/40 hover:bg-black/60 text-white"
+                                    onClick={(e) => { e.stopPropagation(); deleteDocMutation.mutate(doc.id); }}>
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
                             </div>
-                            <Button
-                                className="w-full"
-                                variant="outline"
-                                onClick={() => {
-                                    setCurrentDoc(doc);
-                                    setShowPdfDialog(true);
-                                }}
-                            >
-                                View Document
-                            </Button>
-                        </CardContent>
-                    </Card>
+                        )}
+                    </div>
                 ))}
             </div>
 
