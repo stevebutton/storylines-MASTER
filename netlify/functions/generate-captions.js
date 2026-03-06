@@ -65,7 +65,7 @@ Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${contextBlock}
 Respond with valid JSON only, no other text:
 {
   "title": "A compelling slide title in this voice style. 4–8 words.",
-  "text": "Up to 1440 characters total. Begin with a self-contained lead-in of no more than 340 characters that works as a standalone caption, then continue with extended description for the remaining characters. The total must exceed 340 characters."
+  "text": "Up to 1440 characters total. Begin with a self-contained lead-in of no more than 320 characters that works as a standalone caption, then continue with extended description for the remaining characters. The total must exceed 320 characters."
 }`;
 
         try {
@@ -89,7 +89,7 @@ Respond with valid JSON only, no other text:
             }
 
             const title = parsed.title?.trim() || slide.title;
-            const [description, extended_content] = splitAtBoundary(parsed.text?.trim() || '', 340);
+            const [description, extended_content] = splitAtBoundary(parsed.text?.trim() || '', 320);
 
             if (description) {
                 await supabase.from('slides').update({

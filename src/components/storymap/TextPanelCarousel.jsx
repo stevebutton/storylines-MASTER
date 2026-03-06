@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const PANEL_WIDTH = 380;
 
 // Split HTML content at </p> boundaries, counting only text characters.
-const splitHtmlIntoPages = (html, maxChars = 750) => {
+const splitHtmlIntoPages = (html, maxChars = 700) => {
     if (!html) return [html];
     const paragraphRegex = /<p[^>]*>.*?<\/p>/gi;
     const paragraphs = html.match(paragraphRegex);
