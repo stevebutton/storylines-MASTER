@@ -1276,49 +1276,70 @@ export default function StoryMapView() {
                 storyId={storyId}
                 currentView={
                     showLibraryModal ? 'library' :
-                    showStoryOverlay ? (overlayMode === 'timeline' ? 'timeline' : 'fullscreen') :
+                    showStoryOverlay ? 'story' :
                     'map'
                 }
                 isVisible={!!storyId}
                 onOpenMap={
-                    showLibraryModal  ? handleLibraryClose :
-                    showStoryOverlay  ? handleOverlayClose : null
+                    showLibraryModal ? handleLibraryClose :
+                    showStoryOverlay ? handleOverlayClose : null
                 }
                 onOpenStory={() => {
                     if (showLibraryModal) setShowLibraryModal(false);
                     if (showStoryOverlay) handleOverlayModeChange('story');
                     else openOverlay(null, activeSlide?.id || null, 'story');
                 }}
-                onOpenTimeline={() => {
-                    if (showLibraryModal) setShowLibraryModal(false);
-                    if (showStoryOverlay) handleOverlayModeChange('timeline');
-                    else openOverlay(null, activeSlide?.id || null, 'timeline');
-                }}
                 onOpenLibrary={handleLibraryOpen}
-                subPill={showStoryOverlay ? (
-                    <FullscreenNavPill
-                        onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
-                        onNext={() => setOverlayCurrentIndex(i => Math.min(overlayActiveSlides.length - 1, i + 1))}
-                        onClose={handleOverlayClose}
-                        hasMultiple={overlayActiveSlides.length > 1}
-                        current={overlayCurrentIndex + 1}
-                        total={overlayActiveSlides.length}
-                        mode={overlayMode}
-                        onModeChange={handleOverlayModeChange}
-                    />
-                ) : (
-                    <BottomPillBar
-                        onZoomIn={() => mapInstanceRef.current?.zoomIn()}
-                        onZoomOut={() => mapInstanceRef.current?.zoomOut()}
-                        onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}
-                        showRoute={showRoute}
-                        onToggleRoute={() => setShowRoute(v => !v)}
-                        showMarkers={showMarkers}
-                        onToggleMarkers={() => setShowMarkers(v => !v)}
-                        onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
-                    />
-                )}
             />
+
+            {/* Sub-pill — bottom left, contextual controls */}
+            {!!storyId && (
+                <AnimatePresence mode="wait">
+                    {showStoryOverlay ? (
+                        <motion.div
+                            key="fullscreen-nav"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="fixed left-6 z-[200020] pointer-events-auto"
+                            style={{ bottom: 40 }}
+                        >
+                            <FullscreenNavPill
+                                onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
+                                onNext={() => setOverlayCurrentIndex(i => Math.min(overlayActiveSlides.length - 1, i + 1))}
+                                onClose={handleOverlayClose}
+                                hasMultiple={overlayActiveSlides.length > 1}
+                                current={overlayCurrentIndex + 1}
+                                total={overlayActiveSlides.length}
+                                mode={overlayMode}
+                                onModeChange={handleOverlayModeChange}
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="bottom-pill"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="fixed left-6 z-[200020] pointer-events-auto"
+                            style={{ bottom: 40 }}
+                        >
+                            <BottomPillBar
+                                onZoomIn={() => mapInstanceRef.current?.zoomIn()}
+                                onZoomOut={() => mapInstanceRef.current?.zoomOut()}
+                                onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}
+                                showRoute={showRoute}
+                                onToggleRoute={() => setShowRoute(v => !v)}
+                                showMarkers={showMarkers}
+                                onToggleMarkers={() => setShowMarkers(v => !v)}
+                                onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            )}
 
 
             {/* ── Story overlay ── immersive reader rendered over the live map ── */}
