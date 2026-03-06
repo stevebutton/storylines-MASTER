@@ -132,7 +132,7 @@ const TextPanelCarousel = ({
 
                     {/* Location */}
                     {location && (
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-end" style={{ paddingRight: 15 }}>
                             <span className="text-sm text-white" style={{ fontFamily: themeFont }}>
                                 {location}
                             </span>

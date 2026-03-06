@@ -87,8 +87,8 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                             onClick={() => onNavigate(i)}
                             className="relative flex-shrink-0 rounded-md overflow-hidden focus:outline-none"
                             animate={{
-                                width:   isCurrent ? (isExpanded ? 140 : 120) : (isExpanded ? 114 : 96),
-                                height:  isCurrent ? (isExpanded ? 125 : 62)  : (isExpanded ? 104 : 57),
+                                width:   isCurrent ? (isExpanded ? 126 : 120) : (isExpanded ? 103 : 96),
+                                height:  isCurrent ? (isExpanded ? 65  : 62)  : (isExpanded ? 61  : 57),
                                 opacity: isCurrent ? 1 : (isExpanded ? 0.85 : 0.72),
                             }}
                             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
@@ -118,14 +118,6 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                     );
                 })}
             </div>
-
-            {/* Left edge scroll zone */}
-            <div
-                className="absolute left-0 top-0 bottom-0 w-10 pointer-events-auto"
-                style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.4), transparent)' }}
-                onMouseEnter={() => startEdgeScroll(-1)}
-                onMouseLeave={stopEdgeScroll}
-            />
 
             {/* Right edge scroll zone */}
             <div
