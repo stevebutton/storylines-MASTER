@@ -151,7 +151,7 @@ export default function ScaleBar({
                     left:       358,
                     right:      48,
                     top:        trackTop,
-                    height:     3,
+                    height:     1,
                     background: 'rgba(255,255,255,0.85)',
                 }}
             >

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Map, Maximize2, Library } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 
@@ -58,19 +57,16 @@ export default function StoryViewPill({
     const views = [
         {
             key:   'map',
-            icon:  Map,
             url:   onOpenMap ? null : createPageUrl(`StoryMapView?id=${storyId}`),
             onNav: onOpenMap || null,
         },
         {
             key:   'story',
-            icon:  Maximize2,
             url:   onOpenStory ? null : createPageUrl(`StoryFullscreen?storyId=${storyId}`),
             onNav: onOpenStory || (() => sessionStorage.setItem(`return_scroll_${storyId}`, String(window.scrollY))),
         },
         ...(onOpenLibrary ? [{
             key:   'library',
-            icon:  Library,
             url:   null,
             onNav: onOpenLibrary,
         }] : []),
@@ -88,9 +84,9 @@ export default function StoryViewPill({
                     style={{ top: 108 }}
                 >
                     <div className={pillShell}>
-                        {views.map(({ key, icon: Icon, url, onNav }) => {
+                        {views.map(({ key, url, onNav }) => {
                             const btnClass = cn(
-                                'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap',
+                                'px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap',
                                 currentView === key
                                     ? 'bg-white text-slate-900 shadow-sm'
                                     : 'text-white/70 hover:bg-white/20 hover:text-white'
@@ -98,12 +94,10 @@ export default function StoryViewPill({
                             const handleClick = () => { if (onNav) onNav(); };
                             return url ? (
                                 <Link key={key} to={url} onClick={handleClick} className={btnClass}>
-                                    <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                                     {VIEW_LABELS[key]}
                                 </Link>
                             ) : (
                                 <button key={key} onClick={handleClick} className={btnClass}>
-                                    <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                                     {VIEW_LABELS[key]}
                                 </button>
                             );
