@@ -1353,7 +1353,7 @@ export default function StoryMapView() {
                             viewMode={overlayMode}
                             hideControlStrip={true}
                             hideTextPanel={overlayMode === 'picture'}
-                            hideChapterTitle={true}
+                            hideChapterTitle={overlayMode === 'story'}
                             inOverlay={true}
                         />
 
@@ -1386,7 +1386,7 @@ export default function StoryMapView() {
                                     ticks={scaleTicks}
                                     startLabel={scaleStartLabel}
                                     endLabel={scaleEndLabel}
-                                    height={overlayMode === 'timeline' ? 95 : 140}
+                                    height={140}
                                 />
                             </div>
                         )}

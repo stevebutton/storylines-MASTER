@@ -28,7 +28,7 @@ export default function ScaleBar({
     startLabel         = '',
     endLabel           = '',
 }) {
-    const trackTop = mode === 'chapters' ? 107 : 20;
+    const trackTop = 107;
 
     // ── Draggable label row (chapters mode) ──────────────────────────────────
     const x         = useMotionValue(0);
@@ -138,11 +138,11 @@ export default function ScaleBar({
                 </motion.div>
             )}
 
-            {/* ── Track line — starts at x=348 (380 minus text panel padding-right 32px) ── */}
+            {/* ── Track line — starts at x=358 (right of text panel) in both modes ── */}
             <div
                 className="absolute"
                 style={{
-                    left:       mode === 'chapters' ? 358 : 48,
+                    left:       358,
                     right:      48,
                     top:        trackTop,
                     height:     3,
@@ -188,30 +188,33 @@ export default function ScaleBar({
                     <>
                         {ticks.map((tick, i) => (
                             <React.Fragment key={`${tick.label}-${i}`}>
+                                {/* Tick mark — below track */}
                                 <div style={{
                                     position:      'absolute',
                                     left:          `${tick.percent}%`,
                                     top:           3,
                                     width:         tick.isYear ? 4 : 2,
-                                    height:        tick.isYear ? 34 : 26,
+                                    height:        tick.isYear ? 26 : 20,
                                     background:    tick.isYear
                                         ? 'rgba(255,255,255,1)'
-                                        : 'rgba(255,255,255,0.7)',
+                                        : 'rgba(255,255,255,0.6)',
                                     transform:     'translateX(-50%)',
                                     pointerEvents: 'none',
                                 }} />
+                                {/* Label — above track, styled to match chapter titles */}
                                 <span style={{
                                     position:      'absolute',
                                     left:          `${tick.percent}%`,
-                                    top:           tick.isYear ? 40 : 32,
+                                    top:           tick.isYear ? -28 : -24,
                                     transform:     'translateX(-50%)',
-                                    fontSize:      tick.isYear ? 26 : 18,
-                                    fontWeight:    tick.isYear ? 700 : 400,
+                                    fontSize:      tick.isYear ? 20 : 18,
+                                    fontWeight:    500,
                                     color:         tick.isYear
                                         ? 'rgba(255,255,255,1)'
-                                        : 'rgba(255,255,255,0.9)',
+                                        : 'rgba(255,255,255,0.7)',
                                     whiteSpace:    'nowrap',
-                                    letterSpacing: tick.isYear ? '0.05em' : '0.02em',
+                                    letterSpacing: '0.1em',
+                                    textTransform: 'uppercase',
                                     pointerEvents: 'none',
                                     lineHeight:    1,
                                 }}>
@@ -219,37 +222,6 @@ export default function ScaleBar({
                                 </span>
                             </React.Fragment>
                         ))}
-
-                        {startLabel && (
-                            <span style={{
-                                position:      'absolute',
-                                left:          0,
-                                top:           32,
-                                transform:     'translateX(-50%)',
-                                fontSize:      14,
-                                color:         'rgba(255,255,255,0.6)',
-                                whiteSpace:    'nowrap',
-                                letterSpacing: '0.04em',
-                                pointerEvents: 'none',
-                            }}>
-                                {startLabel}
-                            </span>
-                        )}
-                        {endLabel && (
-                            <span style={{
-                                position:      'absolute',
-                                right:         0,
-                                top:           32,
-                                transform:     'translateX(50%)',
-                                fontSize:      14,
-                                color:         'rgba(255,255,255,0.6)',
-                                whiteSpace:    'nowrap',
-                                letterSpacing: '0.04em',
-                                pointerEvents: 'none',
-                            }}>
-                                {endLabel}
-                            </span>
-                        )}
                     </>
                 )}
             </div>

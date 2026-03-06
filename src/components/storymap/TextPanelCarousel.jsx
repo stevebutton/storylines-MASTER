@@ -64,9 +64,10 @@ const TextPanelCarousel = ({
         : (extendedContent ? [extendedContent] : []);
 
     const splitExtended = extendedArray.flatMap(c => splitHtmlIntoPages(c));
+    const firstPage = [description, splitExtended[0]].filter(Boolean).join('');
     const pages = [
-        ...(description ? [{ content: description }] : []),
-        ...splitExtended.map(content => ({ content })),
+        ...(firstPage ? [{ content: firstPage }] : []),
+        ...splitExtended.slice(1).map(content => ({ content })),
     ];
 
     // Reset to page 0 on slide change
