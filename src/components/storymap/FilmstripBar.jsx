@@ -6,9 +6,9 @@ import { Play } from 'lucide-react';
  * FilmstripBar
  *
  * All thumbnails visible at consistent opacity — no feathering.
- * Slide title below thumbnail: 14px, left-aligned, up to 2 lines.
- * Thumbnails sized +30% vs. previous, gap 46px between items.
- * Collapsed: 112px. Expanded (hover): 172px.
+ * No slide titles. Gap 46px between items.
+ * Collapsed: 80px. Expanded (hover): 140px.
+ * Centered on the sub-pill (bottom: 40).
  */
 export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -58,10 +58,10 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     return (
         <motion.div
             className="fixed right-0 z-[9999] pointer-events-auto overflow-hidden"
-            style={{ left: 380, bottom: 72 }}
+            style={{ left: 380, bottom: 40 }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
-            animate={{ height: isExpanded ? 172 : 112 }}
+            animate={{ height: isExpanded ? 140 : 80 }}
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* Scrollable thumbnail row */}
@@ -81,66 +81,40 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                     const src = slide.video_thumbnail_url || slide.image;
 
                     return (
-                        <div
+                        <motion.button
                             key={i}
                             ref={el => thumbRefs.current[i] = el}
-                            className="flex-shrink-0 flex flex-col"
-                            style={{ gap: 5, alignItems: 'flex-start' }}
+                            onClick={() => onNavigate(i)}
+                            className="relative flex-shrink-0 rounded-md overflow-hidden focus:outline-none"
+                            animate={{
+                                width:   isCurrent ? (isExpanded ? 140 : 120) : (isExpanded ? 114 : 96),
+                                height:  isCurrent ? (isExpanded ? 125 : 62)  : (isExpanded ? 104 : 57),
+                                opacity: isCurrent ? 1 : (isExpanded ? 0.85 : 0.72),
+                            }}
+                            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                            style={{
+                                boxShadow: i === activeRingIndex
+                                    ? '0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.5)'
+                                    : 'none',
+                                minWidth: 0,
+                            }}
                             onMouseEnter={() => setHoveredIndex(i)}
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
-                            {/* Thumbnail — 30% larger than previous iteration */}
-                            <motion.button
-                                onClick={() => onNavigate(i)}
-                                animate={{
-                                    width:   isCurrent ? (isExpanded ? 140 : 120) : (isExpanded ? 114 : 96),
-                                    height:  isCurrent ? (isExpanded ? 125 : 62)  : (isExpanded ? 104 : 57),
-                                    opacity: isCurrent ? 1 : (isExpanded ? 0.85 : 0.72),
-                                }}
-                                transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                                className="relative flex-shrink-0 rounded-md overflow-hidden focus:outline-none"
-                                style={{
-                                    boxShadow: i === activeRingIndex
-                                        ? '0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.5)'
-                                        : 'none',
-                                    minWidth: 0,
-                                }}
-                            >
-                                {src
-                                    ? <img
-                                        src={src}
-                                        alt={slide.title || `Slide ${i + 1}`}
-                                        className="w-full h-full object-cover"
-                                      />
-                                    : <div className="w-full h-full bg-slate-700" />
-                                }
-                                {slide.video_url && (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <Play className="w-4 h-4 text-white fill-white drop-shadow" />
-                                    </div>
-                                )}
-                            </motion.button>
-
-                            {/* Slide title — 2 lines, left-aligned, 14px */}
-                            {slide.title && (
-                                <span style={{
-                                    display:         '-webkit-box',
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical',
-                                    overflow:        'hidden',
-                                    fontSize:        14,
-                                    lineHeight:      1.3,
-                                    color:           isCurrent
-                                        ? 'rgba(255,255,255,0.92)'
-                                        : 'rgba(255,255,255,0.55)',
-                                    maxWidth:        isCurrent ? (isExpanded ? 140 : 120) : (isExpanded ? 114 : 96),
-                                    textAlign:       'left',
-                                    whiteSpace:      'normal',
-                                }}>
-                                    {slide.title}
-                                </span>
+                            {src
+                                ? <img
+                                    src={src}
+                                    alt={`Slide ${i + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                : <div className="w-full h-full bg-slate-700" />
+                            }
+                            {slide.video_url && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Play className="w-4 h-4 text-white fill-white drop-shadow" />
+                                </div>
                             )}
-                        </div>
+                        </motion.button>
                     );
                 })}
             </div>

@@ -129,8 +129,8 @@ export default function StoryViewPill({
                     transition={{ duration: 0.35, ease: 'easeOut' }}
                     // Fixed height reserves space for both rows so the pill stays
                     // pinned at the bottom as the sub-pill appears below it.
-                    className="fixed bottom-6 left-6 z-[200020] flex flex-col items-start gap-2 pointer-events-auto"
-                    style={{ height: '100px' }}
+                    className="fixed left-6 z-[200020] flex flex-col items-start gap-2 pointer-events-auto"
+                    style={{ bottom: 40, height: '120px' }}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                 >

@@ -142,7 +142,7 @@ export default function ScaleBar({
             <div
                 className="absolute"
                 style={{
-                    left:       mode === 'chapters' ? 348 : 48,
+                    left:       mode === 'chapters' ? 358 : 48,
                     right:      48,
                     top:        trackTop,
                     height:     3,
