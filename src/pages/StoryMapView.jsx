@@ -1440,7 +1440,8 @@ export default function StoryMapView() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 200, transition: { duration: 2, ease: [0.25, 1, 0.5, 1] } }}
                         transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }}
-                        className="fixed left-0 right-0 bottom-0 top-[100px] z-[200010] bg-white pointer-events-auto overflow-hidden flex flex-col"
+                        className="fixed z-[200010] backdrop-blur-xl rounded-2xl pointer-events-auto overflow-hidden flex flex-col"
+                        style={{ top: 150, left: 50, right: 50, bottom: 50 }}
                     >
                         <div className="flex items-center pl-[200px] pr-8 py-5 border-b border-slate-200 flex-shrink-0">
                             <h2 className="text-3xl font-light text-slate-800">Document Library</h2>
