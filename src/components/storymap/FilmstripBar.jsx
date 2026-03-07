@@ -61,8 +61,13 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
             style={{ left: 380, bottom: 40 }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
-            animate={{ height: isExpanded ? 140 : 80 }}
-            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            initial={{ opacity: 0, y: 30, height: 80 }}
+            animate={{ opacity: 1, y: 0, height: isExpanded ? 140 : 80 }}
+            transition={{
+                opacity: { delay: 3, duration: 1, ease: 'easeOut' },
+                y:       { delay: 3, duration: 1, ease: 'easeOut' },
+                height:  { duration: 0.35, ease: [0.4, 0, 0.2, 1] },
+            }}
         >
             {/* Scrollable thumbnail row */}
             <div

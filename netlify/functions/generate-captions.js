@@ -21,8 +21,10 @@ async function reverseGeocode(lat, lng, token) {
         const feature = data.features?.[0];
         if (!feature) { console.error('[geocode] No features returned for', lat, lng); return null; }
         const placeName = feature.text;
+        const city = feature.context?.find(c => c.id.startsWith('place'))?.text;
         const country = feature.context?.find(c => c.id.startsWith('country'))?.text;
-        const result = country ? `${placeName}, ${country}` : feature.place_name;
+        const parts = [placeName, city, country].filter(Boolean);
+        const result = parts.length > 1 ? parts.join(', ') : feature.place_name;
         console.log('[geocode]', lat, lng, '→', result);
         return result;
     } catch (e) {

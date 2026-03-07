@@ -205,19 +205,21 @@ export default function StoryMapView() {
     }, [story?.id, isLoading]);
 
     // Set initial map config from story opening view — jump instantly (no animation)
-    // because the black overlay is covering the map at this point
+    // because the black overlay is covering the map at this point.
+    // mapStyle is always applied even if no opening coordinates are saved.
     useEffect(() => {
-        if (story && story.coordinates) {
-            setMapConfig(prev => ({
-                ...prev,
-                center: story.coordinates,
-                zoom: story.zoom || 2,
-                mapStyle: story.map_style || 'a',
-                bearing: story.bearing || 0,
-                pitch: story.pitch || 0,
-                instant: true
-            }));
-        }
+        if (!story) return;
+        setMapConfig(prev => {
+            const update = { ...prev, mapStyle: story.map_style || 'a' };
+            if (story.coordinates) {
+                update.center    = story.coordinates;
+                update.zoom      = story.zoom || 2;
+                update.bearing   = story.bearing || 0;
+                update.pitch     = story.pitch || 0;
+                update.instant   = true;
+            }
+            return update;
+        });
     }, [story]);
 
     // Update og:image meta tag for social media sharing
@@ -1400,8 +1402,13 @@ export default function StoryMapView() {
 
                         {/* ScaleBar — top of screen, full width, below banner */}
                         {overlayMode !== 'picture' && (
-                            <div className="fixed pointer-events-none"
-                                 style={{ left: 0, right: 0, top: 115, zIndex: 9999 }}>
+                            <motion.div
+                                className="fixed pointer-events-none"
+                                style={{ left: 0, right: 0, top: 115, zIndex: 9999 }}
+                                initial={{ opacity: 0, y: -30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 2, duration: 1, ease: 'easeOut' }}
+                            >
                                 <ScaleBar
                                     mode={overlayMode === 'timeline' ? 'dates' : 'chapters'}
                                     cursorPercent={cursorPercent}
@@ -1413,7 +1420,7 @@ export default function StoryMapView() {
                                     endLabel={scaleEndLabel}
                                     height={140}
                                 />
-                            </div>
+                            </motion.div>
                         )}
 
                     </motion.div>
