@@ -1165,7 +1165,8 @@ export default function StoryMapView() {
                                 }
 
                                 if (!slide._noRoute) {
-                                // Build interactive marker for this slide
+                                // Build interactive marker for this slide (unless explicitly hidden)
+                                if (slide.show_on_map !== false) {
                                 const slideIdx = chapter.slides?.findIndex(s =>
                                     s.coordinates && areCoordinatesEqual(
                                         normalizeCoordinatePair(s.coordinates),
@@ -1192,6 +1193,7 @@ export default function StoryMapView() {
                                 // Set active index separately (avoid nested setState)
                                 const existingIdx = storyMarkers.findIndex(m => areCoordinatesEqual(m.coordinates, normalizedCoords));
                                 setActiveMarkerIdx(existingIdx === -1 ? storyMarkers.length : existingIdx);
+                                } // end show_on_map check
                                 } // end !slide._noRoute (story markers)
                             }}
                             onExplore={() => setCarouselOpened(true)}

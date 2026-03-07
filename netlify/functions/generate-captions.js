@@ -46,7 +46,7 @@ exports.handler = async (event) => {
     // If slide_ids provided (batched call from client), only fetch those slides.
     // Otherwise fall back to fetching all slides for the story.
     let slidesQuery = supabase
-        .from('slides').select('id,title,chapter_id')
+        .from('slides').select('id,title,chapter_id,coordinates')
         .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
     if (Array.isArray(slide_ids) && slide_ids.length > 0) {
         slidesQuery = slidesQuery.in('id', slide_ids);
@@ -58,20 +58,27 @@ exports.handler = async (event) => {
     const results = await Promise.all((slides || []).map(async (slide) => {
         const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
 
+        const coords = Array.isArray(slide.coordinates) && slide.coordinates.length === 2
+            ? slide.coordinates : null;
+        const gpsBlock = coords
+            ? ` GPS: ${Math.abs(coords[0]).toFixed(4)}°${coords[0] >= 0 ? 'N' : 'S'}, ${Math.abs(coords[1]).toFixed(4)}°${coords[1] >= 0 ? 'E' : 'W'}.`
+            : '';
+
         const prompt = `You are writing ${voiceStyle}.
 
-Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${contextBlock}
+Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${gpsBlock}${contextBlock}
 
 Respond with valid JSON only, no other text:
 {
   "title": "A compelling slide title in this voice style. 4–8 words.",
+  "location": "Human-readable place name, 2–5 words (e.g. 'Montmartre, Paris' or 'Medina, Marrakech'). Derive from GPS coordinates if provided, otherwise infer from the chapter name. If genuinely unknown, return an empty string.",
   "text": "Up to 1440 characters total. Begin with a self-contained lead-in of no more than 320 characters that works as a standalone caption, then continue with extended description for the remaining characters. The total must exceed 320 characters."
 }`;
 
         try {
             const msg = await anthropic.messages.create({
                 model: 'claude-haiku-4-5-20251001',
-                max_tokens: 600,
+                max_tokens: 700,
                 messages: [{ role: 'user', content: prompt }],
             });
 
@@ -89,6 +96,7 @@ Respond with valid JSON only, no other text:
             }
 
             const title = parsed.title?.trim() || slide.title;
+            const location = parsed.location?.trim() || null;
             const [description, extended_content] = splitAtBoundary(parsed.text?.trim() || '', 320);
 
             if (description) {
@@ -96,6 +104,7 @@ Respond with valid JSON only, no other text:
                     title,
                     description,
                     extended_content: extended_content || null,
+                    ...(location ? { location } : {}),
                 }).eq('id', slide.id);
                 return true;
             }

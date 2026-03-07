@@ -74,6 +74,7 @@ export default function TabbedContentEditor({
     onAddSlide,
     onComputeRoutes,
     onClearRoutes,
+    onDistributeDates,
     isComputingRoutes,
     routeComputeStatus,
     chapterRouteCount,
@@ -223,6 +224,44 @@ export default function TabbedContentEditor({
                                 rows={5}
                                 className="resize-none"
                             />
+                        </div>
+
+                        {/* Project Timeline */}
+                        <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                            <Label className="text-sm font-medium">Project Timeline (optional)</Label>
+                            <p className="text-xs text-slate-500 mt-0.5 mb-3">
+                                Set a start and end date, then distribute them evenly across all slides as a starting point for Timeline view.
+                            </p>
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <Label className="text-xs">Project Start</Label>
+                                    <Input
+                                        type="date"
+                                        value={item.project_start_date || ''}
+                                        onChange={(e) => onUpdate({ ...item, project_start_date: e.target.value || null })}
+                                        className="h-9"
+                                    />
+                                </div>
+                                <div>
+                                    <Label className="text-xs">Project End</Label>
+                                    <Input
+                                        type="date"
+                                        value={item.project_end_date || ''}
+                                        onChange={(e) => onUpdate({ ...item, project_end_date: e.target.value || null })}
+                                        className="h-9"
+                                    />
+                                </div>
+                            </div>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={!item.project_start_date || !item.project_end_date}
+                                onClick={onDistributeDates}
+                                className="w-full border-amber-400 text-amber-700 hover:bg-amber-100"
+                            >
+                                Distribute Dates Evenly Across All Slides
+                            </Button>
                         </div>
 
                         {/* Opening Map View */}

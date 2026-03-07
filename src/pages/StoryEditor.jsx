@@ -169,6 +169,42 @@ export default function StoryEditor() {
         setStory(updatedStory);
     };
 
+    const distributeDates = async () => {
+        const start = story.project_start_date ? new Date(story.project_start_date) : null;
+        const end   = story.project_end_date   ? new Date(story.project_end_date)   : null;
+        if (!start || !end || end <= start) return;
+
+        // Build flat ordered slide list: chapters by order, slides within by order
+        const orderedChapters = [...chapters].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        const orderedSlides = orderedChapters.flatMap(ch =>
+            [...slides.filter(s => s.chapter_id === ch.id)]
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        );
+
+        const n = orderedSlides.length;
+        if (n === 0) return;
+
+        const totalMs = end.getTime() - start.getTime();
+        const updatedSlides = orderedSlides.map((slide, i) => {
+            const ms = n === 1 ? 0 : (i / (n - 1)) * totalMs;
+            const d = new Date(start.getTime() + ms);
+            const dateStr = d.toISOString().split('T')[0];
+            return { ...slide, story_date: dateStr };
+        });
+
+        // Update state
+        setSlides(prev => prev.map(s => {
+            const updated = updatedSlides.find(u => u.id === s.id);
+            return updated || s;
+        }));
+
+        // Persist directly to DB (skip temp slides — they have no DB row yet)
+        for (const slide of updatedSlides) {
+            if (slide.id.startsWith('temp-')) continue;
+            await supabase.from('slides').update({ story_date: slide.story_date }).eq('id', slide.id);
+        }
+    };
+
     const updateChapter = (updatedChapter) => {
         setChapters(chapters.map(c => c.id === updatedChapter.id ? updatedChapter : c));
     };
@@ -508,6 +544,7 @@ export default function StoryEditor() {
                             onAddSlide={addSlide}
                             onComputeRoutes={computeRoutes}
                             onClearRoutes={clearRoutes}
+                            onDistributeDates={distributeDates}
                             isComputingRoutes={isComputingRoutes}
                             routeComputeStatus={routeComputeStatus}
                             chapterRouteCount={chapters.filter(c => c.route_geometry?.length).length}

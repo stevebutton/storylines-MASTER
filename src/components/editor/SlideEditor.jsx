@@ -302,6 +302,15 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                             {slide.coordinates[0]?.toFixed(4)}, {slide.coordinates[1]?.toFixed(4)}
                                         </p>
                                     )}
+                                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={slide.show_on_map !== false}
+                                            onChange={(e) => onUpdate({ ...slide, show_on_map: e.target.checked })}
+                                            className="w-3.5 h-3.5 accent-amber-500"
+                                        />
+                                        <span className="text-xs text-slate-600">Show as map marker</span>
+                                    </label>
                                 </div>
                                 <div>
                                     <Label className="text-xs">Fly Duration (seconds)</Label>
