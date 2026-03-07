@@ -7,6 +7,24 @@ const VOICE_STYLES = {
     fulton: 'in the style of Hamish Fulton: sparse, focused on passage, distance, and the physical experience of movement',
 };
 
+// Reverse geocode [lat, lng] → "Place, Country" using Mapbox. Returns null on failure.
+async function reverseGeocode(lat, lng, token) {
+    if (!token) return null;
+    try {
+        const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=neighborhood,place&limit=1&access_token=${token}`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        const feature = data.features?.[0];
+        if (!feature) return null;
+        const placeName = feature.text;
+        const country = feature.context?.find(c => c.id.startsWith('country'))?.text;
+        return country ? `${placeName}, ${country}` : feature.place_name;
+    } catch {
+        return null;
+    }
+}
+
 // Split text at a word boundary at or before maxChars
 function splitAtBoundary(text, maxChars) {
     if (!text) return ['', ''];
@@ -60,18 +78,21 @@ exports.handler = async (event) => {
 
         const coords = Array.isArray(slide.coordinates) && slide.coordinates.length === 2
             ? slide.coordinates : null;
-        const gpsBlock = coords
-            ? ` GPS: ${Math.abs(coords[0]).toFixed(4)}°${coords[0] >= 0 ? 'N' : 'S'}, ${Math.abs(coords[1]).toFixed(4)}°${coords[1] >= 0 ? 'E' : 'W'}.`
-            : '';
+
+        // Resolve accurate location via Mapbox before calling Claude
+        const mapboxLocation = coords
+            ? await reverseGeocode(coords[0], coords[1], process.env.VITE_MAPBOX_API_KEY)
+            : null;
+
+        const locationBlock = mapboxLocation ? ` Location: ${mapboxLocation}.` : '';
 
         const prompt = `You are writing ${voiceStyle}.
 
-Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${gpsBlock}${contextBlock}
+Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${locationBlock}${contextBlock}
 
 Respond with valid JSON only, no other text:
 {
   "title": "A compelling slide title in this voice style. 4–8 words.",
-  "location": "Human-readable place name, 2–5 words (e.g. 'Montmartre, Paris' or 'Medina, Marrakech'). Derive from GPS coordinates if provided, otherwise infer from the chapter name. If genuinely unknown, return an empty string.",
   "text": "Up to 1440 characters total. Begin with a self-contained lead-in of no more than 320 characters that works as a standalone caption, then continue with extended description for the remaining characters. The total must exceed 320 characters."
 }`;
 
@@ -96,7 +117,6 @@ Respond with valid JSON only, no other text:
             }
 
             const title = parsed.title?.trim() || slide.title;
-            const location = parsed.location?.trim() || null;
             const [description, extended_content] = splitAtBoundary(parsed.text?.trim() || '', 320);
 
             if (description) {
@@ -104,7 +124,7 @@ Respond with valid JSON only, no other text:
                     title,
                     description,
                     extended_content: extended_content || null,
-                    ...(location ? { location } : {}),
+                    ...(mapboxLocation ? { location: mapboxLocation } : {}),
                 }).eq('id', slide.id);
                 return true;
             }
