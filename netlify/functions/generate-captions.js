@@ -9,18 +9,24 @@ const VOICE_STYLES = {
 
 // Reverse geocode [lat, lng] → "Place, Country" using Mapbox. Returns null on failure.
 async function reverseGeocode(lat, lng, token) {
-    if (!token) return null;
+    if (!token) { console.error('[geocode] No Mapbox token available'); return null; }
     try {
         const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=neighborhood,place&limit=1&access_token=${token}`;
         const res = await fetch(url);
-        if (!res.ok) return null;
+        if (!res.ok) {
+            console.error('[geocode] Mapbox API error', res.status, await res.text());
+            return null;
+        }
         const data = await res.json();
         const feature = data.features?.[0];
-        if (!feature) return null;
+        if (!feature) { console.error('[geocode] No features returned for', lat, lng); return null; }
         const placeName = feature.text;
         const country = feature.context?.find(c => c.id.startsWith('country'))?.text;
-        return country ? `${placeName}, ${country}` : feature.place_name;
-    } catch {
+        const result = country ? `${placeName}, ${country}` : feature.place_name;
+        console.log('[geocode]', lat, lng, '→', result);
+        return result;
+    } catch (e) {
+        console.error('[geocode] Exception', e?.message);
         return null;
     }
 }
