@@ -42,6 +42,10 @@ const THEME_FONTS = {
  * Contains only text content — no slide navigation controls.
  * Collapses off-screen to the left; a tab on the right edge
  * remains visible so the user can re-open it.
+ *
+ * Entrance: panel slides in from left on mount; content elements
+ * stagger in sequentially. No per-slide transition — content
+ * updates in place without re-animating.
  */
 const TextPanelCarousel = ({
     chapterTitle,
@@ -96,14 +100,21 @@ const TextPanelCarousel = ({
         if (currentPage > 0) setCurrentPage(p => p - 1);
     };
 
+    // Shared entrance transition for content elements — staggered delays
+    const el = (delay) => ({
+        initial:    { opacity: 0, y: 12 },
+        animate:    { opacity: 1, y: 0 },
+        transition: { delay, duration: 0.55, ease: 'easeOut' },
+    });
+
     return (
-        // Outer wrapper — panel + tab translate together
-        <div
+        // Outer wrapper — panel + tab translate together via Framer Motion.
+        // initial: off-screen left  →  animate: in-view or collapsed based on isPanelOpen.
+        <motion.div
             className="fixed left-0 top-[100px] bottom-0 z-[9999] flex items-stretch pointer-events-auto"
-            style={{
-                transform: isPanelOpen ? 'translateX(0)' : `translateX(-${PANEL_WIDTH}px)`,
-                transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
+            initial={{ x: -(PANEL_WIDTH + 48), opacity: 0 }}
+            animate={{ x: isPanelOpen ? 0 : -PANEL_WIDTH, opacity: 1 }}
+            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* ── Text panel ── */}
             <div
@@ -121,38 +132,46 @@ const TextPanelCarousel = ({
                         const prefix = colonIdx !== -1 ? chapterTitle.slice(0, colonIdx + 1) : null;
                         const title  = colonIdx !== -1 ? chapterTitle.slice(colonIdx + 2) : chapterTitle;
                         return (
-                            <div className="text-right uppercase tracking-widest leading-snug"
-                                 style={{ fontFamily: themeFont }}>
+                            <motion.div
+                                {...el(0.45)}
+                                className="text-right uppercase tracking-widest leading-snug"
+                                style={{ fontFamily: themeFont }}
+                            >
                                 {prefix && (
                                     <p className="text-lg font-medium text-white/70">{prefix}</p>
                                 )}
                                 <p className="text-xl font-medium text-white">{title}</p>
-                            </div>
+                            </motion.div>
                         );
                     })()}
 
                     {/* Location */}
                     {location && (
-                        <div className="flex items-center justify-end" style={{ paddingRight: 15 }}>
+                        <motion.div
+                            {...el(0.6)}
+                            className="flex items-center justify-end"
+                            style={{ paddingRight: 15 }}
+                        >
                             <span className="text-sm text-white" style={{ fontFamily: themeFont }}>
                                 {location}
                             </span>
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Slide title */}
                     {slideTitle && (
-                        <h3
+                        <motion.h3
+                            {...el(0.75)}
                             className="text-5xl font-light text-white text-right"
                             style={{ fontFamily: themeFont, lineHeight: '0.95' }}
                         >
                             {slideTitle}
-                        </h3>
+                        </motion.h3>
                     )}
 
                     {/* Paginated body */}
                     {pages.length > 0 && (
-                        <>
+                        <motion.div {...el(0.9)}>
                             <motion.div
                                 className="relative overflow-hidden"
                                 animate={{ height: contentHeight }}
@@ -210,7 +229,7 @@ const TextPanelCarousel = ({
                                     </button>
                                 </div>
                             )}
-                        </>
+                        </motion.div>
                     )}
                 </div>
             </div>
@@ -228,7 +247,7 @@ const TextPanelCarousel = ({
                     style={{ transform: isPanelOpen ? 'rotate(0deg)' : 'rotate(180deg)' }}
                 />
             </button>
-        </div>
+        </motion.div>
     );
 };
 

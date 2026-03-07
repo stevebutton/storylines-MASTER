@@ -7,7 +7,7 @@ import FloatingControlStrip from './FloatingControlStrip';
 import FilmstripBar from './FilmstripBar';
 import PdfViewer from '@/components/pdf/PdfViewer';
 
-const VideoPlayer = ({ url, onVideoEnded }) => {
+const VideoPlayer = ({ url, loop = false, onVideoEnded }) => {
     if (!url) return null;
 
     let embedUrl = '';
@@ -23,8 +23,9 @@ const VideoPlayer = ({ url, onVideoEnded }) => {
                 src={url}
                 controls
                 autoPlay
+                loop={loop}
                 playsInline
-                onEnded={onVideoEnded}
+                onEnded={loop ? undefined : onVideoEnded}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -175,7 +176,7 @@ export default function FullScreenImageViewer({
                         custom={directionRef.current}
                     >
                         {currentSlide.video_url ? (
-                            <VideoPlayer url={currentSlide.video_url} key={currentSlide.id} onVideoEnded={handleNext} />
+                            <VideoPlayer url={currentSlide.video_url} loop={currentSlide.video_loop === true} key={currentSlide.id} onVideoEnded={handleNext} />
                         ) : (
                             <motion.img
                                 key={currentSlide.id}

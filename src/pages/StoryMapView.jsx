@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapBackground from '@/components/storymap/MapContainer';
@@ -336,6 +336,7 @@ export default function StoryMapView() {
                         pdf_url: s.pdf_url,
                         pdf_title: s.pdf_title,
                         video_url: s.video_url,
+                        video_loop: s.video_loop,
                         video_thumbnail_url: s.video_thumbnail_url,
                         mapbox_layer_id: s.mapbox_layer_id,
                         extended_content: s.extended_content,
@@ -821,6 +822,29 @@ export default function StoryMapView() {
             return next;
         }, { replace: true });
     };
+
+    // Map a ScaleBar cursor drag (0–100%) back to a slide index.
+    const handleScaleSeek = useCallback((percent) => {
+        if (overlayMode === 'timeline') {
+            const timed = overlayTimelineSlides
+                .map((sl, i) => ({ i, t: new Date(sl.story_date || sl.capture_date).getTime() }))
+                .filter(({ t }) => !isNaN(t));
+            if (!timed.length) return;
+            const minTime   = Math.min(...timed.map(x => x.t));
+            const maxTime   = Math.max(...timed.map(x => x.t));
+            const targetT   = minTime + (percent / 100) * (maxTime - minTime);
+            let closest = timed[0];
+            for (const item of timed) {
+                if (Math.abs(item.t - targetT) < Math.abs(closest.t - targetT)) closest = item;
+            }
+            setOverlayCurrentIndex(closest.i);
+        } else {
+            const total = overlayActiveSlides.length;
+            if (!total) return;
+            const idx = Math.round((percent / 100) * (total - 1));
+            setOverlayCurrentIndex(Math.max(0, Math.min(total - 1, idx)));
+        }
+    }, [overlayMode, overlayTimelineSlides, overlayActiveSlides]);
 
     const handleLibraryOpen = () => {
         libraryPrevViewRef.current = showStoryOverlay ? 'story' : null;
@@ -1409,6 +1433,7 @@ export default function StoryMapView() {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 2, duration: 1, ease: 'easeOut' }}
                             >
+                            {/* pointer-events re-enabled on cursor inside ScaleBar */}
                                 <ScaleBar
                                     mode={overlayMode === 'timeline' ? 'dates' : 'chapters'}
                                     cursorPercent={cursorPercent}
@@ -1419,6 +1444,7 @@ export default function StoryMapView() {
                                     startLabel={scaleStartLabel}
                                     endLabel={scaleEndLabel}
                                     height={140}
+                                    onSeek={handleScaleSeek}
                                 />
                             </motion.div>
                         )}

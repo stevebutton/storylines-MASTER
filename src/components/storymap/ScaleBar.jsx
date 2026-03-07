@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
 
 /**
@@ -24,6 +24,7 @@ export default function ScaleBar({
     height             = 95,
     activeChapterIndex = 0,
     mapStyle           = 'a',
+    onSeek             = null,
     // chapters
     segments           = [],
     // dates
@@ -37,6 +38,27 @@ export default function ScaleBar({
     // ── Draggable label row (chapters mode) ──────────────────────────────────
     const x         = useMotionValue(0);
     const draggedRef = useRef(false); // suppress click if we actually dragged
+
+    // ── Draggable cursor ─────────────────────────────────────────────────────
+    const trackRef        = useRef(null);
+    const [trackWidth, setTrackWidth] = useState(0);
+    const cursorX         = useMotionValue(0);
+    const isDraggingCursor = useRef(false);
+
+    // Measure track width
+    useEffect(() => {
+        if (!trackRef.current) return;
+        const obs = new ResizeObserver(([entry]) => setTrackWidth(entry.contentRect.width));
+        obs.observe(trackRef.current);
+        return () => obs.disconnect();
+    }, []);
+
+    // Sync cursor position when cursorPercent or trackWidth changes (not during drag)
+    useEffect(() => {
+        if (isDraggingCursor.current || !trackWidth) return;
+        const target = (Math.max(0, Math.min(100, cursorPercent)) / 100) * trackWidth;
+        animate(cursorX, target, { type: 'spring', stiffness: 300, damping: 35 });
+    }, [cursorPercent, trackWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Snap to active chapter whenever it changes
     useEffect(() => {
@@ -146,6 +168,7 @@ export default function ScaleBar({
 
             {/* ── Track line — starts at x=358 (right of text panel) in both modes ── */}
             <div
+                ref={trackRef}
                 className="absolute"
                 style={{
                     left:       358,
@@ -155,21 +178,36 @@ export default function ScaleBar({
                     background: 'rgba(255,255,255,0.85)',
                 }}
             >
-                {/* ── Amber cursor ── */}
-                <div style={{
-                    position:      'absolute',
-                    left:          `${Math.max(0, Math.min(100, cursorPercent))}%`,
-                    top:           -9,
-                    width:         20,
-                    height:        20,
-                    borderRadius:  '50%',
-                    background:    '#f59e0b',
-                    boxShadow:     '0 0 20px rgba(245,158,11,0.9)',
-                    transform:     'translateX(-50%)',
-                    transition:    'left 0.45s cubic-bezier(0.34, 1.4, 0.64, 1)',
-                    zIndex:        2,
-                    pointerEvents: 'none',
-                }} />
+                {/* ── Amber cursor — draggable ── */}
+                <motion.div
+                    drag="x"
+                    dragConstraints={{ left: 0, right: trackWidth }}
+                    dragElastic={0}
+                    dragMomentum={false}
+                    style={{
+                        x:             cursorX,
+                        position:      'absolute',
+                        left:          -10,   // center: cursor midpoint at x=0
+                        top:           -9,
+                        width:         20,
+                        height:        20,
+                        borderRadius:  '50%',
+                        background:    '#f59e0b',
+                        boxShadow:     '0 0 20px rgba(245,158,11,0.9)',
+                        zIndex:        2,
+                        pointerEvents: 'auto',
+                        cursor:        'grab',
+                        touchAction:   'none',
+                    }}
+                    whileDrag={{ scale: 1.25, cursor: 'grabbing' }}
+                    onDragStart={() => { isDraggingCursor.current = true; }}
+                    onDragEnd={() => {
+                        isDraggingCursor.current = false;
+                        if (!trackWidth || !onSeek) return;
+                        const pct = Math.max(0, Math.min(100, (cursorX.get() / trackWidth) * 100));
+                        onSeek(pct);
+                    }}
+                />
 
                 {/* ── Chapter dividers ── */}
                 {mode === 'chapters' && segments.length > 0 && (

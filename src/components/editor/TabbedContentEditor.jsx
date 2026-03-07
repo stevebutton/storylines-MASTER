@@ -351,13 +351,26 @@ export default function TabbedContentEditor({
                                 {/* Video URL Input */}
                                 <div>
                                     <Label className="text-xs">Video URL (YouTube, Vimeo, or direct link)</Label>
-                                    <Input 
-                                        value={item.hero_video || ''} 
+                                    <Input
+                                        value={item.hero_video || ''}
                                         onChange={(e) => onUpdate({ ...item, hero_video: e.target.value, hero_type: 'video' })}
                                         placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
                                         className="text-xs"
                                     />
                                 </div>
+
+                                {/* Loop option — only shown when a video is set */}
+                                {item.hero_type === 'video' && item.hero_video && (
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={item.hero_video_loop !== false}
+                                            onChange={(e) => onUpdate({ ...item, hero_video_loop: e.target.checked })}
+                                            className="w-3.5 h-3.5 accent-amber-500"
+                                        />
+                                        <span className="text-xs text-slate-600">Loop video</span>
+                                    </label>
+                                )}
 
                                 <div className="flex gap-2">
                                     <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="hidden" id="hero-image" />
@@ -963,6 +976,19 @@ export default function TabbedContentEditor({
                                         className="text-xs"
                                     />
                                 </div>
+
+                                {/* Loop option — only shown when a video is set */}
+                                {item.video_url && (
+                                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={item.video_loop === true}
+                                            onChange={(e) => onUpdate({ ...item, video_loop: e.target.checked })}
+                                            className="w-3.5 h-3.5 accent-amber-500"
+                                        />
+                                        <span className="text-xs text-slate-600">Loop video</span>
+                                    </label>
+                                )}
 
                                 <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" id="slide-video" />
                                 <label htmlFor="slide-video">

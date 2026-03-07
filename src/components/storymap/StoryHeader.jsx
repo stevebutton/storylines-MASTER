@@ -6,7 +6,7 @@ const THEME_FONTS = {
     c: 'Righteous, cursive',
 };
 
-export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, onExplore, onWhatIsStorylines, onHeroLoaded, mapStyle = 'a' }) {
+export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, heroVideoLoop = true, onExplore, onWhatIsStorylines, onHeroLoaded, mapStyle = 'a' }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
   const [mediaLoaded, setMediaLoaded] = useState(false);
 
@@ -52,7 +52,7 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           className="absolute inset-0 w-full h-full object-cover z-0"
           autoPlay
           muted
-          loop
+          loop={heroVideoLoop}
           playsInline
           onLoadedData={handleMediaLoad}
           onError={handleMediaLoad}
