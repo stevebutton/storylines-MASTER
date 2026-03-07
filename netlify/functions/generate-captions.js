@@ -80,8 +80,9 @@ exports.handler = async (event) => {
             ? slide.coordinates : null;
 
         // Resolve accurate location via Mapbox before calling Claude
+        const mapboxToken = process.env.MAPBOX_TOKEN || process.env.VITE_MAPBOX_API_KEY;
         const mapboxLocation = coords
-            ? await reverseGeocode(coords[0], coords[1], process.env.VITE_MAPBOX_API_KEY)
+            ? await reverseGeocode(coords[0], coords[1], mapboxToken)
             : null;
 
         const locationBlock = mapboxLocation ? ` Location: ${mapboxLocation}.` : '';
