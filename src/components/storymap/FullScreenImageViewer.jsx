@@ -194,8 +194,9 @@ export default function FullScreenImageViewer({
                             </AnimatePresence>
                         </div>
 
-                        {/* Text panel — full-bleed left, manages its own position */}
-                        {!hideTextPanel && (
+                        {/* Text panel — hidden for non-looping videos (full video experience);
+                            shown for looping videos (they function as illustrated stills) */}
+                        {!hideTextPanel && !(currentSlide.video_url && !currentSlide.video_loop) && (
                         <TextPanelCarousel
                             key={currentSlide.id}
                             chapterTitle={hideChapterTitle ? '' : chapterName}
@@ -204,7 +205,7 @@ export default function FullScreenImageViewer({
                             extendedContent={currentSlide.extended_content || ''}
                             location={currentSlide.location}
                             mapStyle={mapStyle}
-                            initialOpen={!currentSlide.video_url}
+                            initialOpen={true}
                         />
                         )}
 
