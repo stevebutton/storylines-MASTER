@@ -14,15 +14,15 @@ import { cn } from '@/lib/utils';
 
 // ── Shared style tokens (imported by all sub-pill components) ────────────────
 export const pillShell = [
-    'flex items-center gap-0.5',
+    'flex items-center',
+    'w-full h-full',
     'bg-black/30 backdrop-blur-xl',
     'border border-white/20',
-    'rounded-full px-1.5 py-1.5',
     'shadow-xl',
 ].join(' ');
 
 export const pillBtn = [
-    'w-10 h-10 rounded-full',
+    'flex-1 h-full',
     'flex items-center justify-center',
     'transition-all duration-200',
     'text-white/70 hover:text-white hover:bg-white/15',
@@ -30,14 +30,14 @@ export const pillBtn = [
 ].join(' ');
 
 export const pillBtnActive = [
-    'w-10 h-10 rounded-full',
+    'flex-1 h-full',
     'flex items-center justify-center',
     'transition-all duration-200',
-    'bg-white text-slate-900 shadow-sm',
+    'bg-white text-slate-900',
 ].join(' ');
 
 export const pillDivider = (
-    <div className="w-px h-5 bg-white/20 mx-0.5 flex-shrink-0" />
+    <div className="w-px self-stretch bg-white/20 flex-shrink-0" />
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,26 +80,31 @@ export default function StoryViewPill({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -16 }}
                     transition={{ duration: 0.35, ease: 'easeOut' }}
-                    className="fixed left-6 z-[200020] pointer-events-auto"
-                    style={{ top: 108 }}
+                    className="fixed left-0 z-[200020] pointer-events-auto"
+                    style={{ top: 100, width: 380, height: 60 }}
                 >
                     <div className={pillShell}>
-                        {views.map(({ key, url, onNav }) => {
+                        {views.map(({ key, url, onNav }, idx) => {
                             const btnClass = cn(
-                                'px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 whitespace-nowrap',
+                                'flex-1 h-full flex items-center justify-center text-sm font-medium transition-all duration-150 whitespace-nowrap',
                                 currentView === key
-                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    ? 'bg-white text-slate-900'
                                     : 'text-white/70 hover:bg-white/20 hover:text-white'
                             );
                             const handleClick = () => { if (onNav) onNav(); };
-                            return url ? (
-                                <Link key={key} to={url} onClick={handleClick} className={btnClass}>
-                                    {VIEW_LABELS[key]}
-                                </Link>
-                            ) : (
-                                <button key={key} onClick={handleClick} className={btnClass}>
-                                    {VIEW_LABELS[key]}
-                                </button>
+                            return (
+                                <React.Fragment key={key}>
+                                    {idx > 0 && pillDivider}
+                                    {url ? (
+                                        <Link to={url} onClick={handleClick} className={btnClass}>
+                                            {VIEW_LABELS[key]}
+                                        </Link>
+                                    ) : (
+                                        <button onClick={handleClick} className={btnClass}>
+                                            {VIEW_LABELS[key]}
+                                        </button>
+                                    )}
+                                </React.Fragment>
                             );
                         })}
                     </div>

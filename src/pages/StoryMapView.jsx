@@ -1330,8 +1330,8 @@ export default function StoryMapView() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="fixed left-6 z-[200020] pointer-events-auto"
-                            style={{ bottom: 40 }}
+                            className="fixed left-0 z-[200020] pointer-events-auto"
+                            style={{ bottom: 0, width: 380, height: 80 }}
                         >
                             <FullscreenNavPill
                                 onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
@@ -1351,8 +1351,8 @@ export default function StoryMapView() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="fixed left-6 z-[200020] pointer-events-auto"
-                            style={{ bottom: 40 }}
+                            className="fixed left-0 z-[200020] pointer-events-auto"
+                            style={{ bottom: 0, width: 380, height: 80 }}
                         >
                             <BottomPillBar
                                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}

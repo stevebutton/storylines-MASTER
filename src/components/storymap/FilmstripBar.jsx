@@ -8,7 +8,7 @@ import { Play } from 'lucide-react';
  * All thumbnails visible at consistent opacity — no feathering.
  * No slide titles. Gap 46px between items.
  * Collapsed: 80px. Expanded (hover): 140px.
- * Centered on the sub-pill (bottom: 40).
+ * Centered on the sub-pill (bottom: 0, height: 80) → filmstrip bottom: 0.
  */
 export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -58,7 +58,7 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
     return (
         <motion.div
             className="fixed right-0 z-[9999] pointer-events-auto overflow-hidden"
-            style={{ left: 380, bottom: 40 }}
+            style={{ left: 380, bottom: 0 }}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => { setIsExpanded(false); setHoveredIndex(null); stopEdgeScroll(); }}
             initial={{ opacity: 0, y: 30, height: 80 }}
