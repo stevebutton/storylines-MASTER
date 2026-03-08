@@ -209,11 +209,11 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
                                     placeholder="Search documents..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-9"
+                                    className={`pl-9 ${dark ? 'text-white border-white/30 bg-transparent placeholder:text-white/50' : ''}`}
                                 />
                             </div>
                             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                                <SelectTrigger className="w-40">
+                                <SelectTrigger className={`w-40 ${dark ? 'text-white border-white/30 bg-transparent' : ''}`}>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="z-[100]">
@@ -227,7 +227,7 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
                                 </SelectContent>
                             </Select>
                             <Select value={folderFilter} onValueChange={setFolderFilter}>
-                                <SelectTrigger className="w-40">
+                                <SelectTrigger className={`w-40 ${dark ? 'text-white border-white/30 bg-transparent' : ''}`}>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="z-[100]">
@@ -252,10 +252,6 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
                                     </Button>
                                 </>
                             )}
-                            <Button onClick={() => setShowUploadDialog(true)}>
-                                <Upload className="w-4 h-4 mr-2" />
-                                Upload Document
-                            </Button>
                         </div>
                     </div>
                 </CardContent>

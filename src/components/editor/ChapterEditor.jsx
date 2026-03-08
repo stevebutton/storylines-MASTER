@@ -113,9 +113,17 @@ export default function ChapterEditor({
                             </div>
                             )}
 
+                            <Button
+                                size="sm"
+                                className="bg-amber-600 hover:bg-amber-700 text-white"
+                                onClick={(e) => { e.stopPropagation(); onAddSlide(chapter.id); }}
+                            >
+                                <Plus className="w-3.5 h-3.5 mr-1" /> Add Slide
+                            </Button>
+
                             <Link to={createPageUrl(`ChapterPreview?storyId=${storyId}&chapterId=${chapter.id}`)}>
-                            <Button 
-                                variant="ghost" 
+                            <Button
+                                variant="ghost"
                                 size="icon"
                                 className="text-slate-400 hover:text-amber-600"
                                 title="Preview Chapter"
@@ -123,8 +131,8 @@ export default function ChapterEditor({
                                 <Eye className="w-4 h-4" />
                             </Button>
                             </Link>
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => onDeleteChapter(chapter.id)}
                             className="text-slate-400 hover:text-red-500"
@@ -279,16 +287,7 @@ export default function ChapterEditor({
 
                             {/* Slides */}
                         <div>
-                            <div className="flex items-center justify-between mb-3">
-                                <Label className="text-sm font-medium">Slides</Label>
-                                <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => onAddSlide(chapter.id)}
-                                >
-                                    <Plus className="w-4 h-4 mr-1" /> Add Slide
-                                </Button>
-                            </div>
+                            <Label className="text-sm font-medium mb-3 block">Slides</Label>
 
                             <DragDropContext onDragEnd={handleDragEnd}>
                                 <Droppable droppableId={`slides-${chapter.id}`}>

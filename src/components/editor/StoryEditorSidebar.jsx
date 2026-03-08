@@ -3,6 +3,8 @@ import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Book 
 import { cn } from '@/lib/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
+const CHAPTER_COLORS = ['#d97706','#2563eb','#16a34a','#9333ea','#e11d48','#0d9488'];
+
 export default function StoryEditorSidebar({ 
     story, 
     chapters, 
@@ -83,11 +85,12 @@ export default function StoryEditorSidebar({
                                         const chapterSlides = getSlidesForChapter(chapter.id);
                                         const isExpanded = expandedChapters.includes(chapter.id);
                                         const selected = isChapterSelected(chapter.id);
+                                        const chapterColor = CHAPTER_COLORS[index % CHAPTER_COLORS.length];
 
                                         return (
-                                            <Draggable 
-                                                key={chapter.id} 
-                                                draggableId={`chapter-${chapter.id}`} 
+                                            <Draggable
+                                                key={chapter.id}
+                                                draggableId={`chapter-${chapter.id}`}
                                                 index={index}
                                             >
                                                 {(provided, snapshot) => (
@@ -98,50 +101,55 @@ export default function StoryEditorSidebar({
                                                         {/* Chapter Item */}
                                                         <div
                                                             className={cn(
-                                                                "group flex items-center gap-1 md:gap-2 px-2 md:px-4 py-2 hover:bg-slate-800 hover:text-white cursor-pointer transition-colors",
-                                                                selected ? "bg-amber-50 border-l-4 border-l-amber-600" : "bg-slate-900 text-white",
+                                                                "group flex items-center gap-2 px-2 py-2.5 cursor-pointer transition-colors mx-2 rounded-lg mb-1",
                                                                 snapshot.isDragging && "opacity-50"
                                                             )}
+                                                            style={{
+                                                                backgroundColor: selected
+                                                                    ? `${chapterColor}30`
+                                                                    : `${chapterColor}14`,
+                                                                borderLeft: `4px solid ${chapterColor}`,
+                                                            }}
                                                         >
-                                                            <div 
+                                                            <div
                                                                 {...provided.dragHandleProps}
-                                                                className="p-0.5 hover:bg-slate-700 rounded cursor-grab active:cursor-grabbing"
+                                                                className="p-0.5 rounded cursor-grab active:cursor-grabbing flex-shrink-0"
                                                             >
-                                                                <GripVertical className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
+                                                                <GripVertical className="w-4 h-4 text-slate-400" />
                                                             </div>
-                                                            
+
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     toggleChapter(chapter.id);
                                                                 }}
-                                                                className="p-0.5 hover:bg-slate-700 rounded"
+                                                                className="p-0.5 rounded flex-shrink-0"
                                                             >
                                                                 {isExpanded ? (
-                                                                    <ChevronDown className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
+                                                                    <ChevronDown className="w-4 h-4 text-slate-500" />
                                                                 ) : (
-                                                                    <ChevronRight className={cn("w-4 h-4", selected ? "text-slate-600" : "text-white")} />
+                                                                    <ChevronRight className="w-4 h-4 text-slate-500" />
                                                                 )}
                                                             </button>
-                                                            
-                                                            <div 
+
+                                                            <div
                                                                 onClick={() => onSelectChapter(chapter)}
-                                                                className="flex-1 flex items-center gap-1 md:gap-2 min-w-0"
+                                                                className="flex-1 flex flex-col min-w-0"
                                                             >
-                                                                <span className={cn("text-xl md:text-xs font-bold md:font-medium min-w-[20px] md:min-w-[20px]", selected ? "text-slate-700 md:text-slate-500" : "text-white md:text-slate-300")}>
-                                                                    {index + 1}
+                                                                <span className="text-xs font-semibold uppercase tracking-wider leading-tight" style={{ color: chapterColor }}>
+                                                                    Chapter {String(index + 1).padStart(2, '0')}
                                                                 </span>
-                                                                <span className={cn("hidden md:inline text-xs md:text-sm font-medium flex-1 truncate", selected ? "text-slate-700" : "text-white")}>
-                                                                    Chapter {index + 1}{chapter.name ? `: ${chapter.name}` : ''}
+                                                                <span className="text-sm font-medium text-slate-700 truncate leading-tight mt-0.5">
+                                                                    {chapter.name || 'Untitled'}
                                                                 </span>
-                                                                <div className="flex items-center gap-0.5 md:gap-1">
-                                                                    {chapter.coordinates && (
-                                                                        <MapPin className={cn("w-2.5 h-2.5 md:w-3 md:h-3", selected ? "text-amber-600" : "text-amber-400")} />
-                                                                    )}
-                                                                    <span className={cn("text-[10px] md:text-xs", selected ? "text-slate-400" : "text-slate-300")}>
-                                                                        {chapterSlides.length}
-                                                                    </span>
-                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-1 flex-shrink-0">
+                                                                {chapter.coordinates && (
+                                                                    <MapPin className="w-3 h-3" style={{ color: chapterColor }} />
+                                                                )}
+                                                                <span className="text-xs text-slate-500">
+                                                                    {chapterSlides.length}
+                                                                </span>
                                                             </div>
                                                         </div>
 

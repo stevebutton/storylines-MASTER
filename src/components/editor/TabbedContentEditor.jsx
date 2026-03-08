@@ -180,67 +180,9 @@ export default function TabbedContentEditor({
                     <TabsContent value="story">
                     <Card>
                     <CardContent className="pt-6 space-y-4">
-                        <div>
-                            <Label>Title <span className="text-red-500">*</span></Label>
-                            <Input 
-                                value={item.title || ''} 
-                                onChange={(e) => onUpdate({ ...item, title: e.target.value })}
-                                placeholder="A Journey Through Time"
-                                style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
-                            />
-                        </div>
-                        <div>
-                            <Label>Subtitle</Label>
-                            <ReactQuill
-                                value={item.subtitle || ''}
-                                onChange={(content) => onUpdate({ ...item, subtitle: content })}
-                                placeholder="Exploring the world's most iconic landmarks..."
-                                className="bg-white"
-                                style={{ height: '100px', marginBottom: '50px' }}
-                                modules={{
-                                    toolbar: [
-                                        ['bold', 'italic', 'underline'],
-                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                        ['link']
-                                    ]
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <Label>Story Description</Label>
-                            <p className="text-xs text-slate-500 mb-1">Shown as a full panel between the hero and chapter one. Leave blank to skip.</p>
-                            <ReactQuill
-                                value={item.story_description || ''}
-                                onChange={(content) => onUpdate({ ...item, story_description: content })}
-                                placeholder="An overview of the project, its context and significance..."
-                                className="bg-white"
-                                style={{ height: '150px', marginBottom: '50px' }}
-                                modules={{
-                                    toolbar: [
-                                        ['bold', 'italic', 'underline'],
-                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                        ['link']
-                                    ]
-                                }}
-                            />
-                        </div>
-
-                        {/* Project Overview */}
-                        <div>
-                            <Label>Project Overview</Label>
-                            <p className="text-xs text-slate-500 mb-1">Displayed as a text panel on the left of the carousel in the Project Timeline view.</p>
-                            <Textarea
-                                value={item.project_overview || ''}
-                                onChange={(e) => onUpdate({ ...item, project_overview: e.target.value })}
-                                placeholder="Provide context, background, and significance of this project..."
-                                rows={5}
-                                className="resize-none"
-                            />
-                        </div>
-
                         {/* Project Timeline */}
                         <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                            <Label className="text-sm font-medium">Project Timeline (optional)</Label>
+                            <Label className="text-sm font-semibold text-slate-900">Project Timeline (optional)</Label>
                             <p className="text-xs text-slate-500 mt-0.5 mb-3">
                                 Set a start and end date, then distribute them evenly across all slides as a starting point for Timeline view.
                             </p>
@@ -276,9 +218,67 @@ export default function TabbedContentEditor({
                             </Button>
                         </div>
 
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Title <span className="text-red-500">*</span></Label>
+                            <Input 
+                                value={item.title || ''} 
+                                onChange={(e) => onUpdate({ ...item, title: e.target.value })}
+                                placeholder="A Journey Through Time"
+                                style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                            />
+                        </div>
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Subtitle</Label>
+                            <ReactQuill
+                                value={item.subtitle || ''}
+                                onChange={(content) => onUpdate({ ...item, subtitle: content })}
+                                placeholder="Exploring the world's most iconic landmarks..."
+                                className="bg-white"
+                                style={{ height: '100px', marginBottom: '50px' }}
+                                modules={{
+                                    toolbar: [
+                                        ['bold', 'italic', 'underline'],
+                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                        ['link']
+                                    ]
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Story Description</Label>
+                            <p className="text-xs text-slate-500 mb-1">Shown as a full panel between the hero and chapter one. Leave blank to skip.</p>
+                            <ReactQuill
+                                value={item.story_description || ''}
+                                onChange={(content) => onUpdate({ ...item, story_description: content })}
+                                placeholder="An overview of the project, its context and significance..."
+                                className="bg-white"
+                                style={{ height: '150px', marginBottom: '50px' }}
+                                modules={{
+                                    toolbar: [
+                                        ['bold', 'italic', 'underline'],
+                                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                        ['link']
+                                    ]
+                                }}
+                            />
+                        </div>
+
+                        {/* Project Overview */}
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Project Overview</Label>
+                            <p className="text-xs text-slate-500 mb-1">Displayed as a text panel on the left of the carousel in the Project Timeline view.</p>
+                            <Textarea
+                                value={item.project_overview || ''}
+                                onChange={(e) => onUpdate({ ...item, project_overview: e.target.value })}
+                                placeholder="Provide context, background, and significance of this project..."
+                                rows={5}
+                                className="resize-none"
+                            />
+                        </div>
+
                         {/* Opening Map View */}
                         <div>
-                            <Label>Story Opening Map View</Label>
+                            <Label className="text-sm font-semibold text-slate-900">Story Opening Map View</Label>
                             <p className="text-xs text-slate-500 mb-2">Set the initial map view when the story opens</p>
                             <EmbeddedLocationPicker
                                 location={{
@@ -304,7 +304,7 @@ export default function TabbedContentEditor({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label>Author</Label>
+                                <Label className="text-sm font-semibold text-slate-900">Author</Label>
                                 <Input 
                                     value={item.author || ''} 
                                     onChange={(e) => onUpdate({ ...item, author: e.target.value })}
@@ -313,7 +313,7 @@ export default function TabbedContentEditor({
                                 />
                             </div>
                             <div>
-                                <Label>Category</Label>
+                                <Label className="text-sm font-semibold text-slate-900">Category</Label>
                                 <Select 
                                     value={item.category || 'other'} 
                                     onValueChange={(value) => onUpdate({ ...item, category: value })}
@@ -335,7 +335,7 @@ export default function TabbedContentEditor({
                         
                         {/* Hero Media */}
                         <div>
-                            <Label>Hero Media</Label>
+                            <Label className="text-sm font-semibold text-slate-900">Hero Media</Label>
                             <div className="mt-2 space-y-3">
                                 {item.hero_type === 'video' && item.hero_video && (
                                     <div className="relative w-full h-48 rounded-lg overflow-hidden border">
@@ -405,7 +405,7 @@ export default function TabbedContentEditor({
 
                         {/* Story Thumbnail */}
                         <div>
-                            <Label>Story Thumbnail</Label>
+                            <Label className="text-sm font-semibold text-slate-900">Story Thumbnail</Label>
                             <p className="text-xs text-slate-500 mt-0.5 mb-2">
                                 Shown in story browser cards. Use a still image even if the hero is a video.
                             </p>
@@ -574,129 +574,115 @@ export default function TabbedContentEditor({
         };
 
         return (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="content">Content</TabsTrigger>
-                    <TabsTrigger value="settings">Settings</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="content" className="space-y-4 mt-4">
-                    <Card>
-                        <CardContent className="pt-6 space-y-4">
-                            <div className="flex items-center justify-between pb-2 border-b">
-                                <h3 className="font-semibold text-slate-800">Chapter Content</h3>
+            <div className="w-full space-y-4">
+                <Card>
+                    <CardContent className="pt-6 space-y-4">
+                        <div className="flex items-center justify-between pb-2 border-b">
+                            <h3 className="font-semibold text-slate-800">Chapter Settings</h3>
+                            <div className="flex items-center gap-2">
+                                <Button onClick={() => onAddSlide(item.id)} size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+                                    <Plus className="w-4 h-4 mr-1" /> Add Slide
+                                </Button>
                                 {onDelete && (
-                                    <Button 
-                                        variant="destructive" 
-                                        size="sm" 
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
                                         onClick={() => onDelete(item.id)}
                                     >
-                                        <Trash2 className="w-4 h-4 mr-2" /> Delete Chapter
+                                        <Trash2 className="w-4 h-4 mr-1" /> Delete
                                     </Button>
                                 )}
                             </div>
-                            <p className="text-sm text-slate-500">Chapters organize slides. The first slide defines the starting map location for this chapter.</p>
-                            <div className="pt-4 border-t">
-                                <Button onClick={() => onAddSlide(item.id)} className="w-full">
-                                    <Plus className="w-4 h-4 mr-2" /> Add Slide to Chapter
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                        </div>
 
-                <TabsContent value="settings" className="space-y-4 mt-4">
-                    <Card>
-                        <CardContent className="pt-6 space-y-4">
-                            <div>
-                                <Label>Chapter Name</Label>
-                                <Input
-                                    type="text"
-                                    placeholder="e.g. Arriving in Rome"
-                                    value={item.name || ''}
-                                    onChange={(e) => onUpdate({ ...item, name: e.target.value })}
-                                />
-                                <p className="text-xs text-slate-500 mt-1">Shown as large title on the chapter card</p>
-                            </div>
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Chapter Name</Label>
+                            <Input
+                                type="text"
+                                placeholder="e.g. Arriving in Rome"
+                                value={item.name || ''}
+                                onChange={(e) => onUpdate({ ...item, name: e.target.value })}
+                            />
+                            <p className="text-xs text-slate-500 mt-1">Shown as large title on the chapter card</p>
+                        </div>
 
-                            <div>
-                                <Label>Chapter Description</Label>
-                                <Textarea
-                                    placeholder="Brief chapter introduction shown on the title card"
-                                    value={item.description || ''}
-                                    onChange={(e) => onUpdate({ ...item, description: e.target.value })}
-                                    rows={3}
-                                    className="resize-none"
-                                />
-                            </div>
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Chapter Description</Label>
+                            <Textarea
+                                placeholder="Brief chapter introduction shown on the title card"
+                                value={item.description || ''}
+                                onChange={(e) => onUpdate({ ...item, description: e.target.value })}
+                                rows={3}
+                                className="resize-none"
+                            />
+                        </div>
 
-                            {/* Chapter Background Image */}
-                            <div>
-                                <Label>Title Card Background Image</Label>
-                                <p className="text-xs text-slate-500 mb-2">Full-bleed image shown behind the chapter title. If not set, uses the first slide's image.</p>
-                                {item.background_image && (
-                                    <div className="relative w-full h-32 rounded-lg overflow-hidden border mb-3">
-                                        <img src={item.background_image} className="w-full h-full object-cover" alt="Chapter background" />
-                                        <button
-                                            onClick={() => onUpdate({ ...item, background_image: null })}
-                                            className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-colors"
-                                        >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                )}
-                                <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors w-fit">
-                                    {isUploadingChapterImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                                    {isUploadingChapterImage ? 'Uploading...' : 'Upload Image'}
-                                    <input type="file" accept="image/*" className="hidden" onChange={handleChapterImageUpload} disabled={isUploadingChapterImage} />
-                                </label>
-                            </div>
+                        {/* Chapter Background Image */}
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Title Card Background Image</Label>
+                            <p className="text-xs text-slate-500 mb-2">Full-bleed image shown behind the chapter title. If not set, uses the first slide's image.</p>
+                            {item.background_image && (
+                                <div className="relative w-full h-32 rounded-lg overflow-hidden border mb-3">
+                                    <img src={item.background_image} className="w-full h-full object-cover" alt="Chapter background" />
+                                    <button
+                                        onClick={() => onUpdate({ ...item, background_image: null })}
+                                        className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-colors"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            )}
+                            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors w-fit">
+                                {isUploadingChapterImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                                {isUploadingChapterImage ? 'Uploading...' : 'Upload Image'}
+                                <input type="file" accept="image/*" className="hidden" onChange={handleChapterImageUpload} disabled={isUploadingChapterImage} />
+                            </label>
+                        </div>
 
-                            {/* Chapter Location */}
-                            <div>
-                                <Label>Chapter Location</Label>
-                                <p className="text-xs text-slate-500 mb-2">Sets the map view when this chapter's title card is shown</p>
-                                <EmbeddedLocationPicker
-                                    location={{
-                                        lat: item.coordinates?.[0] || 0,
-                                        lng: item.coordinates?.[1] || 0,
-                                        zoom: item.zoom || 12,
-                                        bearing: item.bearing || 0,
-                                        pitch: item.pitch || 0,
-                                    }}
-                                    onLocationChange={(newLocation) => {
-                                        onUpdate({
-                                            ...item,
-                                            coordinates: [newLocation.lat, newLocation.lng],
-                                            zoom: newLocation.zoom,
-                                            bearing: newLocation.bearing,
-                                            pitch: newLocation.pitch,
-                                        });
-                                    }}
-                                    mapStyle={storyMapStyle || 'a'}
-                                />
-                            </div>
+                        {/* Chapter Location */}
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Chapter Location</Label>
+                            <p className="text-xs text-slate-500 mb-2">Sets the map view when this chapter's title card is shown</p>
+                            <EmbeddedLocationPicker
+                                location={{
+                                    lat: item.coordinates?.[0] || 0,
+                                    lng: item.coordinates?.[1] || 0,
+                                    zoom: item.zoom || 12,
+                                    bearing: item.bearing || 0,
+                                    pitch: item.pitch || 0,
+                                }}
+                                onLocationChange={(newLocation) => {
+                                    onUpdate({
+                                        ...item,
+                                        coordinates: [newLocation.lat, newLocation.lng],
+                                        zoom: newLocation.zoom,
+                                        bearing: newLocation.bearing,
+                                        pitch: newLocation.pitch,
+                                    });
+                                }}
+                                mapStyle={storyMapStyle || 'a'}
+                            />
+                        </div>
 
-                            <div>
-                                <Label>Card Alignment</Label>
-                                <Select
-                                    value={item.alignment || 'left'}
-                                    onValueChange={(value) => onUpdate({ ...item, alignment: value })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="left">Left</SelectItem>
-                                        <SelectItem value="center">Center</SelectItem>
-                                        <SelectItem value="right">Right</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Card Alignment</Label>
+                            <Select
+                                value={item.alignment || 'left'}
+                                onValueChange={(value) => onUpdate({ ...item, alignment: value })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="left">Left</SelectItem>
+                                    <SelectItem value="center">Center</SelectItem>
+                                    <SelectItem value="right">Right</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         );
     }
 
