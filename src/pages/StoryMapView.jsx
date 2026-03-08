@@ -1308,7 +1308,7 @@ export default function StoryMapView() {
                     showStoryOverlay ? 'story' :
                     'map'
                 }
-                isVisible={!!storyId}
+                isVisible={isBannerVisible}
                 onOpenMap={
                     showLibraryModal ? handleLibraryClose :
                     showStoryOverlay ? handleOverlayClose : null
@@ -1322,7 +1322,7 @@ export default function StoryMapView() {
             />
 
             {/* Sub-pill — bottom left, contextual controls */}
-            {!!storyId && (
+            {isBannerVisible && (
                 <AnimatePresence mode="wait">
                     {showLibraryModal ? (
                         <motion.div

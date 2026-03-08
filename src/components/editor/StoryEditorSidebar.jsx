@@ -106,8 +106,8 @@ export default function StoryEditorSidebar({
                                                             )}
                                                             style={{
                                                                 backgroundColor: selected
-                                                                    ? `${chapterColor}30`
-                                                                    : `${chapterColor}14`,
+                                                                    ? chapterColor
+                                                                    : `${chapterColor}CC`,
                                                                 borderLeft: `4px solid ${chapterColor}`,
                                                             }}
                                                         >
@@ -115,7 +115,7 @@ export default function StoryEditorSidebar({
                                                                 {...provided.dragHandleProps}
                                                                 className="p-0.5 rounded cursor-grab active:cursor-grabbing flex-shrink-0"
                                                             >
-                                                                <GripVertical className="w-4 h-4 text-slate-400" />
+                                                                <GripVertical className="w-4 h-4 text-white/60" />
                                                             </div>
 
                                                             <button
@@ -126,9 +126,9 @@ export default function StoryEditorSidebar({
                                                                 className="p-0.5 rounded flex-shrink-0"
                                                             >
                                                                 {isExpanded ? (
-                                                                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                                                                    <ChevronDown className="w-4 h-4 text-white/70" />
                                                                 ) : (
-                                                                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                                                                    <ChevronRight className="w-4 h-4 text-white/70" />
                                                                 )}
                                                             </button>
 
@@ -136,18 +136,18 @@ export default function StoryEditorSidebar({
                                                                 onClick={() => onSelectChapter(chapter)}
                                                                 className="flex-1 flex flex-col min-w-0"
                                                             >
-                                                                <span className="text-xs font-semibold uppercase tracking-wider leading-tight" style={{ color: chapterColor }}>
+                                                                <span className="text-2xl font-bold text-white leading-tight">
                                                                     Chapter {String(index + 1).padStart(2, '0')}
                                                                 </span>
-                                                                <span className="text-sm font-medium text-slate-700 truncate leading-tight mt-0.5">
+                                                                <span className="text-sm font-medium text-white/85 truncate leading-tight mt-0.5">
                                                                     {chapter.name || 'Untitled'}
                                                                 </span>
                                                             </div>
                                                             <div className="flex items-center gap-1 flex-shrink-0">
                                                                 {chapter.coordinates && (
-                                                                    <MapPin className="w-3 h-3" style={{ color: chapterColor }} />
+                                                                    <MapPin className="w-3 h-3 text-white/70" />
                                                                 )}
-                                                                <span className="text-xs text-slate-500">
+                                                                <span className="text-xs text-white/70">
                                                                     {chapterSlides.length}
                                                                 </span>
                                                             </div>
