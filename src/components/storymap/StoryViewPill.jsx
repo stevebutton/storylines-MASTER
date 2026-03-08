@@ -46,11 +46,12 @@ const VIEW_LABELS = { map: 'Map View', story: 'Story View', library: 'Library Vi
 
 export default function StoryViewPill({
     storyId,
-    currentView   = 'map',
-    isVisible     = false,
-    onOpenStory   = null,
-    onOpenMap     = null,
-    onOpenLibrary = null,
+    currentView    = 'map',
+    isVisible      = false,
+    entranceDelay  = 0,
+    onOpenStory    = null,
+    onOpenMap      = null,
+    onOpenLibrary  = null,
 }) {
     if (!storyId) return null;
 
@@ -79,7 +80,7 @@ export default function StoryViewPill({
                     initial={{ opacity: 0, y: -16 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -16 }}
-                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                    transition={{ duration: 0.35, ease: 'easeOut', delay: entranceDelay }}
                     className="fixed left-0 z-[200020] pointer-events-auto"
                     style={{ top: 100, width: 380, height: 60 }}
                 >

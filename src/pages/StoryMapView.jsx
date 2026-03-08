@@ -88,6 +88,7 @@ export default function StoryMapView() {
     const [clearLandingMarkers, setClearLandingMarkers] = useState(false);
     const [isChapterMenuOpen, setIsChapterMenuOpen] = useState(false);
     const [isBannerVisible, setIsBannerVisible] = useState(false);
+    const [pillsInitialized, setPillsInitialized] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
     const [showLibraryModal, setShowLibraryModal] = useState(false);
     const [libraryUploadKey, setLibraryUploadKey] = useState(0);
@@ -160,6 +161,7 @@ export default function StoryMapView() {
             setShowBlackOverlay(true);
             setActiveChapter(-1);
             setHasExplored(false);
+            setPillsInitialized(false);
             setCarouselOpened(false);
             setHeroMediaLoaded(false);
             setIsBannerVisible(false);
@@ -483,6 +485,14 @@ export default function StoryMapView() {
             setHasExplored(true);
         }
     }, [activeChapter]);
+
+    // Mark pills as initialized after their entrance delays have elapsed so that
+    // subsequent mode-switches (story ↔ map ↔ library) animate at normal speed.
+    useEffect(() => {
+        if (!isBannerVisible || pillsInitialized) return;
+        const t = setTimeout(() => setPillsInitialized(true), 5500);
+        return () => clearTimeout(t);
+    }, [isBannerVisible, pillsInitialized]);
 
     // Compute the chapter region (centroid + bounding radius) for the active chapter.
     // Displayed on the map as a soft circle marking the territory of the chapter's slides.
@@ -980,6 +990,7 @@ export default function StoryMapView() {
                 {/* Header */}
                 <div className="pointer-events-auto" data-name="header-wrapper">
                 <StoryHeader
+                    key={storyId}
                     title={story.title}
                     subtitle={story.subtitle}
                     author={story.author}
@@ -1309,6 +1320,7 @@ export default function StoryMapView() {
                     'map'
                 }
                 isVisible={isBannerVisible}
+                entranceDelay={pillsInitialized ? 0 : 4}
                 onOpenMap={
                     showLibraryModal ? handleLibraryClose :
                     showStoryOverlay ? handleOverlayClose : null
@@ -1363,7 +1375,7 @@ export default function StoryMapView() {
                             initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 6 }}
-                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            transition={{ duration: 0.25, ease: 'easeOut', delay: pillsInitialized ? 0 : 5 }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
                             style={{ bottom: 0, width: 380, height: 80 }}
                         >
