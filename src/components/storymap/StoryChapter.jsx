@@ -12,6 +12,17 @@ const THEME_FONTS = {
     c: 'Righteous, cursive',
 };
 
+// Matches the palette in MapContainer so the location dot aligns with the
+// chapter's map route/marker colour.
+const CHAPTER_COLORS = [
+    '#d97706', // 0 amber
+    '#2563eb', // 1 blue
+    '#16a34a', // 2 green
+    '#9333ea', // 3 purple
+    '#e11d48', // 4 rose
+    '#0d9488', // 5 teal
+];
+
 export default function StoryChapter({
     chapter,
     isActive,
@@ -26,6 +37,7 @@ export default function StoryChapter({
     onOpenFullscreen = null,
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
+    const chapterColor = CHAPTER_COLORS[index % CHAPTER_COLORS.length];
     const navigate = useNavigate();
     const [showCarousel, setShowCarousel] = useState(false);
 
@@ -278,6 +290,27 @@ export default function StoryChapter({
 
                             {/* Slide text panel */}
                             <div className="p-6 md:p-8">
+                                {/* Location — above title */}
+                                <AnimatePresence mode="wait">
+                                    {currentSlide?.location && (
+                                        <motion.div
+                                            key={currentSlide.location}
+                                            initial={{ opacity: 0, y: 6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -6 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="flex items-center gap-2 text-xs text-slate-500 mb-3"
+                                        >
+                                            <div style={{
+                                                width: 10, height: 10, borderRadius: '50%',
+                                                background: chapterColor, flexShrink: 0,
+                                            }} />
+                                            <span className="font-medium">{currentSlide.location}</span>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Title */}
                                 <AnimatePresence mode="wait">
                                     <motion.h2
                                         key={currentSlide?.title}
@@ -292,6 +325,7 @@ export default function StoryChapter({
                                     </motion.h2>
                                 </AnimatePresence>
 
+                                {/* Description */}
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={currentSlide?.description}
@@ -305,39 +339,24 @@ export default function StoryChapter({
                                     />
                                 </AnimatePresence>
 
-                                {/* Location & PDF */}
-                                {(currentSlide?.location || currentSlide?.pdf_url) && (
-                                    <div className="mt-6 pt-4 border-t border-slate-200/50 flex flex-col items-start gap-3 w-full">
-                                        {currentSlide?.location && (
-                                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                </svg>
-                                                <span className="font-medium">{currentSlide.location}</span>
+                                {/* PDF */}
+                                {currentSlide?.pdf_url && (
+                                    <div className="mt-6 pt-4 border-t border-slate-200/50 w-full">
+                                        <h4 className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">Related Documents</h4>
+                                        <button
+                                            onClick={() => setShowPdfModal(true)}
+                                            className="flex items-center gap-3 group hover:opacity-80 transition-opacity text-left"
+                                        >
+                                            <div
+                                                className="shrink-0 overflow-hidden rounded-[10px]"
+                                                style={{ width: '60px', height: '100px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                                            >
+                                                <PdfThumbnail url={currentSlide.pdf_url} className="w-full h-full" />
                                             </div>
-                                        )}
-                                        {currentSlide?.pdf_url && (
-                                            <div className="w-full">
-                                                <h4 className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">Related Documents</h4>
-                                                <button
-                                                    onClick={() => setShowPdfModal(true)}
-                                                    className="flex items-center gap-3 group hover:opacity-80 transition-opacity text-left"
-                                                >
-                                                    <div
-                                                        className="shrink-0 overflow-hidden rounded-[10px]"
-                                                        style={{ width: '60px', height: '100px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
-                                                    >
-                                                        <PdfThumbnail url={currentSlide.pdf_url} className="w-full h-full" />
-                                                    </div>
-                                                    <span className="text-xs font-medium text-amber-600 group-hover:text-amber-700 transition-colors">
-                                                        {currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}
-                                                    </span>
-                                                </button>
-                                            </div>
-                                        )}
+                                            <span className="text-xs font-medium text-amber-600 group-hover:text-amber-700 transition-colors">
+                                                {currentSlide.pdf_title || decodeURIComponent(currentSlide.pdf_url.split('/').pop().split('?')[0]).replace(/^[^_]+_/, '').replace(/\.pdf$/i, '')}
+                                            </span>
+                                        </button>
                                     </div>
                                 )}
                             </div>
