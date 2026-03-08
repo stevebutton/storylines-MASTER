@@ -62,6 +62,18 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'cmmd3clf0001o01s2biib8ju2',
     },
+    h: {
+        label: 'SB4A',
+        description: 'SB4A',
+        owner: 'stevebutton',
+        id: 'ck9i8wv640t4c1iqeiphu3soc',
+    },
+    i: {
+        label: 'PASSMAR',
+        description: 'PASSMAR',
+        owner: 'stevebutton',
+        id: 'cllw84jo600f401r7afyy7ef4',
+    },
 };
 
 export default function TabbedContentEditor({

@@ -21,6 +21,11 @@ const MAP_STYLES = {
     b: 'mapbox://styles/stevebutton/cktf8ygms085117nnzm4a97d0',
     c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
     d: 'mapbox://styles/stevebutton/cmm9edvor004m01sc0wyug8vz',
+    e: 'mapbox://styles/stevebutton/cmmanazrf000f01qvaghi0jhv',
+    f: 'mapbox://styles/stevebutton/cmmd2lwzp001m01s24puoahpd',
+    g: 'mapbox://styles/stevebutton/cmmd3clf0001o01s2biib8ju2',
+    h: 'mapbox://styles/stevebutton/ck9i8wv640t4c1iqeiphu3soc',
+    i: 'mapbox://styles/stevebutton/cllw84jo600f401r7afyy7ef4',
 };
 
 export default function ChapterPreview() {

@@ -16,6 +16,8 @@ const MAP_STYLES = {
     e: 'mapbox://styles/stevebutton/cmmanazrf000f01qvaghi0jhv',
     f: 'mapbox://styles/stevebutton/cmmd2lwzp001m01s24puoahpd',
     g: 'mapbox://styles/stevebutton/cmmd3clf0001o01s2biib8ju2',
+    h: 'mapbox://styles/stevebutton/ck9i8wv640t4c1iqeiphu3soc',
+    i: 'mapbox://styles/stevebutton/cllw84jo600f401r7afyy7ef4',
 };
 
 export default function EmbeddedLocationPicker({ location, onLocationChange, mapStyle = 'a' }) {
