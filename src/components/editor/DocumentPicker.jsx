@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
@@ -13,10 +13,12 @@ import { FileText, Search, Upload, Loader2, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
+    const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [uploadedDoc, setUploadedDoc] = useState(null);
     const [docTitle, setDocTitle] = useState('');
+    const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
 
     const { data: documents = [], isLoading } = useQuery({
         queryKey: ['documents', storyId],
@@ -38,46 +40,63 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
     );
 
     const handleUpload = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file || !storyId) return;
+        const files = Array.from(e.target.files || []).filter(f => f.type === 'application/pdf');
+        if (!files.length || !storyId) return;
 
-        setIsUploading(true);
-        try {
-            // Upload to Supabase Storage — requires a public 'documents' bucket
+        const uploadOne = async (file) => {
             const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
             const filePath = `${generateId()}-${safeName}`;
             const { error: uploadError } = await supabase.storage
                 .from('media')
                 .upload(filePath, file, { contentType: file.type, upsert: false });
             if (uploadError) throw uploadError;
-
-            const { data: { publicUrl: file_url } } = supabase.storage
-                .from('media')
-                .getPublicUrl(filePath);
-
-            const docId = generateId();
+            const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
             const { data: newDoc, error: insertError } = await supabase
                 .from('documents')
                 .insert({
-                    id: docId,
+                    id: generateId(),
                     title: file.name.replace(/\.pdf$/i, ''),
                     file_url,
                     story_id: storyId,
                     category: 'other',
                     file_size: file.size,
-                    description: 'Uploaded from slide editor'
+                    description: 'Uploaded from slide editor',
                 })
-                .select()
-                .single();
+                .select().single();
             if (insertError) throw insertError;
-            setUploadedDoc(newDoc);
-            setDocTitle(newDoc.title || '');
-        } catch (error) {
-            console.error('Failed to upload document:', error);
-            toast.error(`Failed to upload document: ${error.message}`);
-        } finally {
+            return newDoc;
+        };
+
+        setIsUploading(true);
+        e.target.value = '';
+
+        if (files.length === 1) {
+            // Single file — show title-confirm screen after upload
+            try {
+                const newDoc = await uploadOne(files[0]);
+                setUploadedDoc(newDoc);
+                setDocTitle(newDoc.title || '');
+                queryClient.invalidateQueries(['documents', storyId]);
+            } catch (err) {
+                console.error('Failed to upload document:', err);
+                toast.error(`Failed to upload: ${err.message}`);
+            } finally {
+                setIsUploading(false);
+            }
+        } else {
+            // Bulk — upload all, show progress, land back on list
+            setBulkProgress({ done: 0, total: files.length });
+            for (const file of files) {
+                try {
+                    await uploadOne(file);
+                } catch (err) {
+                    console.error('[doc-picker] Failed to upload', file.name, err.message);
+                }
+                setBulkProgress(prev => ({ ...prev, done: prev.done + 1 }));
+            }
+            queryClient.invalidateQueries(['documents', storyId]);
             setIsUploading(false);
-            e.target.value = '';
+            setBulkProgress({ done: 0, total: 0 });
         }
     };
 
@@ -132,6 +151,7 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
                         <input
                             type="file"
                             accept="application/pdf"
+                            multiple
                             onChange={handleUpload}
                             className="hidden"
                             id="doc-picker-upload"
@@ -148,10 +168,24 @@ export default function DocumentPicker({ isOpen, onClose, onSelect, storyId }) {
                                 {isUploading ? (
                                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
                                 ) : (
-                                    <><Upload className="w-4 h-4 mr-2" /> Upload New PDF</>
+                                    <><Upload className="w-4 h-4 mr-2" /> Upload PDF(s)</>
                                 )}
                             </Button>
                         </label>
+                        {bulkProgress.total > 0 && (
+                            <div className="mt-3 space-y-1">
+                                <div className="flex justify-between text-xs text-slate-500">
+                                    <span>Uploading {bulkProgress.done} of {bulkProgress.total}…</span>
+                                    <span>{Math.round((bulkProgress.done / bulkProgress.total) * 100)}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-amber-500 rounded-full transition-all duration-300"
+                                        style={{ width: `${(bulkProgress.done / bulkProgress.total) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                         {!storyId && (
                             <p className="text-xs text-red-500 mt-2 text-center">
                                 Please save the story first before uploading documents
