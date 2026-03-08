@@ -235,7 +235,7 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
                         </div>
                         
                         <div className="flex gap-2">
-                            {user && selectedDocs.length > 0 && (
+                            {selectedDocs.length > 0 && (
                                 <>
                                     <Button variant="outline" onClick={handleBulkDownload}>
                                         <Download className="w-4 h-4 mr-2" />
@@ -247,12 +247,10 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
                                     </Button>
                                 </>
                             )}
-                            {user && (
-                                <Button onClick={() => setShowUploadDialog(true)}>
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    Upload Document
-                                </Button>
-                            )}
+                            <Button onClick={() => setShowUploadDialog(true)}>
+                                <Upload className="w-4 h-4 mr-2" />
+                                Upload Document
+                            </Button>
                         </div>
                     </div>
                 </CardContent>
@@ -294,19 +292,17 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
                             </span>
                         </div>
 
-                        {/* Edit / delete — only for authenticated users */}
-                        {user && (
-                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <Button variant="ghost" size="icon" className="w-7 h-7 bg-black/40 hover:bg-black/60 text-white"
-                                    onClick={(e) => { e.stopPropagation(); setCurrentDoc(doc); setShowEditDialog(true); }}>
-                                    <Edit className="w-3.5 h-3.5" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="w-7 h-7 bg-black/40 hover:bg-black/60 text-white"
-                                    onClick={(e) => { e.stopPropagation(); deleteDocMutation.mutate(doc.id); }}>
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
-                            </div>
-                        )}
+                        {/* Edit / delete */}
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <Button variant="ghost" size="icon" className="w-7 h-7 bg-black/40 hover:bg-black/60 text-white"
+                                onClick={(e) => { e.stopPropagation(); setCurrentDoc(doc); setShowEditDialog(true); }}>
+                                <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="w-7 h-7 bg-black/40 hover:bg-black/60 text-white"
+                                onClick={(e) => { e.stopPropagation(); if (confirm('Delete this document?')) deleteDocMutation.mutate(doc.id); }}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                        </div>
                     </motion.div>
                 ))}
             </div>
