@@ -10,18 +10,20 @@ const THEME_FONTS = {
 };
 
 const btn = [
-    'w-9 h-9 rounded-full flex items-center justify-center',
+    'h-full w-[64px]',
+    'flex items-center justify-center',
     'transition-all duration-200',
-    'text-slate-500 hover:text-slate-800 hover:bg-slate-200',
+    'text-slate-500 hover:text-slate-800 hover:bg-slate-100',
 ].join(' ');
 
 const btnActive = [
-    'w-9 h-9 rounded-full flex items-center justify-center',
+    'h-full w-[64px]',
+    'flex items-center justify-center',
     'transition-all duration-200',
     'bg-slate-800 text-white',
 ].join(' ');
 
-const divider = <div className="w-px h-5 bg-slate-200 mx-0.5 flex-shrink-0" />;
+const divider = <div className="w-px self-stretch bg-slate-200 flex-shrink-0" />;
 
 export default function StoryMapBanner({
     isVisible          = true,
@@ -48,7 +50,7 @@ export default function StoryMapBanner({
             className={cn(
                 'fixed top-0 left-0 right-0 z-[10000] h-[100px] transition-all duration-700',
                 'bg-white/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50',
-                'flex items-center justify-between px-6 md:px-12',
+                'flex items-center justify-between pl-6 md:pl-12',
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
             )}
         >
@@ -83,9 +85,9 @@ export default function StoryMapBanner({
                 </motion.div>
             )}
 
-            {/* Right-side action pill */}
+            {/* Right-side action bar — full-height rectangle flush to banner edge */}
             {showPill && (
-                <div className="flex-shrink-0 flex items-center gap-0.5 bg-slate-100 border border-slate-200 rounded-full px-1.5 py-1.5">
+                <div className="self-stretch flex items-stretch border-l border-slate-200 flex-shrink-0">
 
                     {/* Chapter menu toggle */}
                     {hasChapters && onToggleChapterMenu && (
@@ -95,7 +97,7 @@ export default function StoryMapBanner({
                                 className={isChapterMenuOpen ? btnActive : btn}
                                 title="Chapter menu"
                             >
-                                <List className="w-4 h-4" />
+                                <List className="w-5 h-5" />
                             </button>
                             {hasEditorial && divider}
                         </>
@@ -104,18 +106,24 @@ export default function StoryMapBanner({
                     {/* Editorial actions */}
                     {onViewOtherStories && (
                         <button onClick={onViewOtherStories} className={btn} title="More stories">
-                            <BookOpen className="w-4 h-4" />
+                            <BookOpen className="w-5 h-5" />
                         </button>
                     )}
                     {onOpenLibrary && (
-                        <button onClick={onOpenLibrary} className={btn} title="Library">
-                            <Library className="w-4 h-4" />
-                        </button>
+                        <>
+                            {divider}
+                            <button onClick={onOpenLibrary} className={btn} title="Library">
+                                <Library className="w-5 h-5" />
+                            </button>
+                        </>
                     )}
                     {onEditStory && (
-                        <button onClick={onEditStory} className={btn} title="Edit story">
-                            <Pencil className="w-4 h-4" />
-                        </button>
+                        <>
+                            {divider}
+                            <button onClick={onEditStory} className={btn} title="Edit story">
+                                <Pencil className="w-5 h-5" />
+                            </button>
+                        </>
                     )}
                 </div>
             )}

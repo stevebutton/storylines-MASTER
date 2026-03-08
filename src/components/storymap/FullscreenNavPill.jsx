@@ -58,7 +58,7 @@ export default function FullscreenNavPill({
                 className={pillBtn}
                 aria-label="Previous slide"
             >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-8 h-8" />
             </button>
 
             <span className="text-white/50 text-xs tabular-nums px-2 select-none">
@@ -71,7 +71,7 @@ export default function FullscreenNavPill({
                 className={pillBtn}
                 aria-label="Next slide"
             >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-8 h-8" />
             </button>
 
             {pillDivider}
