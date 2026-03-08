@@ -34,6 +34,8 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
         folder: '',
         tags: ''
     });
+    const [isUploading, setIsUploading] = useState(false);
+    const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
 
     // Auth pending Supabase Auth integration — user stays null (read-only mode)
     useEffect(() => { setUser(null); }, []);
@@ -84,31 +86,67 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
     });
 
     const handleFileUpload = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file || file.type !== 'application/pdf') {
-            alert('Please select a PDF file');
-            return;
+        const files = Array.from(e.target.files || []).filter(f => f.type === 'application/pdf');
+        if (!files.length) { alert('Please select PDF file(s)'); return; }
+
+        const sharedMeta = {
+            category: uploadData.category,
+            folder:   uploadData.folder,
+            tags:     uploadData.tags ? uploadData.tags.split(',').map(t => t.trim()) : [],
+            ...(storyId && { story_id: storyId }),
+        };
+
+        if (files.length === 1) {
+            // Single file — use full metadata form
+            const file = files[0];
+            const filePath = `${generateId()}-${file.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from('documents')
+                .upload(filePath, file, { contentType: 'application/pdf', upsert: false });
+            if (uploadError) { alert('Upload failed: ' + uploadError.message); return; }
+
+            const { data: { publicUrl: file_url } } = supabase.storage
+                .from('documents').getPublicUrl(filePath);
+
+            createDocMutation.mutate({
+                ...uploadData,
+                ...sharedMeta,
+                file_url,
+                title:     uploadData.title || file.name.replace(/\.pdf$/i, ''),
+                file_size: file.size,
+            });
+        } else {
+            // Bulk upload — titles from filenames, shared category/folder/tags
+            setIsUploading(true);
+            setBulkProgress({ done: 0, total: files.length });
+
+            for (const file of files) {
+                const filePath = `${generateId()}-${file.name}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('documents')
+                    .upload(filePath, file, { contentType: 'application/pdf', upsert: false });
+
+                if (!uploadError) {
+                    const { data: { publicUrl: file_url } } = supabase.storage
+                        .from('documents').getPublicUrl(filePath);
+                    await supabase.from('documents').insert({
+                        id:        generateId(),
+                        file_url,
+                        title:     file.name.replace(/\.pdf$/i, ''),
+                        file_size: file.size,
+                        ...sharedMeta,
+                    });
+                } else {
+                    console.error('[library] Failed to upload', file.name, uploadError.message);
+                }
+                setBulkProgress(prev => ({ ...prev, done: prev.done + 1 }));
+            }
+
+            queryClient.invalidateQueries(['documents']);
+            setIsUploading(false);
+            setShowUploadDialog(false);
+            resetUploadForm();
         }
-
-        // Upload to Supabase Storage — requires a public 'documents' bucket
-        const filePath = `${generateId()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage
-            .from('documents')
-            .upload(filePath, file, { contentType: 'application/pdf', upsert: false });
-        if (uploadError) { alert('Upload failed: ' + uploadError.message); return; }
-
-        const { data: { publicUrl: file_url } } = supabase.storage
-            .from('documents')
-            .getPublicUrl(filePath);
-
-        createDocMutation.mutate({
-            ...uploadData,
-            file_url,
-            title: uploadData.title || file.name.replace(/\.pdf$/i, ''),
-            tags: uploadData.tags ? uploadData.tags.split(',').map(t => t.trim()) : [],
-            file_size: file.size,
-            ...(storyId && { story_id: storyId })
-        });
     };
 
     const handleBulkDownload = async () => {
@@ -281,11 +319,28 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
                     </DialogHeader>
                     <div className="space-y-4">
                         <div>
-                            <label className="text-sm font-medium mb-2 block">PDF File</label>
-                            <Input type="file" accept=".pdf" onChange={handleFileUpload} />
+                            <label className="text-sm font-medium mb-2 block">PDF File(s)</label>
+                            <Input type="file" accept=".pdf" multiple onChange={handleFileUpload} disabled={isUploading} />
+                            <p className="text-xs text-slate-500 mt-1">Select multiple files to bulk upload. Titles will be taken from filenames.</p>
                         </div>
+
+                        {/* Bulk progress indicator */}
+                        {isUploading && (
+                            <div className="space-y-2">
+                                <p className="text-sm text-slate-600">
+                                    Uploading {bulkProgress.done} of {bulkProgress.total}…
+                                </p>
+                                <div className="w-full bg-slate-200 rounded-full h-1.5">
+                                    <div
+                                        className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
+                                        style={{ width: `${(bulkProgress.done / bulkProgress.total) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div>
-                            <label className="text-sm font-medium mb-2 block">Title</label>
+                            <label className="text-sm font-medium mb-2 block">Title <span className="text-slate-400 font-normal">(single upload only)</span></label>
                             <Input
                                 value={uploadData.title}
                                 onChange={(e) => setUploadData({ ...uploadData, title: e.target.value })}
