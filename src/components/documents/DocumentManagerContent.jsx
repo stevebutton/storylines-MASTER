@@ -16,7 +16,7 @@ import { Upload, FileText, Download, Trash2, Edit, Search, Folder } from 'lucide
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 
-export default function DocumentManagerContent({ storyId = null, dark = false }) {
+export default function DocumentManagerContent({ storyId = null, dark = false, triggerUploadKey = 0 }) {
     const queryClient = useQueryClient();
     const [user, setUser] = useState(null);
     const [selectedDocs, setSelectedDocs] = useState([]);
@@ -39,6 +39,11 @@ export default function DocumentManagerContent({ storyId = null, dark = false })
 
     // Auth pending Supabase Auth integration — user stays null (read-only mode)
     useEffect(() => { setUser(null); }, []);
+
+    // External trigger — e.g. from LibraryPill "Upload Document" button
+    useEffect(() => {
+        if (triggerUploadKey > 0) setShowUploadDialog(true);
+    }, [triggerUploadKey]);
 
     const { data: documents = [] } = useQuery({
         queryKey: ['documents', storyId],

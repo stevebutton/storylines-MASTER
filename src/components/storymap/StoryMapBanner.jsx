@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { List, BookOpen, Library, Pencil } from 'lucide-react';
+import { List, BookOpen, Pencil } from 'lucide-react';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
@@ -37,12 +37,11 @@ export default function StoryMapBanner({
     mapStyle           = 'a',
     // Editorial actions — only wired in StoryMapView
     onViewOtherStories,
-    onOpenLibrary,
     onEditStory,
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
 
-    const hasEditorial = onViewOtherStories || onOpenLibrary || onEditStory;
+    const hasEditorial = onViewOtherStories || onEditStory;
     const showPill     = (hasChapters && onToggleChapterMenu) || hasEditorial;
 
     return (
@@ -108,14 +107,6 @@ export default function StoryMapBanner({
                         <button onClick={onViewOtherStories} className={btn} title="More stories">
                             <BookOpen className="w-5 h-5" />
                         </button>
-                    )}
-                    {onOpenLibrary && (
-                        <>
-                            {divider}
-                            <button onClick={onOpenLibrary} className={btn} title="Library">
-                                <Library className="w-5 h-5" />
-                            </button>
-                        </>
                     )}
                     {onEditStory && (
                         <>

@@ -85,10 +85,13 @@ export default function StoryViewPill({
                 >
                     <div className={pillShell}>
                         {views.map(({ key, url, onNav }, idx) => {
+                            const isActive = currentView === key;
                             const btnClass = cn(
                                 'flex-1 h-full flex items-center justify-center text-sm font-medium transition-all duration-150 whitespace-nowrap',
-                                currentView === key
-                                    ? 'bg-white text-slate-900'
+                                isActive
+                                    ? currentView === 'library'
+                                        ? 'bg-white/20 text-white'       // Library: glass highlight, white text
+                                        : 'bg-white text-slate-900'      // Map / Story: solid white
                                     : 'text-white/70 hover:bg-white/20 hover:text-white'
                             );
                             const handleClick = () => { if (onNav) onNav(); };

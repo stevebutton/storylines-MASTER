@@ -15,6 +15,7 @@ import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionS
 import LiveMapEditor from '@/components/storymap/LiveMapEditor';
 import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
 import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
+import LibraryPill from '@/components/storymap/LibraryPill';
 import ScaleBar from '@/components/storymap/ScaleBar';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
@@ -89,6 +90,7 @@ export default function StoryMapView() {
     const [isBannerVisible, setIsBannerVisible] = useState(false);
     const [isStorySlideshowOpen, setIsStorySlideshowOpen] = useState(false);
     const [showLibraryModal, setShowLibraryModal] = useState(false);
+    const [libraryUploadKey, setLibraryUploadKey] = useState(0);
     const libraryPrevViewRef = useRef(null); // 'story' | null — view open beneath library
     // Capture deep-link params at mount so the effect fires once and doesn't
     // re-trigger on every searchParams change. Opening early (before showBlackOverlay
@@ -933,7 +935,6 @@ export default function StoryMapView() {
                 hasChapters={chapters.length > 0}
                 mapStyle={story?.map_style || 'a'}
                 onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                onOpenLibrary={handleLibraryOpen}
                 onEditStory={() => setIsEditTransitioning(true)}
             />
             </div>
@@ -1323,7 +1324,19 @@ export default function StoryMapView() {
             {/* Sub-pill — bottom left, contextual controls */}
             {!!storyId && (
                 <AnimatePresence mode="wait">
-                    {showStoryOverlay ? (
+                    {showLibraryModal ? (
+                        <motion.div
+                            key="library-pill"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="fixed left-0 z-[200020] pointer-events-auto"
+                            style={{ bottom: 0, width: 380, height: 80 }}
+                        >
+                            <LibraryPill onUpload={() => setLibraryUploadKey(k => k + 1)} />
+                        </motion.div>
+                    ) : showStoryOverlay ? (
                         <motion.div
                             key="fullscreen-nav"
                             initial={{ opacity: 0, y: 6 }}
@@ -1388,7 +1401,6 @@ export default function StoryMapView() {
                             hasChapters={false}
                             mapStyle={story?.map_style || 'a'}
                             onViewOtherStories={handleOverlayClose}
-                            onOpenLibrary={handleLibraryOpen}
                             onEditStory={() => setIsEditTransitioning(true)}
                         />
 
@@ -1497,7 +1509,7 @@ export default function StoryMapView() {
                             <h2 className="text-3xl font-light text-white">Document Library</h2>
                         </div>
                         <div className="flex-1 overflow-auto mt-4">
-                            <DocumentManagerContent storyId={storyId} dark />
+                            <DocumentManagerContent storyId={storyId} dark triggerUploadKey={libraryUploadKey} />
                         </div>
                     </motion.div>
                 )}
