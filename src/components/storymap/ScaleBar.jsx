@@ -108,7 +108,7 @@ export default function ScaleBar({
                         position:      'absolute',
                         top:           0,
                         left:          0,
-                        width:         segments.length * SLOT_WIDTH,
+                        width:         (segments.length + 1) * SLOT_WIDTH,
                         height:        trackTop - 10,
                         pointerEvents: 'auto',
                         touchAction:   'none',
@@ -163,6 +163,36 @@ export default function ScaleBar({
                             </div>
                         </button>
                     ))}
+
+                    {/* End marker — visible alongside the last chapter */}
+                    <div
+                        style={{
+                            width:          SLOT_WIDTH,
+                            flexShrink:     0,
+                            paddingLeft:    40,
+                            paddingRight:   32,
+                            height:         '100%',
+                            display:        'flex',
+                            flexDirection:  'column',
+                            justifyContent: 'flex-end',
+                            pointerEvents:  'none',
+                            textAlign:      'right',
+                        }}
+                    >
+                        <div style={{ maxWidth: '100%' }}>
+                            <div style={{
+                                fontSize:      20,
+                                fontWeight:    500,
+                                color:         'rgba(255,255,255,1)',
+                                letterSpacing: '0.1em',
+                                textTransform: 'uppercase',
+                                lineHeight:    1.2,
+                                fontFamily:    themeFont,
+                            }}>
+                                END
+                            </div>
+                        </div>
+                    </div>
                 </motion.div>
             )}
 

@@ -688,6 +688,13 @@ export default function StoryMapView() {
 
     const overlayActiveSlides = overlayMode === 'timeline' ? overlayTimelineSlides : overlaySlides;
 
+    // True when the current overlay slide is a non-looping video — hides
+    // ScaleBar and text panel so the video plays without UI interference.
+    const overlayIsNonLoopingVideo = !!(
+        overlayActiveSlides[overlayCurrentIndex]?.video_url &&
+        !overlayActiveSlides[overlayCurrentIndex]?.video_loop
+    );
+
     // ScaleBar: chapter segments (story mode)
     const scaleSegments = useMemo(() => {
         const total = overlaySlides.length;
@@ -898,6 +905,25 @@ export default function StoryMapView() {
             }
             return next;
         }, { replace: true });
+    };
+
+    // Go directly to Map View from any state — closes both library and story
+    // overlay so the Map View button always reaches the map regardless of which
+    // overlapping views are currently open.
+    const handleGoToMapView = () => {
+        if (showLibraryModal) {
+            setShowLibraryModal(false);
+            libraryPrevViewRef.current = null;
+        }
+        if (showStoryOverlay) setShowStoryOverlay(false);
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.delete('view');
+            return next;
+        }, { replace: true });
+        if (showStoryOverlay) {
+            setTimeout(() => window.scrollTo(0, overlayScrollRef.current), 50);
+        }
     };
 
     // Deep-link: open overlay/library immediately when chapters load.
@@ -1362,8 +1388,7 @@ export default function StoryMapView() {
                 isVisible={isBannerVisible}
                 entranceDelay={pillsInitialized ? 0 : 4}
                 onOpenMap={
-                    showLibraryModal ? handleLibraryClose :
-                    showStoryOverlay ? handleOverlayClose : null
+                    (showLibraryModal || showStoryOverlay) ? handleGoToMapView : null
                 }
                 onOpenStory={() => {
                     if (showLibraryModal) setShowLibraryModal(false);
@@ -1483,15 +1508,15 @@ export default function StoryMapView() {
                         }} />
 
                         {/* Top gradient — sits behind ScaleBar, aids track readability */}
-                        {overlayMode !== 'picture' && (
+                        {overlayMode !== 'picture' && !overlayIsNonLoopingVideo && (
                             <div className="fixed pointer-events-none" style={{
                                 left: 0, right: 0, top: 100, height: 250, zIndex: 9998,
                                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)',
                             }} />
                         )}
 
-                        {/* ScaleBar — top of screen, full width, below banner */}
-                        {overlayMode !== 'picture' && (
+                        {/* ScaleBar — hidden for non-looping videos (full video experience) */}
+                        {overlayMode !== 'picture' && !overlayIsNonLoopingVideo && (
                             <motion.div
                                 className="fixed pointer-events-none"
                                 style={{ left: 0, right: 0, top: 115, zIndex: 9999 }}

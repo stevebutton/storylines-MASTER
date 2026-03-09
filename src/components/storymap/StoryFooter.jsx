@@ -4,12 +4,14 @@ import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
 
+const stripHtml = (str) => str ? str.replace(/<[^>]*>/g, '') : str;
+
 export default function StoryFooter({ onRestart, relatedStories = [], currentCategory }) {
     return (
         <div className="min-h-screen flex items-center justify-center relative">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
-            
-            <motion.div 
+
+            <motion.div
                 className="relative z-20 text-center px-6 max-w-2xl pointer-events-auto"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -22,23 +24,23 @@ export default function StoryFooter({ onRestart, relatedStories = [], currentCat
                     <div className="w-3 h-3 rounded-full border-2 border-amber-500" />
                     <div className="w-16 h-px bg-white/30" />
                 </div>
-                
-                <h2 className="text-3xl md:text-4xl font-light text-white mb-4">
-                    The End
-                </h2>
-                
-                <p className="text-white/70 mb-8">
-                    Thank you for exploring this story with us.
-                </p>
-                
+
                 <Button
                     onClick={onRestart}
                     variant="outline"
-                    className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white/50 gap-2"
+                    className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white/50 gap-2 mb-8"
                 >
                     <ArrowUp className="w-4 h-4" />
                     Back to Beginning
                 </Button>
+
+                <h2 className="text-3xl md:text-4xl font-light text-white mb-4">
+                    End
+                </h2>
+
+                <p className="text-white/70 mb-8">
+                    Thank you for exploring this story
+                </p>
 
                 {/* Related Stories */}
                 {relatedStories.length > 0 && (
@@ -65,17 +67,17 @@ export default function StoryFooter({ onRestart, relatedStories = [], currentCat
                                     >
                                         <img
                                             src={relatedStory.hero_image}
-                                            alt={relatedStory.title}
+                                            alt={stripHtml(relatedStory.title)}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                                         <div className="absolute bottom-0 left-0 right-0 p-4">
                                             <h4 className="text-white font-medium text-lg mb-1">
-                                                {relatedStory.title}
+                                                {stripHtml(relatedStory.title)}
                                             </h4>
                                             {relatedStory.subtitle && (
-                                                <p className="text-white/70 text-sm line-clamp-2">
-                                                    {relatedStory.subtitle}
+                                                <p className="text-white/70 text-sm">
+                                                    {stripHtml(relatedStory.subtitle)}
                                                 </p>
                                             )}
                                         </div>
