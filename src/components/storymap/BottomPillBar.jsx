@@ -76,7 +76,7 @@ export default function BottomPillBar({
                             <button
                                 onClick={() => onToggleLayer?.(layer.id)}
                                 className={cn(
-                                    'flex-1 min-w-0 h-full',
+                                    'flex-none h-full px-3',
                                     'flex flex-col items-center justify-center',
                                     'transition-all duration-200',
                                     layer.visible
@@ -86,7 +86,7 @@ export default function BottomPillBar({
                                 title={layer.visible ? `Hide ${layer.name}` : `Show ${layer.name}`}
                             >
                                 <MapPin className="w-3 h-3 flex-shrink-0 mb-0.5" />
-                                <span className="text-xs font-medium leading-none truncate w-full text-center px-1">
+                                <span className="text-xs font-medium leading-none whitespace-nowrap">
                                     {layer.name}
                                 </span>
                             </button>

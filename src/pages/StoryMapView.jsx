@@ -1417,7 +1417,7 @@ export default function StoryMapView() {
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut', delay: pillsInitialized ? 0 : 5 }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, width: 380, height: 80 }}
+                            style={{ bottom: 0, height: 80, width: pinnedLayers.length > 0 ? 'max-content' : 380 }}
                         >
                             <BottomPillBar
                                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
