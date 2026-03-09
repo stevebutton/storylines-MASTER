@@ -1,22 +1,20 @@
 import React from 'react';
 import { Navigation, MapPin, SlidersHorizontal, Plus, Minus, Compass } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { pillShell, pillBtn, pillBtnActive, pillDivider } from './StoryViewPill';
+import { pillShell, pillDivider } from './StoryViewPill';
 
 /**
  * BottomPillBar — Map context sub-pill.
  *
- * Single row: zoom ± / reset north / route / markers / map editor,
- * then a divider and layer-toggle buttons when layers are present.
- * Layer buttons match the pill button style — icon + label, full height.
- *
- * No positioning — rendered inside the bottom-pill motion.div in StoryMapView.
+ * Single 80px-tall row. When layers are present the five control buttons
+ * shrink to a fixed 44px (icon-only) and each layer button gets an equal
+ * share of the remaining width via flex-1, so all buttons always fit.
+ * Text truncates with ellipsis when buttons are narrow (5+ layers).
  */
 
-// Control buttons are narrower when sharing the row with layer labels
-const ctrlBtn = (hasLayers, active) => cn(
-    'h-full flex items-center justify-center transition-all duration-200 flex-shrink-0',
-    hasLayers ? 'w-11' : 'flex-1',
+const ctrl = (hasLayers, active) => cn(
+    'h-full flex items-center justify-center transition-all duration-200',
+    hasLayers ? 'flex-none w-11' : 'flex-1',
     active
         ? 'bg-white text-slate-900'
         : 'text-white/70 hover:text-white hover:bg-white/15 disabled:opacity-30 disabled:cursor-not-allowed'
@@ -26,7 +24,7 @@ export default function BottomPillBar({
     onZoomIn,
     onZoomOut,
     onResetNorth,
-    showRoute = true,
+    showRoute   = true,
     onToggleRoute,
     showMarkers = true,
     onToggleMarkers,
@@ -37,38 +35,38 @@ export default function BottomPillBar({
     const hasLayers = pinnedLayers.length > 0;
 
     return (
-        <div className={cn(pillShell, 'overflow-x-auto')} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className={pillShell}>
 
             {/* Map controls */}
-            <button onClick={onZoomIn}     className={ctrlBtn(hasLayers, false)} title="Zoom in">
+            <button onClick={onZoomIn}     className={ctrl(hasLayers, false)} title="Zoom in">
                 <Plus className="w-4 h-4" />
             </button>
-            <button onClick={onZoomOut}    className={ctrlBtn(hasLayers, false)} title="Zoom out">
+            <button onClick={onZoomOut}    className={ctrl(hasLayers, false)} title="Zoom out">
                 <Minus className="w-4 h-4" />
             </button>
-            <button onClick={onResetNorth} className={ctrlBtn(hasLayers, false)} title="Reset north">
+            <button onClick={onResetNorth} className={ctrl(hasLayers, false)} title="Reset north">
                 <Compass className="w-4 h-4" />
             </button>
 
             {pillDivider}
 
-            <button onClick={onToggleRoute}   className={ctrlBtn(hasLayers, showRoute)}   title="Toggle route">
+            <button onClick={onToggleRoute}   className={ctrl(hasLayers, showRoute)}   title="Toggle route">
                 <Navigation className="w-4 h-4" />
             </button>
-            <button onClick={onToggleMarkers} className={ctrlBtn(hasLayers, showMarkers)} title="Toggle markers">
+            <button onClick={onToggleMarkers} className={ctrl(hasLayers, showMarkers)} title="Toggle markers">
                 <MapPin className="w-4 h-4" />
             </button>
 
             {onOpenMapEditor && (
                 <>
                     {pillDivider}
-                    <button onClick={onOpenMapEditor} className={ctrlBtn(hasLayers, false)} title="Map editor">
+                    <button onClick={onOpenMapEditor} className={ctrl(hasLayers, false)} title="Map editor">
                         <SlidersHorizontal className="w-4 h-4" />
                     </button>
                 </>
             )}
 
-            {/* Layer toggle buttons */}
+            {/* Layer toggles — each button is flex-1 so all N layers always fit */}
             {hasLayers && (
                 <>
                     {pillDivider}
@@ -78,16 +76,19 @@ export default function BottomPillBar({
                             <button
                                 onClick={() => onToggleLayer?.(layer.id)}
                                 className={cn(
-                                    'h-full flex-shrink-0 flex flex-col items-center justify-center px-4',
-                                    'whitespace-nowrap transition-all duration-200',
+                                    'flex-1 min-w-0 h-full',
+                                    'flex flex-col items-center justify-center',
+                                    'transition-all duration-200',
                                     layer.visible
                                         ? 'bg-white text-slate-900'
                                         : 'text-white/70 hover:text-white hover:bg-white/15'
                                 )}
                                 title={layer.visible ? `Hide ${layer.name}` : `Show ${layer.name}`}
                             >
-                                <MapPin className="w-3 h-3 mb-0.5 flex-shrink-0" />
-                                <span className="text-xs font-medium leading-none">{layer.name}</span>
+                                <MapPin className="w-3 h-3 flex-shrink-0 mb-0.5" />
+                                <span className="text-xs font-medium leading-none truncate w-full text-center px-1">
+                                    {layer.name}
+                                </span>
                             </button>
                         </React.Fragment>
                     ))}
