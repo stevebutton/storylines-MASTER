@@ -115,6 +115,8 @@ export default function StoryMapView() {
     const [isEditTransitioning, setIsEditTransitioning] = useState(false);
     const [carouselOpened, setCarouselOpened] = useState(false);
     const mapInstanceRef = useRef(null);
+    const [pinnedLayers, setPinnedLayers] = useState([]); // { id, name, visible }[]
+    const prevSlideLayerRef = useRef(null);
     const navigate = useNavigate();
 
     // ── Story overlay (immersive reader over the map) ──────────────────────────
@@ -170,6 +172,8 @@ export default function StoryMapView() {
             setActiveMarkerIdx(-1);
             setTargetSlide(null);
             setActiveLayerId(null);
+            setPinnedLayers([]);
+            prevSlideLayerRef.current = null;
             setRouteCoordinates([]);
             setRouteStaticLength(0);
             setClearRoute(false);
@@ -343,6 +347,7 @@ export default function StoryMapView() {
                         video_loop: s.video_loop,
                         video_thumbnail_url: s.video_thumbnail_url,
                         mapbox_layer_id: s.mapbox_layer_id,
+                        layer_display_name: s.layer_display_name,
                         extended_content: s.extended_content,
                         story_date: s.story_date,
                         capture_date: s.capture_date,
@@ -810,6 +815,17 @@ export default function StoryMapView() {
         }, { replace: true });
     };
 
+    const togglePinnedLayer = (layerId) => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+        setPinnedLayers(prev => prev.map(l => {
+            if (l.id !== layerId) return l;
+            const next = !l.visible;
+            try { map.setLayoutProperty(layerId, 'visibility', next ? 'visible' : 'none'); } catch (_) {}
+            return { ...l, visible: next };
+        }));
+    };
+
     const handleOverlayClose = () => {
         const savedScroll = overlayScrollRef.current;
         setShowStoryOverlay(false);
@@ -1182,8 +1198,35 @@ export default function StoryMapView() {
                                 });
                                 } // end !slide._noRoute
 
-                                // Set active Mapbox layer
-                                setActiveLayerId(slide.mapbox_layer_id || null);
+                                // Set active Mapbox layer (MapContainer handles show/hide)
+                                const newLayerId = slide.mapbox_layer_id || null;
+                                setActiveLayerId(newLayerId);
+
+                                // Keep pinnedLayers visibility in sync with what MapContainer does:
+                                // previous layer → hidden, new layer → visible.
+                                const prevId = prevSlideLayerRef.current;
+                                setPinnedLayers(prev => {
+                                    let next = prev;
+                                    // Mark previous layer not-visible
+                                    if (prevId && prevId !== newLayerId) {
+                                        next = next.map(l => l.id === prevId ? { ...l, visible: false } : l);
+                                    }
+                                    // Add / mark new layer visible
+                                    if (newLayerId) {
+                                        const exists = next.find(l => l.id === newLayerId);
+                                        if (exists) {
+                                            next = next.map(l => l.id === newLayerId ? { ...l, visible: true } : l);
+                                        } else {
+                                            next = [...next, {
+                                                id: newLayerId,
+                                                name: slide.layer_display_name || newLayerId,
+                                                visible: true,
+                                            }];
+                                        }
+                                    }
+                                    return next;
+                                });
+                                prevSlideLayerRef.current = newLayerId;
 
                                 // Skip setMapConfig if onContinue/onExplore already fired it for
                                 // this initial chapter activation (avoids restarting the flyTo).
@@ -1377,7 +1420,7 @@ export default function StoryMapView() {
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut', delay: pillsInitialized ? 0 : 5 }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, width: 380, height: 80 }}
+                            style={{ bottom: 0, width: 380, height: pinnedLayers.length > 0 ? 116 : 80 }}
                         >
                             <BottomPillBar
                                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
@@ -1388,6 +1431,8 @@ export default function StoryMapView() {
                                 showMarkers={showMarkers}
                                 onToggleMarkers={() => setShowMarkers(v => !v)}
                                 onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
+                                pinnedLayers={pinnedLayers}
+                                onToggleLayer={togglePinnedLayer}
                             />
                         </motion.div>
                     )}
