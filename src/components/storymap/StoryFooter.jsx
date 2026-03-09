@@ -72,7 +72,7 @@ export default function StoryFooter({ onRestart, relatedStories = [], currentCat
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                                         <div className="absolute bottom-0 left-0 right-0 p-4">
-                                            <h4 className="text-white font-medium text-lg mb-1">
+                                            <h4 className="text-white font-medium text-lg mb-1" style={{ lineHeight: '1.125rem' }}>
                                                 {stripHtml(relatedStory.title)}
                                             </h4>
                                             {relatedStory.subtitle && (

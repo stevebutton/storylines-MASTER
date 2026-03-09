@@ -108,7 +108,7 @@ export default function ScaleBar({
                         position:      'absolute',
                         top:           0,
                         left:          0,
-                        width:         (segments.length + 1) * SLOT_WIDTH,
+                        width:         segments.length * SLOT_WIDTH,
                         height:        trackTop - 10,
                         pointerEvents: 'auto',
                         touchAction:   'none',
@@ -164,35 +164,6 @@ export default function ScaleBar({
                         </button>
                     ))}
 
-                    {/* End marker — visible alongside the last chapter */}
-                    <div
-                        style={{
-                            width:          SLOT_WIDTH,
-                            flexShrink:     0,
-                            paddingLeft:    40,
-                            paddingRight:   32,
-                            height:         '100%',
-                            display:        'flex',
-                            flexDirection:  'column',
-                            justifyContent: 'flex-end',
-                            pointerEvents:  'none',
-                            textAlign:      'right',
-                        }}
-                    >
-                        <div style={{ maxWidth: '100%' }}>
-                            <div style={{
-                                fontSize:      20,
-                                fontWeight:    500,
-                                color:         'rgba(255,255,255,1)',
-                                letterSpacing: '0.1em',
-                                textTransform: 'uppercase',
-                                lineHeight:    1.2,
-                                fontFamily:    themeFont,
-                            }}>
-                                END
-                            </div>
-                        </div>
-                    </div>
                 </motion.div>
             )}
 
@@ -238,6 +209,28 @@ export default function ScaleBar({
                         onSeek(pct);
                     }}
                 />
+
+                {/* ── "END" label — pinned to the right terminus of the track,
+                    same position the cursor reaches at 100% progress ── */}
+                {mode === 'chapters' && segments.length > 0 && (
+                    <span style={{
+                        position:      'absolute',
+                        left:          '100%',
+                        top:           -28,
+                        transform:     'translateX(-50%)',
+                        fontSize:      20,
+                        fontWeight:    500,
+                        color:         'rgba(255,255,255,1)',
+                        letterSpacing: '0.1em',
+                        textTransform: 'uppercase',
+                        lineHeight:    1.2,
+                        fontFamily:    themeFont,
+                        pointerEvents: 'none',
+                        whiteSpace:    'nowrap',
+                    }}>
+                        END
+                    </span>
+                )}
 
                 {/* ── Chapter dividers ── */}
                 {mode === 'chapters' && segments.length > 0 && (
