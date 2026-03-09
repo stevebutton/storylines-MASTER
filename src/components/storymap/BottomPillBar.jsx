@@ -78,16 +78,16 @@ export default function BottomPillBar({
                             <button
                                 onClick={() => onToggleLayer?.(layer.id)}
                                 className={cn(
-                                    'h-full flex-shrink-0 flex items-center justify-center gap-1.5 px-3',
-                                    'text-sm font-medium whitespace-nowrap transition-all duration-200',
+                                    'h-full flex-shrink-0 flex flex-col items-center justify-center px-3',
+                                    'whitespace-nowrap transition-all duration-200',
                                     layer.visible
                                         ? 'bg-white text-slate-900'
                                         : 'text-white/70 hover:text-white hover:bg-white/15'
                                 )}
                                 title={layer.visible ? `Hide ${layer.name}` : `Show ${layer.name}`}
                             >
-                                <MapPin className="w-3 h-3 flex-shrink-0" />
-                                {layer.name}
+                                <MapPin className="w-3 h-3 mb-0.5 flex-shrink-0" />
+                                <span className="text-xs font-medium leading-none">{layer.name}</span>
                             </button>
                         </React.Fragment>
                     ))}

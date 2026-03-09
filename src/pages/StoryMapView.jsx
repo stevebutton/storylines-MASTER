@@ -1119,6 +1119,32 @@ export default function StoryMapView() {
                             onOpenFullscreen={(chId, slId) => openOverlay(chId, slId)}
                             onSlideChange={(slide) => {
                                 setActiveSlide(slide);
+
+                                // ── Layer tracking — runs for ALL slides, no coordinate dependency ──
+                                const newLayerId = slide.mapbox_layer_id || null;
+                                setActiveLayerId(newLayerId);
+                                const prevId = prevSlideLayerRef.current;
+                                setPinnedLayers(prev => {
+                                    let next = prev;
+                                    if (prevId && prevId !== newLayerId) {
+                                        next = next.map(l => l.id === prevId ? { ...l, visible: false } : l);
+                                    }
+                                    if (newLayerId) {
+                                        const exists = next.find(l => l.id === newLayerId);
+                                        if (exists) {
+                                            next = next.map(l => l.id === newLayerId ? { ...l, visible: true } : l);
+                                        } else {
+                                            next = [...next, {
+                                                id: newLayerId,
+                                                name: slide.layer_display_name || newLayerId,
+                                                visible: true,
+                                            }];
+                                        }
+                                    }
+                                    return next;
+                                });
+                                prevSlideLayerRef.current = newLayerId;
+
                                 if (!isValidCoordinatePair(slide.coordinates)) return;
 
                                 const normalizedCoords = normalizeCoordinatePair(slide.coordinates);
@@ -1198,36 +1224,6 @@ export default function StoryMapView() {
                                     return prev;
                                 });
                                 } // end !slide._noRoute
-
-                                // Set active Mapbox layer (MapContainer handles show/hide)
-                                const newLayerId = slide.mapbox_layer_id || null;
-                                setActiveLayerId(newLayerId);
-
-                                // Keep pinnedLayers visibility in sync with what MapContainer does:
-                                // previous layer → hidden, new layer → visible.
-                                const prevId = prevSlideLayerRef.current;
-                                setPinnedLayers(prev => {
-                                    let next = prev;
-                                    // Mark previous layer not-visible
-                                    if (prevId && prevId !== newLayerId) {
-                                        next = next.map(l => l.id === prevId ? { ...l, visible: false } : l);
-                                    }
-                                    // Add / mark new layer visible
-                                    if (newLayerId) {
-                                        const exists = next.find(l => l.id === newLayerId);
-                                        if (exists) {
-                                            next = next.map(l => l.id === newLayerId ? { ...l, visible: true } : l);
-                                        } else {
-                                            next = [...next, {
-                                                id: newLayerId,
-                                                name: slide.layer_display_name || newLayerId,
-                                                visible: true,
-                                            }];
-                                        }
-                                    }
-                                    return next;
-                                });
-                                prevSlideLayerRef.current = newLayerId;
 
                                 // Skip setMapConfig if onContinue/onExplore already fired it for
                                 // this initial chapter activation (avoids restarting the flyTo).
