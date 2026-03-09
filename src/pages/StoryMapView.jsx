@@ -1412,10 +1412,10 @@ export default function StoryMapView() {
                     ) : (
                         <motion.div
                             key="bottom-pill"
-                            initial={{ opacity: 0, y: 6 }}
+                            initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 6 }}
-                            transition={{ duration: 0.25, ease: 'easeOut', delay: pillsInitialized ? 0 : 5 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.5, ease: 'easeOut', delay: pillsInitialized ? 0 : 5 }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
                             style={{ bottom: 0, height: 80, width: 'fit-content', minWidth: 380 }}
                         >

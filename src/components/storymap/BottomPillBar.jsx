@@ -7,13 +7,13 @@ import { pillShell, pillDivider } from './StoryViewPill';
 /**
  * BottomPillBar — Map context sub-pill.
  *
- * Controls are always flex-1. Layer buttons enter via a motion.div that
- * animates width 0 → auto so the pill grows in sync — no hard-cut jump.
- * Each layer entry wraps its own divider so both clip together at width:0.
+ * Controls live in a fixed-width (380px) inner section so they are never
+ * squeezed by incoming layer buttons. Layer entries animate width 0 → auto
+ * and sit beside the controls section, extending the pill rightward.
  */
 
 const ctrl = (active) => cn(
-    'flex-1 h-full flex items-center justify-center transition-all duration-200',
+    'flex-1 h-full flex items-center justify-center transition-colors duration-200',
     active
         ? 'bg-white text-slate-900'
         : 'text-white/70 hover:text-white hover:bg-white/15 disabled:opacity-30 disabled:cursor-not-allowed'
@@ -34,37 +34,45 @@ export default function BottomPillBar({
     return (
         <div className={pillShell}>
 
-            {/* Map controls — always flex-1, fill available space */}
-            <button onClick={onZoomIn}     className={ctrl(false)} title="Zoom in">
-                <Plus className="w-4 h-4" />
-            </button>
-            <button onClick={onZoomOut}    className={ctrl(false)} title="Zoom out">
-                <Minus className="w-4 h-4" />
-            </button>
-            <button onClick={onResetNorth} className={ctrl(false)} title="Reset north">
-                <Compass className="w-4 h-4" />
-            </button>
+            {/* Controls — fixed 380px so layer buttons never squeeze them */}
+            <div style={{
+                width: 380,
+                flexShrink: 0,
+                height: '100%',
+                display: 'flex',
+                alignItems: 'stretch',
+            }}>
+                <button onClick={onZoomIn}     className={ctrl(false)} title="Zoom in">
+                    <Plus className="w-4 h-4" />
+                </button>
+                <button onClick={onZoomOut}    className={ctrl(false)} title="Zoom out">
+                    <Minus className="w-4 h-4" />
+                </button>
+                <button onClick={onResetNorth} className={ctrl(false)} title="Reset north">
+                    <Compass className="w-4 h-4" />
+                </button>
 
-            {pillDivider}
+                {pillDivider}
 
-            <button onClick={onToggleRoute}   className={ctrl(showRoute)}   title="Toggle route">
-                <Navigation className="w-4 h-4" />
-            </button>
-            <button onClick={onToggleMarkers} className={ctrl(showMarkers)} title="Toggle markers">
-                <MapPin className="w-4 h-4" />
-            </button>
+                <button onClick={onToggleRoute}   className={ctrl(showRoute)}   title="Toggle route">
+                    <Navigation className="w-4 h-4" />
+                </button>
+                <button onClick={onToggleMarkers} className={ctrl(showMarkers)} title="Toggle markers">
+                    <MapPin className="w-4 h-4" />
+                </button>
 
-            {onOpenMapEditor && (
-                <>
-                    {pillDivider}
-                    <button onClick={onOpenMapEditor} className={ctrl(false)} title="Map editor">
-                        <SlidersHorizontal className="w-4 h-4" />
-                    </button>
-                </>
-            )}
+                {onOpenMapEditor && (
+                    <>
+                        {pillDivider}
+                        <button onClick={onOpenMapEditor} className={ctrl(false)} title="Map editor">
+                            <SlidersHorizontal className="w-4 h-4" />
+                        </button>
+                    </>
+                )}
+            </div>
 
             {/* Layer toggles — each entry grows from width:0, pulling the pill
-                right in sync so there's no instantaneous box-expansion cut. */}
+                right without affecting the controls section. */}
             {pinnedLayers.map((layer) => (
                 <motion.div
                     key={layer.id}
