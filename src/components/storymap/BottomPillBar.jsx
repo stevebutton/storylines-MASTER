@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Navigation, MapPin, SlidersHorizontal, Plus, Minus, Compass } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { pillShell, pillDivider } from './StoryViewPill';
@@ -73,12 +74,15 @@ export default function BottomPillBar({
                     {pinnedLayers.map((layer, idx) => (
                         <React.Fragment key={layer.id}>
                             {idx > 0 && pillDivider}
-                            <button
+                            <motion.button
                                 onClick={() => onToggleLayer?.(layer.id)}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 1, ease: 'easeOut' }}
                                 className={cn(
                                     'flex-none h-full px-3',
                                     'flex flex-col items-center justify-center',
-                                    'transition-all duration-200',
+                                    'transition-colors duration-200',
                                     layer.visible
                                         ? 'bg-white text-slate-900'
                                         : 'text-white/70 hover:text-white hover:bg-white/15'
@@ -89,7 +93,7 @@ export default function BottomPillBar({
                                 <span className="text-xs font-medium leading-none whitespace-nowrap">
                                     {layer.name}
                                 </span>
-                            </button>
+                            </motion.button>
                         </React.Fragment>
                     ))}
                 </>
