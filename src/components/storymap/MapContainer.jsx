@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
+import { fadeMapLayer } from '@/utils/mapLayerFade';
 
 const MAP_STYLES = {
     a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
@@ -676,26 +677,14 @@ export default function MapBackground({
     useEffect(() => {
         if (!map.current || !map.current.isStyleLoaded() || !mapContainer.current) return;
 
-        // Hide previous layer if it exists and is different from current
+        // Fade previous layer out if it exists and is different from current
         if (previousLayerId.current && previousLayerId.current !== activeLayerId) {
-            try {
-                if (map.current.getLayer(previousLayerId.current)) {
-                    map.current.setLayoutProperty(previousLayerId.current, 'visibility', 'none');
-                }
-            } catch (error) {
-                // Layer may have been removed
-            }
+            fadeMapLayer(map.current, previousLayerId.current, false);
         }
 
-        // Show current layer if it exists
+        // Fade current layer in if it exists
         if (activeLayerId) {
-            try {
-                if (map.current.getLayer(activeLayerId)) {
-                    map.current.setLayoutProperty(activeLayerId, 'visibility', 'visible');
-                }
-            } catch (error) {
-                // Layer may not exist in style
-            }
+            fadeMapLayer(map.current, activeLayerId, true);
         }
 
         previousLayerId.current = activeLayerId;

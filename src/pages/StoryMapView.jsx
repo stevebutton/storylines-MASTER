@@ -17,6 +17,7 @@ import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
 import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
 import LibraryPill from '@/components/storymap/LibraryPill';
 import ScaleBar from '@/components/storymap/ScaleBar';
+import { fadeMapLayer } from '@/utils/mapLayerFade';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
 import { Loader2 } from 'lucide-react';
@@ -821,7 +822,7 @@ export default function StoryMapView() {
         setPinnedLayers(prev => prev.map(l => {
             if (l.id !== layerId) return l;
             const next = !l.visible;
-            try { map.setLayoutProperty(layerId, 'visibility', next ? 'visible' : 'none'); } catch (_) {}
+            fadeMapLayer(map, layerId, next);
             return { ...l, visible: next };
         }));
     };
@@ -1420,7 +1421,7 @@ export default function StoryMapView() {
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut', delay: pillsInitialized ? 0 : 5 }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, width: 380, height: pinnedLayers.length > 0 ? 116 : 80 }}
+                            style={{ bottom: 0, width: 380, height: 80 }}
                         >
                             <BottomPillBar
                                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
