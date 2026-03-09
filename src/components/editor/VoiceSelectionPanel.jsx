@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SUPPORTED_LANGUAGES } from '@/utils/translationDefaults';
 
-export default function VoiceSelectionPanel({ isOpen, onClose, onContinue }) {
+export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defaultLanguage = 'en' }) {
     const [selectedVoice, setSelectedVoice] = useState('berger');
+    const [selectedLanguage, setSelectedLanguage] = useState(defaultLanguage);
     const [customVoiceDescription, setCustomVoiceDescription] = useState('');
     const [showContext, setShowContext] = useState(false);
     const [storyContext, setStoryContext] = useState({
@@ -70,7 +73,8 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue }) {
         onContinue({
             caption_voice: selectedVoice,
             custom_caption_voice_description: selectedVoice === 'custom' ? customVoiceDescription : null,
-            story_context: showContext ? storyContext : null
+            story_context: showContext ? storyContext : null,
+            language: selectedLanguage,
         });
     };
 
@@ -113,6 +117,23 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue }) {
 
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6">
+                            {/* Language */}
+                            <div className="mb-6">
+                                <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                                    Caption Language
+                                </Label>
+                                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {SUPPORTED_LANGUAGES.map(lang => (
+                                            <SelectItem key={lang.code} value={lang.code}>{lang.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
                             {/* Voice Options */}
                             <div className="space-y-3 mb-6">
                                 {voices.map((voice) => {

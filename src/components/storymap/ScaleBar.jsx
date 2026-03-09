@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
+import { useTranslation } from '@/contexts/StoryTranslationContext';
 
 /**
  * ScaleBar — horizontal navigation axis, shared by Story and Timeline modes.
@@ -34,6 +35,7 @@ export default function ScaleBar({
 }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const trackTop = 107;
+    const { t } = useTranslation();
 
     // ── Draggable label row (chapters mode) ──────────────────────────────────
     const x         = useMotionValue(0);
@@ -147,7 +149,7 @@ export default function ScaleBar({
                                     whiteSpace:    'nowrap',
                                     fontFamily:    themeFont,
                                 }}>
-                                    {`CHAPTER ${String(seg.chapterNum).padStart(2, '0')}:`}
+                                    {`${t('chapter_prefix')} ${String(seg.chapterNum).padStart(2, '0')}:`}
                                 </div>
                                 <div style={{
                                     fontSize:      20,
@@ -228,7 +230,7 @@ export default function ScaleBar({
                         pointerEvents: 'none',
                         whiteSpace:    'nowrap',
                     }}>
-                        END
+                        {t('end_label')}
                     </span>
                 )}
 

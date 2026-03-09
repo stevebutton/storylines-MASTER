@@ -1,6 +1,8 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const { createClient } = require('@supabase/supabase-js');
 
+const LANGUAGE_NAMES = { en: 'English', fr: 'French', es: 'Spanish' };
+
 const VOICE_STYLES = {
     berger: 'in the style of John Berger (Ways of Seeing): critical, questioning power and context, asking how we are taught to see this image',
     jobey:  'in the style of Liz Jobey: human, relational, focused on memory and emotional truth',
@@ -47,7 +49,7 @@ exports.handler = async (event) => {
     if (event.httpMethod !== 'POST')
         return { statusCode: 405, body: 'Method Not Allowed' };
 
-    const { story_id, caption_voice, custom_caption_voice_description, story_context, slide_ids } =
+    const { story_id, caption_voice, custom_caption_voice_description, story_context, slide_ids, language } =
         JSON.parse(event.body || '{}');
     if (!story_id)
         return { statusCode: 400, body: JSON.stringify({ error: 'story_id required' }) };
@@ -95,9 +97,12 @@ exports.handler = async (event) => {
 
         const locationBlock = mapboxLocation ? ` Location: ${mapboxLocation}.` : '';
 
+        const languageName = LANGUAGE_NAMES[language] || 'English';
         const prompt = `You are writing ${voiceStyle}.
 
 Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${locationBlock}${contextBlock}
+
+Write all output in ${languageName}.
 
 Respond with valid JSON only, no other text:
 {

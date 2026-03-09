@@ -23,6 +23,8 @@ import DocumentManagerContent from '@/components/documents/DocumentManagerConten
 import { Loader2 } from 'lucide-react';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { StoryTranslationProvider } from '@/contexts/StoryTranslationContext';
+import { getT } from '@/utils/translationDefaults';
 
 // Straight-line distance in metres between two [lat, lng] points (Haversine formula).
 function haversineMetres([lat1, lng1], [lat2, lng2]) {
@@ -660,18 +662,21 @@ export default function StoryMapView() {
         setIsChapterMenuOpen(false);
     };
 
+    // ── Translation helper (pure function, not hook — StoryMapView provides its own context) ──
+    const translate = useMemo(() => getT(story?.story_language, story?.translations), [story?.story_language, story?.translations]);
+
     // ── Overlay: flat slide list (built from already-loaded chapters, no extra fetch) ──
     const overlaySlides = useMemo(() => {
         return chapters.flatMap((ch, chIdx) =>
             (ch.slides || []).map(sl => ({
                 ...sl,
                 chapter_name: ch.name
-                    ? `Chapter ${String(chIdx + 1).padStart(2, '0')}: ${ch.name}`
-                    : `Chapter ${String(chIdx + 1).padStart(2, '0')}`,
+                    ? `${translate('chapter_prefix')} ${String(chIdx + 1).padStart(2, '0')}: ${ch.name}`
+                    : `${translate('chapter_prefix')} ${String(chIdx + 1).padStart(2, '0')}`,
                 _chapter_id: ch.id,
             }))
         );
-    }, [chapters]);
+    }, [chapters, translate]);
 
     const overlayTimelineSlides = useMemo(() => {
         const dated = overlaySlides.filter(sl => sl.story_date || sl.capture_date);
@@ -959,6 +964,7 @@ export default function StoryMapView() {
     }
 
     return (
+        <StoryTranslationProvider language={story?.story_language} translations={story?.translations}>
         <div ref={containerRef} className="relative" data-name="main-container">
             {/* Black Overlay - Fades out when hero loads; shows spinner while story data loads */}
             <AnimatePresence>
@@ -1594,5 +1600,6 @@ export default function StoryMapView() {
                 )}
             </AnimatePresence>
             </div>
-            );
-            }
+        </StoryTranslationProvider>
+        );
+        }

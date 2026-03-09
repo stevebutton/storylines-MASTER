@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/contexts/StoryTranslationContext';
 
 /**
  * StoryViewPill — top-left nav pill, positioned just below the banner.
@@ -42,7 +43,7 @@ export const pillDivider = (
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const VIEW_LABELS = { map: 'Map View', story: 'Story View', library: 'Library View' };
+const VIEW_KEY_MAP = { map: 'map_view', story: 'story_view', library: 'library_view' };
 
 export default function StoryViewPill({
     storyId,
@@ -53,6 +54,8 @@ export default function StoryViewPill({
     onOpenMap      = null,
     onOpenLibrary  = null,
 }) {
+    const { t } = useTranslation();
+
     if (!storyId) return null;
 
     const views = [
@@ -101,11 +104,11 @@ export default function StoryViewPill({
                                     {idx > 0 && pillDivider}
                                     {url ? (
                                         <Link to={url} onClick={handleClick} className={btnClass}>
-                                            {VIEW_LABELS[key]}
+                                            {t(VIEW_KEY_MAP[key])}
                                         </Link>
                                     ) : (
                                         <button onClick={handleClick} className={btnClass}>
-                                            {VIEW_LABELS[key]}
+                                            {t(VIEW_KEY_MAP[key])}
                                         </button>
                                     )}
                                 </React.Fragment>

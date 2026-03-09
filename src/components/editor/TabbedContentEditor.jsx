@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LanguageSettingsTab from '@/components/editor/LanguageSettingsTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -172,9 +173,10 @@ export default function TabbedContentEditor({
         return (
             <div className="space-y-4">
                 <Tabs defaultValue="story">
-                    <TabsList className="w-full grid grid-cols-2">
+                    <TabsList className="w-full grid grid-cols-3">
                         <TabsTrigger value="story">Story</TabsTrigger>
                         <TabsTrigger value="style">Map Style</TabsTrigger>
+                        <TabsTrigger value="language">Language</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="story">
@@ -544,6 +546,14 @@ export default function TabbedContentEditor({
                                 );
                             })}
                         </div>
+                    </CardContent>
+                    </Card>
+                    </TabsContent>
+
+                    <TabsContent value="language">
+                    <Card>
+                    <CardContent className="pt-6">
+                        <LanguageSettingsTab item={item} onUpdate={onUpdate} />
                     </CardContent>
                     </Card>
                     </TabsContent>

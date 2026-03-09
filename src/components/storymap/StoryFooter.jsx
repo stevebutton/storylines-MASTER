@@ -3,10 +3,12 @@ import { motion } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createPageUrl } from '@/utils';
+import { useTranslation } from '@/contexts/StoryTranslationContext';
 
 const stripHtml = (str) => str ? str.replace(/<[^>]*>/g, '') : str;
 
 export default function StoryFooter({ onRestart, relatedStories = [], currentCategory }) {
+    const { t } = useTranslation();
     return (
         <div className="min-h-screen flex items-center justify-center relative">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
@@ -31,15 +33,15 @@ export default function StoryFooter({ onRestart, relatedStories = [], currentCat
                     className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white/50 gap-2 mb-8"
                 >
                     <ArrowUp className="w-4 h-4" />
-                    Back to Beginning
+                    {t('back_to_beginning')}
                 </Button>
 
                 <h2 className="text-3xl md:text-4xl font-light text-white mb-4">
-                    End
+                    {t('end_label')}
                 </h2>
 
                 <p className="text-white/70 mb-8">
-                    Thank you for exploring this story
+                    {t('thank_you')}
                 </p>
 
                 {/* Related Stories */}
@@ -52,7 +54,7 @@ export default function StoryFooter({ onRestart, relatedStories = [], currentCat
                         className="mt-12"
                     >
                         <h3 className="text-xl font-light text-white/80 mb-6">
-                            More {currentCategory} Stories
+                            {t('more_stories')}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             {relatedStories.map((relatedStory) => (
