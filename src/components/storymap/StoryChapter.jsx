@@ -7,6 +7,7 @@ import { X } from 'lucide-react';
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 import { createPageUrl } from '@/utils';
+import { useTranslation } from '@/contexts/StoryTranslationContext';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
@@ -38,6 +39,7 @@ export default function StoryChapter({
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
     const chapterColor = CHAPTER_COLORS[index % CHAPTER_COLORS.length];
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [showCarousel, setShowCarousel] = useState(false);
 
@@ -202,7 +204,7 @@ export default function StoryChapter({
                                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                                         transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 2.5 }}
                                     >
-                                        Chapter {String(index + 1).padStart(2, '0')}
+                                        {t('chapter_prefix')} {String(index + 1).padStart(2, '0')}
                                     </motion.span>
                                     {chapter.name && (
                                         <motion.span
