@@ -147,8 +147,6 @@ export default function StoryChapter({
         setActiveSlideIndex(slideIndex);
         const slide = chapter.slides?.[slideIndex];
         if (slide && onSlideChange) {
-            if (!slide.coordinates || !Array.isArray(slide.coordinates) || slide.coordinates.length !== 2 ||
-                isNaN(slide.coordinates[0]) || isNaN(slide.coordinates[1])) return;
             onSlideChange(slide);
         }
     };

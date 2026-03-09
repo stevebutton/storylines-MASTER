@@ -78,7 +78,7 @@ export default function BottomPillBar({
                             <button
                                 onClick={() => onToggleLayer?.(layer.id)}
                                 className={cn(
-                                    'h-full flex-shrink-0 flex flex-col items-center justify-center px-3',
+                                    'h-full flex-shrink-0 flex flex-col items-center justify-center px-4',
                                     'whitespace-nowrap transition-all duration-200',
                                     layer.visible
                                         ? 'bg-white text-slate-900'
