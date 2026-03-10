@@ -4,31 +4,52 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const PANEL_WIDTH = 380;
 
-// Split HTML content at </p> boundaries, counting only text characters.
-const splitHtmlIntoPages = (html, maxChars = 700) => {
-    if (!html) return [html];
-    const paragraphRegex = /<p[^>]*>.*?<\/p>/gi;
-    const paragraphs = html.match(paragraphRegex);
-    if (!paragraphs || paragraphs.length === 0) return [html];
+// Split content into pages at paragraph (HTML) or sentence (plain text) boundaries.
+const splitHtmlIntoPages = (content, maxChars = 600) => {
+    if (!content) return [];
 
-    const stripTags = (str) => str.replace(/<[^>]*>/g, '');
-    const pages = [];
-    let currentPageContent = '';
-    let currentTextLength = 0;
-
-    for (const paragraph of paragraphs) {
-        const textLength = stripTags(paragraph).length;
-        if (currentPageContent && (currentTextLength + textLength) > maxChars) {
-            pages.push(currentPageContent);
-            currentPageContent = paragraph;
-            currentTextLength = textLength;
-        } else {
-            currentPageContent += paragraph;
-            currentTextLength += textLength;
+    // HTML path — split at </p> boundaries
+    if (/<p[\s>]/i.test(content)) {
+        const paragraphRegex = /<p[^>]*>.*?<\/p>/gi;
+        const paragraphs = content.match(paragraphRegex);
+        if (paragraphs && paragraphs.length > 0) {
+            const stripTags = (str) => str.replace(/<[^>]*>/g, '');
+            const pages = [];
+            let currentPageContent = '';
+            let currentTextLength  = 0;
+            for (const paragraph of paragraphs) {
+                const textLength = stripTags(paragraph).length;
+                if (currentPageContent && (currentTextLength + textLength) > maxChars) {
+                    pages.push(currentPageContent);
+                    currentPageContent = paragraph;
+                    currentTextLength  = textLength;
+                } else {
+                    currentPageContent += paragraph;
+                    currentTextLength  += textLength;
+                }
+            }
+            if (currentPageContent) pages.push(currentPageContent);
+            return pages.length > 0 ? pages : [content];
         }
     }
-    if (currentPageContent) pages.push(currentPageContent);
-    return pages.length > 0 ? pages : [html];
+
+    // Plain text path — split at sentence end (. ! ?) then word boundary
+    if (content.length <= maxChars) return [content];
+    const pages = [];
+    let remaining = content;
+    while (remaining.length > maxChars) {
+        const slice = remaining.slice(0, maxChars);
+        const lastSentence = Math.max(
+            slice.lastIndexOf('. '),
+            slice.lastIndexOf('! '),
+            slice.lastIndexOf('? '),
+        );
+        const splitAt = lastSentence > 0 ? lastSentence + 2 : maxChars;
+        pages.push(remaining.slice(0, splitAt).trim());
+        remaining = remaining.slice(splitAt).trim();
+    }
+    if (remaining) pages.push(remaining);
+    return pages;
 };
 
 const THEME_FONTS = {
@@ -68,7 +89,7 @@ const TextPanelCarousel = ({
         : (extendedContent ? [extendedContent] : []);
 
     const splitExtended = extendedArray.flatMap(c => splitHtmlIntoPages(c));
-    const firstPage = [description, splitExtended[0]].filter(Boolean).join('');
+    const firstPage = [description, splitExtended[0]].filter(Boolean).join('<br><br>');
     const pages = [
         ...(firstPage ? [{ content: firstPage }] : []),
         ...splitExtended.slice(1).map(content => ({ content })),
