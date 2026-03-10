@@ -19,18 +19,29 @@ async function reverseGeocode(lat, lng, token) {
             console.error('[geocode] Mapbox API error', res.status, await res.text());
             return null;
         }
-        const data = await res.json();
+        const data    = await res.json();
         const feature = data.features?.[0];
-        if (!feature) { console.error('[geocode] No features returned for', lat, lng); return null; }
+        if (!feature) { console.error('[geocode] No features for', lat, lng); return null; }
         const placeName = feature.text;
-        const city    = feature.context?.find(c => c.id.startsWith('place'))?.text;
-        const country = feature.context?.find(c => c.id.startsWith('country'))?.text;
-        const parts   = [placeName, city, country].filter(Boolean);
-        const result  = parts.length > 1 ? parts.join(', ') : feature.place_name;
+        const city      = feature.context?.find(c => c.id.startsWith('place'))?.text;
+        const country   = feature.context?.find(c => c.id.startsWith('country'))?.text;
+        const parts     = [placeName, city, country].filter(Boolean);
+        const result    = parts.length > 1 ? parts.join(', ') : feature.place_name;
         console.log('[geocode]', lat, lng, '→', result);
         return result;
     } catch (e) {
         console.error('[geocode] Exception', e?.message);
+        return null;
+    }
+}
+
+// Parse a JSON response from Claude, stripping any markdown fences.
+function parseJson(raw) {
+    if (!raw) return null;
+    try {
+        const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        return JSON.parse(cleaned);
+    } catch {
         return null;
     }
 }
@@ -63,8 +74,6 @@ exports.handler = async (event) => {
     // Full-story run: no slide_ids provided (or empty array)
     const isFullRun = !Array.isArray(slide_ids) || slide_ids.length === 0;
 
-    // If slide_ids provided (batched call from client), only fetch those slides.
-    // Otherwise fall back to fetching all slides for the story.
     let slidesQuery = supabase
         .from('slides').select('id,title,chapter_id,coordinates')
         .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
@@ -73,15 +82,22 @@ exports.handler = async (event) => {
     }
     const { data: slides } = await slidesQuery;
 
-    // Process slides concurrently — safe because the client sends small batches (≤4 slides)
-    const results = await Promise.all((slides || []).map(async (slide) => {
+    // Group original slide titles by chapter_id for chapter generation context
+    const slidesByChapter = {};
+    for (const slide of (slides || [])) {
+        if (!slidesByChapter[slide.chapter_id]) slidesByChapter[slide.chapter_id] = [];
+        if (slide.title) slidesByChapter[slide.chapter_id].push(slide.title);
+    }
+
+    const mapboxToken = process.env.MAPBOX_TOKEN || process.env.VITE_MAPBOX_API_KEY;
+
+    // ── 1. SLIDES ─────────────────────────────────────────────────────────────
+    const slideResults = await Promise.all((slides || []).map(async (slide) => {
         const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
 
         const coords = Array.isArray(slide.coordinates) && slide.coordinates.length === 2
             ? slide.coordinates : null;
 
-        // Resolve accurate location via Mapbox before calling Claude
-        const mapboxToken   = process.env.MAPBOX_TOKEN || process.env.VITE_MAPBOX_API_KEY;
         const mapboxLocation = coords
             ? await reverseGeocode(coords[0], coords[1], mapboxToken)
             : null;
@@ -102,19 +118,13 @@ Respond with valid JSON only, no other text:
 }`;
 
         try {
-            const msg = await anthropic.messages.create({
+            const msg    = await anthropic.messages.create({
                 model:      'claude-haiku-4-5-20251001',
                 max_tokens: 700,
                 messages:   [{ role: 'user', content: prompt }],
             });
-
-            const raw = msg.content[0]?.text?.trim();
-            if (!raw) return false;
-
-            const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-
-            let parsed;
-            try { parsed = JSON.parse(cleaned); } catch { return false; }
+            const parsed = parseJson(msg.content[0]?.text?.trim());
+            if (!parsed) return false;
 
             const title            = parsed.title?.trim()            || slide.title;
             const description      = parsed.description?.trim()      || '';
@@ -131,46 +141,90 @@ Respond with valid JSON only, no other text:
             }
             return false;
         } catch (e) {
-            console.error('[captions] Failed slide', slide.id, e?.message);
+            console.error('[slide] Failed', slide.id, e?.message);
             return false;
         }
     }));
 
-    const updatedCount = results.filter(Boolean).length;
+    const updatedCount = slideResults.filter(Boolean).length;
 
-    // ── Story subtitle — only on full-story runs ──────────────────────────────
+    // ── 2. CHAPTERS + 3. STORY — full-story runs only ─────────────────────────
     if (isFullRun) {
-        try {
-            const { data: storyData } = await supabase
-                .from('stories').select('title').eq('id', story_id).single();
 
-            const chapterNames = (chapters || [])
-                .map(c => c.name).filter(Boolean).join(', ');
+        // ── 2. Generate chapter name + description for each chapter ────────────
+        const chapterResults = await Promise.all((chapters || []).map(async (ch) => {
+            const slideTitles = (slidesByChapter[ch.id] || []).join(', ');
+            if (!slideTitles) return { id: ch.id, name: ch.name };
 
-            const subtitlePrompt = `Story title: "${storyData?.title || ''}". Chapters: ${chapterNames || 'various'}.
+            const prompt = `You are writing ${voiceStyle}.
 
-Write a compelling story subtitle of no more than 45 characters in ${languageName}.
+This chapter contains images titled: "${slideTitles}".${contextBlock}
+
+Write all output in ${languageName}.
 
 Respond with valid JSON only, no other text:
-{ "subtitle": "..." }`;
+{
+  "name": "Chapter title. Maximum 40 characters.",
+  "description": "Chapter description for the chapter card. Maximum 200 characters."
+}`;
 
-            const subtitleMsg = await anthropic.messages.create({
+            try {
+                const msg    = await anthropic.messages.create({
+                    model:      'claude-haiku-4-5-20251001',
+                    max_tokens: 150,
+                    messages:   [{ role: 'user', content: prompt }],
+                });
+                const parsed = parseJson(msg.content[0]?.text?.trim());
+                if (!parsed) return { id: ch.id, name: ch.name };
+
+                const name        = parsed.name?.trim()        || ch.name;
+                const description = parsed.description?.trim() || null;
+
+                await supabase.from('chapters')
+                    .update({ name, description })
+                    .eq('id', ch.id);
+
+                console.log('[chapter] Generated:', name);
+                return { id: ch.id, name };
+            } catch (e) {
+                console.error('[chapter] Failed', ch.id, e?.message);
+                return { id: ch.id, name: ch.name };
+            }
+        }));
+
+        // ── 3. Generate story title + subtitle from generated chapter names ────
+        try {
+            const generatedChapterNames = chapterResults
+                .map(r => r?.name).filter(Boolean).join(', ');
+
+            const prompt = `You are writing ${voiceStyle}.
+
+Story chapters: "${generatedChapterNames}".${contextBlock}
+
+Write all output in ${languageName}.
+
+Respond with valid JSON only, no other text:
+{
+  "title": "Story title. Maximum 60 characters.",
+  "subtitle": "Story subtitle. Maximum 45 characters."
+}`;
+
+            const msg    = await anthropic.messages.create({
                 model:      'claude-haiku-4-5-20251001',
-                max_tokens: 60,
-                messages:   [{ role: 'user', content: subtitlePrompt }],
+                max_tokens: 100,
+                messages:   [{ role: 'user', content: prompt }],
             });
+            const parsed = parseJson(msg.content[0]?.text?.trim());
 
-            const subtitleRaw     = subtitleMsg.content[0]?.text?.trim();
-            const subtitleCleaned = subtitleRaw?.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-            const subtitleParsed  = subtitleCleaned ? JSON.parse(subtitleCleaned) : null;
-            const subtitle        = subtitleParsed?.subtitle?.trim();
-
-            if (subtitle) {
-                await supabase.from('stories').update({ subtitle }).eq('id', story_id);
-                console.log('[subtitle] Generated:', subtitle);
+            if (parsed?.title || parsed?.subtitle) {
+                const update = {};
+                if (parsed.title?.trim())    update.title    = parsed.title.trim();
+                if (parsed.subtitle?.trim()) update.subtitle = parsed.subtitle.trim();
+                await supabase.from('stories').update(update).eq('id', story_id);
+                console.log('[story] title:', update.title, '| subtitle:', update.subtitle);
             }
         } catch (e) {
-            console.error('[subtitle] Failed', e?.message);
+            console.error('[story] Failed', e?.message);
         }
     }
 

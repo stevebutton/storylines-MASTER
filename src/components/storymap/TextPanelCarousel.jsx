@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const PANEL_WIDTH = 380;
 
 // Split content into pages at paragraph (HTML) or sentence (plain text) boundaries.
-const splitHtmlIntoPages = (content, maxChars = 600) => {
+const splitHtmlIntoPages = (content, maxChars = 500) => {
     if (!content) return [];
 
     // HTML path — split at </p> boundaries
