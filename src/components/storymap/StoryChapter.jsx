@@ -302,7 +302,7 @@ export default function StoryChapter({
                                             className="flex items-center gap-2 text-xs text-slate-500 mb-3"
                                         >
                                             <div style={{
-                                                width: 10, height: 10, borderRadius: '50%',
+                                                width: 20, height: 20, borderRadius: '50%',
                                                 background: chapterColor, flexShrink: 0,
                                             }} />
                                             <span className="font-medium">{currentSlide.location}</span>
