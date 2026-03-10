@@ -9,19 +9,15 @@ const VOICE_STYLES = {
     fulton: 'in the style of Hamish Fulton: sparse, focused on passage, distance, and the physical experience of movement',
 };
 
-// Reverse geocode [lat, lng] → "Place, Country" using Mapbox. Returns null on failure.
 async function reverseGeocode(lat, lng, token) {
     if (!token) { console.error('[geocode] No Mapbox token available'); return null; }
     try {
         const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=neighborhood,place&limit=1&access_token=${token}`;
         const res = await fetch(url);
-        if (!res.ok) {
-            console.error('[geocode] Mapbox API error', res.status, await res.text());
-            return null;
-        }
+        if (!res.ok) { console.error('[geocode] API error', res.status); return null; }
         const data    = await res.json();
         const feature = data.features?.[0];
-        if (!feature) { console.error('[geocode] No features for', lat, lng); return null; }
+        if (!feature) return null;
         const placeName = feature.text;
         const city      = feature.context?.find(c => c.id.startsWith('place'))?.text;
         const country   = feature.context?.find(c => c.id.startsWith('country'))?.text;
@@ -35,7 +31,6 @@ async function reverseGeocode(lat, lng, token) {
     }
 }
 
-// Parse a JSON response from Claude, stripping any markdown fences.
 function parseJson(raw) {
     if (!raw) return null;
     try {
@@ -50,8 +45,16 @@ exports.handler = async (event) => {
     if (event.httpMethod !== 'POST')
         return { statusCode: 405, body: 'Method Not Allowed' };
 
-    const { story_id, caption_voice, custom_caption_voice_description, story_context, slide_ids, language } =
-        JSON.parse(event.body || '{}');
+    const {
+        story_id,
+        caption_voice,
+        custom_caption_voice_description,
+        story_context,
+        slide_ids,
+        language,
+        is_full_run,
+    } = JSON.parse(event.body || '{}');
+
     if (!story_id)
         return { statusCode: 400, body: JSON.stringify({ error: 'story_id required' }) };
 
@@ -59,6 +62,7 @@ exports.handler = async (event) => {
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const languageName = LANGUAGE_NAMES[language] || 'English';
+    const mapboxToken  = process.env.MAPBOX_TOKEN || process.env.VITE_MAPBOX_API_KEY;
 
     const voiceStyle = caption_voice === 'custom'
         ? `according to this approach: ${custom_caption_voice_description}`
@@ -71,40 +75,45 @@ exports.handler = async (event) => {
     const { data: chapters } = await supabase
         .from('chapters').select('id,name').eq('story_id', story_id).order('order');
 
-    // Full-story run: no slide_ids provided (or empty array)
-    const isFullRun = !Array.isArray(slide_ids) || slide_ids.length === 0;
-
-    let slidesQuery = supabase
-        .from('slides').select('id,title,chapter_id,coordinates')
-        .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
-    if (!isFullRun) {
-        slidesQuery = slidesQuery.in('id', slide_ids);
-    }
-    const { data: slides } = await slidesQuery;
-
-    // Group original slide titles by chapter_id for chapter generation context
-    const slidesByChapter = {};
-    for (const slide of (slides || [])) {
-        if (!slidesByChapter[slide.chapter_id]) slidesByChapter[slide.chapter_id] = [];
-        if (slide.title) slidesByChapter[slide.chapter_id].push(slide.title);
-    }
-
-    const mapboxToken = process.env.MAPBOX_TOKEN || process.env.VITE_MAPBOX_API_KEY;
+    // is_full_run: explicit flag sent by client after all slide batches complete —
+    // skips slides and only generates chapter names/descriptions + story title/subtitle.
+    // Legacy path (no slide_ids at all) processes slides AND metadata in one call.
+    const isExplicitFullRun = is_full_run === true;
+    const isMetadataRun     = isExplicitFullRun || !Array.isArray(slide_ids) || slide_ids.length === 0;
 
     // ── 1. SLIDES ─────────────────────────────────────────────────────────────
-    const slideResults = await Promise.all((slides || []).map(async (slide) => {
-        const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
+    // Skipped when this is the dedicated metadata call (is_full_run: true).
+    let updatedCount    = 0;
+    const slidesByChapter = {};  // original slide titles grouped by chapter_id
 
-        const coords = Array.isArray(slide.coordinates) && slide.coordinates.length === 2
-            ? slide.coordinates : null;
+    if (!isExplicitFullRun) {
+        let slidesQuery = supabase
+            .from('slides').select('id,title,chapter_id,coordinates')
+            .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
+        if (Array.isArray(slide_ids) && slide_ids.length > 0) {
+            slidesQuery = slidesQuery.in('id', slide_ids);
+        }
+        const { data: slides } = await slidesQuery;
 
-        const mapboxLocation = coords
-            ? await reverseGeocode(coords[0], coords[1], mapboxToken)
-            : null;
+        // Build chapter→slide-titles map for later use in chapter generation
+        for (const slide of (slides || [])) {
+            if (!slidesByChapter[slide.chapter_id]) slidesByChapter[slide.chapter_id] = [];
+            if (slide.title) slidesByChapter[slide.chapter_id].push(slide.title);
+        }
 
-        const locationBlock = mapboxLocation ? ` Location: ${mapboxLocation}.` : '';
+        const slideResults = await Promise.all((slides || []).map(async (slide) => {
+            const chapter = (chapters || []).find(c => c.id === slide.chapter_id);
 
-        const prompt = `You are writing ${voiceStyle}.
+            const coords = Array.isArray(slide.coordinates) && slide.coordinates.length === 2
+                ? slide.coordinates : null;
+
+            const mapboxLocation = coords
+                ? await reverseGeocode(coords[0], coords[1], mapboxToken)
+                : null;
+
+            const locationBlock = mapboxLocation ? ` Location: ${mapboxLocation}.` : '';
+
+            const prompt = `You are writing ${voiceStyle}.
 
 Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${locationBlock}${contextBlock}
 
@@ -117,41 +126,55 @@ Respond with valid JSON only, no other text:
   "extended_content": "Deeper exploration of the image in this voice style. Maximum 1200 characters."
 }`;
 
-        try {
-            const msg    = await anthropic.messages.create({
-                model:      'claude-haiku-4-5-20251001',
-                max_tokens: 700,
-                messages:   [{ role: 'user', content: prompt }],
-            });
-            const parsed = parseJson(msg.content[0]?.text?.trim());
-            if (!parsed) return false;
+            try {
+                const msg    = await anthropic.messages.create({
+                    model:      'claude-haiku-4-5-20251001',
+                    max_tokens: 700,
+                    messages:   [{ role: 'user', content: prompt }],
+                });
+                const parsed = parseJson(msg.content[0]?.text?.trim());
+                if (!parsed) return false;
 
-            const title            = parsed.title?.trim()            || slide.title;
-            const description      = parsed.description?.trim()      || '';
-            const extended_content = parsed.extended_content?.trim() || null;
+                const title            = parsed.title?.trim()            || slide.title;
+                const description      = parsed.description?.trim()      || '';
+                const extended_content = parsed.extended_content?.trim() || null;
 
-            if (description) {
-                await supabase.from('slides').update({
-                    title,
-                    description,
-                    extended_content: extended_content || null,
-                    ...(mapboxLocation ? { location: mapboxLocation } : {}),
-                }).eq('id', slide.id);
-                return true;
+                if (description) {
+                    await supabase.from('slides').update({
+                        title,
+                        description,
+                        extended_content: extended_content || null,
+                        ...(mapboxLocation ? { location: mapboxLocation } : {}),
+                    }).eq('id', slide.id);
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error('[slide] Failed', slide.id, e?.message);
+                return false;
             }
-            return false;
-        } catch (e) {
-            console.error('[slide] Failed', slide.id, e?.message);
-            return false;
+        }));
+
+        updatedCount = slideResults.filter(Boolean).length;
+    }
+
+    // ── 2. CHAPTERS + 3. STORY ────────────────────────────────────────────────
+    // Runs on: explicit is_full_run call, OR legacy single call with no slide_ids.
+    if (isMetadataRun) {
+
+        // For the explicit full-run call, slide titles aren't in slidesByChapter yet
+        // (slides were processed in earlier batch calls). Fetch them fresh.
+        if (isExplicitFullRun) {
+            const { data: allSlides } = await supabase
+                .from('slides').select('id,title,chapter_id')
+                .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
+            for (const slide of (allSlides || [])) {
+                if (!slidesByChapter[slide.chapter_id]) slidesByChapter[slide.chapter_id] = [];
+                if (slide.title) slidesByChapter[slide.chapter_id].push(slide.title);
+            }
         }
-    }));
 
-    const updatedCount = slideResults.filter(Boolean).length;
-
-    // ── 2. CHAPTERS + 3. STORY — full-story runs only ─────────────────────────
-    if (isFullRun) {
-
-        // ── 2. Generate chapter name + description for each chapter ────────────
+        // ── 2. Chapter names + descriptions ───────────────────────────────────
         const chapterResults = await Promise.all((chapters || []).map(async (ch) => {
             const slideTitles = (slidesByChapter[ch.id] || []).join(', ');
             if (!slideTitles) return { id: ch.id, name: ch.name };
@@ -180,10 +203,7 @@ Respond with valid JSON only, no other text:
                 const name        = parsed.name?.trim()        || ch.name;
                 const description = parsed.description?.trim() || null;
 
-                await supabase.from('chapters')
-                    .update({ name, description })
-                    .eq('id', ch.id);
-
+                await supabase.from('chapters').update({ name, description }).eq('id', ch.id);
                 console.log('[chapter] Generated:', name);
                 return { id: ch.id, name };
             } catch (e) {
@@ -192,7 +212,7 @@ Respond with valid JSON only, no other text:
             }
         }));
 
-        // ── 3. Generate story title + subtitle from generated chapter names ────
+        // ── 3. Story title + subtitle ──────────────────────────────────────────
         try {
             const generatedChapterNames = chapterResults
                 .map(r => r?.name).filter(Boolean).join(', ');

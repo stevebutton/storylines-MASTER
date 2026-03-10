@@ -226,6 +226,14 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                     }
                     totalUpdated += (await resp.json()).updated_count;
                 }
+
+                // Final call: generate chapter names/descriptions + story title/subtitle.
+                // Non-critical — a failure here does not abort the overall process.
+                await fetch('/.netlify/functions/generate-captions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ story_id: currentStoryId, is_full_run: true, ...config }),
+                }).catch(e => console.warn('[metadata] generation failed:', e.message));
             }
 
             setStoryOverview(prev => ({ ...prev, captions_generated: totalUpdated }));
