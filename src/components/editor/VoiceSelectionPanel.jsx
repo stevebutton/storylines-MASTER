@@ -11,6 +11,7 @@ import { SUPPORTED_LANGUAGES } from '@/utils/translationDefaults';
 export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defaultLanguage = 'en' }) {
     const [selectedVoice, setSelectedVoice] = useState('berger');
     const [selectedLanguage, setSelectedLanguage] = useState(defaultLanguage);
+    const [selectedModel, setSelectedModel] = useState('haiku');
     const [customVoiceDescription, setCustomVoiceDescription] = useState('');
     const [showContext, setShowContext] = useState(false);
     const [storyContext, setStoryContext] = useState({
@@ -75,6 +76,7 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
             custom_caption_voice_description: selectedVoice === 'custom' ? customVoiceDescription : null,
             story_context: showContext ? storyContext : null,
             language: selectedLanguage,
+            model: selectedModel,
         });
     };
 
@@ -132,6 +134,34 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
                                         ))}
                                     </SelectContent>
                                 </Select>
+                            </div>
+
+                            {/* Model */}
+                            <div className="mb-6">
+                                <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                                    AI Model
+                                </Label>
+                                <div className="flex rounded-lg border border-slate-200 overflow-hidden">
+                                    {[
+                                        { id: 'haiku',  label: 'Haiku',  sub: 'Fast · placeholder quality' },
+                                        { id: 'sonnet', label: 'Sonnet', sub: 'Slower · higher quality' },
+                                    ].map(m => (
+                                        <button
+                                            key={m.id}
+                                            onClick={() => setSelectedModel(m.id)}
+                                            className={`flex-1 px-4 py-3 text-left transition-colors ${
+                                                selectedModel === m.id
+                                                    ? 'bg-amber-600 text-white'
+                                                    : 'bg-white text-slate-700 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            <div className="text-sm font-semibold">{m.label}</div>
+                                            <div className={`text-xs mt-0.5 ${selectedModel === m.id ? 'text-amber-100' : 'text-slate-400'}`}>
+                                                {m.sub}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Voice Options */}

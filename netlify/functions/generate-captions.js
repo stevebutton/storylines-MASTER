@@ -53,6 +53,7 @@ exports.handler = async (event) => {
         slide_ids,
         language,
         is_full_run,
+        model,
     } = JSON.parse(event.body || '{}');
 
     if (!story_id)
@@ -63,6 +64,7 @@ exports.handler = async (event) => {
 
     const languageName = LANGUAGE_NAMES[language] || 'English';
     const mapboxToken  = process.env.MAPBOX_TOKEN || process.env.VITE_MAPBOX_API_KEY;
+    const modelId      = model === 'sonnet' ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001';
 
     const voiceStyle = caption_voice === 'custom'
         ? `according to this approach: ${custom_caption_voice_description}`
@@ -128,7 +130,7 @@ Respond with valid JSON only, no other text:
 
             try {
                 const msg    = await anthropic.messages.create({
-                    model:      'claude-haiku-4-5-20251001',
+                    model:      modelId,
                     max_tokens: 700,
                     messages:   [{ role: 'user', content: prompt }],
                 });
@@ -193,7 +195,7 @@ Respond with valid JSON only, no other text:
 
             try {
                 const msg    = await anthropic.messages.create({
-                    model:      'claude-haiku-4-5-20251001',
+                    model:      modelId,
                     max_tokens: 150,
                     messages:   [{ role: 'user', content: prompt }],
                 });
@@ -230,7 +232,7 @@ Respond with valid JSON only, no other text:
 }`;
 
             const msg    = await anthropic.messages.create({
-                model:      'claude-haiku-4-5-20251001',
+                model:      modelId,
                 max_tokens: 100,
                 messages:   [{ role: 'user', content: prompt }],
             });
