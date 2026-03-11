@@ -171,6 +171,8 @@ export default function StoryMapView() {
             setHeroMediaLoaded(false);
             setIsBannerVisible(false);
             setIsStorySlideshowOpen(false);
+            setShowStoryOverlay(false);
+            setOverlayMode('story');
             setStoryMarkers([]);
             setActiveMarkerIdx(-1);
             setTargetSlide(null);
