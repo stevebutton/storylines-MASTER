@@ -7,6 +7,7 @@ import { List, BookOpen, Pencil } from 'lucide-react';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
+    f: 'Oswald, sans-serif',
 };
 
 const btn = [

@@ -54,6 +54,7 @@ const splitHtmlIntoPages = (content, maxChars = 500) => {
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
+    f: 'Oswald, sans-serif',
 };
 
 /**

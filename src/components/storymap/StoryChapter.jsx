@@ -11,6 +11,7 @@ import { useTranslation } from '@/contexts/StoryTranslationContext';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
+    f: 'Oswald, sans-serif',
 };
 
 // Matches the palette in MapContainer so the location dot aligns with the

@@ -17,7 +17,7 @@ import { useTranslation } from '@/contexts/StoryTranslationContext';
 
 const SLOT_WIDTH = 380;
 
-const THEME_FONTS = { c: 'Righteous, cursive' };
+const THEME_FONTS = { c: 'Righteous, cursive', f: 'Oswald, sans-serif' };
 
 export default function ScaleBar({
     cursorPercent      = 0,

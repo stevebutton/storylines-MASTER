@@ -53,7 +53,7 @@ const MAP_STYLES_CONFIG = {
     },
     f: {
         label: 'Plouer',
-        description: 'Plouer',
+        description: 'Plouer cartographic — Oswald type',
         owner: 'stevebutton',
         id: 'cmmd2lwzp001m01s24puoahpd',
     },
