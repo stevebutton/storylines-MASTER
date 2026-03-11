@@ -257,7 +257,6 @@ const TextPanelCarousel = ({
                     )}
                 </div>
             </div>
-            </div>
 
             {/* ── Collapse tab — stays at left edge when panel is hidden ── */}
             <button
