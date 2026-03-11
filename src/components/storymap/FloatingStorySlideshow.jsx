@@ -136,7 +136,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                         <img
                                             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
                                             alt="Storylines"
-                                            className="h-8 w-auto"
+                                            style={{ width: 250, height: 100, objectFit: 'contain' }}
                                         />
                                         <h3 className="text-2xl font-light text-white">Explore Other Stories</h3>
                                     </motion.div>
@@ -151,7 +151,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                 {/* Category filter pills */}
                                 {categories.length > 0 && (
                                     <motion.div
-                                        className="flex items-center gap-2 mb-5 flex-wrap"
+                                        className="flex items-center gap-2 mb-10 flex-wrap"
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.55, duration: 0.4, ease: 'easeOut' }}
