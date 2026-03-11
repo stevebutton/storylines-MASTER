@@ -108,6 +108,7 @@ export default function TabbedContentEditor({
     const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
     const [showDocumentPicker, setShowDocumentPicker] = useState(false);
     const [isUploadingChapterImage, setIsUploadingChapterImage] = useState(false);
+    const [isUploadingChapterVideo, setIsUploadingChapterVideo] = useState(false);
 
     // Handle missing item
     if (!item) {
@@ -591,6 +592,24 @@ export default function TabbedContentEditor({
             }
         };
 
+        const handleChapterVideoUpload = async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            setIsUploadingChapterVideo(true);
+            try {
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                onUpdate({ ...item, chapter_video: file_url });
+            } finally {
+                setIsUploadingChapterVideo(false);
+            }
+        };
+
         return (
             <div className="w-full space-y-4">
                 <Card>
@@ -654,6 +673,39 @@ export default function TabbedContentEditor({
                                 {isUploadingChapterImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
                                 {isUploadingChapterImage ? 'Uploading...' : 'Upload Image'}
                                 <input type="file" accept="image/*" className="hidden" onChange={handleChapterImageUpload} disabled={isUploadingChapterImage} />
+                            </label>
+                        </div>
+
+                        {/* Chapter Background Video */}
+                        <div>
+                            <Label className="text-sm font-semibold text-slate-900">Title Card Background Video</Label>
+                            <p className="text-xs text-slate-500 mb-2">Video plays looped behind the chapter title. Overrides the background image when set.</p>
+                            {item.chapter_video && (
+                                <div className="relative w-full h-32 rounded-lg overflow-hidden border mb-3">
+                                    <video src={item.chapter_video} className="w-full h-full object-cover" muted autoPlay loop playsInline />
+                                    <button
+                                        onClick={() => onUpdate({ ...item, chapter_video: null })}
+                                        className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 transition-colors"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            )}
+                            {item.chapter_video && (
+                                <label className="flex items-center gap-2 mb-2 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={item.chapter_video_loop !== false}
+                                        onChange={(e) => onUpdate({ ...item, chapter_video_loop: e.target.checked })}
+                                        className="w-3.5 h-3.5 accent-amber-500"
+                                    />
+                                    <span className="text-xs text-slate-600">Loop video</span>
+                                </label>
+                            )}
+                            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors w-fit">
+                                {isUploadingChapterVideo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Video className="w-4 h-4" />}
+                                {isUploadingChapterVideo ? 'Uploading...' : 'Upload Video'}
+                                <input type="file" accept="video/*" className="hidden" onChange={handleChapterVideoUpload} disabled={isUploadingChapterVideo} />
                             </label>
                         </div>
 

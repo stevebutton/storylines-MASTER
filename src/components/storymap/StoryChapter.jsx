@@ -57,7 +57,8 @@ export default function StoryChapter({
 
     const firstSlide = chapter.slides?.[0];
     const currentSlide = chapter.slides?.[activeSlideIndex] || firstSlide;
-    const bgImage = chapter.background_image || firstSlide?.image;
+    const bgVideo = chapter.chapter_video || null;
+    const bgImage = !bgVideo && (chapter.background_image || firstSlide?.image);
 
     // Reset to title card when chapter deactivates so each visit starts fresh
     useEffect(() => {
@@ -179,12 +180,21 @@ export default function StoryChapter({
                         <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
                             {/* Background layers — clipped independently so the explore button can overflow */}
                             <div className="absolute inset-0 rounded-2xl overflow-hidden">
-                                {bgImage && (
+                                {bgVideo ? (
+                                    <video
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                        src={bgVideo}
+                                        autoPlay
+                                        muted
+                                        loop={chapter.chapter_video_loop !== false}
+                                        playsInline
+                                    />
+                                ) : bgImage ? (
                                     <div
                                         className="absolute inset-0 bg-cover bg-center"
                                         style={{ backgroundImage: `url(${bgImage})` }}
                                     />
-                                )}
+                                ) : null}
                                 <div className="absolute inset-0 bg-black/30" />
                             </div>
                             {/* White outline — sits above the background image */}
