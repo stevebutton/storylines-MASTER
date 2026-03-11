@@ -52,6 +52,16 @@ export default function StoryChapter({
     const carouselScrollToRef = useRef(null);
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [showExploreButton, setShowExploreButton] = useState(false);
+    const bgVideoRef = useRef(null);
+
+    // Start background video playback programmatically to avoid Chrome's
+    // built-in "scroll to playing media" behaviour that autoPlay triggers,
+    // which caused the page to jump to the chapter's position on first play.
+    useEffect(() => {
+        if (bgVideoRef.current) {
+            bgVideoRef.current.play().catch(() => {});
+        }
+    }, []);
 
     const cardRef = useRef(null);
     const isInView = useInView(cardRef, { once: false, amount: 0.3 });
@@ -183,9 +193,9 @@ export default function StoryChapter({
                             <div className="absolute inset-0 rounded-2xl overflow-hidden">
                                 {bgVideo ? (
                                     <video
+                                        ref={bgVideoRef}
                                         className="absolute inset-0 w-full h-full object-cover"
                                         src={bgVideo}
-                                        autoPlay
                                         muted
                                         loop={chapter.chapter_video_loop !== false}
                                         playsInline

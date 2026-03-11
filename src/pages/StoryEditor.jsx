@@ -71,7 +71,7 @@ export default function StoryEditor() {
 
     const handleSave = async () => {
         // Validate title length before saving
-        if (story.title && story.title.length > 34) {
+        if (story.title && story.title.length > 42) {
             setPendingTitle(story.title);
             setShowTitleValidationDialog(true);
             return;

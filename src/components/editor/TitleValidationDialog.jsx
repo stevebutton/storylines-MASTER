@@ -5,7 +5,7 @@ import { AlertCircle } from 'lucide-react';
 
 export default function TitleValidationDialog({ isOpen, onClose, title, onEdit }) {
     const characterCount = title?.length || 0;
-    const overLimit = characterCount - 34;
+    const overLimit = characterCount - 42;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -19,7 +19,7 @@ export default function TitleValidationDialog({ isOpen, onClose, title, onEdit }
                     </div>
                     <DialogDescription className="text-left">
                         Your story title contains <span className="font-semibold text-slate-900">{characterCount} characters</span>, 
-                        which exceeds the maximum limit of <span className="font-semibold text-slate-900">34 characters</span>.
+                        which exceeds the maximum limit of <span className="font-semibold text-slate-900">42 characters</span>.
                     </DialogDescription>
                 </DialogHeader>
                 
