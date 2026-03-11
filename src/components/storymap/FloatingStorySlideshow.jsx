@@ -168,22 +168,20 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                         style={{ zIndex: 200020 }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0, transition: { duration: 0 } }}
+                        exit={{ opacity: 0, transition: { duration: 1.0, ease: 'easeIn' } }}
                         transition={{ duration: 0.5, ease: 'easeOut' }}
                         onAnimationComplete={() => {
                             if (targetUrl && !hasNavigatedRef.current) {
                                 hasNavigatedRef.current = true;
                                 navigate(targetUrl);
-                                // Keep the overlay alive for 2500ms after navigation.
-                                // The story overlay exit animation takes 2s (y:200, opacity:0);
-                                // this ensures the black overlay covers it completely before
-                                // clearing, preventing any glimpse of the story view exit.
+                                // Wait 600ms for the story overlay exit (0.6s) to finish,
+                                // then fade out smoothly over 1s to dissolve into the new story.
                                 setTimeout(() => {
                                     setIsTransitioning(false);
                                     setTargetUrl(null);
                                     navigatingRef.current   = false;
                                     hasNavigatedRef.current = false;
-                                }, 2500);
+                                }, 600);
                             }
                         }}
                     />
