@@ -52,9 +52,18 @@ export default function StoryChapter({
     const carouselScrollToRef = useRef(null);
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [showExploreButton, setShowExploreButton] = useState(false);
+    const bgVideoRef = useRef(null);
 
     const cardRef = useRef(null);
     const isInView = useInView(cardRef, { once: false, amount: 0.3 });
+
+    // Play the background video programmatically once the card animation has
+    // settled (showExploreButton is the proxy for that) AND the card is in view.
+    // No autoPlay attribute = no Chrome scroll-to-media trigger.
+    useEffect(() => {
+        if (!showExploreButton || !isInView || !bgVideoRef.current) return;
+        bgVideoRef.current.play().catch(() => {});
+    }, [showExploreButton, isInView]);
 
     const firstSlide = chapter.slides?.[0];
     const currentSlide = chapter.slides?.[activeSlideIndex] || firstSlide;
@@ -183,9 +192,9 @@ export default function StoryChapter({
                             <div className="absolute inset-0 rounded-2xl overflow-hidden">
                                 {bgVideo && isInView ? (
                                     <video
+                                        ref={bgVideoRef}
                                         className="absolute inset-0 w-full h-full object-cover"
                                         src={bgVideo}
-                                        autoPlay
                                         muted
                                         loop={chapter.chapter_video_loop !== false}
                                         playsInline
