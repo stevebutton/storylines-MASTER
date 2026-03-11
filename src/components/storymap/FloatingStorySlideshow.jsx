@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
@@ -21,13 +21,31 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [targetUrl, setTargetUrl] = useState(null);
-    const scrollContainerRef = React.useRef(null);
+    const scrollContainerRef = useRef(null);
 
-    // When the panel closes (including after an in-page navigation), clear transition state
+    // Track whether we're navigating to a new story (vs. normal close).
+    // Using a ref so its value is captured in the exit prop at render time.
+    const navigatingRef = useRef(false);
+
+    // When the panel closes after an in-page navigation, delay clearing
+    // the transition state by 500ms so the black overlay stays alive long
+    // enough to cover:
+    //   (a) the Story View overlay's 0.4s exit animation, and
+    //   (b) the new story's black overlay taking over.
+    // On normal close (no navigation), clear immediately.
     useEffect(() => {
         if (!isOpen) {
-            setIsTransitioning(false);
-            setTargetUrl(null);
+            if (navigatingRef.current) {
+                const t = setTimeout(() => {
+                    setIsTransitioning(false);
+                    setTargetUrl(null);
+                    navigatingRef.current = false;
+                }, 500);
+                return () => clearTimeout(t);
+            } else {
+                setIsTransitioning(false);
+                setTargetUrl(null);
+            }
         }
     }, [isOpen]);
 
@@ -46,8 +64,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                 .eq('is_published', true)
                 .neq('id', currentStoryId ?? '');
             if (error) throw error;
-            const otherStories = allStories;
-            setStories(otherStories.map(s => ({
+            setStories(allStories.map(s => ({
                 ...s,
                 display_image: s.thumbnail || s.hero_image || null
             })));
@@ -69,6 +86,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
     };
 
     const handleStoryClick = (storyId) => {
+        navigatingRef.current = true;
         const url = createPageUrl('StoryMapView') + '?id=' + storyId;
         setTargetUrl(url);
         setIsTransitioning(true);
@@ -78,6 +96,11 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
     const filteredStories = selectedCategory
         ? stories.filter(s => s.category === selectedCategory)
         : stories;
+
+    // Panel exit: instant (opacity 0) when navigating, normal slide when closing manually.
+    const panelExit = navigatingRef.current
+        ? { y: 0, opacity: 0, transition: { duration: 0 } }
+        : { y: '100%', transition: { duration: 0.4, ease: 'easeIn' } };
 
     return (
         <>
@@ -89,12 +112,10 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                         style={{ zIndex: 200040 }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
+                        exit={{ opacity: 0, transition: { duration: 0 } }}
                         transition={{ duration: 1, ease: 'easeInOut' }}
                         onAnimationComplete={() => {
                             if (targetUrl) {
-                                // SPA navigation — no page reload, no grey flash.
-                                // StoryMapView's reset effect will show its own black overlay
-                                // the moment the storyId changes in useSearchParams.
                                 navigate(targetUrl);
                             }
                         }}
@@ -119,10 +140,10 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                         <motion.div
                             initial={{ y: '100%' }}
                             animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
+                            exit={panelExit}
                             transition={{ duration: 2, ease: 'easeIn' }}
                             className="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-white/10 shadow-2xl overflow-hidden"
-                            style={{ height: '50vh', zIndex: 200030, background: 'rgba(0,0,0,0.20)' }}
+                            style={{ height: '50vh', zIndex: 200030, background: 'rgba(0,0,0,0.15)' }}
                         >
                             <div className="max-w-7xl mx-auto p-6">
                                 {/* Header */}
