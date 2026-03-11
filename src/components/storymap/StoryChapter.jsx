@@ -44,7 +44,10 @@ export default function StoryChapter({
     const navigate = useNavigate();
     const [showCarousel, setShowCarousel] = useState(false);
 
-    const handleOpenCarousel = () => {
+    const handleOpenCarousel = (e) => {
+        // Blur immediately so the browser doesn't scroll to the next focusable
+        // element when this button is removed from the DOM by AnimatePresence.
+        e?.currentTarget?.blur();
         setShowCarousel(true);
         if (onExplore) onExplore();
     };
@@ -180,7 +183,7 @@ export default function StoryChapter({
                     >
                         <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
                             {/* Background layers — clipped independently so the explore button can overflow */}
-                            <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                            <div className="absolute inset-0 rounded-2xl overflow-hidden" style={{ pointerEvents: 'none' }}>
                                 {bgVideo && isActive ? (
                                     <video
                                         className="absolute inset-0 w-full h-full object-cover"
@@ -246,6 +249,7 @@ export default function StoryChapter({
                             {/* Explore button — slides in after card has fully landed */}
                             {showExploreButton && chapter.slides && chapter.slides.length > 0 && (
                                 <motion.button
+                                    type="button"
                                     onClick={handleOpenCarousel}
                                     className="absolute bottom-6 right-6 z-20 flex items-center gap-1"
                                     style={{ fontFamily: themeFont || 'Raleway, sans-serif' }}
