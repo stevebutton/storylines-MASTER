@@ -136,10 +136,10 @@ export default function StoryEditorSidebar({
                                                                 onClick={() => onSelectChapter(chapter)}
                                                                 className="flex-1 flex flex-col min-w-0"
                                                             >
-                                                                <span className="text-xl font-medium text-white/70 leading-tight">
+                                                                <span className="text-xl font-medium text-white/70 leading-none">
                                                                     Chapter {String(index + 1).padStart(2, '0')}
                                                                 </span>
-                                                                <span className="text-2xl font-bold text-white leading-tight mt-0.5">
+                                                                <span className="text-2xl font-bold text-white leading-none">
                                                                     {chapter.name || 'Untitled'}
                                                                 </span>
                                                             </div>

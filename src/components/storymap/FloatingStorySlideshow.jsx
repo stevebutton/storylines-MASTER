@@ -174,15 +174,16 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                             if (targetUrl && !hasNavigatedRef.current) {
                                 hasNavigatedRef.current = true;
                                 navigate(targetUrl);
-                                // Keep the overlay alive for 500ms after navigation so the
-                                // new story's black overlay has time to take over, then
-                                // exit instantly.
+                                // Keep the overlay alive for 2500ms after navigation.
+                                // The story overlay exit animation takes 2s (y:200, opacity:0);
+                                // this ensures the black overlay covers it completely before
+                                // clearing, preventing any glimpse of the story view exit.
                                 setTimeout(() => {
                                     setIsTransitioning(false);
                                     setTargetUrl(null);
                                     navigatingRef.current   = false;
                                     hasNavigatedRef.current = false;
-                                }, 500);
+                                }, 2500);
                             }
                         }}
                     />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const PANEL_WIDTH = 380;
@@ -82,6 +82,8 @@ const TextPanelCarousel = ({
     const [isPanelOpen, setIsPanelOpen] = useState(initialOpen);
     const [contentHeight, setContentHeight] = useState('auto');
     const pageRefs = useRef([]);
+    const titleControls = useAnimation();
+    const bodyControls  = useAnimation();
 
     // Build paginated content
     const extendedArray = Array.isArray(extendedContent)
@@ -114,6 +116,15 @@ const TextPanelCarousel = ({
         return () => clearTimeout(t);
     }, [slideTitle]);
 
+    // Re-animate title and body when the slide changes.
+    // Using controls (instead of key) avoids double-rendering the element.
+    useEffect(() => {
+        titleControls.set({ opacity: 0, y: 12 });
+        titleControls.start({ opacity: 1, y: 0, transition: { delay: 0.5, duration: 0.55, ease: 'easeOut' } });
+        bodyControls.set({ opacity: 0, y: 12 });
+        bodyControls.start({ opacity: 1, y: 0, transition: { delay: 1.0, duration: 0.55, ease: 'easeOut' } });
+    }, [slideTitle]);
+
     const nextPage = () => {
         if (currentPage < pages.length - 1) setCurrentPage(p => p + 1);
     };
@@ -133,8 +144,8 @@ const TextPanelCarousel = ({
         // initial: off-screen left  →  animate: in-view or collapsed based on isPanelOpen.
         <motion.div
             className="fixed left-0 top-[100px] bottom-0 z-[9999] flex items-stretch pointer-events-auto"
-            initial={{ x: -(PANEL_WIDTH + 48), opacity: 0 }}
-            animate={{ x: isPanelOpen ? 0 : -PANEL_WIDTH, opacity: 1 }}
+            initial={{ x: -(PANEL_WIDTH + 48) }}
+            animate={{ x: isPanelOpen ? 0 : -PANEL_WIDTH }}
             transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* ── Text panel ── */}
@@ -145,6 +156,7 @@ const TextPanelCarousel = ({
                     className="absolute inset-0 backdrop-blur-xl pointer-events-none rounded-br-2xl"
                     style={{
                         background: 'linear-gradient(to bottom, rgba(0,0,0,0.40) 0px, rgba(0,0,0,0.25) 200px, rgba(0,0,0,0.25) 100%)',
+                        transform: 'translateZ(0)',
                     }}
                 />
                 <div className="relative p-8 space-y-5" style={{ paddingTop: chapterTitle ? 32 : 112 }}>
@@ -181,11 +193,11 @@ const TextPanelCarousel = ({
                         </motion.div>
                     )}
 
-                    {/* Slide title — keyed so it re-animates on each slide change */}
+                    {/* Slide title — re-animates via controls on each slide change */}
                     {slideTitle && (
                         <motion.h3
-                            key={slideTitle}
-                            {...el(0.5)}
+                            animate={titleControls}
+                            initial={{ opacity: 0, y: 12 }}
                             className="text-5xl font-light text-white text-right"
                             style={{ fontFamily: themeFont, lineHeight: '0.95' }}
                         >
@@ -193,9 +205,9 @@ const TextPanelCarousel = ({
                         </motion.h3>
                     )}
 
-                    {/* Paginated body — keyed so it re-animates on each slide change */}
+                    {/* Paginated body — re-animates via controls on each slide change */}
                     {pages.length > 0 && (
-                        <motion.div key={slideTitle} {...el(1.0)}>
+                        <motion.div animate={bodyControls} initial={{ opacity: 0, y: 12 }}>
                             <motion.div
                                 className="relative overflow-hidden"
                                 animate={{ height: contentHeight }}
