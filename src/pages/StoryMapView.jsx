@@ -1508,9 +1508,6 @@ export default function StoryMapView() {
                         <div className="fixed pointer-events-none" style={{
                             left: 0, right: 0, bottom: 0, height: 400, zIndex: 9998,
                             background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)',
-                            backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
-                            WebkitMaskImage: 'linear-gradient(to top, black 0%, transparent 100%)',
-                            maskImage: 'linear-gradient(to top, black 0%, transparent 100%)',
                         }} />
 
                         {/* Top gradient — sits behind ScaleBar, aids track readability */}
