@@ -122,19 +122,24 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                             exit={{ y: '100%' }}
                             transition={{ duration: 2, ease: 'easeIn' }}
                             className="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-white/10 shadow-2xl overflow-hidden"
-                            style={{ height: '50vh', zIndex: 200030, background: 'rgba(0,0,0,0.25)' }}
+                            style={{ height: '50vh', zIndex: 200030, background: 'rgba(0,0,0,0.20)' }}
                         >
                             <div className="max-w-7xl mx-auto p-6">
                                 {/* Header */}
                                 <div className="flex items-center justify-between mb-4">
-                                    <motion.h3
-                                        className="text-2xl font-light text-white"
+                                    <motion.div
+                                        className="flex items-center gap-3"
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
                                     >
-                                        Explore Other Stories
-                                    </motion.h3>
+                                        <img
+                                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                                            alt="Storylines"
+                                            className="h-8 w-auto"
+                                        />
+                                        <h3 className="text-2xl font-light text-white">Explore Other Stories</h3>
+                                    </motion.div>
                                     <button
                                         onClick={onClose}
                                         className="bg-white/15 hover:bg-white/25 rounded-full p-3 transition-all"
@@ -146,7 +151,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                 {/* Category filter pills */}
                                 {categories.length > 0 && (
                                     <motion.div
-                                        className="flex items-center gap-2 mb-4 flex-wrap"
+                                        className="flex items-center gap-2 mb-5 flex-wrap"
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.55, duration: 0.4, ease: 'easeOut' }}
@@ -199,14 +204,14 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                                 <button
                                                     onClick={() => scroll('left')}
                                                     className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-colors"
-                                                    style={{ marginLeft: '-20px' }}
+                                                    style={{ marginLeft: '-50px' }}
                                                 >
                                                     <ChevronLeft className="w-5 h-5 text-white" />
                                                 </button>
                                                 <button
                                                     onClick={() => scroll('right')}
                                                     className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-colors"
-                                                    style={{ marginRight: '-20px' }}
+                                                    style={{ marginRight: '-50px' }}
                                                 >
                                                     <ChevronRight className="w-5 h-5 text-white" />
                                                 </button>
