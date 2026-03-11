@@ -57,13 +57,20 @@ export default function StoryChapter({
     const cardRef = useRef(null);
     const isInView = useInView(cardRef, { once: false, amount: 0.3 });
 
-    // Play the background video programmatically once the card animation has
-    // settled (showExploreButton is the proxy for that) AND the card is in view.
-    // No autoPlay attribute = no Chrome scroll-to-media trigger.
+    // Play/pause the background video based on visibility.
+    // Chrome's ScrollIntoViewIfNotVisible fires when a video *starts playing*
+    // (not just when play() is called). By pausing whenever the card leaves the
+    // viewport we ensure Chrome never sees a playing video that needs scrolling.
+    // No autoPlay attribute = no initial Chrome scroll trigger on page load.
     useEffect(() => {
-        if (!showExploreButton || !isInView || !bgVideoRef.current) return;
-        bgVideoRef.current.play().catch(() => {});
-    }, [showExploreButton, isInView]);
+        const video = bgVideoRef.current;
+        if (!video) return;
+        if (isInView && showExploreButton) {
+            video.play().catch(() => {});
+        } else {
+            video.pause();
+        }
+    }, [isInView, showExploreButton]);
 
     const firstSlide = chapter.slides?.[0];
     const currentSlide = chapter.slides?.[activeSlideIndex] || firstSlide;
