@@ -147,7 +147,8 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
         // sitting below the panel but above the story view — covers the background
         // while the panel exits on top.
         setIsPanelOpen(false);
-        setIsTransitioning(true);
+        // Let panel fully exit (1s) before starting the black overlay.
+        setTimeout(() => setIsTransitioning(true), 1000);
     };
 
     const categories = [...new Set(stories.map(s => s.category).filter(Boolean))].sort();
@@ -208,7 +209,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                     <motion.div
                         initial={{ y: '100%' }}
                         animate={{ y: 0 }}
-                        exit={{ y: '100%', transition: { duration: 0.5, ease: 'easeIn' } }}
+                        exit={{ y: '100%', transition: { duration: 1.0, ease: 'easeIn' } }}
                         transition={{ duration: 2, ease: 'easeIn' }}
                         className="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-white/10 shadow-2xl overflow-hidden"
                         style={{ height: '50vh', zIndex: 200030, background: 'rgba(255,255,255,0.15)' }}

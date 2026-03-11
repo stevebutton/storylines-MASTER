@@ -75,6 +75,12 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'cllw84jo600f401r7afyy7ef4',
     },
+    j: {
+        label: 'Cartogram',
+        description: 'Cartogram',
+        owner: 'stevebutton',
+        id: 'cmmg2352g002q01s82q1d6zzo',
+    },
 };
 
 export default function TabbedContentEditor({
@@ -513,13 +519,14 @@ export default function TabbedContentEditor({
                                     <div
                                         key={key}
                                         onClick={() => onUpdate({ ...item, map_style: key })}
-                                        className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                                        className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-200 flex ${
                                             isSelected
                                                 ? 'border-amber-500 shadow-lg shadow-amber-500/20'
                                                 : 'border-slate-200 hover:border-slate-400'
                                         }`}
                                     >
-                                        <div className="relative">
+                                        {/* Thumbnail — fixed 600px width */}
+                                        <div className="relative flex-shrink-0" style={{ width: 600 }}>
                                             <img
                                                 src={thumbUrl}
                                                 alt={style.label}
@@ -531,15 +538,16 @@ export default function TabbedContentEditor({
                                                 </div>
                                             )}
                                         </div>
-                                        <div className={`px-4 py-3 flex items-center justify-between ${isSelected ? 'bg-amber-50' : 'bg-white'}`}>
+                                        {/* Info column */}
+                                        <div className={`flex-1 px-5 py-4 flex flex-col justify-between ${isSelected ? 'bg-amber-50' : 'bg-white'}`}>
                                             <div>
-                                                <span className={`text-sm font-medium block ${isSelected ? 'text-amber-700' : 'text-slate-700'}`}>
+                                                <span className={`text-sm font-semibold block mb-1 ${isSelected ? 'text-amber-700' : 'text-slate-700'}`}>
                                                     {style.label}
                                                 </span>
                                                 <span className="text-xs text-slate-400">{style.description}</span>
                                             </div>
                                             {isSelected && (
-                                                <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Active</span>
+                                                <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full w-fit">Active</span>
                                             )}
                                         </div>
                                     </div>

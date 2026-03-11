@@ -51,7 +51,7 @@ export default function LanguageSettingsTab({ item, onUpdate }) {
                 <p className="text-xs text-slate-500 mt-0.5 mb-4">
                     Personalise any viewer-facing string. Leave blank to use the language default shown in the placeholder.
                 </p>
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
                     {Object.keys(TRANSLATION_FIELD_LABELS).map(key => (
                         <div key={key}>
                             <Label className="text-xs text-slate-600 mb-1 block">

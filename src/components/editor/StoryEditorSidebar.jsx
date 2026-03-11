@@ -126,9 +126,9 @@ export default function StoryEditorSidebar({
                                                                 className="p-0.5 rounded flex-shrink-0"
                                                             >
                                                                 {isExpanded ? (
-                                                                    <ChevronDown className="w-4 h-4 text-white/70" />
+                                                                    <ChevronDown className="w-12 h-12 text-white/70" />
                                                                 ) : (
-                                                                    <ChevronRight className="w-4 h-4 text-white/70" />
+                                                                    <ChevronRight className="w-12 h-12 text-white/70" />
                                                                 )}
                                                             </button>
 
@@ -136,10 +136,10 @@ export default function StoryEditorSidebar({
                                                                 onClick={() => onSelectChapter(chapter)}
                                                                 className="flex-1 flex flex-col min-w-0"
                                                             >
-                                                                <span className="text-2xl font-bold text-white leading-tight">
+                                                                <span className="text-xl font-medium text-white/70 leading-tight">
                                                                     Chapter {String(index + 1).padStart(2, '0')}
                                                                 </span>
-                                                                <span className="text-sm font-medium text-white/85 truncate leading-tight mt-0.5">
+                                                                <span className="text-2xl font-bold text-white leading-tight mt-0.5">
                                                                     {chapter.name || 'Untitled'}
                                                                 </span>
                                                             </div>

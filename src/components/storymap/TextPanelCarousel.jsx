@@ -138,14 +138,16 @@ const TextPanelCarousel = ({
             transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* ── Text panel ── */}
-            <div
-                className="backdrop-blur-xl overflow-y-auto flex-shrink-0 rounded-br-2xl"
-                style={{
-                    width: PANEL_WIDTH,
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.40) 0px, rgba(0,0,0,0.25) 200px, rgba(0,0,0,0.25) 100%)',
-                }}
-            >
-                <div className="p-8 space-y-5" style={{ paddingTop: chapterTitle ? 32 : 112 }}>
+            {/* Blur + gradient on a separate stable layer so it never re-paints
+                during slide-change animations, preventing the snap-to-blur artifact. */}
+            <div className="relative overflow-y-auto flex-shrink-0 rounded-br-2xl" style={{ width: PANEL_WIDTH }}>
+                <div
+                    className="absolute inset-0 backdrop-blur-xl pointer-events-none rounded-br-2xl"
+                    style={{
+                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.40) 0px, rgba(0,0,0,0.25) 200px, rgba(0,0,0,0.25) 100%)',
+                    }}
+                />
+                <div className="relative p-8 space-y-5" style={{ paddingTop: chapterTitle ? 32 : 112 }}>
 
                     {/* Chapter eyebrow */}
                     {chapterTitle && (() => {
@@ -179,10 +181,11 @@ const TextPanelCarousel = ({
                         </motion.div>
                     )}
 
-                    {/* Slide title */}
+                    {/* Slide title — keyed so it re-animates on each slide change */}
                     {slideTitle && (
                         <motion.h3
-                            {...el(0.75)}
+                            key={slideTitle}
+                            {...el(0.5)}
                             className="text-5xl font-light text-white text-right"
                             style={{ fontFamily: themeFont, lineHeight: '0.95' }}
                         >
@@ -190,9 +193,9 @@ const TextPanelCarousel = ({
                         </motion.h3>
                     )}
 
-                    {/* Paginated body */}
+                    {/* Paginated body — keyed so it re-animates on each slide change */}
                     {pages.length > 0 && (
-                        <motion.div {...el(0.9)}>
+                        <motion.div key={slideTitle} {...el(1.0)}>
                             <motion.div
                                 className="relative overflow-hidden"
                                 animate={{ height: contentHeight }}
@@ -253,6 +256,7 @@ const TextPanelCarousel = ({
                         </motion.div>
                     )}
                 </div>
+            </div>
             </div>
 
             {/* ── Collapse tab — stays at left edge when panel is hidden ── */}
