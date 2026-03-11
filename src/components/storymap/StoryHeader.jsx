@@ -106,8 +106,8 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
           <div className="flex flex-col items-center" style={{ gap: '30px' }}>
             {/* Story Title */}
             <motion.h1
-              className="text-white text-6xl font-light text-center leading-tight"
-              style={{ fontFamily: themeFont, fontWeight: 300 }}
+              className="text-white text-6xl font-light text-center"
+              style={{ fontFamily: themeFont, fontWeight: 300, lineHeight: '0.95' }}
               data-name="story-title"
               initial={{ translateX: '100px', opacity: 0 }}
               animate={{ translateX: '0', opacity: 1 }}
@@ -118,8 +118,8 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
             {/* Description */}
             <motion.div
-              className="text-white font-light text-center leading-relaxed max-w-md text-base"
-              style={{ fontFamily: themeFont, fontWeight: 300 }}
+              className="text-white font-light text-center leading-relaxed max-w-md"
+              style={{ fontFamily: themeFont, fontWeight: 300, fontSize: '1.5rem' }}
               data-name="story-description"
               initial={{ translateY: '100px', opacity: 0 }}
               animate={{ translateY: '0', opacity: 1 }}
