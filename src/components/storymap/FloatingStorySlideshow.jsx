@@ -85,7 +85,8 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
             <AnimatePresence>
                 {isTransitioning && (
                     <motion.div
-                        className="fixed inset-0 bg-black z-[10001] pointer-events-none"
+                        className="fixed inset-0 bg-black pointer-events-none"
+                        style={{ zIndex: 200040 }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 1, ease: 'easeInOut' }}
@@ -109,7 +110,8 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[65]"
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+                            style={{ zIndex: 200025 }}
                             onClick={onClose}
                         />
 
@@ -119,14 +121,14 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             transition={{ duration: 2, ease: 'easeIn' }}
-                            className="fixed bottom-0 left-0 right-0 z-[66] bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-2xl overflow-hidden"
-                            style={{ height: '50vh' }}
+                            className="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-white/10 shadow-2xl overflow-hidden"
+                            style={{ height: '50vh', zIndex: 200030, background: 'rgba(0,0,0,0.25)' }}
                         >
                             <div className="max-w-7xl mx-auto p-6">
                                 {/* Header */}
                                 <div className="flex items-center justify-between mb-4">
                                     <motion.h3
-                                        className="text-2xl font-light text-slate-800"
+                                        className="text-2xl font-light text-white"
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
@@ -135,9 +137,9 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                     </motion.h3>
                                     <button
                                         onClick={onClose}
-                                        className="bg-slate-100 hover:bg-slate-200 rounded-full p-3 transition-all"
+                                        className="bg-white/15 hover:bg-white/25 rounded-full p-3 transition-all"
                                     >
-                                        <X className="w-6 h-6 text-slate-700" />
+                                        <X className="w-6 h-6 text-white" />
                                     </button>
                                 </div>
 
@@ -152,10 +154,10 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                         <button
                                             onClick={() => setSelectedCategory(null)}
                                             className={cn(
-                                                'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                                                'px-3 py-1 rounded-full text-sm font-medium transition-colors border',
                                                 selectedCategory === null
-                                                    ? 'bg-amber-600 text-white'
-                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                    ? 'bg-amber-600 text-white border-amber-600'
+                                                    : 'bg-white/15 text-white border-white/20 hover:bg-white/25 backdrop-blur-sm'
                                             )}
                                         >
                                             All
@@ -165,10 +167,10 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                                 key={cat}
                                                 onClick={() => setSelectedCategory(cat)}
                                                 className={cn(
-                                                    'px-3 py-1 rounded-full text-sm font-medium transition-colors',
+                                                    'px-3 py-1 rounded-full text-sm font-medium transition-colors border',
                                                     selectedCategory === cat
-                                                        ? 'bg-amber-600 text-white'
-                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                        ? 'bg-amber-600 text-white border-amber-600'
+                                                        : 'bg-white/15 text-white border-white/20 hover:bg-white/25 backdrop-blur-sm'
                                                 )}
                                             >
                                                 {cat}
@@ -186,7 +188,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                     transition={{ duration: 1, ease: 'easeOut' }}
                                 >
                                 {filteredStories.length === 0 ? (
-                                    <div className="text-center py-12 text-slate-500">
+                                    <div className="text-center py-12 text-white/60">
                                         No stories available
                                     </div>
                                 ) : (
@@ -196,17 +198,17 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                             <>
                                                 <button
                                                     onClick={() => scroll('left')}
-                                                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-lg hover:bg-slate-50 transition-colors"
+                                                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-colors"
                                                     style={{ marginLeft: '-20px' }}
                                                 >
-                                                    <ChevronLeft className="w-5 h-5 text-slate-600" />
+                                                    <ChevronLeft className="w-5 h-5 text-white" />
                                                 </button>
                                                 <button
                                                     onClick={() => scroll('right')}
-                                                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white shadow-lg hover:bg-slate-50 transition-colors"
+                                                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-colors"
                                                     style={{ marginRight: '-20px' }}
                                                 >
-                                                    <ChevronRight className="w-5 h-5 text-slate-600" />
+                                                    <ChevronRight className="w-5 h-5 text-white" />
                                                 </button>
                                             </>
                                         )}
@@ -221,12 +223,12 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                                 <motion.div
                                                     key={story.id}
                                                     whileHover={{ scale: 1.02 }}
-                                                    className="flex-shrink-0 w-60 bg-white rounded-xl border border-slate-200 overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-shadow"
+                                                    className="flex-shrink-0 w-60 bg-white/10 rounded-xl border border-white/20 overflow-hidden cursor-pointer backdrop-blur-sm hover:bg-white/15 transition-colors"
                                                     onClick={() => handleStoryClick(story.id)}
                                                 >
-                                                    {/* Thumbnail — hero image with chapter 1 slide 1 as fallback */}
+                                                    {/* Thumbnail */}
                                                     {story.display_image && (
-                                                        <div className="w-full h-32 bg-slate-200 overflow-hidden">
+                                                        <div className="w-full h-32 bg-white/10 overflow-hidden">
                                                             <img
                                                                 src={story.display_image}
                                                                 alt={story.title}
@@ -237,16 +239,16 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
 
                                                     {/* Content */}
                                                     <div className="p-3">
-                                                        <h4 className="text-base font-semibold text-slate-800 mb-1 line-clamp-1">
+                                                        <h4 className="text-base font-semibold text-white mb-1 leading-tight">
                                                             {story.title}
                                                         </h4>
                                                         {story.subtitle && (
-                                                            <p className="text-sm text-slate-600 line-clamp-2 mb-1">
+                                                            <p className="text-sm text-white/80 line-clamp-2 mb-1">
                                                                 {stripHtml(story.subtitle)}
                                                             </p>
                                                         )}
                                                         {story.author && (
-                                                            <p className="text-xs text-slate-500">
+                                                            <p className="text-xs text-white/60">
                                                                 by {story.author}
                                                             </p>
                                                         )}

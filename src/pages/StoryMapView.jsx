@@ -993,7 +993,7 @@ export default function StoryMapView() {
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
                 hasChapters={chapters.length > 0}
                 mapStyle={story?.map_style || 'a'}
-                onViewOtherStories={() => setIsStorySlideshowOpen(true)}
+                onViewOtherStories={() => { setShowLibraryModal(false); setIsStorySlideshowOpen(true); }}
                 onEditStory={() => setIsEditTransitioning(true)}
             />
             </div>
@@ -1485,7 +1485,7 @@ export default function StoryMapView() {
                             storyId={storyId}
                             hasChapters={false}
                             mapStyle={story?.map_style || 'a'}
-                            onViewOtherStories={handleOverlayClose}
+                            onViewOtherStories={() => setIsStorySlideshowOpen(true)}
                             onEditStory={() => setIsEditTransitioning(true)}
                         />
 
