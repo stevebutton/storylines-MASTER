@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -63,6 +63,12 @@ export default function StoryChapter({
     const currentSlide = chapter.slides?.[activeSlideIndex] || firstSlide;
     const bgVideo = chapter.chapter_video || null;
     const bgImage = !bgVideo && (chapter.background_image || firstSlide?.image);
+
+    // Programmatic play via callback ref — avoids Chrome's ScrollIntoViewIfNotVisible
+    // heuristic which fires only for the `autoplay` attribute, not for play().
+    const bgVideoCallbackRef = useCallback((node) => {
+        if (node) node.play().catch(() => {});
+    }, []);
 
     // Reset to title card when chapter deactivates so each visit starts fresh
     useEffect(() => {
@@ -165,8 +171,8 @@ export default function StoryChapter({
         >
             <motion.div
                 ref={cardRef}
-                initial={{ opacity: 0, x: 250 }}
-                animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 250 }}
+                initial={{ opacity: 0, x: 80 }}
+                animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 80 }}
                 transition={{ duration: 4, ease: "easeOut", delay: delay / 1000 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
             >
@@ -186,9 +192,9 @@ export default function StoryChapter({
                             <div className="absolute inset-0 rounded-2xl overflow-hidden" style={{ pointerEvents: 'none' }}>
                                 {bgVideo && isActive ? (
                                     <video
+                                        ref={bgVideoCallbackRef}
                                         className="absolute inset-0 w-full h-full object-cover"
                                         src={bgVideo}
-                                        autoPlay
                                         muted
                                         loop={chapter.chapter_video_loop !== false}
                                         playsInline
