@@ -209,7 +209,7 @@ export default function StoryChapter({
                                         style={{ backgroundImage: `url(${bgImage})` }}
                                     />
                                 ) : null}
-                                <div className="absolute inset-0 bg-black/30" />
+                                <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.3) 70%)' }} />
                             </div>
                             {/* White outline — sits above the background image */}
                             <div className="absolute inset-0 rounded-2xl pointer-events-none z-20"

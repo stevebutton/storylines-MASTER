@@ -54,15 +54,18 @@ export default function StoryEditorSidebar({
     return (
         <div className="w-full md:w-80 border-r bg-white h-screen overflow-y-auto flex flex-col">
             {/* Story Settings Button */}
-            <button 
+            <button
                 onClick={onSelectStory}
-                className={cn(
-                    "w-full bg-indigo-50 hover:bg-indigo-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex flex-col items-center justify-center m-2",
-                    isStorySelected && "ring-2 ring-indigo-400"
-                )}
+                className="flex items-stretch mx-2 mt-2 mb-1 rounded-lg transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 w-[calc(100%-16px)]"
             >
-                <Book className="w-5 h-5 text-indigo-600 mb-1" />
-                <span className="text-xs text-indigo-600 font-semibold">Story Settings</span>
+                {/* Coloured left strip */}
+                <div className="flex items-center justify-center px-[26px] py-2 bg-indigo-600 rounded-l-lg flex-shrink-0">
+                    <Book className="w-12 h-12 text-white" />
+                </div>
+                {/* Text */}
+                <div className="flex-1 flex items-center px-3 py-2 bg-white rounded-r-lg">
+                    <span className="text-xl font-bold text-slate-900">Story Settings</span>
+                </div>
             </button>
 
             {/* Chapters List */}
@@ -101,53 +104,58 @@ export default function StoryEditorSidebar({
                                                         {/* Chapter Item */}
                                                         <div
                                                             className={cn(
-                                                                "group flex items-center gap-2 px-2 py-2.5 cursor-pointer transition-colors mx-2 rounded-lg mb-1",
+                                                                "group flex items-stretch mx-2 rounded-lg mb-5 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5",
                                                                 snapshot.isDragging && "opacity-50"
                                                             )}
                                                             style={{
-                                                                backgroundColor: selected
-                                                                    ? chapterColor
-                                                                    : `${chapterColor}CC`,
-                                                                borderLeft: `4px solid ${chapterColor}`,
+                                                                backgroundColor: selected ? `${chapterColor}18` : 'white',
                                                             }}
                                                         >
+                                                            {/* Coloured left strip — grip + chevron */}
                                                             <div
-                                                                {...provided.dragHandleProps}
-                                                                className="p-0.5 rounded cursor-grab active:cursor-grabbing flex-shrink-0"
+                                                                className="flex items-center gap-0.5 px-4 py-2 flex-shrink-0 rounded-l-lg"
+                                                                style={{ backgroundColor: chapterColor }}
                                                             >
-                                                                <GripVertical className="w-4 h-4 text-white/60" />
+                                                                <div
+                                                                    {...provided.dragHandleProps}
+                                                                    className="cursor-grab active:cursor-grabbing"
+                                                                >
+                                                                    <GripVertical className="w-6 h-6 text-white/70" />
+                                                                </div>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        toggleChapter(chapter.id);
+                                                                    }}
+                                                                    className="flex-shrink-0"
+                                                                >
+                                                                    {isExpanded ? (
+                                                                        <ChevronDown className="w-12 h-12 text-white/80" />
+                                                                    ) : (
+                                                                        <ChevronRight className="w-12 h-12 text-white/80" />
+                                                                    )}
+                                                                </button>
                                                             </div>
 
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    toggleChapter(chapter.id);
-                                                                }}
-                                                                className="p-0.5 rounded flex-shrink-0"
-                                                            >
-                                                                {isExpanded ? (
-                                                                    <ChevronDown className="w-12 h-12 text-white/70" />
-                                                                ) : (
-                                                                    <ChevronRight className="w-12 h-12 text-white/70" />
-                                                                )}
-                                                            </button>
-
+                                                            {/* Text area */}
                                                             <div
                                                                 onClick={() => onSelectChapter(chapter)}
-                                                                className="flex-1 flex flex-col min-w-0"
+                                                                className="flex-1 flex flex-col min-w-0 px-2 py-2 cursor-pointer"
                                                             >
-                                                                <span className="text-xl font-medium text-white/70 leading-none">
+                                                                <span className="text-xs font-medium text-slate-400 leading-none">
                                                                     Chapter {String(index + 1).padStart(2, '0')}
                                                                 </span>
-                                                                <span className="text-2xl font-bold text-white leading-none">
+                                                                <span className="text-sm font-bold text-slate-900 leading-snug">
                                                                     {chapter.name || 'Untitled'}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex items-center gap-1 flex-shrink-0">
+
+                                                            {/* Indicators */}
+                                                            <div className="flex items-center gap-1 flex-shrink-0 pr-2">
                                                                 {chapter.coordinates && (
-                                                                    <MapPin className="w-3 h-3 text-white/70" />
+                                                                    <MapPin className="w-3 h-3" style={{ color: chapterColor }} />
                                                                 )}
-                                                                <span className="text-xs text-white/70">
+                                                                <span className="text-xs text-slate-400">
                                                                     {chapterSlides.length}
                                                                 </span>
                                                             </div>
@@ -174,8 +182,8 @@ export default function StoryEditorSidebar({
                                                                                         {...provided.draggableProps}
                                                                                         onClick={() => onSelectSlide(slide)}
                                                                                         className={cn(
-                                                                                            "flex items-center justify-center gap-1 md:gap-2 pl-2 md:pl-12 pr-2 md:pr-4 py-2 hover:bg-slate-100 cursor-pointer transition-colors",
-                                                                                            isSlideSelected(slide.id) && "bg-amber-100 border-l-4 border-l-amber-600",
+                                                                                            "flex items-center justify-center gap-1 md:gap-2 pl-2 md:pl-12 pr-2 md:pr-4 py-[18px] mx-2 mb-[10px] rounded-lg bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all",
+                                                                                            isSlideSelected(slide.id) && "bg-red-100 border-l-4 border-l-amber-600",
                                                                                             snapshot.isDragging && "opacity-50"
                                                                                         )}
                                                                                     >
@@ -183,10 +191,10 @@ export default function StoryEditorSidebar({
                                                                                             {...provided.dragHandleProps}
                                                                                             className="cursor-grab active:cursor-grabbing"
                                                                                         >
-                                                                                            <GripVertical className="w-3 h-3 text-slate-400" />
+                                                                                            <GripVertical className="w-5 h-5 text-slate-400" />
                                                                                         </div>
                                                                                         <Image className="w-3 h-3 md:hidden text-slate-400" />
-                                                                                        <span className="text-xs md:text-sm text-slate-600 truncate">
+                                                                                        <span className="text-xs md:text-sm text-slate-900 font-medium leading-tight">
                                                                                             <span className="md:hidden">slide {slideIndex + 1}</span>
                                                                                             <span className="hidden md:inline">{slide.title || `Slide ${slideIndex + 1}`}</span>
                                                                                         </span>

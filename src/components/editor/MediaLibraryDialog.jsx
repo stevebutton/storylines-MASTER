@@ -3,15 +3,21 @@ import { supabase } from '@/api/supabaseClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Images, Upload, Trash2, Play, Search, Loader2, X } from 'lucide-react';
+import { Images, Upload, Trash2, Search, X } from 'lucide-react';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
+
+const CIRCLE_R = 45;
+const CIRCLE_CIRC = 2 * Math.PI * CIRCLE_R;
 
 export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'manager', accept = 'all', onSelect }) {
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadCurrentFile, setUploadCurrentFile] = useState('');
+    const [uploadIndex, setUploadIndex] = useState(0);
+    const [uploadTotal, setUploadTotal] = useState(0);
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState('all');
     const [selected, setSelected] = useState(null);
@@ -22,11 +28,12 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
         if (!storyId) return;
         setIsLoading(true);
         try {
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('media')
                 .select('*')
                 .eq('story_id', storyId)
                 .order('created_date', { ascending: false });
+            if (error) console.error('[MediaLibrary] loadItems error:', error);
             setItems(data || []);
         } finally {
             setIsLoading(false);
@@ -46,7 +53,6 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
         const arr = Array.from(files).filter(f => /^(image|video)\//.test(f.type));
         if (!arr.length) return;
 
-        // If accept filter is set, filter to only matching types
         const filtered = accept === 'image'
             ? arr.filter(f => f.type.startsWith('image'))
             : accept === 'video'
@@ -55,8 +61,13 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
         if (!filtered.length) return;
 
         setIsUploading(true);
+        setUploadTotal(filtered.length);
+        setUploadProgress(0);
+
         for (let i = 0; i < filtered.length; i++) {
             const file = filtered[i];
+            setUploadIndex(i + 1);
+            setUploadCurrentFile(file.name);
             const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
             const filePath = `${generateId()}-${safeName}`;
             try {
@@ -65,28 +76,35 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (!error) {
                     const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-                    await supabase.from('media').insert({
+                    const { error: insertErr } = await supabase.from('media').insert({
                         id: generateId(),
                         story_id: storyId,
                         url: publicUrl,
                         filename: file.name,
+                        title: file.name.split('.')[0],
+                        category: 'other',
+                        tags: [],
                         type: file.type.startsWith('image') ? 'image' : 'video',
                         file_size: file.size,
                         created_date: new Date().toISOString(),
                     });
+                    if (insertErr) console.error('[MediaLibrary] insert error:', insertErr);
                 }
             } catch (err) {
                 console.error('Upload failed for', file.name, err);
             }
             setUploadProgress(Math.round(((i + 1) / filtered.length) * 100));
         }
+
         setIsUploading(false);
         setUploadProgress(0);
+        setUploadCurrentFile('');
+        setUploadIndex(0);
+        setUploadTotal(0);
         loadItems();
     };
 
     const handleDelete = async (item) => {
-        // Extract file path from URL
         const urlParts = item.url.split('/');
         const filePath = urlParts[urlParts.length - 1];
         await supabase.storage.from('media').remove([filePath]);
@@ -95,23 +113,10 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
         if (selected === item.url) setSelected(null);
     };
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
+    const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+    const handleDragLeave = (e) => { e.preventDefault(); setIsDragging(false); };
+    const handleDrop = (e) => { e.preventDefault(); setIsDragging(false); handleFiles(e.dataTransfer.files); };
 
-    const handleDragLeave = (e) => {
-        e.preventDefault();
-        setIsDragging(false);
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setIsDragging(false);
-        handleFiles(e.dataTransfer.files);
-    };
-
-    // Apply filter and search
     const visibleItems = items.filter(item => {
         const typeMatch = filter === 'all' || item.type === filter;
         const searchMatch = !search || (item.filename || '').toLowerCase().includes(search.toLowerCase());
@@ -119,26 +124,32 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
     });
 
     const filterLabel = accept === 'image' ? 'Images' : accept === 'video' ? 'Videos' : null;
+    const strokeOffset = CIRCLE_CIRC * (1 - uploadProgress / 100);
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
             <DialogContent
-                className="max-w-4xl max-h-[85vh] flex flex-col p-0 gap-0"
+                className="w-[80vw] max-w-[80vw] max-h-[85vh] flex flex-col p-0 gap-0"
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
                 <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
-                    <DialogTitle className="flex items-center gap-2">
-                        <Images className="w-5 h-5 text-amber-600" />
-                        Media Library
+                    <DialogTitle className="flex items-center gap-3">
+                        <img
+                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                            alt="Storylines"
+                            width="250"
+                            height="100"
+                            style={{ width: '250px', height: '100px', objectFit: 'contain' }}
+                        />
+                        <span className="text-2xl">Media Library</span>
                         {filterLabel && <span className="text-sm font-normal text-slate-500">— {filterLabel} only</span>}
                     </DialogTitle>
                 </DialogHeader>
 
                 {/* Toolbar */}
                 <div className="flex items-center gap-3 px-6 py-3 border-b shrink-0 flex-wrap">
-                    {/* Type filter tabs */}
                     <div className="flex rounded-md border overflow-hidden text-sm">
                         {['all', 'image', 'video'].map(f => (
                             <button
@@ -155,7 +166,6 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
                         ))}
                     </div>
 
-                    {/* Search */}
                     <div className="relative flex-1 min-w-[140px]">
                         <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                         <Input
@@ -171,7 +181,6 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
                         )}
                     </div>
 
-                    {/* Upload button */}
                     <Button
                         variant="outline"
                         size="sm"
@@ -179,11 +188,7 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
                         onClick={() => fileInputRef.current?.click()}
                         className="shrink-0"
                     >
-                        {isUploading ? (
-                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {uploadProgress}%</>
-                        ) : (
-                            <><Upload className="w-4 h-4 mr-2" /> Upload</>
-                        )}
+                        <Upload className="w-4 h-4 mr-2" /> Upload
                     </Button>
                     <input
                         ref={fileInputRef}
@@ -196,17 +201,48 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
                 </div>
 
                 {/* Grid */}
-                <div className="flex-1 overflow-y-auto px-6 py-4">
-                    {/* Drop zone hint */}
+                <div className="flex-1 overflow-y-auto px-6 py-4 relative">
+
+                    {/* Drop zone overlay */}
                     {isDragging && (
                         <div className="absolute inset-0 z-10 flex items-center justify-center bg-amber-500/10 border-2 border-dashed border-amber-500 rounded-lg pointer-events-none">
                             <p className="text-amber-700 font-semibold text-lg">Drop files to upload</p>
                         </div>
                     )}
 
+                    {/* Upload progress overlay */}
+                    {isUploading && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/95 rounded-lg gap-8">
+                            {/* Circular progress */}
+                            <div className="relative w-52 h-52">
+                                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r={CIRCLE_R} fill="none" stroke="#e2e8f0" strokeWidth="7" />
+                                    <circle
+                                        cx="50" cy="50" r={CIRCLE_R}
+                                        fill="none"
+                                        stroke="#d97706"
+                                        strokeWidth="7"
+                                        strokeLinecap="round"
+                                        strokeDasharray={CIRCLE_CIRC}
+                                        strokeDashoffset={strokeOffset}
+                                        style={{ transition: 'stroke-dashoffset 0.4s ease' }}
+                                    />
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-5xl font-bold text-amber-600">{uploadProgress}%</span>
+                                    <span className="text-sm text-slate-500 mt-1">{uploadIndex} of {uploadTotal}</span>
+                                </div>
+                            </div>
+                            <div className="text-center max-w-xs">
+                                <p className="text-xl font-semibold text-slate-700">Uploading…</p>
+                                <p className="text-sm text-slate-400 mt-2 truncate">{uploadCurrentFile}</p>
+                            </div>
+                        </div>
+                    )}
+
                     {isLoading ? (
                         <div className="flex items-center justify-center h-40">
-                            <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
+                            <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
                         </div>
                     ) : visibleItems.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-40 text-slate-400 gap-2">
@@ -216,7 +252,7 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
                             {visibleItems.map(item => (
                                 <div
                                     key={item.id}
@@ -239,21 +275,30 @@ export default function MediaLibraryDialog({ storyId, isOpen, onClose, mode = 'm
                                                 loading="lazy"
                                             />
                                         ) : (
-                                            <div className="relative w-full h-full bg-slate-800 flex items-center justify-center">
+                                            <div className="relative w-full h-full bg-slate-800">
                                                 <video
                                                     src={item.url}
-                                                    className="w-full h-full object-cover opacity-70"
+                                                    className="w-full h-full object-cover"
                                                     muted
+                                                    loop
                                                     preload="metadata"
+                                                    onMouseEnter={e => e.currentTarget.play()}
+                                                    onMouseLeave={e => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
                                                 />
-                                                <Play className="absolute w-8 h-8 text-white/80 pointer-events-none" />
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
+                                                    <div className="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center">
+                                                        <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M8 5v14l11-7z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Filename */}
                                     <div className="px-1.5 py-1 bg-white border-t">
-                                        <p className="text-xs text-slate-600 truncate" title={item.filename}>
+                                        <p className="text-xs text-slate-600 break-all" title={item.filename}>
                                             {item.filename || 'Unnamed'}
                                         </p>
                                     </div>
