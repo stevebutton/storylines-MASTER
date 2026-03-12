@@ -15,6 +15,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DocumentPicker from './DocumentPicker';
 import MediaLibraryDialog from './MediaLibraryDialog';
+import ImageFocalPointPicker from './ImageFocalPointPicker';
 
 const validateField = (field, value) => {
     switch (field) {
@@ -69,6 +70,9 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
             story_id: storyId,
             url: file_url,
             filename: safeName,
+            title: file.name.split('.')[0],
+            category: 'other',
+            tags: [],
             type: file.type.startsWith('image') ? 'image' : 'video',
             file_size: file.size,
             created_date: new Date().toISOString(),
@@ -175,6 +179,16 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                         >
                             <Images className="w-3 h-3" /> Library
                         </button>
+                        {slide.image && (
+                            <div className="mt-2">
+                                <Label className="text-xs mb-1 block">Crop Position</Label>
+                                <ImageFocalPointPicker
+                                    imageUrl={slide.image}
+                                    value={slide.image_position || '50% 50%'}
+                                    onChange={(pos) => onUpdate({ ...slide, image_position: pos })}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Background Image upload (for full_background card style) */}

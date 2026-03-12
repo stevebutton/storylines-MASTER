@@ -189,6 +189,7 @@ export default function FullScreenImageViewer({
                                 src={currentSlide.image}
                                 alt={currentSlide.title}
                                 className="absolute inset-0 w-full h-full object-cover"
+                                style={{ objectPosition: currentSlide.image_position || '50% 50%' }}
                             />
                         )}
                             </AnimatePresence>

@@ -112,6 +112,7 @@ export default function FilmstripBar({ slides, currentIndex, onNavigate }) {
                                     src={src}
                                     alt={`Slide ${i + 1}`}
                                     className="w-full h-full object-cover"
+                                    style={{ objectPosition: slide.image_position || '50% 50%' }}
                                   />
                                 : <div className="w-full h-full bg-slate-700" />
                             }

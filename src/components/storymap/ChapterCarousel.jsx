@@ -90,6 +90,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                             src={slides[0].image}
                             alt={slides[0].title}
                             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                            style={{ objectPosition: slides[0].image_position || '50% 50%' }}
                         />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
@@ -117,6 +118,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                                     src={slide.image}
                                     alt={slide.title}
                                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                    style={{ objectPosition: slide.image_position || '50% 50%' }}
                                 />
                             )}
                         </div>

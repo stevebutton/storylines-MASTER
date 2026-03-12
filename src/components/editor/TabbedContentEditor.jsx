@@ -16,6 +16,7 @@ const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
 import DocumentPicker from '@/components/editor/DocumentPicker';
 import MediaLibraryDialog from '@/components/editor/MediaLibraryDialog';
+import ImageFocalPointPicker from '@/components/editor/ImageFocalPointPicker';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -139,6 +140,9 @@ export default function TabbedContentEditor({
                 story_id: storyId,
                 url: file_url,
                 filename: safeName,
+                title: file.name.split('.')[0],
+                category: 'other',
+                tags: [],
                 type: file.type.startsWith('image') ? 'image' : 'video',
                 file_size: file.size,
                 created_date: new Date().toISOString(),
@@ -205,10 +209,10 @@ export default function TabbedContentEditor({
         return (<>
             <div className="space-y-4">
                 <Tabs defaultValue="story">
-                    <TabsList className="w-full grid grid-cols-3">
-                        <TabsTrigger value="story">Story</TabsTrigger>
-                        <TabsTrigger value="style">Map Style</TabsTrigger>
-                        <TabsTrigger value="language">Language</TabsTrigger>
+                    <TabsList className="w-full grid grid-cols-3 bg-slate-100 p-1 rounded-lg h-16">
+                        <TabsTrigger value="story" className="h-full text-xl font-bold data-[state=active]:bg-amber-600 data-[state=active]:text-white data-[state=inactive]:text-slate-900 rounded-md">Story</TabsTrigger>
+                        <TabsTrigger value="style" className="h-full text-xl font-bold data-[state=active]:bg-amber-600 data-[state=active]:text-white data-[state=inactive]:text-slate-900 rounded-md">Map Style</TabsTrigger>
+                        <TabsTrigger value="language" className="h-full text-xl font-bold data-[state=active]:bg-amber-600 data-[state=active]:text-white data-[state=inactive]:text-slate-900 rounded-md">Language</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="story">
@@ -634,6 +638,9 @@ export default function TabbedContentEditor({
                 story_id: storyId,
                 url: file_url,
                 filename: safeName,
+                title: file.name.split('.')[0],
+                category: 'other',
+                tags: [],
                 type: file.type.startsWith('image') ? 'image' : 'video',
                 file_size: file.size,
                 created_date: new Date().toISOString(),
@@ -859,6 +866,9 @@ export default function TabbedContentEditor({
                 story_id: storyId,
                 url: file_url,
                 filename: safeName,
+                title: file.name.split('.')[0],
+                category: 'other',
+                tags: [],
                 type: file.type.startsWith('image') ? 'image' : 'video',
                 file_size: file.size,
                 created_date: new Date().toISOString(),
@@ -1117,8 +1127,9 @@ export default function TabbedContentEditor({
                             <div>
                                 <Label>Image</Label>
                                 {item.image && (
+                                    <>
                                     <div className="relative w-full h-40 rounded-lg overflow-hidden border mt-2">
-                                        <img src={item.image} alt="Slide" className="w-full h-full object-cover" />
+                                        <img src={item.image} alt="Slide" className="w-full h-full object-cover" style={{ objectPosition: item.image_position || '50% 50%' }} />
                                         <button
                                             onClick={() => onUpdate({ ...item, image: '' })}
                                             className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
@@ -1126,6 +1137,15 @@ export default function TabbedContentEditor({
                                             <X className="w-4 h-4" />
                                         </button>
                                     </div>
+                                    <div className="mt-3">
+                                        <Label className="text-xs mb-1 block">Crop Position</Label>
+                                        <ImageFocalPointPicker
+                                            imageUrl={item.image}
+                                            value={item.image_position || '50% 50%'}
+                                            onChange={(pos) => onUpdate({ ...item, image_position: pos })}
+                                        />
+                                    </div>
+                                    </>
                                 )}
                                 <div className="flex gap-2 mt-2">
                                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="slide-image" />
