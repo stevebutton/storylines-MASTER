@@ -8,13 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2, Check } from 'lucide-react';
+import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2, Check, Images } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import * as exifr from 'exifr';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
 import DocumentPicker from '@/components/editor/DocumentPicker';
+import MediaLibraryDialog from '@/components/editor/MediaLibraryDialog';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -115,6 +116,7 @@ export default function TabbedContentEditor({
     const [showDocumentPicker, setShowDocumentPicker] = useState(false);
     const [isUploadingChapterImage, setIsUploadingChapterImage] = useState(false);
     const [isUploadingChapterVideo, setIsUploadingChapterVideo] = useState(false);
+    const [mediaPickerTarget, setMediaPickerTarget] = useState(null);
 
     // Handle missing item
     if (!item) {
@@ -129,6 +131,20 @@ export default function TabbedContentEditor({
 
     // Story Editor
     if (itemType === 'story') {
+        const saveToMediaLibrary = async (file_url, file) => {
+            if (!storyId) return;
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            await supabase.from('media').insert({
+                id: generateId(),
+                story_id: storyId,
+                url: file_url,
+                filename: safeName,
+                type: file.type.startsWith('image') ? 'image' : 'video',
+                file_size: file.size,
+                created_date: new Date().toISOString(),
+            });
+        };
+
         const handleHeroImageUpload = async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -141,6 +157,7 @@ export default function TabbedContentEditor({
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (uploadError) throw uploadError;
                 const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                await saveToMediaLibrary(file_url, file);
                 onUpdate({ ...item, hero_image: file_url, hero_type: 'image' });
             } finally {
                 setIsUploadingHeroImage(false);
@@ -159,6 +176,7 @@ export default function TabbedContentEditor({
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (uploadError) throw uploadError;
                 const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                await saveToMediaLibrary(file_url, file);
                 onUpdate({ ...item, hero_video: file_url, hero_type: 'video' });
             } finally {
                 setIsUploadingHeroVideo(false);
@@ -177,13 +195,14 @@ export default function TabbedContentEditor({
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (uploadError) throw uploadError;
                 const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                await saveToMediaLibrary(file_url, file);
                 onUpdate({ ...item, thumbnail: file_url });
             } finally {
                 setIsUploadingThumbnail(false);
             }
         };
 
-        return (
+        return (<>
             <div className="space-y-4">
                 <Tabs defaultValue="story">
                     <TabsList className="w-full grid grid-cols-3">
@@ -199,7 +218,7 @@ export default function TabbedContentEditor({
                         <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                             <Label className="text-sm font-semibold text-slate-900">Project Timeline (optional)</Label>
                             <p className="text-xs text-slate-500 mt-0.5 mb-3">
-                                Set a start and end date, then distribute them evenly across all slides as a starting point for Timeline view.
+                                Set a start and end date, they will then be distributed evenly across all slides as a starting point for Timeline view.
                             </p>
                             <div className="grid grid-cols-2 gap-3 mb-3">
                                 <div>
@@ -399,7 +418,7 @@ export default function TabbedContentEditor({
                                     </label>
                                 )}
 
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
                                     <input type="file" accept="image/*" onChange={handleHeroImageUpload} className="hidden" id="hero-image" />
                                     <label htmlFor="hero-image">
                                         <Button type="button" variant="outline" disabled={isUploadingHeroImage || isUploadingHeroVideo} onClick={() => document.getElementById('hero-image').click()}>
@@ -407,6 +426,9 @@ export default function TabbedContentEditor({
                                             Upload Image
                                         </Button>
                                     </label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setMediaPickerTarget('hero_image')}>
+                                        <Images className="w-4 h-4 mr-1" /> Library
+                                    </Button>
                                     <input type="file" accept="video/*" onChange={handleHeroVideoUpload} className="hidden" id="hero-video" />
                                     <label htmlFor="hero-video">
                                         <Button type="button" variant="outline" disabled={isUploadingHeroVideo || isUploadingHeroImage} onClick={() => document.getElementById('hero-video').click()}>
@@ -414,6 +436,9 @@ export default function TabbedContentEditor({
                                             Upload Video
                                         </Button>
                                     </label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setMediaPickerTarget('hero_video')}>
+                                        <Images className="w-4 h-4 mr-1" /> Library
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -435,13 +460,18 @@ export default function TabbedContentEditor({
                                     </button>
                                 </div>
                             )}
-                            <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="hidden" id="story-thumbnail" />
-                            <label htmlFor="story-thumbnail">
-                                <Button type="button" variant="outline" disabled={isUploadingThumbnail} onClick={() => document.getElementById('story-thumbnail').click()}>
-                                    {isUploadingThumbnail ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-                                    {item.thumbnail ? 'Replace Thumbnail' : 'Upload Thumbnail'}
+                            <div className="flex flex-wrap gap-2">
+                                <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="hidden" id="story-thumbnail" />
+                                <label htmlFor="story-thumbnail">
+                                    <Button type="button" variant="outline" disabled={isUploadingThumbnail} onClick={() => document.getElementById('story-thumbnail').click()}>
+                                        {isUploadingThumbnail ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                                        {item.thumbnail ? 'Replace Thumbnail' : 'Upload Thumbnail'}
+                                    </Button>
+                                </label>
+                                <Button type="button" variant="outline" size="sm" onClick={() => setMediaPickerTarget('thumbnail')}>
+                                    <Images className="w-4 h-4 mr-1" /> Library
                                 </Button>
-                            </label>
+                            </div>
                         </div>
 
                         <div className="space-y-3">
@@ -575,11 +605,41 @@ export default function TabbedContentEditor({
 
                 </Tabs>
             </div>
-        );
+            <MediaLibraryDialog
+                storyId={storyId}
+                isOpen={!!mediaPickerTarget}
+                onClose={() => setMediaPickerTarget(null)}
+                mode="picker"
+                accept={mediaPickerTarget === 'hero_video' ? 'video' : 'image'}
+                onSelect={(url) => {
+                    const updates = {
+                        hero_image: { hero_image: url, hero_type: 'image' },
+                        hero_video: { hero_video: url, hero_type: 'video' },
+                        thumbnail:  { thumbnail: url },
+                    };
+                    onUpdate({ ...item, ...(updates[mediaPickerTarget] || {}) });
+                    setMediaPickerTarget(null);
+                }}
+            />
+        </>);
     }
 
     // Chapter Editor
     if (itemType === 'chapter') {
+        const saveToMediaLibrary = async (file_url, file) => {
+            if (!storyId) return;
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            await supabase.from('media').insert({
+                id: generateId(),
+                story_id: storyId,
+                url: file_url,
+                filename: safeName,
+                type: file.type.startsWith('image') ? 'image' : 'video',
+                file_size: file.size,
+                created_date: new Date().toISOString(),
+            });
+        };
+
         const handleChapterImageUpload = async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -592,6 +652,7 @@ export default function TabbedContentEditor({
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (uploadError) throw uploadError;
                 const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                await saveToMediaLibrary(file_url, file);
                 onUpdate({ ...item, background_image: file_url });
             } finally {
                 setIsUploadingChapterImage(false);
@@ -610,13 +671,14 @@ export default function TabbedContentEditor({
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (uploadError) throw uploadError;
                 const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                await saveToMediaLibrary(file_url, file);
                 onUpdate({ ...item, chapter_video: file_url });
             } finally {
                 setIsUploadingChapterVideo(false);
             }
         };
 
-        return (
+        return (<>
             <div className="w-full space-y-4">
                 <Card>
                     <CardContent className="pt-6 space-y-4">
@@ -675,11 +737,16 @@ export default function TabbedContentEditor({
                                     </button>
                                 </div>
                             )}
-                            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors w-fit">
-                                {isUploadingChapterImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                                {isUploadingChapterImage ? 'Uploading...' : 'Upload Image'}
-                                <input type="file" accept="image/*" className="hidden" onChange={handleChapterImageUpload} disabled={isUploadingChapterImage} />
-                            </label>
+                            <div className="flex flex-wrap gap-2 items-center">
+                                <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                                    {isUploadingChapterImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                                    {isUploadingChapterImage ? 'Uploading...' : 'Upload Image'}
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleChapterImageUpload} disabled={isUploadingChapterImage} />
+                                </label>
+                                <Button type="button" variant="outline" size="sm" onClick={() => setMediaPickerTarget('background_image')}>
+                                    <Images className="w-4 h-4 mr-1" /> Library
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Chapter Background Video */}
@@ -708,11 +775,16 @@ export default function TabbedContentEditor({
                                     <span className="text-xs text-slate-600">Loop video</span>
                                 </label>
                             )}
-                            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors w-fit">
-                                {isUploadingChapterVideo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Video className="w-4 h-4" />}
-                                {isUploadingChapterVideo ? 'Uploading...' : 'Upload Video'}
-                                <input type="file" accept="video/*" className="hidden" onChange={handleChapterVideoUpload} disabled={isUploadingChapterVideo} />
-                            </label>
+                            <div className="flex flex-wrap gap-2 items-center">
+                                <label className="flex items-center gap-2 cursor-pointer px-3 py-2 border rounded-md text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                                    {isUploadingChapterVideo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Video className="w-4 h-4" />}
+                                    {isUploadingChapterVideo ? 'Uploading...' : 'Upload Video'}
+                                    <input type="file" accept="video/*" className="hidden" onChange={handleChapterVideoUpload} disabled={isUploadingChapterVideo} />
+                                </label>
+                                <Button type="button" variant="outline" size="sm" onClick={() => setMediaPickerTarget('chapter_video')}>
+                                    <Images className="w-4 h-4 mr-1" /> Library
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Chapter Location */}
@@ -759,11 +831,40 @@ export default function TabbedContentEditor({
                     </CardContent>
                 </Card>
             </div>
-        );
+            <MediaLibraryDialog
+                storyId={storyId}
+                isOpen={!!mediaPickerTarget}
+                onClose={() => setMediaPickerTarget(null)}
+                mode="picker"
+                accept={mediaPickerTarget === 'chapter_video' ? 'video' : 'image'}
+                onSelect={(url) => {
+                    const updates = {
+                        background_image: { background_image: url },
+                        chapter_video:    { chapter_video: url },
+                    };
+                    onUpdate({ ...item, ...(updates[mediaPickerTarget] || {}) });
+                    setMediaPickerTarget(null);
+                }}
+            />
+        </>);
     }
 
     // Slide Editor
     if (itemType === 'slide') {
+        const saveToMediaLibrary = async (file_url, file) => {
+            if (!storyId) return;
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            await supabase.from('media').insert({
+                id: generateId(),
+                story_id: storyId,
+                url: file_url,
+                filename: safeName,
+                type: file.type.startsWith('image') ? 'image' : 'video',
+                file_size: file.size,
+                created_date: new Date().toISOString(),
+            });
+        };
+
         const handleImageUpload = async (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -783,6 +884,7 @@ export default function TabbedContentEditor({
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (uploadError) throw uploadError;
                 const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                await saveToMediaLibrary(file_url, file);
                 onUpdate({
                     ...item,
                     image: file_url,
@@ -808,6 +910,7 @@ export default function TabbedContentEditor({
                     .upload(filePath, file, { contentType: file.type, upsert: false });
                 if (uploadError) throw uploadError;
                 const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                await saveToMediaLibrary(file_url, file);
                 onUpdate({ ...item, video_url: file_url });
             } finally {
                 setIsUploadingVideo(false);
@@ -816,7 +919,7 @@ export default function TabbedContentEditor({
 
 
 
-        return (
+        return (<>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="content">Content</TabsTrigger>
@@ -1024,19 +1127,24 @@ export default function TabbedContentEditor({
                                         </button>
                                     </div>
                                 )}
-                                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="slide-image" />
-                                <label htmlFor="slide-image">
-                                    <Button 
-                                        type="button" 
-                                        variant="outline" 
-                                        disabled={isUploadingImage}
-                                        onClick={() => document.getElementById('slide-image').click()}
-                                        className="mt-2 w-full"
-                                    >
-                                        {isUploadingImage ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ImageIcon className="w-4 h-4 mr-2" />}
-                                        Upload Image
+                                <div className="flex gap-2 mt-2">
+                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="slide-image" />
+                                    <label htmlFor="slide-image" className="flex-1">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={isUploadingImage}
+                                            onClick={() => document.getElementById('slide-image').click()}
+                                            className="w-full"
+                                        >
+                                            {isUploadingImage ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ImageIcon className="w-4 h-4 mr-2" />}
+                                            Upload Image
+                                        </Button>
+                                    </label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setMediaPickerTarget('slide_image')}>
+                                        <Images className="w-4 h-4 mr-1" /> Library
                                     </Button>
-                                </label>
+                                </div>
                             </div>
 
                             {/* Video */}
@@ -1078,19 +1186,24 @@ export default function TabbedContentEditor({
                                     </label>
                                 )}
 
-                                <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" id="slide-video" />
-                                <label htmlFor="slide-video">
-                                    <Button 
-                                        type="button" 
-                                        variant="outline" 
-                                        disabled={isUploadingVideo}
-                                        onClick={() => document.getElementById('slide-video').click()}
-                                        className="mt-2 w-full"
-                                    >
-                                        {isUploadingVideo ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Video className="w-4 h-4 mr-2" />}
-                                        Upload Video
+                                <div className="flex gap-2 mt-2">
+                                    <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" id="slide-video" />
+                                    <label htmlFor="slide-video" className="flex-1">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            disabled={isUploadingVideo}
+                                            onClick={() => document.getElementById('slide-video').click()}
+                                            className="w-full"
+                                        >
+                                            {isUploadingVideo ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Video className="w-4 h-4 mr-2" />}
+                                            Upload Video
+                                        </Button>
+                                    </label>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setMediaPickerTarget('slide_video')}>
+                                        <Images className="w-4 h-4 mr-1" /> Library
                                     </Button>
-                                </label>
+                                </div>
                             </div>
 
                             {/* PDF */}
@@ -1149,7 +1262,22 @@ export default function TabbedContentEditor({
                     </Card>
                 </TabsContent>
             </Tabs>
-        );
+            <MediaLibraryDialog
+                storyId={storyId}
+                isOpen={!!mediaPickerTarget}
+                onClose={() => setMediaPickerTarget(null)}
+                mode="picker"
+                accept={mediaPickerTarget === 'slide_video' ? 'video' : 'image'}
+                onSelect={(url) => {
+                    const updates = {
+                        slide_image: { image: url },
+                        slide_video: { video_url: url },
+                    };
+                    onUpdate({ ...item, ...(updates[mediaPickerTarget] || {}) });
+                    setMediaPickerTarget(null);
+                }}
+            />
+        </>);
     }
 
     return null;

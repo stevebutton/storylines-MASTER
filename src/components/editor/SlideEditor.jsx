@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2, FileText, Video } from 'lucide-react';
+import { GripVertical, Trash2, Upload, Image as ImageIcon, MapPin, AlertCircle, X, Loader2, FileText, Video, Images } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import * as exifr from 'exifr';
 
@@ -14,6 +14,7 @@ import { createPageUrl } from '@/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import DocumentPicker from './DocumentPicker';
+import MediaLibraryDialog from './MediaLibraryDialog';
 
 const validateField = (field, value) => {
     switch (field) {
@@ -40,6 +41,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
     const [pdfFileName, setPdfFileName] = useState('');
     const [errors, setErrors] = useState({});
     const [showDocumentPicker, setShowDocumentPicker] = useState(false);
+    const [mediaPickerTarget, setMediaPickerTarget] = useState(null);
 
     React.useEffect(() => {
         if (slide.pdf_url) {
@@ -59,6 +61,20 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
         }
     }, [slide.pdf_url, slide.pdf_title]);
 
+    const saveToMediaLibrary = async (file_url, file) => {
+        if (!storyId) return;
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        await supabase.from('media').insert({
+            id: generateId(),
+            story_id: storyId,
+            url: file_url,
+            filename: safeName,
+            type: file.type.startsWith('image') ? 'image' : 'video',
+            file_size: file.size,
+            created_date: new Date().toISOString(),
+        });
+    };
+
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -72,12 +88,14 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                 captureDate = exif?.DateTimeOriginal || exif?.CreateDate || null;
             } catch (_) {}
 
-            const filePath = `${generateId()}-${file.name}`;
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const filePath = `${generateId()}-${safeName}`;
             const { error: uploadError } = await supabase.storage
                 .from('media')
                 .upload(filePath, file, { contentType: file.type, upsert: false });
             if (uploadError) throw uploadError;
             const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+            await saveToMediaLibrary(file_url, file);
             onUpdate({
                 ...slide,
                 image: file_url,
@@ -99,12 +117,14 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
 
         setIsUploadingBackground(true);
         try {
-            const filePath = `${generateId()}-${file.name}`;
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const filePath = `${generateId()}-${safeName}`;
             const { error: uploadError } = await supabase.storage
                 .from('media')
                 .upload(filePath, file, { contentType: file.type, upsert: false });
             if (uploadError) throw uploadError;
             const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+            await saveToMediaLibrary(file_url, file);
             onUpdate({ ...slide, background_image: file_url });
         } catch (error) {
             console.error('Failed to upload background image:', error);
@@ -113,7 +133,7 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
         }
     };
 
-    return (
+    return (<>
         <Card className="border-slate-200">
             <CardContent className="p-4">
                 <div className="flex gap-4">
@@ -139,15 +159,22 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                 ) : (
                                     <Upload className="w-5 h-5 text-white" />
                                 )}
-                                <input 
-                                    type="file" 
-                                    accept="image/*" 
-                                    className="hidden" 
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
                                     onChange={handleImageUpload}
                                     disabled={isUploading}
                                 />
                             </label>
                         </div>
+                        <button
+                            type="button"
+                            onClick={() => setMediaPickerTarget('image')}
+                            className="mt-1 flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700"
+                        >
+                            <Images className="w-3 h-3" /> Library
+                        </button>
                     </div>
 
                     {/* Background Image upload (for full_background card style) */}
@@ -168,15 +195,22 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     ) : (
                                         <Upload className="w-5 h-5 text-white" />
                                     )}
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        className="hidden" 
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
                                         onChange={handleBackgroundImageUpload}
                                         disabled={isUploadingBackground}
                                     />
                                 </label>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => setMediaPickerTarget('background_image')}
+                                className="mt-1 flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700"
+                            >
+                                <Images className="w-3 h-3" /> Library
+                            </button>
                         </div>
                     )}
 
@@ -354,12 +388,14 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                         if (!file) return;
                                         setIsUploadingVideo(true);
                                         try {
-                                            const filePath = `${generateId()}-${file.name}`;
+                                            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                                            const filePath = `${generateId()}-${safeName}`;
                                             const { error: uploadError } = await supabase.storage
                                                 .from('media')
                                                 .upload(filePath, file, { contentType: file.type, upsert: false });
                                             if (uploadError) throw uploadError;
                                             const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                                            await saveToMediaLibrary(file_url, file);
                                             onUpdate({ ...slide, video_url: file_url });
                                         } catch (error) {
                                             console.error('Failed to upload video:', error);
@@ -372,22 +408,33 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                     id={`slide-video-upload-${slide.id}`}
                                     disabled={isUploadingVideo}
                                 />
-                                <label htmlFor={`slide-video-upload-${slide.id}`}>
-                                    <Button 
-                                        type="button" 
+                                <div className="flex gap-2 mt-1">
+                                    <label htmlFor={`slide-video-upload-${slide.id}`} className="flex-1">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            disabled={isUploadingVideo}
+                                            onClick={() => document.getElementById(`slide-video-upload-${slide.id}`).click()}
+                                            className="w-full h-8"
+                                        >
+                                            {isUploadingVideo ? (
+                                                <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading Video...</>
+                                            ) : (
+                                                <><Video className="w-3 h-3 mr-2" /> Upload Video File</>
+                                            )}
+                                        </Button>
+                                    </label>
+                                    <Button
+                                        type="button"
                                         variant="outline"
                                         size="sm"
-                                        disabled={isUploadingVideo}
-                                        onClick={() => document.getElementById(`slide-video-upload-${slide.id}`).click()}
-                                        className="w-full h-8 mt-1"
+                                        className="h-8 shrink-0"
+                                        onClick={() => setMediaPickerTarget('video_url')}
                                     >
-                                        {isUploadingVideo ? (
-                                            <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading Video...</>
-                                        ) : (
-                                            <><Video className="w-3 h-3 mr-2" /> Upload Video File</>
-                                        )}
+                                        <Images className="w-3 h-3 mr-1" /> Library
                                     </Button>
-                                </label>
+                                </div>
                             </div>
 
                             {/* Video Thumbnail */}
@@ -419,12 +466,14 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                     if (!file) return;
                                                     setIsUploadingVideoThumbnail(true);
                                                     try {
-                                                        const filePath = `${generateId()}-${file.name}`;
+                                                        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                                                        const filePath = `${generateId()}-${safeName}`;
                                                         const { error: uploadError } = await supabase.storage
                                                             .from('media')
                                                             .upload(filePath, file, { contentType: file.type, upsert: false });
                                                         if (uploadError) throw uploadError;
                                                         const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                                                        await saveToMediaLibrary(file_url, file);
                                                         onUpdate({ ...slide, video_thumbnail_url: file_url });
                                                     } catch (error) {
                                                         console.error('Failed to upload thumbnail:', error);
@@ -437,22 +486,33 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                                                 id={`slide-video-thumb-${slide.id}`}
                                                 disabled={isUploadingVideoThumbnail}
                                             />
-                                            <label htmlFor={`slide-video-thumb-${slide.id}`}>
-                                                <Button 
-                                                    type="button" 
+                                            <div className="flex gap-2">
+                                                <label htmlFor={`slide-video-thumb-${slide.id}`} className="flex-1">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        disabled={isUploadingVideoThumbnail}
+                                                        onClick={() => document.getElementById(`slide-video-thumb-${slide.id}`).click()}
+                                                        className="w-full h-8"
+                                                    >
+                                                        {isUploadingVideoThumbnail ? (
+                                                            <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...</>
+                                                        ) : (
+                                                            <><Upload className="w-3 h-3 mr-2" /> Upload Thumbnail</>
+                                                        )}
+                                                    </Button>
+                                                </label>
+                                                <Button
+                                                    type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    disabled={isUploadingVideoThumbnail}
-                                                    onClick={() => document.getElementById(`slide-video-thumb-${slide.id}`).click()}
-                                                    className="w-full h-8"
+                                                    className="h-8 shrink-0"
+                                                    onClick={() => setMediaPickerTarget('video_thumbnail_url')}
                                                 >
-                                                    {isUploadingVideoThumbnail ? (
-                                                        <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...</>
-                                                    ) : (
-                                                        <><Upload className="w-3 h-3 mr-2" /> Upload Thumbnail</>
-                                                    )}
+                                                    <Images className="w-3 h-3 mr-1" /> Library
                                                 </Button>
-                                            </label>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -532,5 +592,23 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                 </div>
             </CardContent>
         </Card>
+        <MediaLibraryDialog
+            storyId={storyId}
+            isOpen={!!mediaPickerTarget}
+            onClose={() => setMediaPickerTarget(null)}
+            mode="picker"
+            accept={mediaPickerTarget === 'video_url' ? 'video' : 'image'}
+            onSelect={(url) => {
+                const updates = {
+                    image:               { image: url },
+                    background_image:    { background_image: url },
+                    video_url:           { video_url: url },
+                    video_thumbnail_url: { video_thumbnail_url: url },
+                };
+                onUpdate({ ...slide, ...(updates[mediaPickerTarget] || {}) });
+                setMediaPickerTarget(null);
+            }}
+        />
+    </>
     );
 }

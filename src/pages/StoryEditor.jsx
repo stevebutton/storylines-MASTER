@@ -7,7 +7,7 @@ import { supabase } from '@/api/supabaseClient';
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle, Images } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
@@ -16,6 +16,7 @@ import AIAssistant from '@/components/editor/AIAssistant';
 import HelpPanel from '@/components/editor/HelpPanel';
 import MapDataImportPanel from '@/components/editor/MapDataImportPanel';
 import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
+import MediaLibraryDialog from '@/components/editor/MediaLibraryDialog';
 
 export default function StoryEditor() {
     const location = useLocation();
@@ -37,6 +38,7 @@ export default function StoryEditor() {
     const [pendingTitle, setPendingTitle] = useState('');
     const [isComputingRoutes, setIsComputingRoutes] = useState(false);
     const [routeComputeStatus, setRouteComputeStatus] = useState(null);
+    const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -470,6 +472,13 @@ export default function StoryEditor() {
                         </button>
                         
                         <button
+                            onClick={() => setIsMediaLibraryOpen(true)}
+                            className="hidden md:flex flex-1 bg-amber-50 hover:bg-amber-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]"
+                        >
+                            <Images className="w-5 h-5 text-amber-600 mb-1" />
+                            <p className="text-xs text-amber-600 font-semibold">Media</p>
+                        </button>
+                        <button
                             onClick={() => setIsHelpPanelOpen(true)}
                             className="hidden md:flex flex-1 bg-slate-50 hover:bg-slate-100 rounded-lg p-2 md:p-4 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]"
                         >
@@ -554,6 +563,14 @@ export default function StoryEditor() {
                     </div>
                 </div>
             </div>
+
+            {/* Media Library Dialog */}
+            <MediaLibraryDialog
+                storyId={story?.id}
+                isOpen={isMediaLibraryOpen}
+                onClose={() => setIsMediaLibraryOpen(false)}
+                mode="manager"
+            />
 
             {/* Help Panel */}
             <HelpPanel
