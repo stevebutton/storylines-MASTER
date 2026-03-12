@@ -182,8 +182,8 @@ export default function StoryChapter({
                         key="title-card"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0, y: -30 }}
-                        transition={{ duration: 0.35, ease: 'easeOut' }}
+                        exit={{ opacity: 0, x: -250 }}
+                        transition={{ duration: 1.5, ease: 'easeOut' }}
                     >
                         <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
                             {/* Background layers — clipped independently so the explore button can overflow */}
