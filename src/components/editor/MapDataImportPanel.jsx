@@ -152,6 +152,22 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                     const { data: { publicUrl: image_url } } = supabase.storage
                         .from('media').getPublicUrl(filePath);
 
+                    // Register in media library (non-fatal)
+                    await supabase.from('media').insert({
+                        id: generateId(),
+                        story_id: storyId,
+                        url: image_url,
+                        filename: safeName,
+                        title: rawName.replace(/\.[^.]+$/, ''),
+                        category: 'other',
+                        tags: [],
+                        type: 'image',
+                        file_size: blob.size,
+                        created_date: new Date().toISOString(),
+                    }).then(({ error }) => {
+                        if (error) console.warn('[MediaLibrary] insert failed for', rawName, error);
+                    });
+
                     const slideId = generateId();
                     const { error: slideErr } = await supabase.from('slides').insert({
                         id: slideId,
