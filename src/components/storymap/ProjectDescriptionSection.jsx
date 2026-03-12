@@ -30,10 +30,16 @@ const splitHtmlIntoPages = (html, maxChars = 550) => {
 const THEME_FONTS = {
     c: 'Righteous, cursive',
     f: 'Oswald, sans-serif',
+    k: 'Oswald, sans-serif',
+};
+
+const TITLE_COLORS = {
+    k: 'text-white',
 };
 
 export default function ProjectDescriptionSection({ storyTitle, description, onContinue, backgroundImage, mapStyle = 'a' }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
+    const titleColorClass = TITLE_COLORS[mapStyle] || 'text-amber-400';
     const [currentPage, setCurrentPage] = useState(0);
     const [contentHeight, setContentHeight] = useState('auto');
     const pageRefs = useRef([]);
@@ -92,7 +98,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                         {/* Story title — eyebrow, we've already seen this */}
                         {storyTitle && (
                             <div className="mb-2">
-                                <span className="block text-xs font-medium text-amber-400 uppercase tracking-widest"
+                                <span className={`block text-xs font-medium ${titleColorClass} uppercase tracking-widest`}
                                       style={{ fontFamily: themeFont }}>
                                     {storyTitle}
                                 </span>
@@ -101,7 +107,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
 
                         {/* Overview heading — the key function of this panel */}
                         <div className="mb-5">
-                            <span className="block text-5xl font-light text-amber-400 leading-none"
+                            <span className={`block text-5xl font-light ${titleColorClass} leading-none`}
                                   style={{ fontFamily: themeFont }}>
                                 Overview
                             </span>

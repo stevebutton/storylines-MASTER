@@ -12,6 +12,11 @@ import { useTranslation } from '@/contexts/StoryTranslationContext';
 const THEME_FONTS = {
     c: 'Righteous, cursive',
     f: 'Oswald, sans-serif',
+    k: 'Oswald, sans-serif',
+};
+
+const TITLE_COLORS = {
+    k: 'text-white',
 };
 
 // Matches the palette in MapContainer so the location dot aligns with the
@@ -39,6 +44,7 @@ export default function StoryChapter({
     onOpenFullscreen = null,
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
+    const titleColorClass = TITLE_COLORS[mapStyle] || 'text-amber-400';
     const chapterColor = CHAPTER_COLORS[index % CHAPTER_COLORS.length];
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -216,7 +222,7 @@ export default function StoryChapter({
                                 {/* Chapter number + name — staggered build */}
                                 <div className="mb-5">
                                     <motion.span
-                                        className="block text-xs font-medium text-amber-400 uppercase tracking-widest mb-2"
+                                        className={`block text-xs font-medium ${titleColorClass} uppercase tracking-widest mb-2`}
                                         style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
@@ -226,7 +232,7 @@ export default function StoryChapter({
                                     </motion.span>
                                     {chapter.name && (
                                         <motion.span
-                                            className="block text-5xl font-light text-amber-400"
+                                            className={`block text-5xl font-light ${titleColorClass}`}
                                             style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}
                                             initial={{ opacity: 0, y: 75 }}
                                             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 75 }}

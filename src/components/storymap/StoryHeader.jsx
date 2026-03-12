@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react';
 const THEME_FONTS = {
     c: 'Righteous, cursive',
     f: 'Oswald, sans-serif',
+    k: 'Oswald, sans-serif',
 };
 
 export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, heroVideoLoop = true, onExplore, onWhatIsStorylines, onHeroLoaded, mapStyle = 'a' }) {
