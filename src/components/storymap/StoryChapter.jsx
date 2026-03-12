@@ -171,9 +171,9 @@ export default function StoryChapter({
         >
             <motion.div
                 ref={cardRef}
-                initial={{ opacity: 0, x: 80 }}
-                animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 80 }}
-                transition={{ duration: 4, ease: "easeOut", delay: delay / 1000 }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+                transition={{ duration: 1, ease: "easeOut", delay: delay / 1000 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
             >
                 <AnimatePresence mode="wait">
@@ -184,7 +184,7 @@ export default function StoryChapter({
                         key="title-card"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0, x: -80 }}
+                        exit={{ opacity: 0, y: -30 }}
                         transition={{ duration: 0.35, ease: 'easeOut' }}
                     >
                         <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
@@ -285,9 +285,9 @@ export default function StoryChapter({
                 {showCarousel && (
                     <motion.div
                         key="carousel"
-                        initial={{ opacity: 0, x: 80 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -40 }}
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -30 }}
                         transition={{ duration: 0.6, ease: 'easeOut' }}
                         className="pointer-events-auto"
                     >
