@@ -169,8 +169,8 @@ export default function StoryChapter({
         >
             <motion.div
                 ref={cardRef}
-                initial={{ opacity: 0 }}
-                animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                 transition={{ duration: 1, ease: "easeOut", delay: delay / 1000 }}
                 className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
             >
@@ -182,7 +182,7 @@ export default function StoryChapter({
                         key="title-card"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                        exit={{ opacity: 0, y: -30 }}
                         transition={{ duration: 0.35, ease: 'easeOut' }}
                     >
                         <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
@@ -283,9 +283,9 @@ export default function StoryChapter({
                 {showCarousel && (
                     <motion.div
                         key="carousel"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -30 }}
                         transition={{ duration: 0.6, ease: 'easeOut' }}
                         className="pointer-events-auto"
                     >
@@ -294,8 +294,8 @@ export default function StoryChapter({
                             {chapter.slides && chapter.slides.length > 0 && (
                                 <motion.div
                                     className="pointer-events-auto"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
                                 >
                                     <ChapterCarousel
