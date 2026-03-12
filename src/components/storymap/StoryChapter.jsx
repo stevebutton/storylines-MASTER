@@ -283,10 +283,10 @@ export default function StoryChapter({
                 {showCarousel && (
                     <motion.div
                         key="carousel"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -30 }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        initial={{ opacity: 0, x: 300 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -80 }}
+                        transition={{ duration: 2, ease: 'easeOut' }}
                         className="pointer-events-auto"
                     >
                         <div className="backdrop-blur-xl rounded-2xl shadow-2xl bg-white/90 dark:bg-slate-900/90 border border-white/20">
