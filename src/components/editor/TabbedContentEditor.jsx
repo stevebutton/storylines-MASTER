@@ -81,6 +81,12 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'cmmg2352g002q01s82q1d6zzo',
     },
+    k: {
+        label: 'PASSMAR REWORK',
+        description: 'PASSMAR Rework',
+        owner: 'stevebutton',
+        id: 'cmmmcnbw5009z01sb3xf72ldy',
+    },
 };
 
 export default function TabbedContentEditor({

@@ -245,6 +245,7 @@ export default function ChapterEditor({
                                             <SelectItem value="e">Style E</SelectItem>
                                             <SelectItem value="f">Plouer</SelectItem>
                                             <SelectItem value="g">Sauri</SelectItem>
+                                            <SelectItem value="k">PASSMAR REWORK</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
