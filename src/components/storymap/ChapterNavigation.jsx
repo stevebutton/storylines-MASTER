@@ -10,7 +10,8 @@ export default function ChapterNavigation({ chapters, activeIndex, onNavigate, i
             initial={{ x: 300, opacity: 0 }}
             animate={{
                 x: isOpen ? 0 : 300,
-                opacity: isOpen ? 1 : 0
+                opacity: isOpen ? 1 : 0,
+                pointerEvents: isOpen ? 'auto' : 'none',
             }}
             exit={{ x: 300, opacity: 0 }}
             transition={{

@@ -45,27 +45,7 @@ export default function StoryChapter({
     const [showCarousel, setShowCarousel] = useState(false);
 
     const handleOpenCarousel = (e) => {
-        // Blur immediately so the browser doesn't scroll to the next focusable
-        // element when this button is removed from the DOM by AnimatePresence.
         e?.currentTarget?.blur();
-
-        // DEBUG: trace any scroll that occurs within 2s of clicking Explore
-        const scrollAtClick = window.scrollY;
-        console.log('[Explore] clicked — scrollY:', scrollAtClick);
-        const origScrollTo = window.scrollTo.bind(window);
-        const tracedScrollTo = (...args) => {
-            console.trace('[Explore] window.scrollTo called', args);
-            origScrollTo(...args);
-        };
-        window.scrollTo = tracedScrollTo;
-        const onScroll = () => console.trace('[Explore] scroll event — scrollY:', window.scrollY);
-        window.addEventListener('scroll', onScroll, { passive: true });
-        setTimeout(() => {
-            window.scrollTo = origScrollTo;
-            window.removeEventListener('scroll', onScroll);
-            console.log('[Explore] debug removed — final scrollY:', window.scrollY);
-        }, 2000);
-
         setShowCarousel(true);
         if (onExplore) onExplore();
     };
