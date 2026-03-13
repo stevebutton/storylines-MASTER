@@ -94,9 +94,10 @@ const TextPanelCarousel = ({
         : (extendedContent ? [extendedContent] : []);
 
     const splitExtended = extendedArray.flatMap(c => splitHtmlIntoPages(c));
-    const firstPage = [description, splitExtended[0]].filter(Boolean).join('<br>');
+    const combinedFirst = [description, splitExtended[0]].filter(Boolean).join('<br>');
+    const splitFirst = combinedFirst ? splitHtmlIntoPages(combinedFirst) : [];
     const pages = [
-        ...(firstPage ? [{ content: firstPage }] : []),
+        ...splitFirst.map(content => ({ content })),
         ...splitExtended.slice(1).map(content => ({ content })),
     ];
 
