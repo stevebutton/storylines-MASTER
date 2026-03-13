@@ -76,6 +76,7 @@ const TextPanelCarousel = ({
     description,
     extendedContent,
     location,
+    slideId,
     mapStyle = 'a',
     initialOpen = true,
 }) => {
@@ -93,7 +94,7 @@ const TextPanelCarousel = ({
         : (extendedContent ? [extendedContent] : []);
 
     const splitExtended = extendedArray.flatMap(c => splitHtmlIntoPages(c));
-    const firstPage = [description, splitExtended[0]].filter(Boolean).join('<br><br>');
+    const firstPage = [description, splitExtended[0]].filter(Boolean).join('<br>');
     const pages = [
         ...(firstPage ? [{ content: firstPage }] : []),
         ...splitExtended.slice(1).map(content => ({ content })),
@@ -148,6 +149,7 @@ const TextPanelCarousel = ({
             className="fixed left-0 top-[100px] bottom-0 z-[9999] flex items-stretch pointer-events-auto"
             initial={{ x: -(PANEL_WIDTH + 48) }}
             animate={{ x: isPanelOpen ? 0 : -PANEL_WIDTH }}
+            exit={{ opacity: 0, transition: { duration: 1, ease: 'easeInOut' } }}
             transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* ── Text panel ── */}
@@ -161,41 +163,43 @@ const TextPanelCarousel = ({
                         transform: 'translateZ(0)',
                     }}
                 />
-                <div className="relative p-8 space-y-5" style={{ paddingTop: chapterTitle ? 32 : 112 }}>
+                <div className="relative p-8 space-y-5">
 
-                    {/* Chapter eyebrow */}
-                    {chapterTitle && (() => {
-                        const colonIdx = chapterTitle.indexOf(': ');
-                        const prefix = colonIdx !== -1 ? chapterTitle.slice(0, colonIdx + 1) : null;
-                        const title  = colonIdx !== -1 ? chapterTitle.slice(colonIdx + 2) : chapterTitle;
-                        return (
+                    {/* Eyebrow block — fixed-height, bottom-aligned: chapter prefix/title + Location.
+                        Location is the anchor that aligns with the timeline track. */}
+                    <div key={slideId} style={{ minHeight: 130, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 12 }}>
+                        {chapterTitle && (() => {
+                            const colonIdx = chapterTitle.indexOf(': ');
+                            const prefix = colonIdx !== -1 ? chapterTitle.slice(0, colonIdx + 1) : null;
+                            const title  = colonIdx !== -1 ? chapterTitle.slice(colonIdx + 2) : chapterTitle;
+                            return (
+                                <motion.div
+                                    {...el(0.45)}
+                                    className="text-right uppercase tracking-widest leading-snug"
+                                    style={{ fontFamily: themeFont }}
+                                >
+                                    {prefix && (
+                                        <p className="text-lg font-medium text-white/70">{prefix}</p>
+                                    )}
+                                    <p className="text-xl font-medium text-white">{title}</p>
+                                </motion.div>
+                            );
+                        })()}
+
+                        {location && (
                             <motion.div
-                                {...el(0.45)}
-                                className="text-right uppercase tracking-widest leading-snug"
-                                style={{ fontFamily: themeFont }}
+                                {...el(0.6)}
+                                className="flex items-center justify-end"
+                                style={{ paddingRight: 15 }}
                             >
-                                {prefix && (
-                                    <p className="text-lg font-medium text-white/70">{prefix}</p>
-                                )}
-                                <p className="text-xl font-medium text-white">{title}</p>
+                                <span className="text-sm text-white" style={{ fontFamily: themeFont }}>
+                                    {location}
+                                </span>
                             </motion.div>
-                        );
-                    })()}
+                        )}
+                    </div>
 
-                    {/* Location */}
-                    {location && (
-                        <motion.div
-                            {...el(0.6)}
-                            className="flex items-center justify-end"
-                            style={{ paddingRight: 15 }}
-                        >
-                            <span className="text-sm text-white" style={{ fontFamily: themeFont }}>
-                                {location}
-                            </span>
-                        </motion.div>
-                    )}
-
-                    {/* Slide title — re-animates via controls on each slide change */}
+                    {/* Content block — slide title, description, extended content */}
                     {slideTitle && (
                         <motion.h3
                             animate={titleControls}

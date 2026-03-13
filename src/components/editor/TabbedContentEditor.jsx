@@ -312,7 +312,7 @@ export default function TabbedContentEditor({
                                 onChange={(content) => onUpdate({ ...item, subtitle: content })}
                                 placeholder="Exploring the world's most iconic landmarks..."
                                 className="bg-white"
-                                style={{ height: '100px', marginBottom: '50px' }}
+                                style={{ marginBottom: '42px' }}
                                 modules={{
                                     toolbar: [
                                         ['bold', 'italic', 'underline'],
@@ -330,7 +330,7 @@ export default function TabbedContentEditor({
                                 onChange={(content) => onUpdate({ ...item, story_description: content })}
                                 placeholder="An overview of the project, its context and significance..."
                                 className="bg-white"
-                                style={{ height: '150px', marginBottom: '50px' }}
+                                style={{ marginBottom: '42px' }}
                                 modules={{
                                     toolbar: [
                                         ['bold', 'italic', 'underline'],
@@ -1008,7 +1008,7 @@ export default function TabbedContentEditor({
                                     onChange={(content) => onUpdate({ ...item, description: content })}
                                     placeholder="Slide description"
                                     className="bg-white"
-                                    style={{ height: '120px', marginBottom: '50px' }}
+                                    style={{ marginBottom: '42px' }}
                                     modules={{
                                         toolbar: [
                                             ['bold', 'italic', 'underline'],
@@ -1025,7 +1025,7 @@ export default function TabbedContentEditor({
                                     onChange={(content) => onUpdate({ ...item, extended_content: content })}
                                     placeholder="Additional detailed content (appears in fullscreen view)"
                                     className="bg-white"
-                                    style={{ height: '150px', marginBottom: '50px' }}
+                                    style={{ marginBottom: '42px' }}
                                     modules={{
                                         toolbar: [
                                             ['bold', 'italic', 'underline'],

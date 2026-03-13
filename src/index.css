@@ -161,3 +161,10 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+/* Resizable Quill rich-text editors */
+.ql-container {
+  resize: vertical;
+  overflow-y: auto !important;
+  min-height: 80px;
+}

@@ -1514,20 +1514,29 @@ export default function StoryMapView() {
                         }} />
 
                         {/* Top gradient — sits behind ScaleBar, aids track readability */}
-                        {overlayMode !== 'picture' && !overlayIsNonLoopingVideo && (
-                            <div className="fixed pointer-events-none" style={{
-                                left: 0, right: 0, top: 100, height: 250, zIndex: 9998,
-                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)',
-                            }} />
-                        )}
-
-                        {/* ScaleBar — hidden for non-looping videos (full video experience) */}
+                        <AnimatePresence>
                         {overlayMode !== 'picture' && !overlayIsNonLoopingVideo && (
                             <motion.div
                                 className="fixed pointer-events-none"
-                                style={{ left: 0, right: 0, top: 115, zIndex: 9999 }}
+                                style={{ left: 0, right: 0, top: 100, height: 250, zIndex: 9998,
+                                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)' }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 1, ease: 'easeInOut' }}
+                            />
+                        )}
+                        </AnimatePresence>
+
+                        {/* ScaleBar — hidden for non-looping videos (full video experience) */}
+                        <AnimatePresence>
+                        {overlayMode !== 'picture' && !overlayIsNonLoopingVideo && (
+                            <motion.div
+                                className="fixed pointer-events-none"
+                                style={{ left: 0, right: 0, top: 140, zIndex: 9999 }}
                                 initial={{ opacity: 0, y: -30 }}
                                 animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, transition: { duration: 1, ease: 'easeInOut' } }}
                                 transition={{ delay: 2, duration: 1, ease: 'easeOut' }}
                             >
                             {/* pointer-events re-enabled on cursor inside ScaleBar */}
@@ -1545,6 +1554,7 @@ export default function StoryMapView() {
                                 />
                             </motion.div>
                         )}
+                        </AnimatePresence>
 
                     </motion.div>
                 )}

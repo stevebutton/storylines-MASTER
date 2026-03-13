@@ -81,6 +81,11 @@ export default function ScaleBar({
             stiffness: 400,
             damping:   40,
         });
+        // Sync slides to the chapter the user dragged to
+        segments[clamped]?.onClick?.();
+        // Reset drag flag after the synthetic post-drag click event has fired,
+        // so subsequent deliberate clicks are not blocked
+        setTimeout(() => { draggedRef.current = false; }, 50);
     };
 
     // Pre-compute cumulative start % positions for track dividers
@@ -176,7 +181,7 @@ export default function ScaleBar({
                 style={{
                     left:       358,
                     right:      48,
-                    top:        trackTop,
+                    top:        trackTop + 5,
                     height:     1,
                     background: 'rgba(255,255,255,0.85)',
                 }}
@@ -212,9 +217,9 @@ export default function ScaleBar({
                     }}
                 />
 
-                {/* ── "END" label — pinned to the right terminus of the track,
-                    same position the cursor reaches at 100% progress ── */}
-                {mode === 'chapters' && segments.length > 0 && (
+
+                {/* ── "END" label — right terminus of track, only shown when the last chapter is active */}
+                {mode === 'chapters' && segments.length > 0 && activeChapterIndex === segments.length - 1 && (
                     <span style={{
                         position:      'absolute',
                         left:          '100%',

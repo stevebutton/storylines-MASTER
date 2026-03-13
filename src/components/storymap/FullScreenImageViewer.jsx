@@ -164,7 +164,7 @@ export default function FullScreenImageViewer({
                         animate={inOverlay ? { opacity: 1 } : { y: 0, opacity: 1 }}
                         exit={inOverlay ? { opacity: 0 } : { y: "100vh", opacity: 0 }}
                         transition={inOverlay ? { duration: 0.4, ease: "easeOut" } : { duration: 1.5, ease: "easeOut" }}
-                        className={`fixed inset-0 z-[9998] overflow-y-auto pointer-events-auto ${inOverlay ? 'bg-slate-950' : 'bg-white'}`}
+                        className={`fixed inset-x-0 bottom-0 z-[9998] overflow-y-auto pointer-events-auto ${inOverlay ? 'bg-slate-950 top-[100px]' : 'bg-white top-0'}`}
                     >
                         {/* Image or Video Display */}
                         {/* overflow-hidden clips the push slides so they don't show
@@ -197,18 +197,20 @@ export default function FullScreenImageViewer({
 
                         {/* Text panel — hidden for non-looping videos (full video experience);
                             shown for looping videos (they function as illustrated stills) */}
+                        <AnimatePresence>
                         {!hideTextPanel && !(currentSlide.video_url && !currentSlide.video_loop) && (
                         <TextPanelCarousel
-                            key={currentSlide.id}
                             chapterTitle={hideChapterTitle ? '' : chapterName}
                             slideTitle={currentSlide.title}
                             description={currentSlide.description || ''}
                             extendedContent={currentSlide.extended_content || ''}
                             location={currentSlide.location}
+                            slideId={currentSlide.id}
                             mapStyle={mapStyle}
                             initialOpen={true}
                         />
                         )}
+                        </AnimatePresence>
 
                         {/* Control strip — bottom centre (suppressed in page mode) */}
                         {!hideControlStrip && (
