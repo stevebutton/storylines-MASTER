@@ -356,6 +356,7 @@ export default function StoryMapView() {
                         extended_content: s.extended_content,
                         story_date: s.story_date,
                         capture_date: s.capture_date,
+                        image_position: s.image_position,
                     }))
             }));
 

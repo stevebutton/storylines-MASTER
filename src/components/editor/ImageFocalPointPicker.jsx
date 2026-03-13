@@ -56,7 +56,7 @@ export default function ImageFocalPointPicker({ imageUrl, value = '50% 50%', onC
     };
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 max-w-[600px]">
             {/* Live preview */}
             <div
                 ref={previewRef}

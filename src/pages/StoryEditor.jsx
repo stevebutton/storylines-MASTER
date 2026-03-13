@@ -41,6 +41,12 @@ export default function StoryEditor() {
     const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
 
     useEffect(() => {
+        const prev = document.body.style.background;
+        document.body.style.background = '#DCDCDC';
+        return () => { document.body.style.background = prev; };
+    }, []);
+
+    useEffect(() => {
         loadData();
     }, [currentStoryId]);
 
@@ -407,7 +413,7 @@ export default function StoryEditor() {
                 />
             )}
         </AnimatePresence>
-            <div className="min-h-screen bg-slate-50 flex flex-col">
+            <div className="min-h-screen flex flex-col" style={{ background: '#DCDCDC' }}>
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
                 <div className="px-4 py-3">
@@ -433,26 +439,9 @@ export default function StoryEditor() {
                         </h1>
                     </div>
                     
-                    {/* Stats Row */}
-                    <div className="flex gap-2 mb-2">
-                        <div className="bg-amber-50 rounded-lg px-3 py-1.5 flex flex-col justify-center">
-                            <p className="text-xs text-amber-500">Chapters</p>
-                            <p className="text-base font-bold text-amber-700">{chapters.length}</p>
-                        </div>
-                        <div className="bg-blue-50 rounded-lg px-3 py-1.5 flex flex-col justify-center">
-                            <p className="text-xs text-blue-500">Slides</p>
-                            <p className="text-base font-bold text-blue-700">{slides.length}</p>
-                        </div>
-                        <div className="bg-green-50 rounded-lg px-3 py-1.5 flex flex-col justify-center">
-                            <p className="text-xs text-green-500">Media</p>
-                            <p className="text-base font-bold text-green-700">
-                                {slides.filter(s => s.image || s.video_url || s.pdf_url).length}
-                            </p>
-                        </div>
-                    </div>
-
                     {/* Action Button Row */}
-                    <div className="flex flex-wrap md:flex-nowrap items-stretch gap-2 md:gap-4">
+                    <div className="flex flex-wrap md:flex-nowrap items-stretch gap-[40px]">
+                        {/* Group 1: Status */}
                         <button
                             onClick={async () => {
                                 const updatedStory = { ...story, is_published: !story.is_published };
@@ -461,7 +450,7 @@ export default function StoryEditor() {
                                     await supabase.from('stories').update({ is_published: updatedStory.is_published }).eq('id', currentStoryId);
                                 }
                             }}
-                            className={`flex-1 rounded-lg px-2 py-1.5 cursor-pointer transition-colors flex flex-col justify-center min-w-[60px] ${
+                            className={`w-[302px] ml-[34px] px-4 py-1.5 rounded-lg cursor-pointer transition-colors flex flex-col justify-center ${
                                 story.is_published
                                     ? 'bg-green-500 hover:bg-green-600'
                                     : 'bg-slate-200 hover:bg-slate-300'
@@ -473,54 +462,78 @@ export default function StoryEditor() {
                             </p>
                         </button>
 
-                        {/* Action buttons — assertive */}
-                        <button
-                            onClick={() => setIsMediaLibraryOpen(true)}
-                            className="hidden md:flex flex-[0.5] bg-amber-500 hover:bg-amber-600 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex-col items-center justify-center min-w-[40px]"
-                        >
-                            <Images className="w-5 h-5 text-white mb-1" />
-                            <p className="text-xs text-white font-semibold">Media</p>
-                        </button>
-                        <button
-                            onClick={() => setIsHelpPanelOpen(true)}
-                            className="hidden md:flex flex-[0.5] bg-slate-600 hover:bg-slate-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex-col items-center justify-center min-w-[40px]"
-                        >
-                            <HelpCircle className="w-5 h-5 text-white mb-1" />
-                            <p className="text-xs text-white font-semibold">Help</p>
-                        </button>
-                        <button
-                            onClick={() => setIsStoryHelperOpen(true)}
-                            className="hidden md:flex flex-[0.5] bg-purple-600 hover:bg-purple-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex-col items-center justify-center min-w-[40px]"
-                        >
-                            <Sparkles className="w-5 h-5 text-white mb-1" />
-                            <p className="text-xs text-white font-semibold">Story Helper</p>
-                        </button>
-                        {story.id && (
-                            <Link to={`${createPageUrl('StoryMapView')}?id=${story.id}`} target="_blank" className="flex-1">
-                                <button className="hidden md:flex w-full bg-indigo-600 hover:bg-indigo-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex-col items-center justify-center min-w-[80px]">
-                                    <Eye className="w-5 h-5 text-white mb-1" />
-                                    <p className="text-xs text-white font-semibold">Preview</p>
-                                </button>
-                            </Link>
-                        )}
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            className="flex-1 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center min-w-[80px]"
-                        >
-                            {isSaving ? (
-                                <Loader2 className="w-5 h-5 text-white mb-1 animate-spin" />
-                            ) : (
-                                <Save className="w-5 h-5 text-white mb-1" />
+                        {/* Group 2: Media, Help, Story Helper */}
+                        <div className="hidden md:flex items-stretch gap-2">
+                            <button
+                                onClick={() => setIsMediaLibraryOpen(true)}
+                                className="bg-amber-500 hover:bg-amber-600 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
+                            >
+                                <Images className="w-5 h-5 text-white mb-1" />
+                                <p className="text-xs text-white font-semibold">Media</p>
+                            </button>
+                            <button
+                                onClick={() => setIsHelpPanelOpen(true)}
+                                className="bg-slate-600 hover:bg-slate-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
+                            >
+                                <HelpCircle className="w-5 h-5 text-white mb-1" />
+                                <p className="text-xs text-white font-semibold">Help</p>
+                            </button>
+                            <button
+                                onClick={() => setIsStoryHelperOpen(true)}
+                                className="bg-purple-600 hover:bg-purple-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
+                            >
+                                <Sparkles className="w-5 h-5 text-white mb-1" />
+                                <p className="text-xs text-white font-semibold">Story Helper</p>
+                            </button>
+                        </div>
+
+                        {/* Group 3: Preview + Save */}
+                        <div className="flex items-stretch gap-2 flex-1">
+                            {story.id && (
+                                <Link to={`${createPageUrl('StoryMapView')}?id=${story.id}`} target="_blank">
+                                    <button className="hidden md:flex w-[200px] bg-indigo-600 hover:bg-indigo-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex-col items-center justify-center">
+                                        <Eye className="w-5 h-5 text-white mb-1" />
+                                        <p className="text-xs text-white font-semibold">Preview</p>
+                                    </button>
+                                </Link>
                             )}
-                            <p className="text-xs text-white font-semibold">{isSaving ? 'Saving...' : 'Save'}</p>
-                        </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="w-[200px] bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center"
+                            >
+                                {isSaving ? (
+                                    <Loader2 className="w-5 h-5 text-white mb-1 animate-spin" />
+                                ) : (
+                                    <Save className="w-5 h-5 text-white mb-1" />
+                                )}
+                                <p className="text-xs text-white font-semibold">{isSaving ? 'Saving...' : 'Save'}</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Stats Row */}
+                    <div className="flex gap-2 mt-2 ml-[34px] w-[302px]">
+                        <div className="flex-1 bg-amber-50 rounded-lg px-3 py-1.5 flex flex-col justify-center">
+                            <p className="text-xs text-amber-500">Chapters</p>
+                            <p className="text-base font-bold text-amber-700">{chapters.length}</p>
+                        </div>
+                        <div className="flex-1 bg-blue-50 rounded-lg px-3 py-1.5 flex flex-col justify-center">
+                            <p className="text-xs text-blue-500">Slides</p>
+                            <p className="text-base font-bold text-blue-700">{slides.length}</p>
+                        </div>
+                        <div className="flex-1 bg-green-50 rounded-lg px-3 py-1.5 flex flex-col justify-center">
+                            <p className="text-xs text-green-500">Media</p>
+                            <p className="text-base font-bold text-green-700">
+                                {slides.filter(s => s.image || s.video_url || s.pdf_url).length}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Main Content */}
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1">
                 {/* Sidebar */}
                 <div className="w-[25vw] md:w-auto">
                     <StoryEditorSidebar
@@ -528,15 +541,15 @@ export default function StoryEditor() {
                         chapters={chapters}
                         slides={slides}
                         selectedItem={selectedItem}
-                        onSelectStory={() => setSelectedItem({ type: 'story', id: null })}
+                        onSelectStory={(tab) => setSelectedItem({ type: 'story', id: null, tab: tab || 'story' })}
                         onSelectChapter={(chapter) => setSelectedItem({ type: 'chapter', id: chapter.id })}
-                        onSelectSlide={(slide) => setSelectedItem({ type: 'slide', id: slide.id })}
+                        onSelectSlide={(slide, tab) => setSelectedItem({ type: 'slide', id: slide.id, tab })}
                         onDragEnd={handleDragEnd}
                     />
                 </div>
 
                 {/* Content Editor */}
-                <div className="w-[75vw] md:flex-1 overflow-y-auto p-3 md:p-6 md:pl-8">
+                <div className="w-[75vw] md:flex-1 p-3 pl-0 md:p-6 md:pl-0">
                     <div className="max-w-4xl ml-0">
                         <TabbedContentEditor
                             itemType={selectedItem.type}
@@ -562,6 +575,7 @@ export default function StoryEditor() {
                             chapterRouteCount={chapters.filter(c => c.route_geometry?.length).length}
                             totalChapterCount={chapters.length}
                             storyMapStyle={story.map_style || 'a'}
+                            defaultTab={selectedItem?.tab}
                         />
                     </div>
                 </div>
