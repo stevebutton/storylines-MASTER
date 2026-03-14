@@ -17,6 +17,7 @@ import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
 import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
 import LibraryPill from '@/components/storymap/LibraryPill';
 import ScaleBar from '@/components/storymap/ScaleBar';
+import AboutPanel from '@/components/storymap/AboutPanel';
 import { fadeMapLayer } from '@/utils/mapLayerFade';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
@@ -121,6 +122,9 @@ export default function StoryMapView() {
     const [pinnedLayers, setPinnedLayers] = useState([]); // { id, name, visible }[]
     const prevSlideLayerRef = useRef(null);
     const navigate = useNavigate();
+
+    // ── About panel ───────────────────────────────────────────────────────────
+    const [showAboutPanel, setShowAboutPanel] = useState(false);
 
     // ── Story overlay (immersive reader over the map) ──────────────────────────
     const [showStoryOverlay, setShowStoryOverlay] = useState(false);
@@ -490,11 +494,13 @@ export default function StoryMapView() {
 
     // Banner and footer animate in once the user scrolls into the first chapter.
     // Uses a one-way latch — once visible it stays visible for the session.
+    // Also reset carouselOpened so the chapter title banner re-arms for each chapter.
     useEffect(() => {
         if (activeChapter >= 0) {
             setIsBannerVisible(true);
             setHasExplored(true);
         }
+        setCarouselOpened(false);
     }, [activeChapter]);
 
     // Mark pills as initialized after their entrance delays have elapsed so that
@@ -966,6 +972,12 @@ export default function StoryMapView() {
         );
     }
 
+    // Chapter announcement banner — computed once here to keep JSX clean
+    const bannerChapterFonts = { c: 'Righteous, cursive', f: 'Oswald, sans-serif', k: 'Oswald, sans-serif' };
+    const bannerThemeFont = bannerChapterFonts[story?.map_style] || 'Raleway, sans-serif';
+    const bannerChapter = chapters[activeChapter];
+    const showBanner = carouselOpened && activeChapter >= 0 && !!bannerChapter && !showStoryOverlay;
+
     return (
         <StoryTranslationProvider language={story?.story_language} translations={story?.translations}>
         <div ref={containerRef} className="relative" data-name="main-container">
@@ -994,7 +1006,9 @@ export default function StoryMapView() {
                 isShareable={story.is_shareable}
                 isChapterMenuOpen={isChapterMenuOpen}
                 onToggleChapterMenu={() => setIsChapterMenuOpen(!isChapterMenuOpen)}
-                hasChapters={chapters.length > 0}
+                hasChapters={!showStoryOverlay && chapters.length > 0}
+                hasAbout={!!(story?.about_org_name || story?.about_who_we_are || story?.about_what_we_do)}
+                onOpenAbout={() => setShowAboutPanel(true)}
                 mapStyle={story?.map_style || 'a'}
                 onViewOtherStories={() => { setShowLibraryModal(false); setIsStorySlideshowOpen(true); }}
                 onEditStory={() => setIsEditTransitioning(true)}
@@ -1038,7 +1052,7 @@ export default function StoryMapView() {
             />
             
             {/* Story Content */}
-            <div className="relative z-[60] pointer-events-none" data-name="story-content-container">
+            <div className="relative z-[200005] pointer-events-none" data-name="story-content-container">
                 {/* Header */}
                 <div className="pointer-events-auto" data-name="header-wrapper">
                 <StoryHeader
@@ -1345,6 +1359,7 @@ export default function StoryMapView() {
                         window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY);
                     }
                 } : undefined}
+                mapStyle={story?.map_style || 'a'}
             />
             </div>
 
@@ -1406,6 +1421,60 @@ export default function StoryMapView() {
                 }}
                 onOpenLibrary={handleLibraryOpen}
             />
+
+            {/* Chapter announcement banner — shows when user clicks Explore on a chapter card */}
+            <AnimatePresence>
+                {showBanner && (
+                    <motion.div
+                        key={activeChapter}
+                        className="fixed pointer-events-none overflow-hidden"
+                        style={{ top: 100, left: 388, right: 0, height: 60, zIndex: 200003 }}
+                        exit={{ opacity: 0, transition: { duration: 0.6, ease: 'easeInOut' } }}
+                    >
+                        {/* Background panel — expands from left edge over 2s */}
+                        <motion.div
+                            className="absolute inset-0"
+                            style={{ background: 'rgba(255,255,255,0.8)', transformOrigin: 'left' }}
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: 1 }}
+                            transition={{ delay: 1, duration: 2, ease: [0.4, 0, 0.2, 1] }}
+                        />
+
+                        {/* Text row — sits above the expanding background */}
+                        <div className="relative flex items-center gap-2 h-full" style={{ paddingLeft: 100 }}>
+
+                            {/* Chapter number — slides in from left */}
+                            <motion.span
+                                className="text-slate-800 font-medium text-xl uppercase tracking-widest whitespace-nowrap"
+                                style={{ fontFamily: bannerThemeFont }}
+                                initial={{ opacity: 0, x: -40 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 1.7, duration: 1.4, ease: 'easeOut' }}
+                            >
+                                {`Chapter ${String(activeChapter + 1).padStart(2, '0')}`}
+                            </motion.span>
+
+                            <motion.div
+                                className="w-px h-5 bg-slate-400 flex-shrink-0"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 2.2, duration: 0.8 }}
+                            />
+
+                            {/* Chapter title — slides in from right */}
+                            <motion.span
+                                className="text-slate-900 font-normal text-3xl tracking-wide whitespace-nowrap"
+                                style={{ fontFamily: bannerThemeFont }}
+                                initial={{ opacity: 0, x: 40 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 1.9, duration: 1.4, ease: 'easeOut' }}
+                            >
+                                {bannerChapter?.name}
+                            </motion.span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Sub-pill — bottom left, contextual controls */}
             {isBannerVisible && (
@@ -1482,16 +1551,6 @@ export default function StoryMapView() {
                         className="fixed inset-0"
                         style={{ zIndex: 200000 }}
                     >
-                        <StoryMapBanner
-                            isVisible={true}
-                            storyTitle={story?.title || ''}
-                            storyId={storyId}
-                            hasChapters={false}
-                            mapStyle={story?.map_style || 'a'}
-                            onViewOtherStories={() => setIsStorySlideshowOpen(true)}
-                            onEditStory={() => setIsEditTransitioning(true)}
-                        />
-
                         <FullScreenImageViewer
                             isOpen={true}
                             onClose={handleOverlayClose}
@@ -1609,6 +1668,14 @@ export default function StoryMapView() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* About panel */}
+            <AboutPanel
+                isOpen={showAboutPanel}
+                onClose={() => setShowAboutPanel(false)}
+                story={story}
+            />
+
             </div>
         </StoryTranslationProvider>
         );

@@ -97,8 +97,8 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
 
                         {/* Story title — eyebrow, we've already seen this */}
                         {storyTitle && (
-                            <div className="mb-2">
-                                <span className={`block text-xs font-medium ${titleColorClass} uppercase tracking-widest`}
+                            <div className="mb-6">
+                                <span className={`block text-sm font-medium ${titleColorClass} uppercase tracking-widest`}
                                       style={{ fontFamily: themeFont }}>
                                     {storyTitle}
                                 </span>
@@ -106,7 +106,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                         )}
 
                         {/* Overview heading — the key function of this panel */}
-                        <div className="mb-5">
+                        <div className="mb-10">
                             <span className={`block text-5xl font-light ${titleColorClass} leading-none`}
                                   style={{ fontFamily: themeFont }}>
                                 Overview
@@ -115,7 +115,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
 
                         {/* Paginated description */}
                         <motion.div
-                            className="relative overflow-hidden mb-4"
+                            className="relative overflow-hidden mb-4 px-5"
                             animate={{ height: contentHeight }}
                             transition={{ height: { duration: 0.6, ease: 'easeInOut' } }}
                         >
@@ -129,7 +129,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                                     className={index === currentPage ? 'block' : 'hidden'}
                                 >
                                     <div
-                                        className="text-white/90 leading-relaxed text-base font-light prose prose-sm max-w-none prose-invert"
+                                        className="text-white/90 leading-relaxed text-lg font-light prose prose-base max-w-none prose-invert"
                                         style={{ fontFamily: themeFont }}
                                         dangerouslySetInnerHTML={{ __html: page }}
                                     />

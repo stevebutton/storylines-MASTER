@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { List, BookOpen, Pencil } from 'lucide-react';
+import { List, BookOpen, Pencil, Info } from 'lucide-react';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
@@ -37,6 +37,9 @@ export default function StoryMapBanner({
     onToggleChapterMenu,
     hasChapters        = false,
     mapStyle           = 'a',
+    // About panel
+    hasAbout           = false,
+    onOpenAbout,
     // Editorial actions — only wired in StoryMapView
     onViewOtherStories,
     onEditStory,
@@ -44,12 +47,12 @@ export default function StoryMapBanner({
     const themeFont = THEME_FONTS[mapStyle] || null;
 
     const hasEditorial = onViewOtherStories || onEditStory;
-    const showPill     = (hasChapters && onToggleChapterMenu) || hasEditorial;
+    const showPill     = (hasChapters && onToggleChapterMenu) || (hasAbout && onOpenAbout) || hasEditorial;
 
     return (
         <div
             className={cn(
-                'fixed top-0 left-0 right-0 z-[10000] h-[100px] transition-all duration-700',
+                'fixed top-0 left-0 right-0 z-[200001] h-[100px] transition-all duration-700',
                 'bg-white/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50',
                 'flex items-center justify-between pl-6 md:pl-12',
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full pointer-events-none'
@@ -99,6 +102,16 @@ export default function StoryMapBanner({
                                 title="Chapter menu"
                             >
                                 <List className="w-5 h-5" />
+                            </button>
+                            {hasEditorial && divider}
+                        </>
+                    )}
+
+                    {/* About */}
+                    {hasAbout && onOpenAbout && (
+                        <>
+                            <button onClick={onOpenAbout} className={btn} title="About">
+                                <Info className="w-5 h-5" />
                             </button>
                             {hasEditorial && divider}
                         </>

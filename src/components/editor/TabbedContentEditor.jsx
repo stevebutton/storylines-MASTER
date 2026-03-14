@@ -242,6 +242,7 @@ export default function TabbedContentEditor({
                             { value: 'story',    label: 'Story Settings' },
                             { value: 'style',    label: 'Map Style' },
                             { value: 'language', label: 'Language' },
+                            { value: 'about',    label: 'About' },
                         ].map(({ value: v, label }) => (
                             <button
                                 key={v}
@@ -643,6 +644,80 @@ export default function TabbedContentEditor({
                     <Card>
                     <CardContent className="pt-6">
                         <LanguageSettingsTab item={item} onUpdate={onUpdate} />
+                    </CardContent>
+                    </Card>
+                    </TabsContent>
+
+                    <TabsContent value="about">
+                    <Card>
+                    <CardContent className="pt-6 space-y-4">
+                        <p className="text-xs text-slate-500">Shown in the About panel, accessible from the story banner. Leave blank to hide the About button.</p>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <FieldLabel>Organisation Name</FieldLabel>
+                                <Input
+                                    value={item.about_org_name || ''}
+                                    onChange={(e) => onUpdate({ ...item, about_org_name: e.target.value })}
+                                    placeholder="Your organisation"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                                />
+                            </div>
+                            <div>
+                                <FieldLabel>Logo URL</FieldLabel>
+                                <Input
+                                    value={item.about_logo_url || ''}
+                                    onChange={(e) => onUpdate({ ...item, about_logo_url: e.target.value })}
+                                    placeholder="https://..."
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <FieldLabel>Who We Are</FieldLabel>
+                            <ReactQuill
+                                value={item.about_who_we_are || ''}
+                                onChange={(content) => onUpdate({ ...item, about_who_we_are: content })}
+                                placeholder="A brief introduction to your organisation..."
+                                className="bg-white"
+                                style={{ marginBottom: '42px' }}
+                                modules={{ toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link']] }}
+                            />
+                        </div>
+
+                        <div>
+                            <FieldLabel>What We Do</FieldLabel>
+                            <ReactQuill
+                                value={item.about_what_we_do || ''}
+                                onChange={(content) => onUpdate({ ...item, about_what_we_do: content })}
+                                placeholder="Describe your work and focus areas..."
+                                className="bg-white"
+                                style={{ marginBottom: '42px' }}
+                                modules={{ toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link']] }}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <FieldLabel>Website</FieldLabel>
+                                <Input
+                                    value={item.about_website || ''}
+                                    onChange={(e) => onUpdate({ ...item, about_website: e.target.value })}
+                                    placeholder="https://yourorg.org"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                                />
+                            </div>
+                            <div>
+                                <FieldLabel>Email</FieldLabel>
+                                <Input
+                                    value={item.about_email || ''}
+                                    onChange={(e) => onUpdate({ ...item, about_email: e.target.value })}
+                                    placeholder="contact@yourorg.org"
+                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
+                                />
+                            </div>
+                        </div>
                     </CardContent>
                     </Card>
                     </TabsContent>

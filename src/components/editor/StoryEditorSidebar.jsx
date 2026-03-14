@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Map, Languages } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Map, Languages, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
@@ -93,6 +93,28 @@ export default function StoryEditorSidebar({
                                 <span className="text-sm font-medium text-blue-700">Language</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Separator */}
+            <div className="ml-[50px] mr-[48px] my-2 border-t border-slate-300" />
+
+            {/* About card */}
+            <div className="ml-[50px] mr-[48px] mb-4 rounded-lg shadow-md overflow-hidden">
+                <div className="flex items-stretch">
+                    <div
+                        className="flex items-center justify-center px-[28px] bg-slate-600 flex-shrink-0 cursor-pointer"
+                        onClick={() => onSelectStory('about')}
+                    >
+                        <Info className="w-6 h-6 text-white" />
+                    </div>
+                    <div
+                        className="flex-1 bg-white px-3 py-3 cursor-pointer hover:brightness-[0.97] transition-all"
+                        onClick={() => onSelectStory('about')}
+                    >
+                        <span className="text-xl font-bold text-slate-900">About</span>
+                        <p className="text-xs text-slate-400 mt-0.5">Organisation info &amp; contact</p>
                     </div>
                 </div>
             </div>

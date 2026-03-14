@@ -171,7 +171,7 @@ export default function StoryChapter({
     return (
         <div
             className="relative w-full py-24 px-4 md:px-8 pointer-events-none"
-            style={{ minHeight: '85vh', paddingTop: '60px' }}
+            style={{ minHeight: '85vh', paddingTop: '150px' }}
         >
             <motion.div
                 ref={cardRef}
