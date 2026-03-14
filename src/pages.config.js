@@ -48,6 +48,8 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AudioRecorder from './pages/AudioRecorder';
+import HomePageView from './pages/HomePageView';
+import HomePageEditor from './pages/HomePageEditor';
 import AudioTest from './pages/AudioTest';
 import ChapterPreview from './pages/ChapterPreview';
 import DocumentManager from './pages/DocumentManager';
@@ -71,6 +73,8 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "AudioRecorder": AudioRecorder,
+    "HomePageView": HomePageView,
+    "HomePageEditor": HomePageEditor,
     "AudioTest": AudioTest,
     "ChapterPreview": ChapterPreview,
     "DocumentManager": DocumentManager,
@@ -92,7 +96,7 @@ export const PAGES = {
 }
 
 export const pagesConfig = {
-    mainPage: "ProjectInterface",
+    mainPage: "HomePageView",
     Pages: PAGES,
     Layout: __Layout,
 };

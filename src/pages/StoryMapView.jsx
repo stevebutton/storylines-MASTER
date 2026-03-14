@@ -1429,7 +1429,7 @@ export default function StoryMapView() {
                     <motion.div
                         key={activeChapter}
                         className="fixed pointer-events-none overflow-hidden"
-                        style={{ top: 100, left: 388, right: 0, height: 60, zIndex: 200003 }}
+                        style={{ top: 100, left: 380, right: 0, height: 60, zIndex: 200003 }}
                         exit={{ opacity: 0, transition: { duration: 0.6, ease: 'easeInOut' } }}
                     >
                         {/* Background panel — expands from left edge over 2s */}
@@ -1446,8 +1446,8 @@ export default function StoryMapView() {
 
                             {/* Chapter number — slides in from left */}
                             <motion.span
-                                className="text-slate-800 font-medium text-xl uppercase tracking-widest whitespace-nowrap"
-                                style={{ fontFamily: bannerThemeFont }}
+                                className="text-slate-800 font-medium uppercase tracking-widest whitespace-nowrap"
+                                style={{ fontFamily: bannerThemeFont, fontSize: '1rem' }}
                                 initial={{ opacity: 0, x: -40 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 1.7, duration: 1.4, ease: 'easeOut' }}
@@ -1465,7 +1465,7 @@ export default function StoryMapView() {
                             {/* Chapter title — slides in from right */}
                             <motion.span
                                 className="text-slate-900 font-normal text-3xl tracking-wide whitespace-nowrap"
-                                style={{ fontFamily: bannerThemeFont }}
+                                style={{ fontFamily: bannerThemeFont, fontWeight: 400 }}
                                 initial={{ opacity: 0, x: 40 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 1.9, duration: 1.4, ease: 'easeOut' }}

@@ -1,21 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
-export default function ChapterProgress({ 
-    totalChapters, 
-    activeIndex, 
+const CHAPTER_COLORS = [
+    '#d97706', // 0 amber
+    '#2563eb', // 1 blue
+    '#16a34a', // 2 green
+    '#9333ea', // 3 purple
+    '#e11d48', // 4 rose
+    '#0d9488', // 5 teal
+];
+
+export default function ChapterProgress({
+    totalChapters,
+    activeIndex,
     onNavigate,
     hideForFullscreen
 }) {
+    const [hoveredIndex, setHoveredIndex] = useState(null);
+
     if (totalChapters === 0) return null;
 
     const canGoPrev = activeIndex > 0;
     const canGoNext = activeIndex < totalChapters - 1;
 
     return (
-        <motion.div 
+        <motion.div
             className="fixed right-4 bottom-20 z-[70] flex flex-col items-center gap-3 drop-shadow-xl"
             initial={{ opacity: 1 }}
             animate={{ opacity: hideForFullscreen ? 0 : 1 }}
@@ -27,8 +38,8 @@ export default function ChapterProgress({
                 disabled={!canGoPrev}
                 className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg",
-                    canGoPrev 
-                        ? "bg-white/95 hover:bg-white text-slate-700 hover:scale-110 cursor-pointer" 
+                    canGoPrev
+                        ? "bg-white/25 hover:bg-white/50 text-slate-700 hover:scale-110 cursor-pointer"
                         : "bg-white/50 text-slate-300 cursor-not-allowed"
                 )}
             >
@@ -36,20 +47,28 @@ export default function ChapterProgress({
             </button>
 
             {/* Progress dots */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-full py-3 px-2 shadow-lg flex flex-col items-center gap-4">
-                {Array.from({ length: totalChapters }).map((_, index) => (
-                    <button
-                        key={index}
-                        onClick={() => onNavigate(index)}
-                        className={cn(
-                            "rounded-full transition-all duration-300",
-                            index === activeIndex 
-                                ? "w-3 h-3 bg-amber-500" 
-                                : "w-2 h-2 bg-slate-300 hover:bg-slate-400"
-                        )}
-                        title={`Chapter ${index + 1}`}
-                    />
-                ))}
+            <div className="bg-white/25 backdrop-blur-sm rounded-full py-3 px-2 shadow-lg flex flex-col items-center" style={{ gap: 22 }}>
+                {Array.from({ length: totalChapters }).map((_, index) => {
+                    const color = CHAPTER_COLORS[index % CHAPTER_COLORS.length];
+                    const isActive = activeIndex === index;
+                    const isHovered = hoveredIndex === index;
+                    const showColor = isActive || isHovered;
+
+                    return (
+                        <button
+                            key={index}
+                            onClick={() => onNavigate(index)}
+                            onMouseEnter={() => setHoveredIndex(index)}
+                            onMouseLeave={() => setHoveredIndex(null)}
+                            className="w-5 h-5 rounded-full transition-all duration-300 flex-shrink-0"
+                            style={{
+                                backgroundColor: showColor ? color : '#e2e8f0',
+                                transform: isActive ? 'scale(1.15)' : 'scale(1)',
+                            }}
+                            title={`Chapter ${index + 1}`}
+                        />
+                    );
+                })}
             </div>
 
             {/* Next button */}
@@ -58,8 +77,8 @@ export default function ChapterProgress({
                 disabled={!canGoNext}
                 className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg",
-                    canGoNext 
-                        ? "bg-white/95 hover:bg-white text-slate-700 hover:scale-110 cursor-pointer" 
+                    canGoNext
+                        ? "bg-white/25 hover:bg-white/50 text-slate-700 hover:scale-110 cursor-pointer"
                         : "bg-white/50 text-slate-300 cursor-not-allowed"
                 )}
             >

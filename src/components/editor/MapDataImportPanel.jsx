@@ -329,6 +329,74 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                             {/* Upload Step */}
                             {step === 'upload' && (
                                 <div className="space-y-6">
+
+                                    {/* Intro */}
+                                    <div className="bg-blue-50 rounded-lg px-6 py-5">
+                                        <p className="text-sm text-slate-700 leading-relaxed">
+                                            {isAppendMode
+                                                ? 'Story Helper adds new chapters to this story from your geotagged field photographs. Each folder in the ZIP becomes a new chapter, GPS coordinates place images on the map, and AI generates captions in your chosen voice — all appended directly to the existing story.'
+                                                : 'Storylines builds a complete story from your geotagged field photographs. Images are organised into chapters by folder, GPS coordinates are extracted to place each image on the map, and AI generates captions and descriptions in your chosen voice.'
+                                            }
+                                        </p>
+                                    </div>
+
+                                    {/* Steps */}
+                                    <div className="space-y-3">
+                                        {(isAppendMode ? [
+                                            {
+                                                n: '1',
+                                                title: 'Organise your new photos into folders',
+                                                body: 'Create one folder per new chapter. The folder name becomes the chapter title. Photos within each folder become individual slides.',
+                                            },
+                                            {
+                                                n: '2',
+                                                title: 'Create a ZIP archive',
+                                                body: 'Place all your chapter folders inside a single parent folder, then compress it as a .zip file. On Mac: select all folders → right-click → Compress.',
+                                            },
+                                            {
+                                                n: '3',
+                                                title: 'Upload the ZIP',
+                                                body: 'Select your .zip file below. Storylines will extract GPS data, create the new chapters and slides, and append them to the end of this story.',
+                                            },
+                                            {
+                                                n: '4',
+                                                title: 'Choose a writing voice',
+                                                body: 'Select the narrative tone for AI-generated captions. The new chapters will appear in the editor ready to review and refine.',
+                                            },
+                                        ] : [
+                                            {
+                                                n: '1',
+                                                title: 'Organise your photos into folders',
+                                                body: 'Create one folder per chapter. The folder name becomes the chapter title. Photos within each folder become individual slides.',
+                                            },
+                                            {
+                                                n: '2',
+                                                title: 'Create a ZIP archive',
+                                                body: 'Place all your chapter folders inside a single parent folder, then compress it as a .zip file. On Mac: select all folders → right-click → Compress.',
+                                            },
+                                            {
+                                                n: '3',
+                                                title: 'Upload the ZIP',
+                                                body: 'Select your .zip file below. Storylines will extract GPS data from each photo, create chapters and slides, and upload your images automatically.',
+                                            },
+                                            {
+                                                n: '4',
+                                                title: 'Choose a writing voice',
+                                                body: 'After processing, select the narrative tone for AI-generated captions. You can then review the full story structure before continuing.',
+                                            },
+                                        ]).map(({ n, title, body }) => (
+                                            <div key={n} className="flex gap-4 items-start">
+                                                <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                    {n}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">{title}</p>
+                                                    <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{body}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
                                     <div className="border-2 border-dashed border-slate-300 rounded-lg p-12 text-center">
                                         <Upload className="w-16 h-16 text-slate-400 mx-auto mb-4" />
                                         <h3 className="text-lg font-semibold text-slate-800 mb-2">

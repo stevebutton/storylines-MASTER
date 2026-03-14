@@ -9,17 +9,31 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MAPBOX_STYLE = 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7';
+const MAP_STYLES = {
+  a: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
+  b: 'mapbox://styles/stevebutton/cktf8ygms085117nnzm4a97d0',
+  c: 'mapbox://styles/stevebutton/ckn1s2y342eq018tidycnavti',
+  d: 'mapbox://styles/stevebutton/cmm9edvor004m01sc0wyug8vz',
+  e: 'mapbox://styles/stevebutton/cmmanazrf000f01qvaghi0jhv',
+  f: 'mapbox://styles/stevebutton/cmmd2lwzp001m01s24puoahpd',
+  g: 'mapbox://styles/stevebutton/cmmd3clf0001o01s2biib8ju2',
+  h: 'mapbox://styles/stevebutton/ck9i8wv640t4c1iqeiphu3soc',
+  i: 'mapbox://styles/stevebutton/cllw84jo600f401r7afyy7ef4',
+  j: 'mapbox://styles/stevebutton/cmmg2352g002q01s82q1d6zzo',
+  k: 'mapbox://styles/stevebutton/cmmmcnbw5009z01sb3xf72ldy',
+};
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
 
-export default function InteractiveStoryMap({ 
-  stories = [], 
+export default function InteractiveStoryMap({
+  stories = [],
   initialCenter = [26.33845, 21.32637],
   initialZoom = 1.80,
   onScrollToTop,
   isVisible = true,
-  showCategories = true
+  showCategories = true,
+  showMarkers = true,
+  mapStyle = 'a',
 }) {
   const navigate = useNavigate();
   const mapContainer = useRef(null);
@@ -27,6 +41,7 @@ export default function InteractiveStoryMap({
   const markers = useRef({});
   const [mapInitialized, setMapInitialized] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('featured');
+  const showMarkersRef = useRef(showMarkers);
   const selectedCategoryRef = useRef('featured');
   const filteredStoriesRef = useRef([]);
   const [categories, setCategories] = useState([]);
@@ -57,11 +72,16 @@ export default function InteractiveStoryMap({
     selectedCategoryRef.current = selectedCategory;
   }, [selectedCategory]);
 
+  // Keep ref in sync with showMarkers prop
+  useEffect(() => {
+    showMarkersRef.current = showMarkers;
+  }, [showMarkers]);
+
   useEffect(() => {
     if (map.current && mapInitialized) {
       updateStoryData();
     }
-  }, [selectedCategory, stories, mapInitialized]);
+  }, [selectedCategory, stories, mapInitialized, showMarkers]);
 
   useEffect(() => {
     if (!map.current || !mapInitialized) return;
@@ -137,7 +157,7 @@ export default function InteractiveStoryMap({
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: MAPBOX_STYLE,
+      style: MAP_STYLES[mapStyle] || MAP_STYLES.a,
       center: initialCenter,
       zoom: initialZoom
     });
@@ -406,6 +426,15 @@ export default function InteractiveStoryMap({
 
   const updateUnclusteredMarkers = () => {
     if (!map.current) return;
+
+    // When markers are hidden, remove all and bail
+    if (!showMarkersRef.current) {
+      Object.keys(markers.current).forEach(id => {
+        markers.current[id].remove();
+        delete markers.current[id];
+      });
+      return;
+    }
 
     const isFeatured = selectedCategoryRef.current === 'featured';
 

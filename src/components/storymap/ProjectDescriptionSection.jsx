@@ -37,7 +37,7 @@ const TITLE_COLORS = {
     k: 'text-white',
 };
 
-export default function ProjectDescriptionSection({ storyTitle, description, onContinue, backgroundImage, mapStyle = 'a' }) {
+export default function ProjectDescriptionSection({ storyTitle, heading = 'Overview', description, onContinue, backgroundImage, mapStyle = 'a' }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const titleColorClass = TITLE_COLORS[mapStyle] || 'text-amber-400';
     const [currentPage, setCurrentPage] = useState(0);
@@ -80,7 +80,7 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                 className="w-[500px] max-w-[90vw]"
             >
                 <div
-                    className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto group"
+                    className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto group backdrop-blur-sm"
                     style={{ minHeight: '500px' }}
                 >
                     {/* Background image */}
@@ -105,11 +105,11 @@ export default function ProjectDescriptionSection({ storyTitle, description, onC
                             </div>
                         )}
 
-                        {/* Overview heading — the key function of this panel */}
+                        {/* Panel heading */}
                         <div className="mb-10">
                             <span className={`block text-5xl font-light ${titleColorClass} leading-none`}
                                   style={{ fontFamily: themeFont }}>
-                                Overview
+                                {heading}
                             </span>
                         </div>
 

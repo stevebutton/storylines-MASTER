@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsPanel';
@@ -258,7 +258,7 @@ export default function Stories() {
                 <div className="bg-slate-100 mx-auto px-4 py-6 max-w-6xl">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
-                            <Link to={createPageUrl('ProjectInterface')}>
+                            <Link to={createPageUrl('HomePageView')}>
                                 <img
                                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
                                     alt="Storylines"
@@ -283,7 +283,7 @@ export default function Stories() {
                     </div>
 
                     {/* Stats & Actions */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
                         <div className="bg-blue-50 rounded-lg p-4 flex flex-col items-start justify-center">
                             <p className="text-sm text-blue-600">Total Stories</p>
                             <p className="text-2xl font-bold text-blue-700">{stories.length}</p>
@@ -313,13 +313,20 @@ export default function Stories() {
                             <Tag className="w-6 h-6 mb-1" /> 
                             <span className="text-sm font-semibold">Manage Categories</span>
                         </button>
-                        <button 
+                        <button
                             className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
                             onClick={() => setIsStoryCreationPanelOpen(true)}
                         >
-                            <Plus className="w-6 h-6 mb-1" /> 
+                            <Plus className="w-6 h-6 mb-1" />
                             <span className="text-sm font-semibold">New Story</span>
                         </button>
+                        <Link
+                            to={createPageUrl('HomePageEditor')}
+                            className="bg-slate-700 hover:bg-slate-800 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
+                        >
+                            <Home className="w-6 h-6 mb-1" />
+                            <span className="text-sm font-semibold">Edit Home Page</span>
+                        </Link>
                     </div>
 
                     {/* Filters */}

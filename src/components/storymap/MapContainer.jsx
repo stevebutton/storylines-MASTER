@@ -68,6 +68,9 @@ export default function MapBackground({
     showRoute = true,
     showMarkers = true,
 }) {
+    const THEME_FONTS = { c: 'Righteous, cursive', f: 'Oswald, sans-serif', k: 'Oswald, sans-serif' };
+    const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
+
     const mapContainer = useRef(null);
     const map = useRef(null);
     const markersRef = useRef([]);
@@ -530,7 +533,7 @@ export default function MapBackground({
                         overflow: hidden;
                         cursor: pointer;
                         pointer-events: auto;
-                        font-family: system-ui, sans-serif;
+                        font-family: ${themeFont};
                         opacity: 0;
                         transition: opacity 1000ms ease, transform 1000ms ease;
                     `;
