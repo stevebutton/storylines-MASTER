@@ -1052,7 +1052,7 @@ export default function StoryMapView() {
             />
             
             {/* Story Content */}
-            <div className="relative z-[200005] pointer-events-none" data-name="story-content-container">
+            <div className="relative pointer-events-none" data-name="story-content-container">
                 {/* Header */}
                 <div className="pointer-events-auto" data-name="header-wrapper">
                 <StoryHeader
@@ -1150,10 +1150,11 @@ export default function StoryMapView() {
 
                 {/* Chapters */}
                 {chapters.map((chapter, index) => (
-                    <div 
+                    <div
                         key={chapter.id}
                         ref={el => chapterRefs.current[index] = el}
-                        className="pointer-events-none"
+                        className="relative pointer-events-none"
+                        style={{ zIndex: showStoryOverlay ? 0 : 200005 }}
                         data-name={`chapter-wrapper-${index}`}
                     >
                         <StoryChapter
@@ -1546,7 +1547,7 @@ export default function StoryMapView() {
                     <motion.div
                         initial={{ opacity: 0, y: 200 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 200, transition: { duration: 0.6, ease: [0.25, 1, 0.5, 1] } }}
+                        exit={{ opacity: 0, y: 200, transition: { duration: 2, ease: [0.25, 1, 0.5, 1] } }}
                         transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }}
                         className="fixed inset-0"
                         style={{ zIndex: 200000 }}
