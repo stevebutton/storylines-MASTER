@@ -2,18 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
 import InteractiveStoryMap from '@/components/storymap/InteractiveStoryMap';
+import AboutPanel from '@/components/storymap/AboutPanel';
 
 export default function HomePageView() {
     const [hp, setHp] = useState(null);
     const [allStories, setAllStories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isGlobeVisible, setIsGlobeVisible] = useState(false);
+    const [hasGlobeAppeared, setHasGlobeAppeared] = useState(false);
     const [overviewDismissed, setOverviewDismissed] = useState(false);
+    const [globeRotationSpeed, setGlobeRotationSpeed] = useState(0);
+    const [showAboutPanel, setShowAboutPanel] = useState(false);
     const globeRef = useRef(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         loadData();
@@ -51,12 +58,36 @@ export default function HomePageView() {
         const handleScroll = () => {
             if (!globeRef.current) return;
             const rect = globeRef.current.getBoundingClientRect();
-            setIsGlobeVisible(rect.top < window.innerHeight && rect.bottom > 0);
+            const visible = rect.top < window.innerHeight && rect.bottom > 0;
+            setIsGlobeVisible(visible);
+            if (visible) setHasGlobeAppeared(true);
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // Stage 1: globe scrolls into view → slow rotation
+    useEffect(() => {
+        if (!hasGlobeAppeared || !hp) return;
+        if (!hp.overview_enabled) {
+            setGlobeRotationSpeed(1.0); // no overview — full speed immediately
+            return;
+        }
+        setGlobeRotationSpeed(0.4);
+    }, [hasGlobeAppeared, hp]);
+
+    // Stage 2: overview text arrives (contentDelay = 4s) → come to rest
+    useEffect(() => {
+        if (!hasGlobeAppeared || !hp?.overview_enabled || overviewDismissed) return;
+        const timer = setTimeout(() => setGlobeRotationSpeed(0), 4000);
+        return () => clearTimeout(timer);
+    }, [hasGlobeAppeared]);
+
+    // Stage 3: overview dismissed → full speed
+    useEffect(() => {
+        if (overviewDismissed) setGlobeRotationSpeed(1.0);
+    }, [overviewDismissed]);
 
     const scrollToSection = (id) => {
         const el = document.getElementById(id);
@@ -112,20 +143,22 @@ export default function HomePageView() {
                     <InteractiveStoryMap
                         stories={allStories}
                         isVisible={isGlobeVisible}
-                        showMarkers={overviewDismissed}
-                        showCategories={overviewDismissed}
+                        showMarkers={overviewDismissed || !hp.overview_enabled}
+                        showCategories={overviewDismissed || !hp.overview_enabled}
+                        rotationSpeed={globeRotationSpeed}
                         mapStyle={hp.map_style || 'a'}
                     />
 
-                    {/* Overview panel floats over the globe */}
+                    {/* Overview panel — mounts only once the globe scrolls into view,
+                        so the delay timer starts from the moment the user arrives */}
                     {hp.overview_enabled && (
                         <AnimatePresence>
-                            {!overviewDismissed && (
+                            {hasGlobeAppeared && !overviewDismissed && (
                                 <motion.div
                                     className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1, transition: { delay: 0.6, duration: 1.2 } }}
-                                    exit={{ opacity: 0, transition: { duration: 0.6 } }}
+                                    initial={{ opacity: 0, y: 100 }}
+                                    animate={{ opacity: 1, y: 0, transition: { delay: 2.5, duration: 2, ease: 'easeOut' } }}
+                                    exit={{ opacity: 0, y: -80, transition: { duration: 0.7, ease: 'easeIn' } }}
                                 >
                                     <ProjectDescriptionSection
                                         heading={hp.overview_heading || 'Overview'}
@@ -133,6 +166,7 @@ export default function HomePageView() {
                                         backgroundImage={hp.overview_bg_image}
                                         mapStyle={hp.map_style || 'a'}
                                         onContinue={() => setOverviewDismissed(true)}
+                                        contentDelay={3.5}
                                     />
                                 </motion.div>
                             )}
@@ -149,8 +183,18 @@ export default function HomePageView() {
                     hasChapters={false}
                     mapStyle={hp.map_style || 'a'}
                     centered
+                    hasAbout={!!(hp.about_org_name || hp.about_who_we_are || hp.about_what_we_do)}
+                    onOpenAbout={() => setShowAboutPanel(true)}
+                    onEditStory={() => navigate(createPageUrl('HomePageEditor'))}
                 />
             )}
+
+            {/* Info / About panel */}
+            <AboutPanel
+                isOpen={showAboutPanel}
+                onClose={() => setShowAboutPanel(false)}
+                story={hp}
+            />
 
             {/* Footer */}
             {hp.footer_enabled && (

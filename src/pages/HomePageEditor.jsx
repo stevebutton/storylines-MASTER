@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Image, AlignLeft, Globe, Palette, PanelBottom, Save, Upload, Loader2, Check } from 'lucide-react';
+import { ArrowLeft, Image, AlignLeft, Globe, Palette, PanelBottom, Save, Upload, Loader2, Check, Info } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -46,6 +46,13 @@ const DEFAULT_HP = {
     footer_enabled: true,
     footer_content: '',
     map_style: 'a',
+    // Info / About panel
+    about_org_name: '',
+    about_logo_url: null,
+    about_who_we_are: '',
+    about_what_we_do: '',
+    about_website: '',
+    about_email: '',
 };
 
 export default function HomePageEditor() {
@@ -55,8 +62,10 @@ export default function HomePageEditor() {
     const [activeSection, setActiveSection] = useState('hero');
     const [isUploadingHero, setIsUploadingHero] = useState(false);
     const [isUploadingOverviewBg, setIsUploadingOverviewBg] = useState(false);
+    const [isUploadingAboutLogo, setIsUploadingAboutLogo] = useState(false);
     const heroFileRef = useRef(null);
     const overviewBgFileRef = useRef(null);
+    const aboutLogoFileRef = useRef(null);
 
     useEffect(() => {
         loadHomepage();
@@ -230,6 +239,19 @@ export default function HomePageEditor() {
                             onClick={(e) => e.stopPropagation()}
                             className="scale-75"
                         />
+                    </button>
+
+                    {/* Info */}
+                    <button
+                        onClick={() => setActiveSection('info')}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
+                            activeSection === 'info'
+                                ? 'bg-slate-700 border-l-2 border-amber-500 pl-[10px]'
+                                : 'hover:bg-slate-700/50'
+                        }`}
+                    >
+                        <Info className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <span className="text-sm font-medium flex-1">Info Panel</span>
                     </button>
 
                     {/* Style */}
@@ -514,6 +536,117 @@ export default function HomePageEditor() {
 
                             <div className="rounded-lg bg-slate-800 border border-slate-700 p-4 h-[60px] flex items-center justify-center">
                                 <p className="text-xs text-slate-500 italic">Preview: 240px black footer bar</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeSection === 'info' && (
+                        <div className="max-w-2xl space-y-6">
+                            <div className="mb-6">
+                                <h2 className="text-xl font-semibold text-white">Info Panel</h2>
+                                <p className="text-sm text-slate-400 mt-1">
+                                    Shown when the visitor clicks the Info button in the banner. Leave blank to hide the button.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-slate-300">Organisation Name</Label>
+                                <Input
+                                    value={hp.about_org_name || ''}
+                                    onChange={(e) => set('about_org_name', e.target.value)}
+                                    placeholder="Your Organisation"
+                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-slate-300">Organisation Logo</Label>
+                                {hp.about_logo_url && (
+                                    <div className="relative w-40 h-20 rounded-lg overflow-hidden mb-2 bg-slate-700 flex items-center justify-center">
+                                        <img src={hp.about_logo_url} alt="Logo" className="max-w-full max-h-full object-contain p-2" />
+                                    </div>
+                                )}
+                                <div className="flex gap-2">
+                                    <input
+                                        ref={aboutLogoFileRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) uploadImage(file, 'about_logo_url', setIsUploadingAboutLogo);
+                                            e.target.value = '';
+                                        }}
+                                    />
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => aboutLogoFileRef.current?.click()}
+                                        disabled={isUploadingAboutLogo}
+                                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                                    >
+                                        {isUploadingAboutLogo
+                                            ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            : <Upload className="w-4 h-4 mr-2" />}
+                                        Upload Logo
+                                    </Button>
+                                    {hp.about_logo_url && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => set('about_logo_url', null)}
+                                            className="text-red-400 hover:text-red-300"
+                                        >
+                                            Remove
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-slate-300">Who We Are</Label>
+                                <div className="rounded-lg overflow-hidden border border-slate-600">
+                                    <ReactQuill
+                                        value={hp.about_who_we_are || ''}
+                                        onChange={(v) => set('about_who_we_are', v)}
+                                        theme="snow"
+                                        placeholder="Describe your organisation..."
+                                        style={{ background: '#1e293b', color: 'white' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-slate-300">What We Do</Label>
+                                <div className="rounded-lg overflow-hidden border border-slate-600">
+                                    <ReactQuill
+                                        value={hp.about_what_we_do || ''}
+                                        onChange={(v) => set('about_what_we_do', v)}
+                                        theme="snow"
+                                        placeholder="Describe your work..."
+                                        style={{ background: '#1e293b', color: 'white' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-slate-300">Website</Label>
+                                <Input
+                                    value={hp.about_website || ''}
+                                    onChange={(e) => set('about_website', e.target.value)}
+                                    placeholder="https://yourorganisation.org"
+                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-slate-300">Email</Label>
+                                <Input
+                                    value={hp.about_email || ''}
+                                    onChange={(e) => set('about_email', e.target.value)}
+                                    placeholder="contact@yourorganisation.org"
+                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                />
                             </div>
                         </div>
                     )}

@@ -6,7 +6,7 @@ import CategoryFilter from '@/components/storymap/CategoryFilter';
 import StoryMarker from '@/components/storymap/StoryMarker';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MAP_STYLES = {
@@ -27,13 +27,15 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3Rldm
 
 export default function InteractiveStoryMap({
   stories = [],
-  initialCenter = [26.33845, 21.32637],
+  initialCenter = [8, 40],
   initialZoom = 1.80,
+  initialPitch = 30,
   onScrollToTop,
   isVisible = true,
   showCategories = true,
   showMarkers = true,
   mapStyle = 'a',
+  rotationSpeed = 1.0,  // 0 = stopped, 0–1 = fraction of normal, 1 = full speed
 }) {
   const navigate = useNavigate();
   const mapContainer = useRef(null);
@@ -47,6 +49,8 @@ export default function InteractiveStoryMap({
   const [categories, setCategories] = useState([]);
   const rotationIntervalRef = useRef(null);
   const shouldRotateRef = useRef(false);
+  const rotationSpeedRef = useRef(rotationSpeed); // target multiplier (0–1)
+  const currentStepRef = useRef(0);               // actual lerped step (degrees/tick)
 
   useEffect(() => {
     const uniqueCategories = [...new Set(stories.map(s => s.category).filter(Boolean))];
@@ -99,21 +103,30 @@ export default function InteractiveStoryMap({
     };
   }, [mapInitialized]);
 
+  const BASE_STEP = 0.171; // degrees per tick at full speed
+
+  // Lerp toward target each tick — faster decel, gentler accel
+  const rotateMap = () => {
+    if (!map.current) return;
+    const target = shouldRotateRef.current ? rotationSpeedRef.current * BASE_STEP : 0;
+    const rate = currentStepRef.current > target ? 0.015 : 0.015;
+    currentStepRef.current += (target - currentStepRef.current) * rate;
+    if (Math.abs(currentStepRef.current) > 0.0002) {
+      const c = map.current.getCenter();
+      map.current.setCenter([c.lng - currentStepRef.current, c.lat]);
+    }
+  };
+
   const pauseRotation = () => {
     if (rotationIntervalRef.current) {
       clearInterval(rotationIntervalRef.current);
       rotationIntervalRef.current = null;
     }
+    currentStepRef.current = 0; // hard stop on explicit pause
   };
 
   const resumeRotation = () => {
     if (shouldRotateRef.current && !rotationIntervalRef.current) {
-      const rotateMap = () => {
-        if (map.current) {
-          const currentCenter = map.current.getCenter();
-          map.current.setCenter([currentCenter.lng - 0.171, currentCenter.lat]);
-        }
-      };
       rotationIntervalRef.current = setInterval(rotateMap, 16.67);
     }
   };
@@ -121,6 +134,33 @@ export default function InteractiveStoryMap({
   const stopRotation = () => {
     shouldRotateRef.current = false;
     pauseRotation();
+  };
+
+  // Sync rotationSpeed prop → ref so rotateMap always reads the latest value
+  useEffect(() => {
+    rotationSpeedRef.current = rotationSpeed;
+    // If speed has been restored and the globe is visible but interval was
+    // stopped (e.g. came to rest at speed 0), restart it
+    if (rotationSpeed > 0 && shouldRotateRef.current && !rotationIntervalRef.current) {
+      rotationIntervalRef.current = setInterval(rotateMap, 16.67);
+    }
+  }, [rotationSpeed]);
+
+  const resetGlobe = () => {
+    if (!map.current) return;
+    stopRotation();
+    map.current.flyTo({
+      center: initialCenter,
+      zoom: initialZoom,
+      pitch: initialPitch,
+      padding: { top: 0, bottom: 280, left: 0, right: 0 },
+      duration: 2000,
+      easing: (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+    });
+    map.current.once('moveend', () => {
+      shouldRotateRef.current = true;
+      resumeRotation();
+    });
   };
 
   useEffect(() => {
@@ -159,35 +199,13 @@ export default function InteractiveStoryMap({
       container: mapContainer.current,
       style: MAP_STYLES[mapStyle] || MAP_STYLES.a,
       center: initialCenter,
-      zoom: initialZoom
+      zoom: initialZoom,
+      pitch: initialPitch,
     });
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'bottom-left');
 
     map.current.on('load', () => {
-      if (stories.length > 0) {
-        const bounds = new mapboxgl.LngLatBounds();
-        let hasValidCoords = false;
-        
-        stories.forEach(story => {
-          if (story.coordinates && Array.isArray(story.coordinates) && 
-              story.coordinates.length === 2 &&
-              !isNaN(story.coordinates[0]) && !isNaN(story.coordinates[1]) &&
-              isFinite(story.coordinates[0]) && isFinite(story.coordinates[1])) {
-            bounds.extend([story.coordinates[1], story.coordinates[0]]);
-            hasValidCoords = true;
-          }
-        });
-
-        if (hasValidCoords) {
-          map.current.fitBounds(bounds, {
-            padding: { top: 100, bottom: 100, left: 100, right: 100 },
-            maxZoom: 2,
-            duration: 2000
-          });
-        }
-      }
-
       // Add stories source with clustering
       map.current.addSource('stories', {
         type: 'geojson',
@@ -316,6 +334,13 @@ export default function InteractiveStoryMap({
         resumeRotation();
       });
 
+      // Shift effective viewport centre 140 px upward so northern-hemisphere
+      // content sits higher in the frame despite the pitch tilt.
+      map.current.easeTo({
+        padding: { top: 0, bottom: 280, left: 0, right: 0 },
+        duration: 0,
+      });
+
       setMapInitialized(true);
     });
 
@@ -368,6 +393,7 @@ export default function InteractiveStoryMap({
           id: story.id,
           title: story.title,
           subtitle: story.subtitle,
+          location: story.location,
           author: story.author,
           hero_image: story.hero_image,
           category: story.category
@@ -383,42 +409,73 @@ export default function InteractiveStoryMap({
   };
 
   // Screen-space overlap resolution for HTML markers.
-  // Mapbox's built-in collision detection only covers symbol layers; HTML markers
-  // require manual separation. Projects each marker to screen pixels, detects
-  // AABB overlaps, and applies marker.setOffset() to push overlapping cards apart.
+  // Groups overlapping markers via union-find, then lays each group out in a
+  // grid of max MAX_ROWS rows — overflow spills into additional columns so that
+  // dense clusters (e.g. many stories in one country) never scroll off-screen.
   const resolveMarkerOverlaps = () => {
     if (!map.current || selectedCategoryRef.current !== 'featured') return;
 
-    const W = 256; // card width + padding
-    const H = 52;  // card height + padding
+    const W        = 256; // bounding-box width per card
+    const H        = 76;  // bounding-box height per card
+    const MAX_ROWS = 3;   // max vertical stack before adding a new column
+    const COL_STEP = W + 8; // horizontal distance between column centres
 
     const entries = Object.values(markers.current).map(marker => {
       const lngLat = marker.getLngLat();
-      const orig = map.current.project(lngLat);
+      const orig   = map.current.project(lngLat);
       return { marker, origX: orig.x, origY: orig.y, simX: orig.x, simY: orig.y };
     });
 
-    // Iterative separation — up to 8 passes, exit early if stable
-    for (let pass = 0; pass < 8; pass++) {
-      let moved = false;
-      for (let i = 0; i < entries.length; i++) {
-        for (let j = i + 1; j < entries.length; j++) {
-          const a = entries[i], b = entries[j];
-          const overlapX = W - Math.abs(a.simX - b.simX);
-          const overlapY = H - Math.abs(a.simY - b.simY);
-          if (overlapX > 0 && overlapY > 0) {
-            // Separate vertically (markers are wide and short)
-            const push = overlapY / 2 + 3;
-            if (a.simY <= b.simY) { a.simY -= push; b.simY += push; }
-            else                  { a.simY += push; b.simY -= push; }
-            moved = true;
-          }
+    // Union-Find — group all transitively-overlapping markers
+    const parent = entries.map((_, i) => i);
+    const find = (i) => {
+      while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; }
+      return i;
+    };
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        if (Math.abs(entries[i].origX - entries[j].origX) < W &&
+            Math.abs(entries[i].origY - entries[j].origY) < H) {
+          parent[find(i)] = find(j);
         }
       }
-      if (!moved) break;
     }
 
-    // Apply the computed pixel offsets
+    // Collect groups keyed by root index
+    const groupMap = {};
+    entries.forEach((entry, i) => {
+      const root = find(i);
+      if (!groupMap[root]) groupMap[root] = [];
+      groupMap[root].push(entry);
+    });
+
+    // Lay out each group as a grid: rows fill first (top→bottom), then columns
+    Object.values(groupMap).forEach(group => {
+      if (group.length <= 1) return;
+
+      // Sort by latitude (north→south) — stable across map moves/rotations.
+      // Sorting by origY (screen px) caused stories to swap grid slots on
+      // every pan because minor position changes flipped the sort order.
+      group.sort((a, b) => b.marker.getLngLat().lat - a.marker.getLngLat().lat);
+
+      const numCols  = Math.ceil(group.length / MAX_ROWS);
+      const centerX  = group.reduce((s, e) => s + e.origX, 0) / group.length;
+      const centerY  = group.reduce((s, e) => s + e.origY, 0) / group.length;
+
+      // Spread columns symmetrically around the group centroid
+      const startX = centerX - (numCols - 1) * COL_STEP / 2;
+
+      group.forEach((entry, idx) => {
+        const col           = Math.floor(idx / MAX_ROWS);
+        const row           = idx % MAX_ROWS;
+        const itemsInCol    = Math.min(MAX_ROWS, group.length - col * MAX_ROWS);
+        const colHeight     = itemsInCol * H;
+
+        entry.simX = startX + col * COL_STEP;
+        entry.simY = centerY - colHeight / 2 + row * H + H / 2;
+      });
+    });
+
     entries.forEach(({ marker, origX, origY, simX, simY }) => {
       marker.setOffset([simX - origX, simY - origY]);
     });
@@ -454,6 +511,7 @@ export default function InteractiveStoryMap({
             id: s.id,
             title: s.title,
             subtitle: s.subtitle,
+            location: s.location,
             author: s.author,
             hero_image: s.hero_image,
             category: s.category,
@@ -489,6 +547,8 @@ export default function InteractiveStoryMap({
 
   const createMarker = (storyProps, coordinates) => {
     const el = document.createElement('div');
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 1s ease 1s';
     
     const story = stories.find(s => s.id === storyProps.id);
     const publicationDate = story?.created_date 
@@ -507,8 +567,8 @@ export default function InteractiveStoryMap({
       map.current.flyTo({
         center: coordinates,
         zoom: newZoom,
-        duration: 1500,
-        easing: (t) => t * t * t
+        duration: 3500,
+        easing: (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
       });
     };
 
@@ -517,8 +577,8 @@ export default function InteractiveStoryMap({
       map.current.flyTo({
         center: initialCenter,
         zoom: initialZoom,
-        duration: 1500,
-        easing: (t) => t * t * t
+        duration: 3500,
+        easing: (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
       });
       resumeRotation();
     };
@@ -529,18 +589,22 @@ export default function InteractiveStoryMap({
 
     const root = ReactDOM.createRoot(el);
     root.render(
-      <StoryMarker 
+      <StoryMarker
         storyProps={storyProps}
         publicationDate={publicationDate}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
+        mapStyle={mapStyle}
       />
     );
 
     const marker = new mapboxgl.Marker(el)
       .setLngLat(coordinates)
       .addTo(map.current);
+
+    // Dissolve in — double rAF ensures the browser paints opacity:0 before transitioning
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.opacity = '1'; }));
 
     markers.current[storyProps.id] = marker;
   };
@@ -552,17 +616,36 @@ export default function InteractiveStoryMap({
       <AnimatePresence>
         {categories.length > 0 && showCategories && (
           <motion.div 
-            className="fixed bottom-[15%] left-1/2 z-[130]"
+            className="fixed bottom-[calc(15%-50px)] left-1/2 z-[130]"
             initial={{ y: 100, opacity: 0, x: "-50%" }}
             animate={{ y: 0, opacity: 1, x: "-50%" }}
             exit={{ y: 100, opacity: 0, x: "-50%" }}
             transition={{ duration: 2, ease: "easeOut", delay: 1 }}
           >
-            <CategoryFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-            />
+            <div className="flex items-stretch gap-3">
+              <CategoryFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+              />
+              <button
+                onClick={resetGlobe}
+                className="backdrop-blur-xl flex items-center gap-2 text-white/70 hover:text-white/90 transition-colors shadow-lg"
+                style={{
+                  background: 'rgba(15,23,42,0.25)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: '999px',
+                  padding: '30px 24px',
+                  fontSize: '12px',
+                  fontFamily: 'Raleway, sans-serif',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <RotateCcw size={12} />
+                Reset the Globe
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

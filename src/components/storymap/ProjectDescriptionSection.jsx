@@ -37,7 +37,7 @@ const TITLE_COLORS = {
     k: 'text-white',
 };
 
-export default function ProjectDescriptionSection({ storyTitle, heading = 'Overview', description, onContinue, backgroundImage, mapStyle = 'a' }) {
+export default function ProjectDescriptionSection({ storyTitle, heading = 'Overview', description, onContinue, backgroundImage, mapStyle = 'a', contentDelay = 0 }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const titleColorClass = TITLE_COLORS[mapStyle] || 'text-amber-400';
     const [currentPage, setCurrentPage] = useState(0);
@@ -73,10 +73,8 @@ export default function ProjectDescriptionSection({ storyTitle, heading = 'Overv
     return (
         <div className="relative w-full min-h-screen flex items-center justify-center pointer-events-none">
             <motion.div
-                initial={{ opacity: 0, y: 100 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 3, ease: 'easeOut' }}
-                viewport={{ once: false, amount: 0.3 }}
+                initial={{ opacity: 1 }}
+                animate={{ opacity: 1 }}
                 className="w-[500px] max-w-[90vw]"
             >
                 <div
@@ -95,70 +93,98 @@ export default function ProjectDescriptionSection({ storyTitle, heading = 'Overv
                     <div className="relative z-10 flex flex-col items-center text-center p-6 md:p-8" style={{ minHeight: '500px' }}>
                         <div className="flex-1" />
 
-                        {/* Story title — eyebrow, we've already seen this */}
-                        {storyTitle && (
-                            <div className="mb-6">
-                                <span className={`block text-sm font-medium ${titleColorClass} uppercase tracking-widest`}
+                        {/* Text content — optionally delayed (homepage) or immediate (story) */}
+                        <motion.div
+                            className="w-full flex flex-col items-center"
+                            initial={contentDelay > 0 ? { opacity: 0, y: 20 } : false}
+                            animate={contentDelay > 0 ? { opacity: 1, y: 0 } : undefined}
+                            transition={{ delay: contentDelay, duration: 0.9, ease: 'easeOut' }}
+                        >
+                            {/* Story title — eyebrow, we've already seen this */}
+                            {storyTitle && (
+                                <div className="mb-6">
+                                    <span className={`block text-sm font-medium ${titleColorClass} uppercase tracking-widest`}
+                                          style={{ fontFamily: themeFont }}>
+                                        {storyTitle}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Panel heading */}
+                            <div className="mb-10">
+                                <span className={`block text-5xl font-light ${titleColorClass} leading-none`}
                                       style={{ fontFamily: themeFont }}>
-                                    {storyTitle}
+                                    {heading}
                                 </span>
                             </div>
-                        )}
 
-                        {/* Panel heading */}
-                        <div className="mb-10">
-                            <span className={`block text-5xl font-light ${titleColorClass} leading-none`}
-                                  style={{ fontFamily: themeFont }}>
-                                {heading}
-                            </span>
-                        </div>
+                            {/* Paginated description */}
+                            <motion.div
+                                className="relative overflow-hidden mb-4 px-5 w-full"
+                                animate={{ height: contentHeight }}
+                                transition={{ height: { duration: 0.6, ease: 'easeInOut' } }}
+                            >
+                                {pages.map((page, index) => (
+                                    <motion.div
+                                        key={index}
+                                        ref={el => pageRefs.current[index] = el}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: index === currentPage ? 1 : 0 }}
+                                        transition={{ duration: 0.3 }}
+                                        className={index === currentPage ? 'block' : 'hidden'}
+                                    >
+                                        <div
+                                            className="text-white/90 leading-relaxed text-lg font-light prose prose-base max-w-none prose-invert"
+                                            style={{ fontFamily: themeFont }}
+                                            dangerouslySetInnerHTML={{ __html: page }}
+                                        />
+                                    </motion.div>
+                                ))}
+                            </motion.div>
 
-                        {/* Paginated description */}
-                        <motion.div
-                            className="relative overflow-hidden mb-4 px-5"
-                            animate={{ height: contentHeight }}
-                            transition={{ height: { duration: 0.6, ease: 'easeInOut' } }}
-                        >
-                            {pages.map((page, index) => (
-                                <motion.div
-                                    key={index}
-                                    ref={el => pageRefs.current[index] = el}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: index === currentPage ? 1 : 0 }}
-                                    transition={{ duration: 0.3 }}
-                                    className={index === currentPage ? 'block' : 'hidden'}
+                            {/* Page indicators */}
+                            {pages.length > 1 && (
+                                <div className="flex items-center justify-center gap-2 mb-6">
+                                    {pages.map((_, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => goToPage(index)}
+                                            className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
+                                                index === currentPage
+                                                    ? 'w-8 bg-white'
+                                                    : 'w-8 bg-white/30 hover:bg-white/60'
+                                            }`}
+                                            aria-label={`Go to page ${index + 1}`}
+                                        />
+                                    ))}
+                                    <span className="ml-1 text-xs text-white/50">
+                                        {currentPage + 1} / {pages.length}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Scroll-down arrow */}
+                            <div className="flex justify-center pointer-events-auto">
+                                <motion.button
+                                    onClick={onContinue}
+                                    className="cursor-pointer"
+                                    whileHover={{
+                                        scale: 1.1,
+                                        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
+                                        transition: { duration: 0.2, ease: 'easeInOut' }
+                                    }}
                                 >
-                                    <div
-                                        className="text-white/90 leading-relaxed text-lg font-light prose prose-base max-w-none prose-invert"
-                                        style={{ fontFamily: themeFont }}
-                                        dangerouslySetInnerHTML={{ __html: page }}
+                                    <img
+                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
+                                        alt="Continue to story"
+                                        width="74"
+                                        height="50"
                                     />
-                                </motion.div>
-                            ))}
+                                </motion.button>
+                            </div>
                         </motion.div>
 
-                        {/* Page indicators */}
-                        {pages.length > 1 && (
-                            <div className="flex items-center justify-center gap-2 mb-6">
-                                {pages.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => goToPage(index)}
-                                        className={`h-1 rounded-full transition-all duration-300 cursor-pointer ${
-                                            index === currentPage
-                                                ? 'w-8 bg-white'
-                                                : 'w-8 bg-white/30 hover:bg-white/60'
-                                        }`}
-                                        aria-label={`Go to page ${index + 1}`}
-                                    />
-                                ))}
-                                <span className="ml-1 text-xs text-white/50">
-                                    {currentPage + 1} / {pages.length}
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Prev/next arrows — visible on hover */}
+                        {/* Prev/next arrows — outside text group, positioned absolute */}
                         {pages.length > 1 && (
                             <>
                                 <button
@@ -187,26 +213,6 @@ export default function ProjectDescriptionSection({ storyTitle, heading = 'Overv
                                 </button>
                             </>
                         )}
-
-                        {/* Scroll-down arrow */}
-                        <div className="flex justify-center pointer-events-auto">
-                            <motion.button
-                                onClick={onContinue}
-                                className="cursor-pointer"
-                                whileHover={{
-                                    scale: 1.1,
-                                    filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
-                                    transition: { duration: 0.2, ease: 'easeInOut' }
-                                }}
-                            >
-                                <img
-                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
-                                    alt="Continue to story"
-                                    width="74"
-                                    height="50"
-                                />
-                            </motion.button>
-                        </div>
                     </div>
                 </div>
             </motion.div>

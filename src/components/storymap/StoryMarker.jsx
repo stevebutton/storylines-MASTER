@@ -1,17 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin } from 'lucide-react';
 
 // Global event name for coordinating single-open state across all StoryMarker instances
 const MARKER_OPEN_EVENT = 'storylines:marker-open';
+
+const THEME_FONTS = {
+  c: 'Righteous, cursive',
+  f: 'Oswald, sans-serif',
+  k: 'Oswald, sans-serif',
+};
 
 export default function StoryMarker({
   storyProps,
   publicationDate,
   onMouseEnter,
   onMouseLeave,
-  onClick
+  onClick,
+  mapStyle = 'a',
 }) {
+  const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
   const [isHovered, setIsHovered] = useState(false);
   const [portalContainer, setPortalContainer] = useState(null);
   const markerRef = useRef(null);
@@ -55,7 +64,7 @@ export default function StoryMarker({
     hoverTimerRef.current = setTimeout(() => {
       if (markerRef.current) {
         const rect = markerRef.current.getBoundingClientRect();
-        setMarkerPosition({ top: rect.top, left: rect.left });
+        setMarkerPosition({ top: rect.top + rect.height / 2, left: rect.left + rect.width / 2 });
       }
       // Notify all other markers to close
       window.dispatchEvent(new CustomEvent(MARKER_OPEN_EVENT, { detail: { id: markerIdRef.current } }));
@@ -114,9 +123,9 @@ export default function StoryMarker({
         style={{
           width: 'max-content',
           maxWidth: '380px',
-          borderRadius: '10px',
+          borderRadius: '30px',
           backgroundColor: 'white',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3), 0 0 0 2px white',
           cursor: 'pointer',
           transform: 'translate(-50%, -50%)',
           transformOrigin: 'top center',
@@ -124,14 +133,14 @@ export default function StoryMarker({
           overflow: 'hidden',
           opacity: isHovered ? 0 : 1
         }}
-        animate={{ height: '40px' }}
+        animate={{ height: '60px' }}
         transition={{ opacity: { duration: 0.2 } }}
         onMouseEnter={handleMouseEnter}
         onClick={handleClick}
       >
-        <div style={{ display: 'flex', alignItems: 'center', height: '40px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', height: '60px' }}>
           {/* Thumbnail */}
-          <div style={{ width: '40px', height: '40px', flexShrink: 0, overflow: 'hidden' }}>
+          <div style={{ width: '60px', height: '60px', flexShrink: 0, overflow: 'hidden' }}>
             {storyProps.hero_image && (
               <img
                 src={storyProps.hero_image}
@@ -148,9 +157,9 @@ export default function StoryMarker({
               paddingLeft: '12px',
               paddingRight: '14px',
               color: '#1e293b',
-              fontWeight: 500,
+              fontWeight: 400,
               whiteSpace: 'nowrap',
-              fontFamily: 'Raleway, sans-serif',
+              fontFamily: themeFont,
             }}
           >
             {storyProps.title}
@@ -163,19 +172,19 @@ export default function StoryMarker({
         <AnimatePresence>
           {isHovered && (
             <motion.div
-              initial={{ opacity: 0, height: '40px' }}
-              animate={{ opacity: 1, height: '240px' }}
-              exit={{ opacity: 0, height: '40px' }}
+              initial={{ opacity: 0, height: '60px' }}
+              animate={{ opacity: 1, height: '320px' }}
+              exit={{ opacity: 0, height: '60px' }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
               style={{
                 position: 'fixed',
                 top: markerPosition.top,
                 left: markerPosition.left,
                 transform: 'translate(-50%, -50%)',
-                width: '240px',
+                width: '280px',
                 borderRadius: '10px',
                 backgroundColor: 'white',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 0 0 2px white',
                 cursor: 'pointer',
                 overflow: 'hidden',
                 display: 'flex',
@@ -187,11 +196,11 @@ export default function StoryMarker({
             >
           {/* Thumbnail */}
           <motion.div
-            initial={{ height: '40px' }}
-            animate={{ height: '80px' }}
+            initial={{ height: '60px' }}
+            animate={{ height: '130px' }}
             transition={{ duration: 1, ease: "easeInOut" }}
             style={{
-              width: '240px',
+              width: '280px',
               flexShrink: 0,
               overflow: 'hidden'
             }}
@@ -209,17 +218,42 @@ export default function StoryMarker({
             )}
           </motion.div>
 
+          {/* Location */}
+          {storyProps.location && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '12px',
+                fontWeight: 500,
+                color: '#64748b',
+                padding: '8px 20px 0 20px',
+                fontFamily: themeFont,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              <MapPin size={12} color="#d97706" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+              {storyProps.location}
+            </motion.div>
+          )}
+
           {/* Title */}
           <motion.div
-            className="text-sm sm:text-base md:text-lg"
-            initial={{ fontWeight: 500, paddingLeft: '15px', paddingTop: '0' }}
-            animate={{ fontWeight: 700, paddingLeft: '12px', paddingTop: '12px' }}
+            initial={{ fontWeight: 500, paddingLeft: '20px', paddingTop: '0' }}
+            animate={{ fontWeight: 700, paddingLeft: '20px', paddingTop: storyProps.location ? '4px' : '12px' }}
             transition={{ duration: 1, ease: "easeInOut" }}
             style={{
+              fontSize: '20px',
               color: '#1e293b',
-              fontFamily: 'Raleway, sans-serif',
-              lineHeight: 1.2,
-              paddingRight: '12px',
+              fontFamily: themeFont,
+              lineHeight: 1.1,
+              paddingRight: '20px',
               paddingBottom: '8px'
             }}
           >
@@ -233,31 +267,20 @@ export default function StoryMarker({
             transition={{ duration: 0.6, delay: 0.3 }}
             style={{
               width: '100%',
-              padding: '0 12px 12px 12px',
+              padding: '0 20px 12px 20px',
               display: 'flex',
               flexDirection: 'column',
-              fontFamily: 'Raleway, sans-serif',
+              fontFamily: themeFont,
               flex: 1
             }}
           >
-            {publicationDate && (
-              <p 
-                className="text-[10px] sm:text-xs"
-                style={{
-                color: '#94a3b8',
-                margin: '0 0 8px 0'
-              }}>
-                {publicationDate}
-              </p>
-            )}
-
             {storyProps.subtitle && (
-              <p 
+              <p
                 className="text-xs sm:text-sm"
                 style={{
                 color: '#64748b',
                 margin: '0 0 8px 0',
-                lineHeight: 1.4,
+                lineHeight: 1.2,
                 overflow: 'hidden',
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
@@ -267,20 +290,28 @@ export default function StoryMarker({
               </p>
             )}
 
-            <div 
-              className="text-xs sm:text-sm"
+            <div
               style={{
-              display: 'inline-block',
-              padding: '6px 14px',
-              background: '#d97706',
-              color: 'white',
-              borderRadius: '6px',
-              fontWeight: 500,
-              marginTop: 'auto',
-              width: 'fit-content'
-            }}>
-              View Story →
-              </div>
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: '2px',
+                marginTop: 'auto',
+                fontFamily: themeFont,
+              }}
+            >
+              <span style={{ fontSize: '14px', fontWeight: 300, color: '#1e293b' }}>Explore the story</span>
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
+                alt=""
+                width="52"
+                height="36"
+                style={{
+                  transform: 'rotate(-90deg)',
+                  filter: 'brightness(0) saturate(100%) invert(42%) sepia(95%) saturate(500%) hue-rotate(5deg) brightness(95%)',
+                }}
+              />
+            </div>
             </motion.div>
           </motion.div>
           )}

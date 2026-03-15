@@ -6,7 +6,9 @@ import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import PageTransition from '@/components/PageTransition';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -22,6 +24,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
+  const location = useLocation();
 
   // Remove the pre-React HTML loader once React has mounted and rendered.
   // StoryMapView's own black overlay is already in the DOM by this point,
@@ -53,25 +56,31 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={
+          <PageTransition>
+            <LayoutWrapper currentPageName={mainPageKey}>
+              <MainPage />
             </LayoutWrapper>
-          }
-        />
-      ))}
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+          </PageTransition>
+        } />
+        {Object.entries(Pages).map(([path, Page]) => (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <PageTransition>
+                <LayoutWrapper currentPageName={path}>
+                  <Page />
+                </LayoutWrapper>
+              </PageTransition>
+            }
+          />
+        ))}
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </AnimatePresence>
   );
 };
 

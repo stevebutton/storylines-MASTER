@@ -298,9 +298,18 @@ export default function TabbedContentEditor({
                         </div>
 
                         <div>
+                            <FieldLabel>Location</FieldLabel>
+                            <Input
+                                value={item.location || ''}
+                                onChange={(e) => onUpdate({ ...item, location: e.target.value })}
+                                placeholder="e.g. Central Africa, Democratic Republic of Congo"
+                            />
+                        </div>
+
+                        <div>
                             <FieldLabel>Title <span className="text-red-500">*</span></FieldLabel>
-                            <Input 
-                                value={item.title || ''} 
+                            <Input
+                                value={item.title || ''}
                                 onChange={(e) => onUpdate({ ...item, title: e.target.value })}
                                 placeholder="A Journey Through Time"
                                 style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
