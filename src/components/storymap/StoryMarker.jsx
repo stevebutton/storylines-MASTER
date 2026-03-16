@@ -93,15 +93,23 @@ export default function StoryMarker({
         const clone = expandedCard.cloneNode(true);
         clone.style.pointerEvents = 'none';
         clone.style.transition = 'none';
+        clone.style.height = '320px';
+        clone.style.opacity = '1';
         // Pin above all page content including any black overlays during navigation
         clone.style.zIndex = '999999';
         document.body.appendChild(clone);
 
         setTimeout(() => {
-          clone.style.transition = 'opacity 0.8s ease-in-out';
-          clone.style.opacity = '0';
-          setTimeout(() => clone.remove(), 800);
-        }, 5000);
+          // Step 1: collapse
+          clone.style.transition = 'height 0.6s ease-in-out';
+          clone.style.height = '60px';
+          // Step 2: fade out after collapse completes
+          setTimeout(() => {
+            clone.style.transition = 'opacity 0.4s ease-in-out';
+            clone.style.opacity = '0';
+            setTimeout(() => clone.remove(), 400);
+          }, 600);
+        }, 3000);
       }
     }
     onClick();

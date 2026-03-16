@@ -476,8 +476,8 @@ export default function MapBackground({
             const el = document.createElement('div');
             el.className = 'mapbox-marker';
             el.style.cssText = `
-                width: ${isActive ? '36px' : '24px'};
-                height: ${isActive ? '36px' : '24px'};
+                width: 36px;
+                height: 36px;
                 cursor: ${isActive ? 'default' : 'pointer'};
                 pointer-events: auto;
                 transition: width 0.3s ease, height 0.3s ease;
@@ -530,6 +530,7 @@ export default function MapBackground({
                         background: white;
                         border-radius: 8px;
                         box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+                        border: 1px solid white;
                         overflow: hidden;
                         cursor: pointer;
                         pointer-events: auto;
@@ -539,8 +540,8 @@ export default function MapBackground({
                     `;
                     tooltipEl.innerHTML = `
                         ${markerData.image ? `<img src="${markerData.image}" alt="${markerData.title}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block;" />` : ''}
-                        <div style="padding: 8px 10px;">
-                            <div style="font-weight: 600; font-size: 15px; color: #1e293b; line-height: 1.3;">${markerData.title}</div>
+                        <div style="padding: 8px 20px 40px 20px;">
+                            <div style="font-weight: 300; font-size: 18px; color: #1e293b; line-height: 1.3; font-family: ${themeFont};">${markerData.title}</div>
                         </div>
                     `;
                     tooltipEl.addEventListener('click', () => {

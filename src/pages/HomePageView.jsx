@@ -151,6 +151,10 @@ export default function HomePageView() {
 
                     {/* Overview panel — mounts only once the globe scrolls into view,
                         so the delay timer starts from the moment the user arrives */}
+                    {/* Scroll escape zone — intercepts pointer/scroll events so the bottom
+                        160px of the globe section scrolls the page rather than spinning the map */}
+                    <div className="absolute bottom-0 left-0 right-0 z-[1]" style={{ height: '180px' }} />
+
                     {hp.overview_enabled && (
                         <AnimatePresence>
                             {hasGlobeAppeared && !overviewDismissed && (
@@ -199,17 +203,26 @@ export default function HomePageView() {
             {/* Footer */}
             {hp.footer_enabled && (
                 <footer
-                    className="w-full bg-black flex items-center justify-center px-8"
-                    style={{ minHeight: 240 }}
+                    className="w-full bg-black px-12 py-14"
+                    style={{ minHeight: 400 }}
                 >
-                    {hp.footer_content ? (
-                        <div
-                            className="prose prose-invert prose-sm max-w-4xl text-center text-white/60"
-                            dangerouslySetInnerHTML={{ __html: hp.footer_content }}
-                        />
-                    ) : (
-                        <p className="text-white/20 text-sm italic">Footer — add content in the editor</p>
-                    )}
+                    <div className="max-w-6xl mx-auto grid grid-cols-3 gap-12">
+                        {[
+                            { key: 'footer_col1', label: 'Column 1' },
+                            { key: 'footer_col2', label: 'Column 2' },
+                            { key: 'footer_col3', label: 'Column 3' },
+                        ].map(({ key, label }) => (
+                            hp[key] ? (
+                                <div
+                                    key={key}
+                                    className="prose prose-invert prose-sm max-w-none text-white/60"
+                                    dangerouslySetInnerHTML={{ __html: hp[key] }}
+                                />
+                            ) : (
+                                <p key={key} className="text-white/20 text-sm italic">{label} — add content in editor</p>
+                            )
+                        ))}
+                    </div>
                 </footer>
             )}
         </div>

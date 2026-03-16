@@ -1464,8 +1464,8 @@ export default function StoryMapView() {
 
                             {/* Chapter title — slides in from right */}
                             <motion.span
-                                className="text-slate-900 font-normal text-3xl tracking-wide whitespace-nowrap"
-                                style={{ fontFamily: bannerThemeFont, fontWeight: 400 }}
+                                className="text-slate-900 font-light text-4xl tracking-wide whitespace-nowrap"
+                                style={{ fontFamily: bannerThemeFont, fontWeight: 300, position: 'relative', top: '-3px' }}
                                 initial={{ opacity: 0, x: 40 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 1.9, duration: 1.4, ease: 'easeOut' }}

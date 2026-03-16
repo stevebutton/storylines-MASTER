@@ -616,7 +616,7 @@ export default function InteractiveStoryMap({
       <AnimatePresence>
         {categories.length > 0 && showCategories && (
           <motion.div 
-            className="fixed bottom-[calc(15%-50px)] left-1/2 z-[130]"
+            className="absolute bottom-[calc(15%-50px)] left-1/2 z-[130]"
             initial={{ y: 100, opacity: 0, x: "-50%" }}
             animate={{ y: 0, opacity: 1, x: "-50%" }}
             exit={{ y: 100, opacity: 0, x: "-50%" }}

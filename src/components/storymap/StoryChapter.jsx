@@ -171,14 +171,14 @@ export default function StoryChapter({
     return (
         <div
             className="relative w-full py-24 px-4 md:px-8 pointer-events-none"
-            style={{ minHeight: '85vh', paddingTop: '150px' }}
+            style={{ minHeight: '85vh', paddingTop: '80px' }}
         >
             <motion.div
                 ref={cardRef}
                 initial={{ opacity: 0, y: 50 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                 transition={{ duration: 1, ease: "easeOut", delay: delay / 1000 }}
-                className="absolute left-1/2 w-[40%] min-w-[300px] max-w-[600px]"
+                className="absolute w-[calc(40%+90px)] min-w-[300px] max-w-[730px]" style={{ left: 'calc(50% - 40px)' }}
             >
                 <AnimatePresence mode="wait">
 
@@ -299,7 +299,7 @@ export default function StoryChapter({
                             {/* Carousel */}
                             {chapter.slides && chapter.slides.length > 0 && (
                                 <motion.div
-                                    className="pointer-events-auto"
+                                    className="pointer-events-auto relative"
                                     initial={{ opacity: 0, y: 16 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
@@ -310,31 +310,34 @@ export default function StoryChapter({
                                         scrollToRef={carouselScrollToRef}
                                         onImageClick={handleImageClick}
                                     />
+                                    {/* Location overlaid on image */}
+                                    {currentSlide?.location && (
+                                        <>
+                                            <div className="absolute bottom-0 left-0 right-0 h-[70px] bg-gradient-to-t from-black/40 to-transparent pointer-events-none rounded-b-none" />
+                                            <AnimatePresence mode="wait">
+                                                <motion.div
+                                                    key={currentSlide.location}
+                                                    initial={{ opacity: 0, y: 6 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -6 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="absolute bottom-[30px] left-6 flex items-center gap-2 text-sm text-white pointer-events-none"
+                                                >
+                                                    <div style={{
+                                                        width: 20, height: 20, borderRadius: '50%',
+                                                        background: chapterColor, flexShrink: 0,
+                                                        border: '1px solid white',
+                                                    }} />
+                                                    <span className="font-medium">{currentSlide.location}</span>
+                                                </motion.div>
+                                            </AnimatePresence>
+                                        </>
+                                    )}
                                 </motion.div>
                             )}
 
                             {/* Slide text panel */}
                             <div className="p-6 md:p-8">
-                                {/* Location — above title */}
-                                <AnimatePresence mode="wait">
-                                    {currentSlide?.location && (
-                                        <motion.div
-                                            key={currentSlide.location}
-                                            initial={{ opacity: 0, y: 6 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -6 }}
-                                            transition={{ duration: 0.3 }}
-                                            className="flex items-center gap-2 text-xs text-slate-500 mb-3"
-                                        >
-                                            <div style={{
-                                                width: 20, height: 20, borderRadius: '50%',
-                                                background: chapterColor, flexShrink: 0,
-                                            }} />
-                                            <span className="font-medium">{currentSlide.location}</span>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
                                 {/* Title */}
                                 <AnimatePresence mode="wait">
                                     <motion.h2
@@ -359,15 +362,14 @@ export default function StoryChapter({
                                         exit={{ opacity: 0, y: -10 }}
                                         transition={{ duration: 0.3, delay: 0.1 }}
                                         className="text-slate-600 leading-relaxed text-base font-light prose prose-sm max-w-none"
-                                        style={{ fontFamily: 'Raleway, sans-serif' }}
+                                        style={{ fontFamily: 'Raleway, sans-serif', paddingLeft: '25px', paddingRight: '20px' }}
                                         dangerouslySetInnerHTML={{ __html: currentSlide?.description || '' }}
                                     />
                                 </AnimatePresence>
 
                                 {/* PDF */}
                                 {currentSlide?.pdf_url && (
-                                    <div className="mt-6 pt-4 border-t border-slate-200/50 w-full">
-                                        <h4 className="text-xs font-medium text-slate-500 mb-2 uppercase tracking-wider">Related Documents</h4>
+                                    <div className="mt-[4px] pt-4 border-t border-slate-200/50 w-full" style={{ paddingLeft: '25px', paddingRight: '20px' }}>
                                         <button
                                             onClick={() => setShowPdfModal(true)}
                                             className="flex items-center gap-3 group hover:opacity-80 transition-opacity text-left"

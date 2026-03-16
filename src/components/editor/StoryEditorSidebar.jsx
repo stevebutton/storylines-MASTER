@@ -52,7 +52,7 @@ export default function StoryEditorSidebar({
         selectedItem?.type === 'slide' && selectedItem?.id === slideId;
 
     return (
-        <div className="w-full md:w-[400px] border-r flex flex-col" style={{ background: '#DCDCDC' }}>
+        <div className="w-full md:w-[400px] border-r flex flex-col" style={{ background: 'white' }}>
             {/* Story Settings Card */}
             <div className="ml-[50px] mr-[48px] mt-[100px] mb-1 rounded-lg shadow-md overflow-hidden">
                 <div className="flex items-stretch">
@@ -224,7 +224,7 @@ export default function StoryEditorSidebar({
                                                             <Droppable droppableId={`slides-${chapter.id}`} type="slide">
                                                                 {(provided) => (
                                                                     <div
-                                                                        style={{ background: '#DCDCDC' }}
+                                                                        style={{ background: 'white' }}
                                                                         {...provided.droppableProps}
                                                                         ref={provided.innerRef}
                                                                     >

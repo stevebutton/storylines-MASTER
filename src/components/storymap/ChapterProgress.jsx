@@ -37,7 +37,7 @@ export default function ChapterProgress({
                 onClick={() => canGoPrev && onNavigate(activeIndex - 1)}
                 disabled={!canGoPrev}
                 className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg",
+                    "w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-lg",
                     canGoPrev
                         ? "bg-white/25 hover:bg-white/50 text-slate-700 hover:scale-110 cursor-pointer"
                         : "bg-white/50 text-slate-300 cursor-not-allowed"
@@ -76,7 +76,7 @@ export default function ChapterProgress({
                 onClick={() => canGoNext && onNavigate(activeIndex + 1)}
                 disabled={!canGoNext}
                 className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-lg",
+                    "w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-lg",
                     canGoNext
                         ? "bg-white/25 hover:bg-white/50 text-slate-700 hover:scale-110 cursor-pointer"
                         : "bg-white/50 text-slate-300 cursor-not-allowed"

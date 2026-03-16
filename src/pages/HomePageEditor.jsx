@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Image, AlignLeft, Globe, Palette, PanelBottom, Save, Upload, Loader2, Check, Info } from 'lucide-react';
@@ -44,7 +43,9 @@ const DEFAULT_HP = {
     globe_enabled: true,
     globe_heading: 'Explore Our Stories',
     footer_enabled: true,
-    footer_content: '',
+    footer_col1: '',
+    footer_col2: '',
+    footer_col3: '',
     map_style: 'a',
     // Info / About panel
     about_org_name: '',
@@ -122,33 +123,39 @@ export default function HomePageEditor() {
 
     const set = (key, value) => setHp(prev => ({ ...prev, [key]: value }));
 
+    const FieldLabel = ({ children }) => (
+        <span className="inline-flex items-center px-8 py-[9px] rounded-full bg-slate-100 shadow-sm text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block w-fit">
+            {children}
+        </span>
+    );
+
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-900">
+            <div className="min-h-screen flex items-center justify-center bg-white">
                 <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+        <div className="min-h-screen bg-white text-slate-900 flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
                 <div className="flex items-center gap-4">
                     <Link
                         to={createPageUrl('Stories')}
-                        className="text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-sm"
+                        className="text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1 text-sm"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Stories
                     </Link>
-                    <span className="text-slate-600">|</span>
-                    <h1 className="text-lg font-semibold text-white">Home Page Editor</h1>
+                    <span className="text-slate-700">|</span>
+                    <h1 className="text-lg font-semibold text-slate-900">Home Page Editor</h1>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link
                         to={createPageUrl('HomePageView')}
-                        className="text-sm text-slate-400 hover:text-white transition-colors"
+                        className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -168,19 +175,19 @@ export default function HomePageEditor() {
             {/* Body */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar */}
-                <div className="w-64 border-r border-slate-700 bg-slate-800 flex-shrink-0 p-4 space-y-2">
-                    <p className="text-xs text-slate-500 uppercase tracking-wider mb-3 px-2">Sections</p>
+                <div className="w-64 border-r border-slate-200 bg-slate-50 flex-shrink-0 p-4 space-y-2">
+                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-3 px-2">Sections</p>
 
                     {/* Hero */}
                     <button
                         onClick={() => setActiveSection('hero')}
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
                             activeSection === 'hero'
-                                ? 'bg-slate-700 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-700/50'
+                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
+                                : 'hover:bg-slate-100'
                         }`}
                     >
-                        <Image className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <Image className="w-4 h-4 text-slate-500 flex-shrink-0" />
                         <span className="text-sm font-medium">Hero</span>
                     </button>
 
@@ -189,11 +196,11 @@ export default function HomePageEditor() {
                         onClick={() => setActiveSection('overview')}
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
                             activeSection === 'overview'
-                                ? 'bg-slate-700 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-700/50'
+                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
+                                : 'hover:bg-slate-100'
                         }`}
                     >
-                        <AlignLeft className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <AlignLeft className="w-4 h-4 text-slate-500 flex-shrink-0" />
                         <span className="text-sm font-medium flex-1">Overview</span>
                         <Switch
                             checked={hp.overview_enabled}
@@ -208,11 +215,11 @@ export default function HomePageEditor() {
                         onClick={() => setActiveSection('globe')}
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
                             activeSection === 'globe'
-                                ? 'bg-slate-700 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-700/50'
+                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
+                                : 'hover:bg-slate-100'
                         }`}
                     >
-                        <Globe className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <Globe className="w-4 h-4 text-slate-500 flex-shrink-0" />
                         <span className="text-sm font-medium flex-1">Globe</span>
                         <Switch
                             checked={hp.globe_enabled}
@@ -227,11 +234,11 @@ export default function HomePageEditor() {
                         onClick={() => setActiveSection('footer')}
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
                             activeSection === 'footer'
-                                ? 'bg-slate-700 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-700/50'
+                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
+                                : 'hover:bg-slate-100'
                         }`}
                     >
-                        <PanelBottom className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <PanelBottom className="w-4 h-4 text-slate-500 flex-shrink-0" />
                         <span className="text-sm font-medium flex-1">Footer</span>
                         <Switch
                             checked={hp.footer_enabled}
@@ -246,11 +253,11 @@ export default function HomePageEditor() {
                         onClick={() => setActiveSection('info')}
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
                             activeSection === 'info'
-                                ? 'bg-slate-700 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-700/50'
+                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
+                                : 'hover:bg-slate-100'
                         }`}
                     >
-                        <Info className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <Info className="w-4 h-4 text-slate-500 flex-shrink-0" />
                         <span className="text-sm font-medium flex-1">Info Panel</span>
                     </button>
 
@@ -259,11 +266,11 @@ export default function HomePageEditor() {
                         onClick={() => setActiveSection('style')}
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
                             activeSection === 'style'
-                                ? 'bg-slate-700 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-700/50'
+                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
+                                : 'hover:bg-slate-100'
                         }`}
                     >
-                        <Palette className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <Palette className="w-4 h-4 text-slate-500 flex-shrink-0" />
                         <span className="text-sm font-medium flex-1">Map Style</span>
                         <span className="text-xs text-amber-400 font-mono uppercase">{hp.map_style || 'a'}</span>
                     </button>
@@ -273,33 +280,33 @@ export default function HomePageEditor() {
                 <div className="flex-1 overflow-y-auto p-8">
                     {activeSection === 'hero' && (
                         <div className="max-w-2xl space-y-6">
-                            <h2 className="text-xl font-semibold text-white mb-6">Hero Section</h2>
+                            <h2 className="text-xl font-semibold text-slate-900 mb-6">Hero Section</h2>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Title</Label>
+                                <FieldLabel>Title</FieldLabel>
                                 <Input
                                     value={hp.hero_title || ''}
                                     onChange={(e) => set('hero_title', e.target.value)}
                                     placeholder="Enter hero title"
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Subtitle</Label>
+                                <FieldLabel>Subtitle</FieldLabel>
                                 <Textarea
                                     value={hp.hero_subtitle || ''}
                                     onChange={(e) => set('hero_subtitle', e.target.value)}
                                     placeholder="Enter hero subtitle"
                                     rows={3}
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Hero Type</Label>
+                                <FieldLabel>Hero Type</FieldLabel>
                                 <Select value={hp.hero_type || 'image'} onValueChange={(v) => set('hero_type', v)}>
-                                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                                    <SelectTrigger className="bg-white border-slate-300 text-slate-900">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -310,7 +317,7 @@ export default function HomePageEditor() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Hero Image</Label>
+                                <FieldLabel>Hero Image</FieldLabel>
                                 {hp.hero_image && (
                                     <div className="relative w-48 h-28 rounded-lg overflow-hidden mb-2">
                                         <img src={hp.hero_image} alt="Hero" className="w-full h-full object-cover" />
@@ -333,7 +340,7 @@ export default function HomePageEditor() {
                                         size="sm"
                                         onClick={() => heroFileRef.current?.click()}
                                         disabled={isUploadingHero}
-                                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                                        className="border-slate-300 text-slate-600 hover:bg-slate-50"
                                     >
                                         {isUploadingHero
                                             ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -356,16 +363,16 @@ export default function HomePageEditor() {
                             {hp.hero_type === 'video' && (
                                 <>
                                     <div className="space-y-2">
-                                        <Label className="text-slate-300">Hero Video URL</Label>
+                                        <FieldLabel>Hero Video URL</FieldLabel>
                                         <Input
                                             value={hp.hero_video || ''}
                                             onChange={(e) => set('hero_video', e.target.value)}
                                             placeholder="https://..."
-                                            className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                            className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <Label className="text-slate-300">Loop Video</Label>
+                                        <span className="text-sm text-slate-600">Loop Video</span>
                                         <Switch
                                             checked={hp.hero_video_loop !== false}
                                             onCheckedChange={(v) => set('hero_video_loop', v)}
@@ -380,9 +387,9 @@ export default function HomePageEditor() {
                     {activeSection === 'overview' && (
                         <div className="max-w-2xl space-y-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-white">Overview Section</h2>
+                                <h2 className="text-xl font-semibold text-slate-900">Overview Section</h2>
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-slate-300">Enabled</Label>
+                                    <span className="text-sm text-slate-600">Enabled</span>
                                     <Switch
                                         checked={hp.overview_enabled}
                                         onCheckedChange={(v) => set('overview_enabled', v)}
@@ -391,30 +398,31 @@ export default function HomePageEditor() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Heading</Label>
+                                <FieldLabel>Heading</FieldLabel>
                                 <Input
                                     value={hp.overview_heading || ''}
                                     onChange={(e) => set('overview_heading', e.target.value)}
                                     placeholder="Overview"
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Body Text</Label>
-                                <div className="rounded-lg overflow-hidden border border-slate-600">
+                                <FieldLabel>Body Text</FieldLabel>
+                                <div className="rounded-lg overflow-hidden border border-slate-200">
                                     <ReactQuill
                                         value={hp.overview_body || ''}
                                         onChange={(v) => set('overview_body', v)}
                                         theme="snow"
                                         placeholder="Enter overview body text..."
-                                        style={{ background: '#1e293b', color: 'white' }}
+                                        className="bg-white"
+                                        style={{ marginBottom: '42px' }}
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Background Image</Label>
+                                <FieldLabel>Background Image</FieldLabel>
                                 {hp.overview_bg_image && (
                                     <div className="relative w-48 h-28 rounded-lg overflow-hidden mb-2">
                                         <img src={hp.overview_bg_image} alt="Overview background" className="w-full h-full object-cover" />
@@ -437,7 +445,7 @@ export default function HomePageEditor() {
                                         size="sm"
                                         onClick={() => overviewBgFileRef.current?.click()}
                                         disabled={isUploadingOverviewBg}
-                                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                                        className="border-slate-300 text-slate-600 hover:bg-slate-50"
                                     >
                                         {isUploadingOverviewBg
                                             ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -461,8 +469,8 @@ export default function HomePageEditor() {
 
                     {activeSection === 'style' && (
                         <div className="max-w-2xl space-y-4">
-                            <h2 className="text-xl font-semibold text-white mb-2">Map Style</h2>
-                            <p className="text-sm text-slate-400 mb-6">
+                            <h2 className="text-xl font-semibold text-slate-900 mb-2">Map Style</h2>
+                            <p className="text-sm text-slate-500 mb-6">
                                 Sets the base map tiles and theme font across the whole home page.
                             </p>
                             <div className="flex flex-col gap-4">
@@ -476,7 +484,7 @@ export default function HomePageEditor() {
                                             className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all duration-200 flex ${
                                                 isSelected
                                                     ? 'border-amber-500 shadow-lg shadow-amber-500/20'
-                                                    : 'border-slate-600 hover:border-slate-400'
+                                                    : 'border-slate-200 hover:border-slate-400'
                                             }`}
                                         >
                                             <div className="relative flex-shrink-0 w-[220px]">
@@ -491,11 +499,11 @@ export default function HomePageEditor() {
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className={`flex-1 px-4 py-3 flex flex-col justify-center ${isSelected ? 'bg-slate-700' : 'bg-slate-800'}`}>
-                                                <span className={`text-sm font-semibold block mb-1 ${isSelected ? 'text-amber-400' : 'text-slate-200'}`}>
+                                            <div className={`flex-1 px-4 py-3 flex flex-col justify-center ${isSelected ? 'bg-amber-50' : 'bg-white'}`}>
+                                                <span className={`text-sm font-semibold block mb-1 ${isSelected ? 'text-amber-600' : 'text-slate-800'}`}>
                                                     {style.label}
                                                 </span>
-                                                <span className="text-xs text-slate-400">{style.description}</span>
+                                                <span className="text-xs text-slate-500">{style.description}</span>
                                                 {isSelected && (
                                                     <span className="mt-2 text-xs font-medium text-amber-600 bg-amber-500/20 px-2 py-0.5 rounded-full w-fit">Active</span>
                                                 )}
@@ -508,11 +516,14 @@ export default function HomePageEditor() {
                     )}
 
                     {activeSection === 'footer' && (
-                        <div className="max-w-2xl space-y-6">
+                        <div className="max-w-4xl space-y-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-white">Footer</h2>
+                                <div>
+                                    <h2 className="text-xl font-semibold text-slate-900">Footer</h2>
+                                    <p className="text-xs text-slate-500 mt-1">Three columns on a black background — 400px tall</p>
+                                </div>
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-slate-300">Enabled</Label>
+                                    <span className="text-sm text-slate-600">Enabled</span>
                                     <Switch
                                         checked={hp.footer_enabled}
                                         onCheckedChange={(v) => set('footer_enabled', v)}
@@ -520,22 +531,26 @@ export default function HomePageEditor() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-slate-300">Content</Label>
-                                <p className="text-xs text-slate-500">Legal text, links, credits — displayed on a black background</p>
-                                <div className="rounded-lg overflow-hidden border border-slate-600">
-                                    <ReactQuill
-                                        value={hp.footer_content || ''}
-                                        onChange={(v) => set('footer_content', v)}
-                                        theme="snow"
-                                        placeholder="© 2024 Your Organisation. All rights reserved."
-                                        style={{ background: '#1e293b', color: 'white' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="rounded-lg bg-slate-800 border border-slate-700 p-4 h-[60px] flex items-center justify-center">
-                                <p className="text-xs text-slate-500 italic">Preview: 240px black footer bar</p>
+                            <div className="grid grid-cols-3 gap-6">
+                                {[
+                                    { key: 'footer_col1', label: 'Column 1', placeholder: 'e.g. Organisation name, description...' },
+                                    { key: 'footer_col2', label: 'Column 2', placeholder: 'e.g. Navigation links...' },
+                                    { key: 'footer_col3', label: 'Column 3', placeholder: 'e.g. © 2024 Contact details...' },
+                                ].map(({ key, label, placeholder }) => (
+                                    <div key={key} className="space-y-2">
+                                        <FieldLabel>{label}</FieldLabel>
+                                        <div className="rounded-lg overflow-hidden border border-slate-200">
+                                            <ReactQuill
+                                                value={hp[key] || ''}
+                                                onChange={(v) => set(key, v)}
+                                                theme="snow"
+                                                placeholder={placeholder}
+                                                className="bg-white"
+                                        style={{ marginBottom: '42px' }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
@@ -543,26 +558,26 @@ export default function HomePageEditor() {
                     {activeSection === 'info' && (
                         <div className="max-w-2xl space-y-6">
                             <div className="mb-6">
-                                <h2 className="text-xl font-semibold text-white">Info Panel</h2>
-                                <p className="text-sm text-slate-400 mt-1">
+                                <h2 className="text-xl font-semibold text-slate-900">Info Panel</h2>
+                                <p className="text-sm text-slate-500 mt-1">
                                     Shown when the visitor clicks the Info button in the banner. Leave blank to hide the button.
                                 </p>
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Organisation Name</Label>
+                                <FieldLabel>Organisation Name</FieldLabel>
                                 <Input
                                     value={hp.about_org_name || ''}
                                     onChange={(e) => set('about_org_name', e.target.value)}
                                     placeholder="Your Organisation"
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Organisation Logo</Label>
+                                <FieldLabel>Organisation Logo</FieldLabel>
                                 {hp.about_logo_url && (
-                                    <div className="relative w-40 h-20 rounded-lg overflow-hidden mb-2 bg-slate-700 flex items-center justify-center">
+                                    <div className="relative w-40 h-20 rounded-lg overflow-hidden mb-2 bg-slate-100 flex items-center justify-center">
                                         <img src={hp.about_logo_url} alt="Logo" className="max-w-full max-h-full object-contain p-2" />
                                     </div>
                                 )}
@@ -583,7 +598,7 @@ export default function HomePageEditor() {
                                         size="sm"
                                         onClick={() => aboutLogoFileRef.current?.click()}
                                         disabled={isUploadingAboutLogo}
-                                        className="border-slate-600 text-slate-300 hover:bg-slate-700"
+                                        className="border-slate-300 text-slate-600 hover:bg-slate-50"
                                     >
                                         {isUploadingAboutLogo
                                             ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -604,48 +619,50 @@ export default function HomePageEditor() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Who We Are</Label>
-                                <div className="rounded-lg overflow-hidden border border-slate-600">
+                                <FieldLabel>Who We Are</FieldLabel>
+                                <div className="rounded-lg overflow-hidden border border-slate-200">
                                     <ReactQuill
                                         value={hp.about_who_we_are || ''}
                                         onChange={(v) => set('about_who_we_are', v)}
                                         theme="snow"
                                         placeholder="Describe your organisation..."
-                                        style={{ background: '#1e293b', color: 'white' }}
+                                        className="bg-white"
+                                        style={{ marginBottom: '42px' }}
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">What We Do</Label>
-                                <div className="rounded-lg overflow-hidden border border-slate-600">
+                                <FieldLabel>What We Do</FieldLabel>
+                                <div className="rounded-lg overflow-hidden border border-slate-200">
                                     <ReactQuill
                                         value={hp.about_what_we_do || ''}
                                         onChange={(v) => set('about_what_we_do', v)}
                                         theme="snow"
                                         placeholder="Describe your work..."
-                                        style={{ background: '#1e293b', color: 'white' }}
+                                        className="bg-white"
+                                        style={{ marginBottom: '42px' }}
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Website</Label>
+                                <FieldLabel>Website</FieldLabel>
                                 <Input
                                     value={hp.about_website || ''}
                                     onChange={(e) => set('about_website', e.target.value)}
                                     placeholder="https://yourorganisation.org"
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Email</Label>
+                                <FieldLabel>Email</FieldLabel>
                                 <Input
                                     value={hp.about_email || ''}
                                     onChange={(e) => set('about_email', e.target.value)}
                                     placeholder="contact@yourorganisation.org"
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
                         </div>
@@ -654,9 +671,9 @@ export default function HomePageEditor() {
                     {activeSection === 'globe' && (
                         <div className="max-w-2xl space-y-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-white">Globe Section</h2>
+                                <h2 className="text-xl font-semibold text-slate-900">Globe Section</h2>
                                 <div className="flex items-center gap-2">
-                                    <Label className="text-slate-300">Enabled</Label>
+                                    <span className="text-sm text-slate-600">Enabled</span>
                                     <Switch
                                         checked={hp.globe_enabled}
                                         onCheckedChange={(v) => set('globe_enabled', v)}
@@ -665,18 +682,18 @@ export default function HomePageEditor() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-slate-300">Banner Title</Label>
+                                <FieldLabel>Banner Title</FieldLabel>
                                 <p className="text-xs text-slate-500">Shown in the top bar when the globe is visible</p>
                                 <Input
                                     value={hp.globe_heading || ''}
                                     onChange={(e) => set('globe_heading', e.target.value)}
                                     placeholder="Explore Our Stories"
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
 
-                            <div className="rounded-lg bg-slate-700/50 border border-slate-600 p-4 text-sm text-slate-400">
-                                <Globe className="w-4 h-4 inline-block mr-2 text-slate-500" />
+                            <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-500">
+                                <Globe className="w-4 h-4 inline-block mr-2 text-slate-400" />
                                 All published stories with map coordinates appear automatically on the globe.
                                 Manage stories from the{' '}
                                 <Link to={createPageUrl('Stories')} className="text-amber-400 hover:underline">

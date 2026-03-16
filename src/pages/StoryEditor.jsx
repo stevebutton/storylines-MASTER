@@ -7,7 +7,7 @@ import { supabase } from '@/api/supabaseClient';
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle, Images } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle, Images, Home } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
@@ -413,7 +413,7 @@ export default function StoryEditor() {
                 />
             )}
         </AnimatePresence>
-            <div className="min-h-screen flex flex-col" style={{ background: '#DCDCDC' }}>
+            <div className="min-h-screen flex flex-col bg-white">
             {/* Header */}
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
                 <div className="px-4 py-3">
@@ -425,7 +425,7 @@ export default function StoryEditor() {
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
-                        <Link to={createPageUrl('ProjectInterface')}>
+                        <Link to={createPageUrl('HomePageView')}>
                             <img
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
                                 alt="Storylines"
@@ -437,6 +437,15 @@ export default function StoryEditor() {
                         <h1 className="text-2xl md:text-2xl font-bold text-slate-900 flex-1 leading-tight" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>
                             {story.title || 'Untitled Story'}
                         </h1>
+                        <Link
+                            to={createPageUrl('HomePageView')}
+                            className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors flex items-center gap-1 whitespace-nowrap"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <Home className="w-4 h-4" />
+                            View Home Page
+                        </Link>
                     </div>
                     
                     {/* Action Button Row */}
