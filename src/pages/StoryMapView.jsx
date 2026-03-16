@@ -17,6 +17,7 @@ import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
 import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
 import LibraryPill from '@/components/storymap/LibraryPill';
 import ScaleBar from '@/components/storymap/ScaleBar';
+import MilestonePanel from '@/components/storymap/MilestonePanel';
 import AboutPanel from '@/components/storymap/AboutPanel';
 import { fadeMapLayer } from '@/utils/mapLayerFade';
 
@@ -130,6 +131,7 @@ export default function StoryMapView() {
     const [showStoryOverlay, setShowStoryOverlay] = useState(false);
     const [overlayCurrentIndex, setOverlayCurrentIndex] = useState(0);
     const [overlayMode, setOverlayMode] = useState('story'); // 'picture' | 'story' | 'timeline'
+    const timelineEnteredAtRef = useRef(null); // timestamp when timeline mode was entered
     const overlayScrollRef = useRef(0);
 
 
@@ -361,6 +363,7 @@ export default function StoryMapView() {
                         story_date: s.story_date,
                         capture_date: s.capture_date,
                         image_position: s.image_position,
+                        milestone: s.milestone,
                     }))
             }));
 
@@ -861,6 +864,8 @@ export default function StoryMapView() {
 
     const handleOverlayModeChange = (newMode) => {
         if (newMode === overlayMode) return;
+        if (newMode === 'timeline') timelineEnteredAtRef.current = Date.now();
+        else timelineEnteredAtRef.current = null;
         const currentSlide = overlayActiveSlides[overlayCurrentIndex];
         const newSlides = newMode === 'timeline' ? overlayTimelineSlides : overlaySlides;
         const newIdx = currentSlide ? newSlides.findIndex(sl => sl.id === currentSlide.id) : 0;
@@ -1154,7 +1159,10 @@ export default function StoryMapView() {
                         key={chapter.id}
                         ref={el => chapterRefs.current[index] = el}
                         className="relative pointer-events-none"
-                        style={{ zIndex: showStoryOverlay ? 0 : 200005 }}
+                        style={{
+                            zIndex: showStoryOverlay ? 0 : 200005,
+                            transition: showStoryOverlay ? 'none' : 'z-index 0s 2.2s',
+                        }}
                         data-name={`chapter-wrapper-${index}`}
                     >
                         <StoryChapter
@@ -1505,10 +1513,7 @@ export default function StoryMapView() {
                             <FullscreenNavPill
                                 onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
                                 onNext={() => setOverlayCurrentIndex(i => Math.min(overlayActiveSlides.length - 1, i + 1))}
-                                onClose={handleOverlayClose}
                                 hasMultiple={overlayActiveSlides.length > 1}
-                                current={overlayCurrentIndex + 1}
-                                total={overlayActiveSlides.length}
                                 mode={overlayMode}
                                 onModeChange={handleOverlayModeChange}
                             />
@@ -1573,9 +1578,9 @@ export default function StoryMapView() {
                             background: 'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 100%)',
                         }} />
 
-                        {/* Top gradient — sits behind ScaleBar, aids track readability */}
+                        {/* Top gradient — story mode only */}
                         <AnimatePresence>
-                        {overlayMode !== 'picture' && !overlayIsNonLoopingVideo && (
+                        {overlayMode !== 'picture' && overlayMode !== 'timeline' && !overlayIsNonLoopingVideo && (
                             <motion.div
                                 className="fixed pointer-events-none"
                                 style={{ left: 0, right: 0, top: 100, height: 250, zIndex: 9998,
@@ -1588,9 +1593,24 @@ export default function StoryMapView() {
                         )}
                         </AnimatePresence>
 
-                        {/* ScaleBar — hidden for non-looping videos (full video experience) */}
+                        {/* Bottom gradient — timeline mode only, behind date axis */}
                         <AnimatePresence>
-                        {overlayMode !== 'picture' && !overlayIsNonLoopingVideo && (
+                        {overlayMode === 'timeline' && !overlayIsNonLoopingVideo && (
+                            <motion.div
+                                className="fixed pointer-events-none"
+                                style={{ left: 0, right: 0, bottom: 0, height: 220, zIndex: 9998,
+                                    background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)' }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 1, ease: 'easeInOut' }}
+                            />
+                        )}
+                        </AnimatePresence>
+
+                        {/* ScaleBar — Story mode (chapters), enters from top */}
+                        <AnimatePresence>
+                        {overlayMode !== 'picture' && overlayMode !== 'timeline' && !overlayIsNonLoopingVideo && (
                             <motion.div
                                 className="fixed pointer-events-none"
                                 style={{ left: 0, right: 0, top: 140, zIndex: 9999 }}
@@ -1599,9 +1619,8 @@ export default function StoryMapView() {
                                 exit={{ opacity: 0, transition: { duration: 1, ease: 'easeInOut' } }}
                                 transition={{ delay: 2, duration: 1, ease: 'easeOut' }}
                             >
-                            {/* pointer-events re-enabled on cursor inside ScaleBar */}
                                 <ScaleBar
-                                    mode={overlayMode === 'timeline' ? 'dates' : 'chapters'}
+                                    mode="chapters"
                                     cursorPercent={cursorPercent}
                                     activeChapterIndex={activeChapterIndex}
                                     mapStyle={story?.map_style || 'a'}
@@ -1616,6 +1635,76 @@ export default function StoryMapView() {
                         )}
                         </AnimatePresence>
 
+                        {/* ScaleBar — Timeline mode (dates), enters from bottom */}
+                        <AnimatePresence>
+                        {overlayMode === 'timeline' && !overlayIsNonLoopingVideo && (
+                            <motion.div
+                                className="fixed pointer-events-none"
+                                style={{ left: 0, right: 0, bottom: 85, height: 72, zIndex: 9999 }}
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, transition: { duration: 1, ease: 'easeInOut' } }}
+                                transition={{ delay: 2, duration: 1, ease: 'easeOut' }}
+                            >
+                                {/* Label overlaid on the track axis (top: 41 = trackTop+5) */}
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 26,
+                                    transform: 'translateY(-50%)',
+                                    width: 380,
+                                    paddingRight: 32,
+                                    fontSize: 24,
+                                    fontWeight: 300,
+                                    letterSpacing: '0.08em',
+                                    textTransform: 'uppercase',
+                                    textAlign: 'right',
+                                    color: 'rgba(255,255,255,0.9)',
+                                    fontFamily: bannerThemeFont,
+                                    pointerEvents: 'none',
+                                }}>
+                                    Project Timeline
+                                </div>
+                                <ScaleBar
+                                    mode="dates"
+                                    bottomMode={true}
+                                    cursorPercent={cursorPercent}
+                                    activeChapterIndex={activeChapterIndex}
+                                    mapStyle={story?.map_style || 'a'}
+                                    segments={scaleSegments}
+                                    ticks={scaleTicks}
+                                    startLabel={scaleStartLabel}
+                                    endLabel={scaleEndLabel}
+                                    height={72}
+                                    onSeek={handleScaleSeek}
+                                />
+                            </motion.div>
+                        )}
+                        </AnimatePresence>
+
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Milestone Panel — AnimatePresence handles dissolve out on mode/overlay change */}
+            <AnimatePresence>
+                {showStoryOverlay && overlayMode === 'timeline' && (
+                    <motion.div
+                        key="milestone-outer"
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0, transition: { duration: 0.6, ease: 'easeOut' } }}
+                        style={{ position: 'fixed', inset: 0, zIndex: 210000, pointerEvents: 'none' }}
+                    >
+                        <MilestonePanel
+                            milestone={overlayActiveSlides?.[overlayCurrentIndex]?.milestone}
+                            date={overlayActiveSlides?.[overlayCurrentIndex]?.story_date || overlayActiveSlides?.[overlayCurrentIndex]?.capture_date}
+                            slideKey={overlayActiveSlides?.[overlayCurrentIndex]?.id}
+                            cursorPercent={cursorPercent}
+                            mapStyle={story?.map_style || 'a'}
+                            initialDelay={timelineEnteredAtRef.current
+                                ? Math.max(0, (3000 - (Date.now() - timelineEnteredAtRef.current)) / 1000)
+                                : 0}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>

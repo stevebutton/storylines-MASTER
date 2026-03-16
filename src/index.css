@@ -162,6 +162,12 @@ button:focus-visible {
   }
 }
 
+/* Milestone panel — force white text regardless of Quill inline colour styles */
+.milestone-panel-content,
+.milestone-panel-content * {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
 /* Resizable Quill rich-text editors */
 .ql-container {
   resize: vertical;

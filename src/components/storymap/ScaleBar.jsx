@@ -26,6 +26,7 @@ export default function ScaleBar({
     activeChapterIndex = 0,
     mapStyle           = 'a',
     onSeek             = null,
+    bottomMode         = false,
     // chapters
     segments           = [],
     // dates
@@ -34,7 +35,7 @@ export default function ScaleBar({
     endLabel           = '',
 }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
-    const trackTop = 107;
+    const trackTop = bottomMode ? 36 : 107;
     const { t } = useTranslation();
 
     // ── Draggable label row (chapters mode) ──────────────────────────────────
@@ -174,12 +175,12 @@ export default function ScaleBar({
                 </motion.div>
             )}
 
-            {/* ── Track line — starts at x=358 (right of text panel) in both modes ── */}
+            {/* ── Track line — starts at x=358 (right of text panel) in story mode; x=396 in bottom/timeline mode ── */}
             <div
                 ref={trackRef}
                 className="absolute"
                 style={{
-                    left:       358,
+                    left:       bottomMode ? 396 : 358,
                     right:      48,
                     top:        trackTop + 5,
                     height:     1,
@@ -275,7 +276,7 @@ export default function ScaleBar({
                                     transform:     'translateX(-50%)',
                                     pointerEvents: 'none',
                                 }} />
-                                {/* Label — above track, styled to match chapter titles */}
+                                {/* Label — above track in top mode, below in bottom mode */}
                                 <span style={{
                                     position:      'absolute',
                                     left:          `${tick.percent}%`,

@@ -1,20 +1,50 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, X, Image, BookOpen, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Image, BookOpen, Clock } from 'lucide-react';
 import { pillShell, pillBtn, pillBtnActive, pillDivider } from './StoryViewPill';
+
+const pillBtnInner = pillBtn.replace('flex-1', 'w-full');
+const pillBtnActiveInner = pillBtnActive.replace('flex-1', 'w-full');
+
+function TooltipBtn({ label, active, onClick, align = 'center', offsetX = 0, children }) {
+    const pos = align === 'left'
+        ? 'left-0'
+        : 'left-1/2 -translate-x-1/2';
+    return (
+        <div className="relative group flex-1 h-full">
+            <button
+                onClick={onClick}
+                className={active ? pillBtnActiveInner : pillBtnInner}
+                aria-label={label}
+            >
+                {children}
+            </button>
+            <span
+                className={`
+                    absolute bottom-full ${pos} mb-[10px]
+                    text-white text-xs font-light whitespace-nowrap uppercase tracking-widest
+                    opacity-0 group-hover:opacity-100
+                    transition-opacity duration-150
+                    pointer-events-none select-none
+                    drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]
+                `}
+                style={offsetX ? { marginLeft: offsetX } : undefined}
+            >
+                {label}
+            </span>
+        </div>
+    );
+}
 
 /**
  * FullscreenNavPill — Story view context sub-pill.
  *
- * Mode toggle (Picture | Story | Timeline) + Prev / count / Next + Close.
+ * Mode toggle (Picture | Story | Timeline) + Prev / count / Next.
  * No positioning — rendered inside StoryViewPill's subPill slot.
  */
 export default function FullscreenNavPill({
     onPrev,
     onNext,
-    onClose,
     hasMultiple  = true,
-    current      = 1,
-    total        = 1,
     mode         = 'story',
     onModeChange,
 }) {
@@ -23,30 +53,15 @@ export default function FullscreenNavPill({
             {/* Mode toggles */}
             {onModeChange && (
                 <>
-                    <button
-                        onClick={() => onModeChange('picture')}
-                        className={mode === 'picture' ? pillBtnActive : pillBtn}
-                        title="Picture"
-                        aria-label="Picture view"
-                    >
-                        <Image className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                        onClick={() => onModeChange('story')}
-                        className={mode === 'story' ? pillBtnActive : pillBtn}
-                        title="Story"
-                        aria-label="Story view"
-                    >
-                        <BookOpen className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                        onClick={() => onModeChange('timeline')}
-                        className={mode === 'timeline' ? pillBtnActive : pillBtn}
-                        title="Timeline"
-                        aria-label="Timeline view"
-                    >
-                        <Clock className="w-3.5 h-3.5" />
-                    </button>
+                    <TooltipBtn label="Pictures" active={mode === 'picture'} onClick={() => onModeChange('picture')} align="left" offsetX={10}>
+                        <Image className="w-5 h-5" />
+                    </TooltipBtn>
+                    <TooltipBtn label="Story" active={mode === 'story'} onClick={() => onModeChange('story')}>
+                        <BookOpen className="w-5 h-5" />
+                    </TooltipBtn>
+                    <TooltipBtn label="Timeline" active={mode === 'timeline'} onClick={() => onModeChange('timeline')}>
+                        <Clock className="w-5 h-5" />
+                    </TooltipBtn>
                     {pillDivider}
                 </>
             )}
@@ -61,10 +76,6 @@ export default function FullscreenNavPill({
                 <ChevronLeft className="w-8 h-8" />
             </button>
 
-            <span className="text-white/50 text-xs tabular-nums px-2 select-none">
-                {current} / {total}
-            </span>
-
             <button
                 onClick={onNext}
                 disabled={!hasMultiple}
@@ -72,16 +83,6 @@ export default function FullscreenNavPill({
                 aria-label="Next slide"
             >
                 <ChevronRight className="w-8 h-8" />
-            </button>
-
-            {pillDivider}
-
-            <button
-                onClick={onClose}
-                className={pillBtn}
-                aria-label="Close"
-            >
-                <X className="w-4 h-4" />
             </button>
         </div>
     );

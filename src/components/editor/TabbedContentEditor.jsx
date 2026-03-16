@@ -1120,6 +1120,23 @@ export default function TabbedContentEditor({
                                 />
                             </div>
                             <div>
+                                <FieldLabel>Milestone <span className="text-slate-400 font-normal text-xs normal-case tracking-normal">(Timeline View)</span></FieldLabel>
+                                <ReactQuill
+                                    value={item.milestone || ''}
+                                    onChange={(content) => onUpdate({ ...item, milestone: content })}
+                                    placeholder="Chronological milestone note — only shown in Timeline View..."
+                                    className="bg-white"
+                                    style={{ marginBottom: '42px' }}
+                                    modules={{
+                                        toolbar: [
+                                            ['bold', 'italic', 'underline'],
+                                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                            ['link']
+                                        ]
+                                    }}
+                                />
+                            </div>
+                            <div>
                                 <FieldLabel>Location Name</FieldLabel>
                                 <Input
                                     value={item.location || ''}
