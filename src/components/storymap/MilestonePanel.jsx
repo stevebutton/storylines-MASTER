@@ -50,7 +50,7 @@ export default function MilestonePanel({ milestone, date, cursorPercent, initial
                             top:           PANEL_TOP,
                             left:          panelLeft,
                             width:         PANEL_WIDTH,
-                            zIndex:        210000,
+                            zIndex:        2,
                             pointerEvents: 'none',
                         }}
                         initial={{ opacity: 0, y: 50 }}

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsPanel';
@@ -294,7 +294,7 @@ export default function Stories() {
                     </div>
 
                     {/* Stats & Actions */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
                         <div className="bg-blue-50 rounded-lg p-4 flex flex-col items-start justify-center">
                             <p className="text-sm text-blue-600">Total Stories</p>
                             <p className="text-2xl font-bold text-blue-700">{stories.length}</p>
@@ -337,6 +337,13 @@ export default function Stories() {
                         >
                             <Home className="w-6 h-6 mb-1" />
                             <span className="text-sm font-semibold">Edit Home Page</span>
+                        </Link>
+                        <Link
+                            to={createPageUrl('SeriesEditor')}
+                            className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
+                        >
+                            <Layers className="w-6 h-6 mb-1" />
+                            <span className="text-sm font-semibold">Series</span>
                         </Link>
                     </div>
 

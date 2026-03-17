@@ -68,6 +68,8 @@ import StoryMapView from './pages/StoryMapView';
 import Storyboarder from './pages/Storyboarder';
 import StoryFullscreen from './pages/StoryFullscreen';
 import StoryTimeline from './pages/StoryTimeline';
+import SeriesEditor from './pages/SeriesEditor';
+import SeriesView from './pages/SeriesView';
 import __Layout from './Layout.jsx';
 
 
@@ -93,6 +95,8 @@ export const PAGES = {
     "StoryMapView": StoryMapView,
     "Storyboarder": Storyboarder,
     "StoryTimeline": StoryTimeline,
+    "SeriesEditor": SeriesEditor,
+    "SeriesView": SeriesView,
 }
 
 export const pagesConfig = {

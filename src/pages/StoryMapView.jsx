@@ -19,7 +19,9 @@ import LibraryPill from '@/components/storymap/LibraryPill';
 import ScaleBar from '@/components/storymap/ScaleBar';
 import MilestonePanel from '@/components/storymap/MilestonePanel';
 import AboutPanel from '@/components/storymap/AboutPanel';
+import NextEpisodePanel from '@/components/storymap/NextEpisodePanel';
 import { fadeMapLayer } from '@/utils/mapLayerFade';
+import { createPageUrl } from '@/utils';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
 import { Loader2 } from 'lucide-react';
@@ -126,6 +128,10 @@ export default function StoryMapView() {
 
     // ── About panel ───────────────────────────────────────────────────────────
     const [showAboutPanel, setShowAboutPanel] = useState(false);
+
+    // ── Series / next episode ─────────────────────────────────────────────────
+    const [seriesData,       setSeriesData]       = useState(null); // { series, episodes[] }
+    const [showEpisodeGallery, setShowEpisodeGallery] = useState(false);
 
     // ── Story overlay (immersive reader over the map) ──────────────────────────
     const [showStoryOverlay, setShowStoryOverlay] = useState(false);
@@ -374,6 +380,26 @@ export default function StoryMapView() {
             setIsLoading(false);
         }
     };
+
+    // ── Load series data when story has a series_id ───────────────────────────
+    useEffect(() => {
+        if (!story?.series_id) { setSeriesData(null); return; }
+        (async () => {
+            const [{ data: series }, { data: episodes }] = await Promise.all([
+                supabase.from('series').select('*').eq('id', story.series_id).single(),
+                supabase.from('stories')
+                    .select('id, title, subtitle, episode_number, thumbnail, hero_image, hero_type')
+                    .eq('series_id', story.series_id)
+                    .order('episode_number'),
+            ]);
+            if (series) setSeriesData({ series, episodes: episodes || [] });
+        })();
+    }, [story?.series_id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Reset episode gallery whenever the story or overlay changes
+    useEffect(() => {
+        setShowEpisodeGallery(false);
+    }, [storyId, showStoryOverlay]);
 
     // Continuously save chapter + slide state so timeline exit can restore exact position
     useEffect(() => {
@@ -691,9 +717,12 @@ export default function StoryMapView() {
     }, [chapters, translate]);
 
     const overlayTimelineSlides = useMemo(() => {
-        const dated = overlaySlides.filter(sl => sl.story_date || sl.capture_date);
-        if (dated.length < 2) return overlaySlides;
-        return [...overlaySlides].sort((a, b) => {
+        // Only slides with milestone content, sorted by date
+        const withMilestone = overlaySlides.filter(sl => {
+            const text = sl.milestone?.replace(/<[^>]*>/g, '').trim();
+            return text && text.length > 0;
+        });
+        return [...withMilestone].sort((a, b) => {
             const da = a.story_date || a.capture_date;
             const db = b.story_date || b.capture_date;
             if (da && db) return new Date(da) - new Date(db);
@@ -703,7 +732,16 @@ export default function StoryMapView() {
         });
     }, [overlaySlides]);
 
+    // Hide Timeline button if no slides have milestone content
+    const hasTimeline = overlayTimelineSlides.length > 0;
+
     const overlayActiveSlides = overlayMode === 'timeline' ? overlayTimelineSlides : overlaySlides;
+
+    // True when the viewer is on the final slide in story mode (and series exists)
+    const isAtLastSlide = showStoryOverlay
+        && overlayMode === 'story'
+        && overlayActiveSlides.length > 0
+        && overlayCurrentIndex === overlayActiveSlides.length - 1;
 
     // True when the current overlay slide is a non-looping video — hides
     // ScaleBar and text panel so the video plays without UI interference.
@@ -1343,6 +1381,11 @@ export default function StoryMapView() {
                     onRestart={scrollToTop}
                     relatedStories={relatedStories}
                     currentCategory={story?.category}
+                    seriesEpisodes={seriesData?.episodes || []}
+                    seriesTitle={seriesData?.series?.title || ''}
+                    seriesId={seriesData?.series?.id || ''}
+                    currentEpisodeNumber={story?.episode_number}
+                    mapStyle={story?.map_style || ''}
                 />
                 </div>
             </div>
@@ -1392,6 +1435,21 @@ export default function StoryMapView() {
                 currentStoryId={storyId}
             />
             </div>
+
+            {/* Episode Gallery — triggered by pressing Next past the last slide */}
+            <NextEpisodePanel
+                isVisible={showEpisodeGallery}
+                seriesTitle={seriesData?.series?.title || ''}
+                seriesId={seriesData?.series?.id || ''}
+                episodes={seriesData?.episodes || []}
+                currentEpisodeNumber={story?.episode_number}
+                mapStyle={story?.map_style || ''}
+                onClose={() => setShowEpisodeGallery(false)}
+                onNavigate={(episodeId) => {
+                    setShowEpisodeGallery(false);
+                    navigate(createPageUrl('StoryMapView') + '?id=' + episodeId);
+                }}
+            />
 
             {/* Live Map Editor */}
             <LiveMapEditor
@@ -1511,9 +1569,22 @@ export default function StoryMapView() {
                             style={{ bottom: 0, width: 380, height: 80 }}
                         >
                             <FullscreenNavPill
-                                onPrev={() => setOverlayCurrentIndex(i => Math.max(0, i - 1))}
-                                onNext={() => setOverlayCurrentIndex(i => Math.min(overlayActiveSlides.length - 1, i + 1))}
+                                onPrev={() => {
+                                    if (showEpisodeGallery) {
+                                        setShowEpisodeGallery(false);
+                                    } else {
+                                        setOverlayCurrentIndex(i => Math.max(0, i - 1));
+                                    }
+                                }}
+                                onNext={() => {
+                                    if (isAtLastSlide && seriesData?.episodes?.length) {
+                                        setShowEpisodeGallery(true);
+                                    } else {
+                                        setOverlayCurrentIndex(i => Math.min(overlayActiveSlides.length - 1, i + 1));
+                                    }
+                                }}
                                 hasMultiple={overlayActiveSlides.length > 1}
+                                hasTimeline={hasTimeline}
                                 mode={overlayMode}
                                 onModeChange={handleOverlayModeChange}
                             />
@@ -1693,7 +1764,7 @@ export default function StoryMapView() {
                         initial={{ opacity: 1 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0, transition: { duration: 0.6, ease: 'easeOut' } }}
-                        style={{ position: 'fixed', inset: 0, zIndex: 210000, pointerEvents: 'none' }}
+                        style={{ position: 'fixed', inset: 0, zIndex: 200006, pointerEvents: 'none' }}
                     >
                         <MilestonePanel
                             milestone={overlayActiveSlides?.[overlayCurrentIndex]?.milestone}

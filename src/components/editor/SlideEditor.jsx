@@ -375,6 +375,29 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                             </div>
                         </div>
 
+                        {/* Milestone — Timeline View only */}
+                        <div>
+                            <Label className="text-xs">Milestone <span className="text-slate-400 font-normal">(Timeline View)</span></Label>
+                            <ReactQuill
+                                value={slide.milestone || ''}
+                                onChange={(content) => {
+                                    if (content !== slide.milestone) {
+                                        onUpdate({ ...slide, milestone: content });
+                                    }
+                                }}
+                                placeholder="Chronological milestone note — only shown in Timeline View..."
+                                className="bg-white rounded-md border"
+                                style={{ height: '80px' }}
+                                modules={{
+                                    toolbar: [
+                                        ['bold', 'italic', 'underline'],
+                                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                                        ['link']
+                                    ]
+                                }}
+                            />
+                        </div>
+
                         {/* Video Section */}
                         <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
                             <Label className="text-xs font-medium">Video (optional)</Label>

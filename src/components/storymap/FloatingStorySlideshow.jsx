@@ -211,7 +211,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                         exit={{ y: '100%', transition: { duration: 1.0, ease: 'easeIn' } }}
                         transition={{ duration: 2, ease: 'easeIn' }}
                         className="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-white/10 shadow-2xl overflow-hidden"
-                        style={{ height: '50vh', zIndex: 200030, background: 'rgba(255,255,255,0.15)' }}
+                        style={{ top: 200, zIndex: 200030, background: 'rgba(255,255,255,0.15)' }}
                     >
                         <div className="max-w-7xl mx-auto p-6">
                             {/* Header */}

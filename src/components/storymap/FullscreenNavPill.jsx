@@ -45,6 +45,7 @@ export default function FullscreenNavPill({
     onPrev,
     onNext,
     hasMultiple  = true,
+    hasTimeline  = false,
     mode         = 'story',
     onModeChange,
 }) {
@@ -59,9 +60,11 @@ export default function FullscreenNavPill({
                     <TooltipBtn label="Story" active={mode === 'story'} onClick={() => onModeChange('story')}>
                         <BookOpen className="w-5 h-5" />
                     </TooltipBtn>
-                    <TooltipBtn label="Timeline" active={mode === 'timeline'} onClick={() => onModeChange('timeline')}>
-                        <Clock className="w-5 h-5" />
-                    </TooltipBtn>
+                    {hasTimeline && (
+                        <TooltipBtn label="Timeline" active={mode === 'timeline'} onClick={() => onModeChange('timeline')}>
+                            <Clock className="w-5 h-5" />
+                        </TooltipBtn>
+                    )}
                     {pillDivider}
                 </>
             )}
