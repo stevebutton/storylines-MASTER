@@ -141,51 +141,45 @@ export default function HomePageEditor() {
     return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
             {/* Header */}
-            <div className="bg-white border-b flex-shrink-0">
-                <div className="bg-white px-6 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <Link
-                                to={createPageUrl('Stories')}
-                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-2 flex-shrink-0"
-                            >
-                                <ArrowLeft className="w-8 h-8" />
-                                Story Library
-                            </Link>
-                            <div style={{ width: 100 }} className="flex-shrink-0" />
-                            <Link to={createPageUrl('HomePageView')} className="flex-shrink-0">
-                                <img
-                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
-                                    alt="Storylines"
-                                    width="200"
-                                    height="80"
-                                    className="hover:opacity-80 transition-opacity cursor-pointer"
-                                />
-                            </Link>
-                            <div className="ml-4">
-                                <h1 className="text-slate-800 text-[42px] font-bold">Home Page Editor</h1>
-                                <p className="text-slate-500 mt-1">Configure your public home page layout</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <Link
-                                to={createPageUrl('HomePageView')}
-                                className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors flex items-center gap-1"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <ExternalLink className="w-4 h-4" />
-                                View Home Page
-                            </Link>
-                            <Button
-                                onClick={save}
-                                disabled={isSaving}
-                                className="bg-amber-600 hover:bg-amber-700 text-white"
-                            >
-                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                                Save
-                            </Button>
-                        </div>
+            <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
+                <div className="px-4 py-3">
+                    <div className="flex items-center gap-4 mb-4">
+                        <Link
+                            to={createPageUrl('Stories')}
+                            className="p-2 text-slate-500 hover:text-slate-700 transition-colors flex-shrink-0 flex items-center gap-2"
+                        >
+                            <ArrowLeft className="w-8 h-8" />
+                            <span className="text-sm font-medium">Story Library</span>
+                        </Link>
+                        <Link to={createPageUrl('HomePageView')}>
+                            <img
+                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                                alt="Storylines"
+                                width="250"
+                                height="100"
+                                className="hover:opacity-80 transition-opacity cursor-pointer"
+                            />
+                        </Link>
+                        <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
+                            Home Page Editor
+                        </h1>
+                        <Link
+                            to={createPageUrl('HomePageView')}
+                            className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors flex items-center gap-1 whitespace-nowrap"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                            View Home Page
+                        </Link>
+                        <Button
+                            onClick={save}
+                            disabled={isSaving}
+                            className="bg-amber-600 hover:bg-amber-700 text-white"
+                        >
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                            Save
+                        </Button>
                     </div>
                 </div>
             </div>
