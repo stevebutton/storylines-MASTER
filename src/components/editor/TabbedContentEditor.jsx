@@ -140,14 +140,14 @@ export default function TabbedContentEditor({
 
     // ── Pill helpers ────────────────────────────────────────────────────────
     const PanelTitle = ({ children }) => (
-        <div className="mb-4">
+        <div className="mb-4 pl-[50px]">
             <span className="inline-flex items-center px-5 py-2 rounded-full bg-white shadow-md text-xl font-bold text-slate-800 tracking-tight">
                 {children}
             </span>
         </div>
     );
     const FieldLabel = ({ children }) => (
-        <span className="inline-flex items-center px-8 py-[9px] rounded-full bg-slate-100 shadow-sm text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block w-fit">
+        <span className="inline-flex items-center px-8 py-[9px] rounded-full bg-slate-700 shadow-sm text-sm font-semibold text-white uppercase tracking-wide mb-2 block w-fit">
             {children}
         </span>
     );
@@ -243,7 +243,7 @@ export default function TabbedContentEditor({
         return (<>
             <div className="space-y-4">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <div className="flex flex-wrap gap-[50px] mb-4">
+                    <div className="flex flex-wrap gap-[50px] mb-4 pl-[50px]">
                         {[
                             { value: 'story',    label: 'Story Settings' },
                             { value: 'style',    label: 'Map Style' },
@@ -268,7 +268,7 @@ export default function TabbedContentEditor({
                         {/* Project Timeline */}
                         <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                             <FieldLabel>Project Timeline (optional)</FieldLabel>
-                            <p className="text-xs text-slate-500 mt-0.5 mb-3">
+                            <p className="text-sm text-slate-900 mt-0.5 mb-3">
                                 Set a start and end date, they will then be distributed evenly across all slides as a starting point for Timeline view.
                             </p>
                             <div className="grid grid-cols-2 gap-3 mb-3">
@@ -318,7 +318,6 @@ export default function TabbedContentEditor({
                                 value={item.title || ''}
                                 onChange={(e) => onUpdate({ ...item, title: e.target.value })}
                                 placeholder="A Journey Through Time"
-                                style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                             />
                         </div>
                         <div>
@@ -340,7 +339,7 @@ export default function TabbedContentEditor({
                         </div>
                         <div>
                             <FieldLabel>Story Description</FieldLabel>
-                            <p className="text-xs text-slate-500 mb-1">Shown as a full panel between the hero and chapter one. Leave blank to skip.</p>
+                            <p className="text-sm text-slate-900 mb-1">Shown as a full panel between the hero and chapter one. Leave blank to skip.</p>
                             <ReactQuill
                                 value={item.story_description || ''}
                                 onChange={(content) => onUpdate({ ...item, story_description: content })}
@@ -360,7 +359,7 @@ export default function TabbedContentEditor({
                         {/* Project Overview */}
                         <div>
                             <FieldLabel>Project Overview</FieldLabel>
-                            <p className="text-xs text-slate-500 mb-1">Displayed as a text panel on the left of the carousel in the Project Timeline view.</p>
+                            <p className="text-sm text-slate-900 mb-1">Displayed as a text panel on the left of the carousel in the Project Timeline view.</p>
                             <Textarea
                                 value={item.project_overview || ''}
                                 onChange={(e) => onUpdate({ ...item, project_overview: e.target.value })}
@@ -373,7 +372,7 @@ export default function TabbedContentEditor({
                         {/* Opening Map View */}
                         <div>
                             <FieldLabel>Story Opening Map View</FieldLabel>
-                            <p className="text-xs text-slate-500 mb-2">Set the initial map view when the story opens</p>
+                            <p className="text-sm text-slate-900 mb-2">Set the initial map view when the story opens</p>
                             <EmbeddedLocationPicker
                                 location={{
                                     lat: item.coordinates?.[0] || 0,
@@ -506,7 +505,7 @@ export default function TabbedContentEditor({
                         {/* Story Thumbnail */}
                         <div>
                             <FieldLabel>Story Thumbnail</FieldLabel>
-                            <p className="text-xs text-slate-500 mt-0.5 mb-2">
+                            <p className="text-sm text-slate-900 mt-0.5 mb-2">
                                 Shown in story browser cards. Use a still image even if the hero is a video.
                             </p>
                             {item.thumbnail && (
@@ -579,10 +578,10 @@ export default function TabbedContentEditor({
                                         )}
                                     </div>
                                     {routeComputeStatus && (
-                                        <p className="text-xs text-slate-500">{routeComputeStatus}</p>
+                                        <p className="text-sm text-slate-900">{routeComputeStatus}</p>
                                     )}
                                     {chapterRouteCount > 0 && !routeComputeStatus && (
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-sm text-slate-900">
                                             {chapterRouteCount}/{totalChapterCount} chapters have routes
                                         </p>
                                     )}
@@ -602,7 +601,7 @@ export default function TabbedContentEditor({
                     <TabsContent value="style">
                     <Card>
                     <CardContent className="pt-6 space-y-4">
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm text-slate-900">
                             Select the base map style for this story. Thumbnails show the style over your story's opening location.
                         </p>
                         <div className="flex flex-col gap-4">
@@ -641,7 +640,7 @@ export default function TabbedContentEditor({
                                                 <span className={`text-sm font-semibold block mb-1 ${isSelected ? 'text-amber-700' : 'text-slate-700'}`}>
                                                     {style.label}
                                                 </span>
-                                                <span className="text-xs text-slate-400">{style.description}</span>
+                                                <span className="text-sm text-slate-900">{style.description}</span>
                                             </div>
                                             {isSelected && (
                                                 <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full w-fit">Active</span>
@@ -666,7 +665,7 @@ export default function TabbedContentEditor({
                     <TabsContent value="about">
                     <Card>
                     <CardContent className="pt-6 space-y-4">
-                        <p className="text-xs text-slate-500">Shown in the About panel, accessible from the story banner. Leave blank to hide the About button.</p>
+                        <p className="text-sm text-slate-900">Shown in the About panel, accessible from the story banner. Leave blank to hide the About button.</p>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -845,7 +844,7 @@ export default function TabbedContentEditor({
                                 value={item.name || ''}
                                 onChange={(e) => onUpdate({ ...item, name: e.target.value })}
                             />
-                            <p className="text-xs text-slate-500 mt-1">Shown as large title on the chapter card</p>
+                            <p className="text-sm text-slate-900 mt-1">Shown as large title on the chapter card</p>
                         </div>
 
                         <div>
@@ -862,7 +861,7 @@ export default function TabbedContentEditor({
                         {/* Chapter Background Image */}
                         <div>
                             <FieldLabel>Title Card Background Image</FieldLabel>
-                            <p className="text-xs text-slate-500 mb-2">Full-bleed image shown behind the chapter title. If not set, uses the first slide's image.</p>
+                            <p className="text-sm text-slate-900 mb-2">Full-bleed image shown behind the chapter title. If not set, uses the first slide's image.</p>
                             {item.background_image && (
                                 <div className="relative w-full h-32 rounded-lg overflow-hidden border mb-3">
                                     <img src={item.background_image} className="w-full h-full object-cover" alt="Chapter background" />
@@ -889,7 +888,7 @@ export default function TabbedContentEditor({
                         {/* Chapter Background Video */}
                         <div>
                             <FieldLabel>Title Card Background Video</FieldLabel>
-                            <p className="text-xs text-slate-500 mb-2">Video plays looped behind the chapter title. Overrides the background image when set.</p>
+                            <p className="text-sm text-slate-900 mb-2">Video plays looped behind the chapter title. Overrides the background image when set.</p>
                             {item.chapter_video && (
                                 <div className="relative w-full h-32 rounded-lg overflow-hidden border mb-3">
                                     <video src={item.chapter_video} className="w-full h-full object-cover" muted autoPlay loop playsInline />
@@ -927,7 +926,7 @@ export default function TabbedContentEditor({
                         {/* Chapter Location */}
                         <div>
                             <FieldLabel>Chapter Location</FieldLabel>
-                            <p className="text-xs text-slate-500 mb-2">Sets the map view when this chapter's title card is shown</p>
+                            <p className="text-sm text-slate-900 mb-2">Sets the map view when this chapter's title card is shown</p>
                             <EmbeddedLocationPicker
                                 location={{
                                     lat: item.coordinates?.[0] || 0,
@@ -1061,7 +1060,7 @@ export default function TabbedContentEditor({
 
         return (<>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="flex flex-wrap gap-[50px] mb-4">
+                <div className="flex flex-wrap gap-[50px] mb-4 pl-[50px]">
                     {[
                         { value: 'content',  label: 'Content' },
                         { value: 'location', label: 'Location' },
@@ -1088,7 +1087,6 @@ export default function TabbedContentEditor({
                                     value={item.title || ''}
                                     onChange={(e) => onUpdate({ ...item, title: e.target.value })}
                                     placeholder="Slide title"
-                                    style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                 />
                             </div>
                             <div>
@@ -1161,7 +1159,7 @@ export default function TabbedContentEditor({
                                 {item.capture_date && (() => {
                                     const captureDay = item.capture_date.split('T')[0];
                                     return captureDay !== item.story_date ? (
-                                        <p className="text-xs text-slate-500 mt-1">
+                                        <p className="text-sm text-slate-900 mt-1">
                                             Photo taken: {captureDay}{' '}
                                             <button
                                                 type="button"
@@ -1173,7 +1171,7 @@ export default function TabbedContentEditor({
                                         </p>
                                     ) : null;
                                 })()}
-                                <p className="text-xs text-slate-500 mt-1">The contextual date for this slide — used in the story timeline</p>
+                                <p className="text-sm text-slate-900 mt-1">The contextual date for this slide — used in the story timeline</p>
                             </div>
                             <div>
                                 <FieldLabel>Card Style</FieldLabel>
@@ -1189,7 +1187,7 @@ export default function TabbedContentEditor({
                                         <SelectItem value="full_background">Full Background</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p className="text-xs text-slate-500 mt-1">Choose the visual style for this slide</p>
+                                <p className="text-sm text-slate-900 mt-1">Choose the visual style for this slide</p>
                             </div>
                             {onDelete && (
                                 <Button 
@@ -1241,7 +1239,7 @@ export default function TabbedContentEditor({
                                     placeholder="8"
                                     style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">
+                                <p className="text-sm text-slate-900 mt-1">
                                     How long the map takes to fly to this location. Defaults to 8 seconds.
                                 </p>
                             </div>
@@ -1255,7 +1253,7 @@ export default function TabbedContentEditor({
                                         placeholder="e.g., my-custom-layer"
                                         style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                     />
-                                    <p className="text-xs text-slate-500 mt-1">
+                                    <p className="text-sm text-slate-900 mt-1">
                                         Enter the ID of a Mapbox layer to display when this slide is active
                                     </p>
                                 </div>
@@ -1267,7 +1265,7 @@ export default function TabbedContentEditor({
                                         placeholder="e.g., Tree Canopy 2024"
                                         style={{ fontSize: '0.9rem', lineHeight: '1.2rem' }}
                                     />
-                                    <p className="text-xs text-slate-500 mt-1">
+                                    <p className="text-sm text-slate-900 mt-1">
                                         Label shown on the map layer toggle button
                                     </p>
                                 </div>
@@ -1387,7 +1385,7 @@ export default function TabbedContentEditor({
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <FileText className="w-5 h-5 text-red-600 shrink-0" />
-                                                <span className="text-xs text-slate-500">PDF attached</span>
+                                                <span className="text-sm text-slate-900">PDF attached</span>
                                             </div>
                                             <button
                                                 onClick={() => onUpdate({ ...item, pdf_url: '', pdf_title: '' })}
@@ -1405,7 +1403,7 @@ export default function TabbedContentEditor({
                                                 maxLength={60}
                                                 className="mt-1 text-sm"
                                             />
-                                            <p className="text-xs text-slate-400 mt-1">Shown in the story viewer. Saved with the slide.</p>
+                                            <p className="text-sm text-slate-900 mt-1">Shown in the story viewer. Saved with the slide.</p>
                                         </div>
                                     </div>
                                 ) : (

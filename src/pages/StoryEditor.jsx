@@ -418,13 +418,13 @@ export default function StoryEditor() {
             <div className="sticky top-0 z-50 bg-white border-b shadow-sm">
                 <div className="px-4 py-3">
                     <div className="flex items-center gap-4 mb-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
+                        <button
                             onClick={() => setIsBackTransitioning(true)}
+                            className="p-2 text-slate-500 hover:text-slate-700 transition-colors flex-shrink-0 flex items-center gap-2"
                         >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Button>
+                            <ArrowLeft className="w-8 h-8" />
+                            <span className="text-sm font-medium">Story Library</span>
+                        </button>
                         <Link to={createPageUrl('HomePageView')}>
                             <img
                                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
@@ -434,7 +434,7 @@ export default function StoryEditor() {
                                 className="hover:opacity-80 transition-opacity cursor-pointer"
                             />
                         </Link>
-                        <h1 className="text-2xl md:text-2xl font-bold text-slate-900 flex-1 leading-tight" style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}>
+                        <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
                             {story.title || 'Untitled Story'}
                         </h1>
                         <Link
@@ -559,7 +559,7 @@ export default function StoryEditor() {
 
                 {/* Content Editor */}
                 <div className="w-[75vw] md:flex-1 p-3 pl-0 md:p-6 md:pl-0">
-                    <div className="max-w-4xl ml-0">
+                    <div className="max-w-[800px] ml-0">
                         <TabbedContentEditor
                             itemType={selectedItem.type}
                             item={getCurrentItem()}

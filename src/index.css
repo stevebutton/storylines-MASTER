@@ -174,3 +174,6 @@ button:focus-visible {
   overflow-y: auto !important;
   min-height: 80px;
 }
+.ql-editor {
+  font-size: 18px;
+}

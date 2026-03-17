@@ -32,10 +32,12 @@ export default function Stories() {
   const [categoryName, setCategoryName] = useState('');
   const [categoryColor, setCategoryColor] = useState('bg-slate-100 text-slate-800');
   const [isStoryCreationPanelOpen, setIsStoryCreationPanelOpen] = useState(false);
+  const [seriesCount, setSeriesCount] = useState(0);
 
   useEffect(() => {
     loadStories();
     loadCategories();
+    loadSeriesCount();
   }, []);
 
   const loadStories = async () => {
@@ -64,6 +66,13 @@ export default function Stories() {
     } catch (error) {
       console.error('Failed to load categories:', error);
     }
+  };
+
+  const loadSeriesCount = async () => {
+    try {
+      const { count } = await supabase.from('series').select('*', { count: 'exact', head: true });
+      setSeriesCount(count || 0);
+    } catch (e) { console.error(e); }
   };
 
   const filteredAndSortedStories = useMemo(() => {
@@ -255,7 +264,7 @@ export default function Stories() {
     <div className="min-h-screen bg-slate-50">
             {/* Header */}
             <div className="bg-white border-b">
-                <div className="bg-slate-100 mx-auto px-4 py-6 max-w-6xl">
+                <div className="bg-white mx-auto px-4 py-6 max-w-6xl">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
                             <Link to={createPageUrl('HomePageView')}>
@@ -268,7 +277,7 @@ export default function Stories() {
                                 />
                             </Link>
                             <div>
-                                <h1 className="text-slate-800 text-4xl font-bold">
+                                <h1 className="text-slate-800 text-[42px] font-bold">
                                     Project Collection: {currentUser?.full_name || currentUser?.email || 'User'}
                                 </h1>
                                 <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
@@ -316,6 +325,10 @@ export default function Stories() {
                             <p className="text-2xl font-bold text-purple-700">
                                 {new Set(stories.map((s) => s.category).filter(Boolean)).size}
                             </p>
+                        </div>
+                        <div className="bg-teal-50 rounded-lg p-4 flex flex-col items-start justify-center">
+                            <p className="text-sm text-teal-600">Series</p>
+                            <p className="text-2xl font-bold text-teal-700">{seriesCount}</p>
                         </div>
                         <button 
                             className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"

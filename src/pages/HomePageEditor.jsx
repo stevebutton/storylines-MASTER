@@ -125,7 +125,7 @@ export default function HomePageEditor() {
     const set = (key, value) => setHp(prev => ({ ...prev, [key]: value }));
 
     const FieldLabel = ({ children }) => (
-        <span className="inline-flex items-center px-8 py-[9px] rounded-full bg-slate-100 shadow-sm text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block w-fit">
+        <span className="inline-flex items-center px-8 py-[9px] rounded-full bg-slate-700 shadow-sm text-sm font-semibold text-white uppercase tracking-wide mb-2 block w-fit">
             {children}
         </span>
     );
@@ -142,14 +142,14 @@ export default function HomePageEditor() {
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
             {/* Header */}
             <div className="bg-white border-b flex-shrink-0">
-                <div className="bg-slate-100 px-6 py-6">
+                <div className="bg-white px-6 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center">
                             <Link
                                 to={createPageUrl('Stories')}
-                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-1 flex-shrink-0"
+                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-2 flex-shrink-0"
                             >
-                                <ArrowLeft className="w-4 h-4" />
+                                <ArrowLeft className="w-8 h-8" />
                                 Story Library
                             </Link>
                             <div style={{ width: 100 }} className="flex-shrink-0" />
@@ -163,7 +163,7 @@ export default function HomePageEditor() {
                                 />
                             </Link>
                             <div className="ml-4">
-                                <h1 className="text-slate-800 text-4xl font-bold">Home Page Editor</h1>
+                                <h1 className="text-slate-800 text-[42px] font-bold">Home Page Editor</h1>
                                 <p className="text-slate-500 mt-1">Configure your public home page layout</p>
                             </div>
                         </div>
@@ -193,105 +193,36 @@ export default function HomePageEditor() {
             {/* Body */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar */}
-                <div className="w-64 border-r border-slate-200 bg-slate-50 flex-shrink-0 p-4 space-y-2">
-                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-3 px-2">Sections</p>
-
-                    {/* Hero */}
-                    <button
-                        onClick={() => setActiveSection('hero')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
-                            activeSection === 'hero'
-                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-100'
-                        }`}
-                    >
-                        <Image className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                        <span className="text-sm font-medium">Hero</span>
-                    </button>
-
-                    {/* Overview */}
-                    <button
-                        onClick={() => setActiveSection('overview')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
-                            activeSection === 'overview'
-                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-100'
-                        }`}
-                    >
-                        <AlignLeft className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                        <span className="text-sm font-medium flex-1">Overview</span>
-                        <Switch
-                            checked={hp.overview_enabled}
-                            onCheckedChange={(v) => set('overview_enabled', v)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="scale-75"
-                        />
-                    </button>
-
-                    {/* Globe */}
-                    <button
-                        onClick={() => setActiveSection('globe')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
-                            activeSection === 'globe'
-                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-100'
-                        }`}
-                    >
-                        <Globe className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                        <span className="text-sm font-medium flex-1">Globe</span>
-                        <Switch
-                            checked={hp.globe_enabled}
-                            onCheckedChange={(v) => set('globe_enabled', v)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="scale-75"
-                        />
-                    </button>
-
-                    {/* Footer */}
-                    <button
-                        onClick={() => setActiveSection('footer')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
-                            activeSection === 'footer'
-                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-100'
-                        }`}
-                    >
-                        <PanelBottom className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                        <span className="text-sm font-medium flex-1">Footer</span>
-                        <Switch
-                            checked={hp.footer_enabled}
-                            onCheckedChange={(v) => set('footer_enabled', v)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="scale-75"
-                        />
-                    </button>
-
-                    {/* Info */}
-                    <button
-                        onClick={() => setActiveSection('info')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
-                            activeSection === 'info'
-                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-100'
-                        }`}
-                    >
-                        <Info className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                        <span className="text-sm font-medium flex-1">Info Panel</span>
-                    </button>
-
-                    {/* Style */}
-                    <button
-                        onClick={() => setActiveSection('style')}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left ${
-                            activeSection === 'style'
-                                ? 'bg-amber-50 border-l-2 border-amber-500 pl-[10px]'
-                                : 'hover:bg-slate-100'
-                        }`}
-                    >
-                        <Palette className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                        <span className="text-sm font-medium flex-1">Map Style</span>
-                        <span className="text-xs text-amber-400 font-mono uppercase">{hp.map_style || 'a'}</span>
-                    </button>
+                <div className="w-80 border-r border-slate-200 bg-slate-50 flex-shrink-0 p-6 space-y-3">
+                    {[
+                        { value: 'hero',     label: 'Hero',       icon: <Image className="w-4 h-4" /> },
+                        { value: 'overview', label: 'Overview',   icon: <AlignLeft className="w-4 h-4" />, toggle: { checked: hp.overview_enabled, onChange: (v) => set('overview_enabled', v) } },
+                        { value: 'globe',    label: 'Globe',      icon: <Globe className="w-4 h-4" />,    toggle: { checked: hp.globe_enabled,    onChange: (v) => set('globe_enabled', v) } },
+                        { value: 'footer',   label: 'Footer',     icon: <PanelBottom className="w-4 h-4" />, toggle: { checked: hp.footer_enabled, onChange: (v) => set('footer_enabled', v) } },
+                        { value: 'info',     label: 'Info Panel', icon: <Info className="w-4 h-4" /> },
+                        { value: 'style',    label: 'Map Style',  icon: <Palette className="w-4 h-4" /> },
+                    ].map(({ value, label, icon, toggle }) => (
+                        <button
+                            key={value}
+                            onClick={() => setActiveSection(value)}
+                            className={`w-full flex items-center gap-3 px-5 py-3 rounded-full shadow-md text-xl font-bold transition-all text-left ${
+                                activeSection === value
+                                    ? 'bg-amber-600 text-white'
+                                    : 'bg-white text-slate-800 hover:brightness-95'
+                            }`}
+                        >
+                            <span className={activeSection === value ? 'text-white' : 'text-slate-500'}>{icon}</span>
+                            <span className="flex-1">{label}</span>
+                            {toggle && (
+                                <Switch
+                                    checked={toggle.checked}
+                                    onCheckedChange={toggle.onChange}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="scale-75 flex-shrink-0"
+                                />
+                            )}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Right panel */}
@@ -521,7 +452,7 @@ export default function HomePageEditor() {
                                                 <span className={`text-sm font-semibold block mb-1 ${isSelected ? 'text-amber-600' : 'text-slate-800'}`}>
                                                     {style.label}
                                                 </span>
-                                                <span className="text-xs text-slate-500">{style.description}</span>
+                                                <span className="text-sm text-slate-900">{style.description}</span>
                                                 {isSelected && (
                                                     <span className="mt-2 text-xs font-medium text-amber-600 bg-amber-500/20 px-2 py-0.5 rounded-full w-fit">Active</span>
                                                 )}
@@ -538,7 +469,7 @@ export default function HomePageEditor() {
                             <div className="flex items-center justify-between mb-6">
                                 <div>
                                     <h2 className="text-xl font-semibold text-slate-900">Footer</h2>
-                                    <p className="text-xs text-slate-500 mt-1">Three columns on a black background — 400px tall</p>
+                                    <p className="text-sm text-slate-900 mt-1">Three columns on a black background — 400px tall</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-slate-600">Enabled</span>
@@ -701,7 +632,7 @@ export default function HomePageEditor() {
 
                             <div className="space-y-2">
                                 <FieldLabel>Banner Title</FieldLabel>
-                                <p className="text-xs text-slate-500">Shown in the top bar when the globe is visible</p>
+                                <p className="text-sm text-slate-900">Shown in the top bar when the globe is visible</p>
                                 <Input
                                     value={hp.globe_heading || ''}
                                     onChange={(e) => set('globe_heading', e.target.value)}

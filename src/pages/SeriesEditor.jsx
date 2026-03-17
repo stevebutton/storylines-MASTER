@@ -33,7 +33,7 @@ const MAP_STYLES_CONFIG = {
 };
 
 const FieldLabel = ({ children }) => (
-    <span className="inline-flex items-center px-8 py-[9px] rounded-full bg-slate-100 shadow-sm text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2 block w-fit">
+    <span className="inline-flex items-center px-8 py-[9px] rounded-full bg-slate-700 shadow-sm text-sm font-semibold text-white uppercase tracking-wide mb-2 block w-fit">
         {children}
     </span>
 );
@@ -231,14 +231,14 @@ export default function SeriesEditor() {
 
             {/* Header */}
             <div className="bg-white border-b flex-shrink-0">
-                <div className="bg-slate-100 px-6 py-6">
+                <div className="bg-white px-6 py-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center">
                             <Link
                                 to={createPageUrl('Stories')}
-                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-1 flex-shrink-0"
+                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-2 flex-shrink-0"
                             >
-                                <ArrowLeft className="w-4 h-4" />
+                                <ArrowLeft className="w-8 h-8" />
                                 Story Library
                             </Link>
                             <div style={{ width: 100 }} className="flex-shrink-0" />
@@ -252,7 +252,7 @@ export default function SeriesEditor() {
                                 />
                             </Link>
                             <div className="ml-4">
-                                <h1 className="text-slate-800 text-4xl font-bold">Series Manager</h1>
+                                <h1 className="text-slate-800 text-[42px] font-bold">Series Manager</h1>
                                 <p className="text-slate-500 mt-1">Create and organise your story series</p>
                             </div>
                         </div>
@@ -323,11 +323,11 @@ export default function SeriesEditor() {
                                         className="cursor-pointer"
                                     >
                                         {s.cover_image ? (
-                                            <div className="w-full h-40 overflow-hidden">
+                                            <div className="w-full h-40 overflow-hidden ml-[20px]">
                                                 <img src={s.cover_image} alt="" className="w-full h-full object-cover" />
                                             </div>
                                         ) : (
-                                            <div className="w-full h-40 bg-slate-200" />
+                                            <div className="w-full h-40 bg-slate-200 ml-[20px]" />
                                         )}
                                         <div className="flex items-center gap-2 px-4 py-2">
                                             <div className="flex-1 min-w-0">
@@ -380,7 +380,7 @@ export default function SeriesEditor() {
 
                             {/* Tab pills + delete */}
                             <div className="bg-slate-50 border-b px-8 py-4 flex items-center justify-between flex-shrink-0">
-                                <div className="flex flex-wrap gap-[30px]">
+                                <div className="flex flex-wrap gap-[30px] pl-[50px]">
                                     {[
                                         { value: 'content', label: 'Content' },
                                         { value: 'map',     label: 'Map' },

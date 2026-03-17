@@ -52,9 +52,9 @@ export default function StoryEditorSidebar({
         selectedItem?.type === 'slide' && selectedItem?.id === slideId;
 
     return (
-        <div className="w-full md:w-[400px] border-r flex flex-col" style={{ background: 'white' }}>
+        <div className="w-full md:w-[450px] border-r flex flex-col bg-slate-100">
             {/* Story Settings Card */}
-            <div className="ml-[50px] mr-[48px] mt-[100px] mb-1 rounded-lg shadow-md overflow-hidden">
+            <div className="ml-[100px] mr-[48px] mt-[100px] mb-1 rounded-3xl shadow-md overflow-hidden">
                 <div className="flex items-stretch">
                     {/* Indigo strip — full height, 2px wider */}
                     <div
@@ -98,16 +98,16 @@ export default function StoryEditorSidebar({
             </div>
 
             {/* Separator */}
-            <div className="ml-[50px] mr-[48px] my-2 border-t border-slate-300" />
+            <div className="ml-[100px] mr-[48px] my-2 border-t border-slate-300" />
 
             {/* About card */}
-            <div className="ml-[50px] mr-[48px] mb-4 rounded-lg shadow-md overflow-hidden">
+            <div className="ml-[100px] mr-[48px] mb-4 rounded-3xl shadow-md overflow-hidden">
                 <div className="flex items-stretch">
                     <div
                         className="flex items-center justify-center px-[28px] bg-slate-600 flex-shrink-0 cursor-pointer"
                         onClick={() => onSelectStory('about')}
                     >
-                        <Info className="w-6 h-6 text-white" />
+                        <Info className="w-12 h-12 text-white" />
                     </div>
                     <div
                         className="flex-1 bg-white px-3 py-3 cursor-pointer hover:brightness-[0.97] transition-all"
@@ -120,7 +120,7 @@ export default function StoryEditorSidebar({
             </div>
 
             {/* Chapters List */}
-            <div>
+            <div className="bg-slate-100 flex-1 pt-2 pb-6">
                 {chapters.length === 0 ? (
                     <div className="p-8 text-center text-slate-400">
                         <p className="text-sm">No chapters yet</p>
@@ -155,7 +155,7 @@ export default function StoryEditorSidebar({
                                                         {/* Chapter Item */}
                                                         <div
                                                             className={cn(
-                                                                "group flex items-stretch ml-[50px] mr-[48px] rounded-lg mb-5 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 relative",
+                                                                "group flex items-stretch ml-[50px] mr-[48px] rounded-3xl mb-5 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 relative",
                                                                 snapshot.isDragging && "opacity-50"
                                                             )}
                                                             style={{
@@ -171,7 +171,7 @@ export default function StoryEditorSidebar({
                                                             )}
                                                             {/* Coloured left strip — grip + chevron */}
                                                             <div
-                                                                className="flex items-center gap-0.5 px-4 py-2 flex-shrink-0 rounded-l-lg"
+                                                                className="flex items-center gap-0.5 px-4 py-2 flex-shrink-0 rounded-l-3xl"
                                                                 style={{ backgroundColor: chapterColor }}
                                                             >
                                                                 <div
@@ -203,7 +203,7 @@ export default function StoryEditorSidebar({
                                                                 <span className="text-xs font-medium text-slate-400 leading-none">
                                                                     Chapter {String(index + 1).padStart(2, '0')}
                                                                 </span>
-                                                                <span className="text-sm font-bold text-slate-900 leading-snug">
+                                                                <span className="text-[18px] font-bold text-slate-900 leading-snug">
                                                                     {chapter.name || 'Untitled'}
                                                                 </span>
                                                             </div>
@@ -224,7 +224,7 @@ export default function StoryEditorSidebar({
                                                             <Droppable droppableId={`slides-${chapter.id}`} type="slide">
                                                                 {(provided) => (
                                                                     <div
-                                                                        style={{ background: 'white' }}
+                                                                        style={{ background: 'transparent' }}
                                                                         {...provided.droppableProps}
                                                                         ref={provided.innerRef}
                                                                     >
@@ -240,7 +240,7 @@ export default function StoryEditorSidebar({
                                                                                         {...provided.draggableProps}
                                                                                         onClick={() => onSelectSlide(slide)}
                                                                                         className={cn(
-                                                                                            "relative flex items-center gap-2 px-2 py-2 ml-[50px] mr-[48px] mb-[10px] rounded-lg bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all",
+                                                                                            "relative flex items-center gap-2 px-2 py-2 ml-[70px] mr-[48px] mb-[10px] rounded-3xl bg-white shadow-md hover:shadow-xl hover:-translate-y-0.5 cursor-pointer transition-all",
                                                                                             isSlideSelected(slide.id) && "ring-2 ring-amber-500",
                                                                                             snapshot.isDragging && "opacity-50"
                                                                                         )}
@@ -252,6 +252,14 @@ export default function StoryEditorSidebar({
                                                                                                 style={{ right: -48, top: '50%', transform: 'translateY(-50%)', width: 48, height: 4 }}
                                                                                             />
                                                                                         )}
+                                                                                        {/* Grip handle */}
+                                                                                        <div
+                                                                                            {...provided.dragHandleProps}
+                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                            className="cursor-grab active:cursor-grabbing flex-shrink-0"
+                                                                                        >
+                                                                                            <GripVertical className="w-6 h-6 text-slate-400" />
+                                                                                        </div>
                                                                                         {/* Thumbnail — click → media tab */}
                                                                                         <div
                                                                                             onClick={(e) => { e.stopPropagation(); onSelectSlide(slide, 'media'); }}
@@ -267,20 +275,12 @@ export default function StoryEditorSidebar({
                                                                                                 </div>
                                                                                             )}
                                                                                         </div>
-                                                                                        {/* Grip handle */}
-                                                                                        <div
-                                                                                            {...provided.dragHandleProps}
-                                                                                            onClick={(e) => e.stopPropagation()}
-                                                                                            className="cursor-grab active:cursor-grabbing flex-shrink-0"
-                                                                                        >
-                                                                                            <GripVertical className="w-4 h-4 text-slate-400" />
-                                                                                        </div>
                                                                                         {/* Title — click → content tab */}
                                                                                         <div
                                                                                             onClick={(e) => { e.stopPropagation(); onSelectSlide(slide, 'content'); }}
                                                                                             className="flex-1 min-w-0 hover:text-amber-600 transition-colors"
                                                                                         >
-                                                                                            <span className="text-sm text-slate-900 font-medium leading-tight block truncate">
+                                                                                            <span className="text-[18px] text-slate-900 font-medium leading-tight block">
                                                                                                 {slide.title || `Slide ${slideIndex + 1}`}
                                                                                             </span>
                                                                                         </div>
