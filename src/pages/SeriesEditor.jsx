@@ -233,8 +233,16 @@ export default function SeriesEditor() {
             <div className="bg-white border-b flex-shrink-0">
                 <div className="bg-slate-100 px-6 py-6">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Link to={createPageUrl('HomePageView')}>
+                        <div className="flex items-center">
+                            <Link
+                                to={createPageUrl('Stories')}
+                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-1 flex-shrink-0"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Story Library
+                            </Link>
+                            <div style={{ width: 100 }} className="flex-shrink-0" />
+                            <Link to={createPageUrl('HomePageView')} className="flex-shrink-0">
                                 <img
                                     src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
                                     alt="Storylines"
@@ -243,19 +251,12 @@ export default function SeriesEditor() {
                                     className="hover:opacity-80 transition-opacity cursor-pointer"
                                 />
                             </Link>
-                            <div>
+                            <div className="ml-4">
                                 <h1 className="text-slate-800 text-4xl font-bold">Series Manager</h1>
                                 <p className="text-slate-500 mt-1">Create and organise your story series</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Link
-                                to={createPageUrl('Stories')}
-                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-1"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                                Story Library
-                            </Link>
                             {selected?.id && !selected.isNew && (
                                 <Link
                                     to={`${createPageUrl('SeriesView')}?id=${selected.id}`}
