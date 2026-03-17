@@ -230,49 +230,61 @@ export default function SeriesEditor() {
         <div className="min-h-screen bg-slate-50 flex flex-col">
 
             {/* Header */}
-            <div className="bg-white border-b px-6 py-4 flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-4">
-                    <Link
-                        to={createPageUrl('Stories')}
-                        className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Stories
-                    </Link>
-                    <div className="w-px h-4 bg-slate-200" />
-                    <div className="flex items-center gap-2">
-                        <Layers className="w-5 h-5 text-amber-600" />
-                        <h1 className="text-lg font-semibold text-slate-800">Series Manager</h1>
+            <div className="bg-white border-b flex-shrink-0">
+                <div className="bg-slate-100 px-6 py-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Link to={createPageUrl('HomePageView')}>
+                                <img
+                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
+                                    alt="Storylines"
+                                    width="200"
+                                    height="80"
+                                    className="hover:opacity-80 transition-opacity cursor-pointer"
+                                />
+                            </Link>
+                            <div>
+                                <h1 className="text-slate-800 text-4xl font-bold">Series Manager</h1>
+                                <p className="text-slate-500 mt-1">Create and organise your story series</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <Link
+                                to={createPageUrl('Stories')}
+                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-1"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Story Library
+                            </Link>
+                            {selected?.id && !selected.isNew && (
+                                <Link
+                                    to={`${createPageUrl('SeriesView')}?id=${selected.id}`}
+                                    target="_blank"
+                                    className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors flex items-center gap-1"
+                                >
+                                    <ExternalLink className="w-4 h-4" />
+                                    View Series Page
+                                </Link>
+                            )}
+                            {selected && (
+                                <Button
+                                    onClick={save}
+                                    disabled={isSaving}
+                                    className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
+                                >
+                                    {isSaving
+                                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                                        : <Save className="w-4 h-4" />}
+                                    Save Series
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
-                {selected && (
-                    <div className="flex items-center gap-2">
-                        {selected.id && !selected.isNew && (
-                            <Link
-                                to={`${createPageUrl('SeriesView')}?id=${selected.id}`}
-                                target="_blank"
-                                className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-amber-600 transition-colors"
-                            >
-                                <ExternalLink className="w-4 h-4" />
-                                View Series Page
-                            </Link>
-                        )}
-                        <Button
-                            onClick={save}
-                            disabled={isSaving}
-                            className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
-                        >
-                            {isSaving
-                                ? <Loader2 className="w-4 h-4 animate-spin" />
-                                : <Save className="w-4 h-4" />}
-                            Save Series
-                        </Button>
-                    </div>
-                )}
             </div>
 
             {/* Body */}
-            <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 65px)' }}>
+            <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 132px)' }}>
 
                 {/* ── Left sidebar ── */}
                 <div className="w-72 border-r bg-white flex flex-col flex-shrink-0">

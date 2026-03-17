@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Image, AlignLeft, Globe, Palette, PanelBottom, Save, Upload, Loader2, Check, Info } from 'lucide-react';
+import { ArrowLeft, Image, AlignLeft, Globe, Palette, PanelBottom, Save, Upload, Loader2, Check, Info, Home, ExternalLink } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -141,35 +141,51 @@ export default function HomePageEditor() {
     return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-                <div className="flex items-center gap-4">
-                    <Link
-                        to={createPageUrl('Stories')}
-                        className="text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1 text-sm"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Stories
-                    </Link>
-                    <span className="text-slate-700">|</span>
-                    <h1 className="text-lg font-semibold text-slate-900">Home Page Editor</h1>
-                </div>
-                <div className="flex items-center gap-3">
-                    <Link
-                        to={createPageUrl('HomePageView')}
-                        className="text-sm text-slate-500 hover:text-slate-900 transition-colors"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        View Home Page ↗
-                    </Link>
-                    <Button
-                        onClick={save}
-                        disabled={isSaving}
-                        className="bg-amber-600 hover:bg-amber-700 text-white"
-                    >
-                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                        Save
-                    </Button>
+            <div className="bg-white border-b flex-shrink-0">
+                <div className="bg-slate-100 px-6 py-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Link to={createPageUrl('HomePageView')}>
+                                <img
+                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
+                                    alt="Storylines"
+                                    width="200"
+                                    height="80"
+                                    className="hover:opacity-80 transition-opacity cursor-pointer"
+                                />
+                            </Link>
+                            <div>
+                                <h1 className="text-slate-800 text-4xl font-bold">Home Page Editor</h1>
+                                <p className="text-slate-500 mt-1">Configure your public home page layout</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <Link
+                                to={createPageUrl('Stories')}
+                                className="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors flex items-center gap-1"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Story Library
+                            </Link>
+                            <Link
+                                to={createPageUrl('HomePageView')}
+                                className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors flex items-center gap-1"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                                View Home Page
+                            </Link>
+                            <Button
+                                onClick={save}
+                                disabled={isSaving}
+                                className="bg-amber-600 hover:bg-amber-700 text-white"
+                            >
+                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                                Save
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
