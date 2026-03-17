@@ -303,42 +303,42 @@ export default function Stories() {
                     </div>
 
                     {/* Stats & Actions */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
-                        <div className="bg-blue-50 rounded-lg p-4 flex flex-col items-start justify-center">
+                    <div className="flex flex-wrap items-stretch gap-4 mb-6">
+                        <div className="bg-blue-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
                             <p className="text-sm text-blue-600">Total Stories</p>
                             <p className="text-2xl font-bold text-blue-700">{stories.length}</p>
                         </div>
-                        <div className="bg-green-50 rounded-lg p-4 flex flex-col items-start justify-center">
+                        <div className="bg-green-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
                             <p className="text-sm text-green-600">Published</p>
                             <p className="text-2xl font-bold text-green-700">
                                 {stories.filter((s) => s.is_published).length}
                             </p>
                         </div>
-                        <div className="bg-amber-50 rounded-lg p-4 flex flex-col items-start justify-center">
+                        <div className="bg-amber-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
                             <p className="text-sm text-amber-600">Drafts</p>
                             <p className="text-2xl font-bold text-amber-700">
                                 {stories.filter((s) => !s.is_published).length}
                             </p>
                         </div>
-                        <div className="bg-purple-50 rounded-lg p-4 flex flex-col items-start justify-center">
+                        <div className="bg-purple-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
                             <p className="text-sm text-purple-600">Categories</p>
                             <p className="text-2xl font-bold text-purple-700">
                                 {new Set(stories.map((s) => s.category).filter(Boolean)).size}
                             </p>
                         </div>
-                        <div className="bg-teal-50 rounded-lg p-4 flex flex-col items-start justify-center">
+                        <div className="bg-teal-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
                             <p className="text-sm text-teal-600">Series</p>
                             <p className="text-2xl font-bold text-teal-700">{seriesCount}</p>
                         </div>
-                        <button 
-                            className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
+                        <button
+                            className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
                             onClick={() => setIsCategoryManagerOpen(true)}
                         >
-                            <Tag className="w-6 h-6 mb-1" /> 
+                            <Tag className="w-6 h-6 mb-1" />
                             <span className="text-sm font-semibold">Manage Categories</span>
                         </button>
                         <button
-                            className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
+                            className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
                             onClick={() => setIsStoryCreationPanelOpen(true)}
                         >
                             <Plus className="w-6 h-6 mb-1" />
@@ -346,14 +346,14 @@ export default function Stories() {
                         </button>
                         <Link
                             to={createPageUrl('HomePageEditor')}
-                            className="bg-slate-700 hover:bg-slate-800 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
+                            className="bg-slate-700 hover:bg-slate-800 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
                         >
                             <Home className="w-6 h-6 mb-1" />
                             <span className="text-sm font-semibold">Edit Home Page</span>
                         </Link>
                         <Link
                             to={createPageUrl('SeriesEditor')}
-                            className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg p-4 flex flex-col items-start justify-center h-full w-full transition-colors"
+                            className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
                         >
                             <Layers className="w-6 h-6 mb-1" />
                             <span className="text-sm font-semibold">Series</span>
