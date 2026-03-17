@@ -26,6 +26,7 @@ const MAP_STYLES_CONFIG = {
     i: { label: 'PASSMAR', description: 'PASSMAR', owner: 'stevebutton', id: 'cllw84jo600f401r7afyy7ef4' },
     j: { label: 'Cartogram', description: 'Cartogram', owner: 'stevebutton', id: 'cmmg2352g002q01s82q1d6zzo' },
     k: { label: 'PASSMAR REWORK', description: 'PASSMAR Rework', owner: 'stevebutton', id: 'cmmmcnbw5009z01sb3xf72ldy' },
+    l: { label: 'World', description: 'World overview style', owner: 'stevebutton', id: 'cmmuqyi1p00a501s955v9393b' },
 };
 
 const DEFAULT_HP = {

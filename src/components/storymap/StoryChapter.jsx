@@ -191,7 +191,7 @@ export default function StoryChapter({
                         exit={{ opacity: 0, x: -250 }}
                         transition={{ duration: 1.5, ease: 'easeOut' }}
                     >
-                        <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ minHeight: '500px' }}>
+                        <div className="relative rounded-2xl shadow-2xl pointer-events-auto" style={{ width: 480, minHeight: 620 }}>
                             {/* Background layers — clipped independently so the explore button can overflow */}
                             <div className="absolute inset-0 rounded-2xl overflow-hidden" style={{ pointerEvents: 'none' }}>
                                 {bgVideo && isActive ? (
@@ -216,13 +216,13 @@ export default function StoryChapter({
                                  style={{ boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.6)' }} />
 
                             {/* Text content */}
-                            <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: '500px', paddingRight: '14rem' }}>
+                            <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: 620, paddingRight: '2rem' }}>
                                 <div className="flex-1" />
 
                                 {/* Chapter number + name — staggered build */}
                                 <div className="mb-5">
                                     <motion.span
-                                        className={`block text-xs font-medium ${titleColorClass} uppercase tracking-widest mb-2`}
+                                        className={`block text-sm font-medium ${titleColorClass} uppercase tracking-widest mb-2`}
                                         style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
@@ -247,7 +247,7 @@ export default function StoryChapter({
                                 {chapter.description && (
                                     <motion.div
                                         className="text-white/90 text-base font-light leading-relaxed"
-                                        style={{ fontFamily: 'Raleway, sans-serif', paddingBottom: '40px' }}
+                                        style={{ fontFamily: 'Raleway, sans-serif', paddingBottom: '90px' }}
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                                         transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 3.3 }}
@@ -268,7 +268,7 @@ export default function StoryChapter({
                                     whileHover={{ scale: 1.05, transition: { duration: 0.15 } }}
                                     transition={{ duration: 0.7, ease: 'easeOut' }}
                                 >
-                                    <span className="text-base font-light text-white/90">Explore the chapter</span>
+                                    <span className="text-xl font-light text-white">Explore the chapter</span>
                                     <img
                                         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
                                         alt=""

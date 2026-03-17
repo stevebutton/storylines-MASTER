@@ -38,6 +38,7 @@ const MAP_STYLES = {
     i: 'mapbox://styles/stevebutton/cllw84jo600f401r7afyy7ef4',
     j: 'mapbox://styles/stevebutton/cmmg2352g002q01s82q1d6zzo',
     k: 'mapbox://styles/stevebutton/cmmmcnbw5009z01sb3xf72ldy',
+    l: 'mapbox://styles/stevebutton/cmmuqyi1p00a501s955v9393b',
 };
 
 const LOGO_URL = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png';

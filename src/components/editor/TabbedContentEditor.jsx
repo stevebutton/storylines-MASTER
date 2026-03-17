@@ -89,6 +89,12 @@ const MAP_STYLES_CONFIG = {
         owner: 'stevebutton',
         id: 'cmmmcnbw5009z01sb3xf72ldy',
     },
+    l: {
+        label: 'World',
+        description: 'World overview style',
+        owner: 'stevebutton',
+        id: 'cmmuqyi1p00a501s955v9393b',
+    },
 };
 
 export default function TabbedContentEditor({

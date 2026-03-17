@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { createPageUrl } from '@/utils';
-import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
 const stripHtml = (html) => {
@@ -12,6 +11,31 @@ const stripHtml = (html) => {
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
 };
+
+const CATEGORY_COLORS = [
+    '#3b82f6', '#10b981', '#8b5cf6', '#ec4899',
+    '#06b6d4', '#84cc16', '#f97316',
+];
+const ALL_COLOR = '#64748b';
+
+const pillStyle = (color, selected) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '4px 14px',
+    borderRadius: '999px',
+    fontSize: '13px',
+    fontWeight: selected ? 700 : 400,
+    cursor: 'pointer',
+    border: 'none',
+    outline: 'none',
+    background: color,
+    color: 'white',
+    boxShadow: selected ? '0 0 0 2px white' : 'none',
+    filter: selected ? 'none' : 'saturate(0.3)',
+    transition: 'box-shadow 0.2s, filter 0.2s',
+    textTransform: 'capitalize',
+    whiteSpace: 'nowrap',
+});
 
 export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId }) {
     const navigate = useNavigate();
@@ -340,32 +364,22 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                     </button>
                                 )}
                                 {categories.length > 0 && (
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <button
-                                            onClick={() => setSelectedCategory(null)}
-                                            className={cn(
-                                                'px-3 py-1 rounded-full text-base font-medium transition-colors border',
-                                                selectedCategory === null
-                                                    ? 'bg-amber-600 text-white border-amber-600'
-                                                    : 'bg-white/15 text-white border-white/20 hover:bg-white/25 backdrop-blur-sm'
-                                            )}
-                                        >
-                                            All
-                                        </button>
-                                        {categories.map(cat => (
+                                    <div className="flex items-center flex-wrap" style={{ gap: 10 }}>
+                                        {categories.map((cat, i) => (
                                             <button
                                                 key={cat}
                                                 onClick={() => setSelectedCategory(cat)}
-                                                className={cn(
-                                                    'px-3 py-1 rounded-full text-base font-medium transition-colors border',
-                                                    selectedCategory === cat
-                                                        ? 'bg-amber-600 text-white border-amber-600'
-                                                        : 'bg-white/15 text-white border-white/20 hover:bg-white/25 backdrop-blur-sm'
-                                                )}
+                                                style={pillStyle(CATEGORY_COLORS[i % CATEGORY_COLORS.length], selectedCategory === cat)}
                                             >
                                                 {cat}
                                             </button>
                                         ))}
+                                        <button
+                                            onClick={() => setSelectedCategory(null)}
+                                            style={pillStyle(ALL_COLOR, selectedCategory === null)}
+                                        >
+                                            All
+                                        </button>
                                     </div>
                                 )}
                             </motion.div>
