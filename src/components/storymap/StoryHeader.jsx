@@ -8,7 +8,7 @@ const THEME_FONTS = {
     k: 'Oswald, sans-serif',
 };
 
-export default function StoryHeader({ title, subtitle, titleImage, subtitleImage, heroImage, heroVideo, heroType, heroVideoLoop = true, onExplore, onWhatIsStorylines, onHeroLoaded, mapStyle = 'a' }) {
+export default function StoryHeader({ title, subtitle, tagline, titleImage, subtitleImage, heroImage, heroVideo, heroType, heroVideoLoop = true, onExplore, onWhatIsStorylines, onHeroLoaded, mapStyle = 'a' }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
   const [mediaLoaded, setMediaLoaded] = useState(false);
 
@@ -106,6 +106,18 @@ export default function StoryHeader({ title, subtitle, titleImage, subtitleImage
 
           {/* Title and Description Container */}
           <div className="flex flex-col items-center" style={{ gap: '30px' }}>
+            {/* Tagline — e.g. "a Storylines series" */}
+            {tagline && (
+              <motion.div
+                className="text-center"
+                style={{ fontFamily: 'Raleway, sans-serif', fontSize: '1.25rem', fontWeight: 400, letterSpacing: '0.06em', color: 'rgba(245,158,11,0.95)' }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1.5, delay: 6 }}
+                dangerouslySetInnerHTML={{ __html: tagline }}
+              />
+            )}
+
             {/* Story Title */}
             <motion.h1
               className="text-white text-6xl font-light text-center"

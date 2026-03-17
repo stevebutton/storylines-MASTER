@@ -16,6 +16,7 @@ const stripHtml = (html) => {
 export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId }) {
     const navigate = useNavigate();
     const [stories, setStories] = useState([]);
+    const [seriesList, setSeriesList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [scrollPosition, setScrollPosition] = useState(0);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -33,6 +34,7 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
     const navigatingRef   = useRef(false); // true while a story-click navigation is in progress
     const hasNavigatedRef = useRef(false); // guard against double-navigate on onAnimationComplete
     const scrollContainerRef = useRef(null);
+    const seriesScrollRef    = useRef(null);
 
     // Sync internal panel state with isOpen prop (open/close from parent).
     useEffect(() => {
@@ -57,12 +59,12 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
     const loadStories = async () => {
         setIsLoading(true);
         try {
-            const { data: allStories, error } = await supabase
-                .from('stories')
-                .select('*')
-                .eq('is_published', true)
-                .neq('id', currentStoryId ?? '');
+            const [{ data: allStories, error }, { data: seriesData }] = await Promise.all([
+                supabase.from('stories').select('*').eq('is_published', true).neq('id', currentStoryId ?? ''),
+                supabase.from('series').select('id, title, subtitle, description, cover_image').eq('is_published', true).order('title'),
+            ]);
             if (error) throw error;
+            setSeriesList(seriesData || []);
 
             // Assign a display_image for each story.
             // Priority: thumbnail → hero_image (if not a video hero) → first slide image.
@@ -125,6 +127,11 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const scrollSeries = (direction) => {
+        if (!seriesScrollRef.current) return;
+        seriesScrollRef.current.scrollBy({ left: direction === 'left' ? -420 : 420, behavior: 'smooth' });
     };
 
     const scroll = (direction) => {
@@ -211,67 +218,157 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                         exit={{ y: '100%', transition: { duration: 1.0, ease: 'easeIn' } }}
                         transition={{ duration: 2, ease: 'easeIn' }}
                         className="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-white/10 shadow-2xl overflow-hidden"
-                        style={{ top: 200, zIndex: 200030, background: 'rgba(255,255,255,0.15)' }}
+                        style={{ top: 120, zIndex: 200030, background: 'rgba(255,255,255,0.15)' }}
                     >
                         <div className="max-w-7xl mx-auto p-6">
-                            {/* Header */}
-                            <div className="flex items-center justify-between mb-4">
+                            {/* Series section */}
+                            {seriesList.length > 0 && (
                                 <motion.div
-                                    className="flex items-center gap-3"
+                                    style={{ marginBottom: 60 }}
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
+                                    transition={{ delay: 0.25, duration: 0.4, ease: 'easeOut' }}
                                 >
-                                    <img
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
-                                        alt="Storylines"
-                                        style={{ width: 250, height: 100, objectFit: 'contain' }}
-                                    />
-                                    <h3 className="text-2xl font-light text-white">Explore Other Stories</h3>
-                                </motion.div>
-                                <button
-                                    onClick={onClose}
-                                    className="bg-white/15 hover:bg-white/25 rounded-full p-3 transition-all"
-                                >
-                                    <X className="w-6 h-6 text-white" />
-                                </button>
-                            </div>
-
-                            {/* Category filter pills */}
-                            {categories.length > 0 && (
-                                <motion.div
-                                    className="flex items-center gap-2 mb-10 flex-wrap"
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.55, duration: 0.4, ease: 'easeOut' }}
-                                >
-                                    <button
-                                        onClick={() => setSelectedCategory(null)}
-                                        className={cn(
-                                            'px-3 py-1 rounded-full text-sm font-medium transition-colors border',
-                                            selectedCategory === null
-                                                ? 'bg-amber-600 text-white border-amber-600'
-                                                : 'bg-white/15 text-white border-white/20 hover:bg-white/25 backdrop-blur-sm'
-                                        )}
-                                    >
-                                        All
-                                    </button>
-                                    {categories.map(cat => (
+                                    {/* Logo + Featured Series heading + close button on one row */}
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <img
+                                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                                            alt="Storylines"
+                                            style={{ width: 250, height: 100, objectFit: 'contain' }}
+                                        />
+                                        <h3 className="text-3xl font-light text-white">Watch the Featured Series</h3>
                                         <button
-                                            key={cat}
-                                            onClick={() => setSelectedCategory(cat)}
+                                            onClick={onClose}
+                                            className="ml-auto bg-white/15 hover:bg-white/25 rounded-full p-3 transition-all"
+                                        >
+                                            <X className="w-6 h-6 text-white" />
+                                        </button>
+                                    </div>
+                                    {/* Series cards */}
+                                    <div className="relative">
+                                        {seriesList.length > 1 && (
+                                            <>
+                                                <button
+                                                    onClick={() => scrollSeries('left')}
+                                                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-colors"
+                                                    style={{ marginLeft: -50 }}
+                                                >
+                                                    <ChevronLeft className="w-5 h-5 text-white" />
+                                                </button>
+                                                <button
+                                                    onClick={() => scrollSeries('right')}
+                                                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/15 backdrop-blur-sm hover:bg-white/25 transition-colors"
+                                                    style={{ marginRight: -50 }}
+                                                >
+                                                    <ChevronRight className="w-5 h-5 text-white" />
+                                                </button>
+                                            </>
+                                        )}
+                                    <div ref={seriesScrollRef} className="flex overflow-x-auto pb-2" style={{ scrollbarWidth: 'none', gap: 25 }}>
+                                        {seriesList.map(s => (
+                                            <div key={s.id} className="flex-shrink-0 flex gap-3" style={{ height: 200 }}>
+                                                {/* Card */}
+                                                <motion.div
+                                                    whileHover={{ scale: 1.02 }}
+                                                    onClick={() => navigate(createPageUrl('SeriesView') + '?id=' + s.id)}
+                                                    className="flex-shrink-0 rounded-xl border border-white/20 overflow-hidden cursor-pointer hover:border-white/40 transition-colors relative"
+                                                    style={{ height: 200, width: 370 }}
+                                                >
+                                                    {s.cover_image ? (
+                                                        <img
+                                                            src={s.cover_image}
+                                                            alt={s.title}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-white/10" />
+                                                    )}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                                                        <div style={{
+                                                            fontFamily:    'Raleway, sans-serif',
+                                                            fontSize:      15,
+                                                            fontWeight:    400,
+                                                            letterSpacing: '0.06em',
+                                                            color:         'rgba(245,158,11,0.95)',
+                                                            marginBottom:  4,
+                                                        }}>
+                                                            a <span style={{ fontWeight: 700 }}>Storylines</span> series
+                                                        </div>
+                                                        <h4 className="text-3xl font-semibold text-white" style={{ maxWidth: '50%', lineHeight: 1 }}>
+                                                            {s.title}
+                                                        </h4>
+                                                        {s.subtitle && (
+                                                            <p className="text-white/70 text-sm line-clamp-1 mt-0.5">
+                                                                {s.subtitle}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                                {/* Description column */}
+                                                {s.description && (
+                                                    <div className="flex-shrink-0 flex flex-col justify-center" style={{ width: 176 }}>
+                                                        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-2">
+                                                            About the series
+                                                        </p>
+                                                        <p className="text-white text-sm leading-snug">
+                                                            {s.description}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    </div>{/* end relative arrow wrapper */}
+                                </motion.div>
+                            )}
+
+                            {/* Explore Other Stories heading + category pills */}
+                            <motion.div
+                                className="flex items-center gap-4 mb-4 flex-wrap"
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.35, duration: 0.4, ease: 'easeOut' }}
+                            >
+                                <h3 className="text-3xl font-light text-white" style={{ marginLeft: 50 }}>Explore Other Stories</h3>
+                                {seriesList.length === 0 && (
+                                    <button
+                                        onClick={onClose}
+                                        className="ml-auto bg-white/15 hover:bg-white/25 rounded-full p-3 transition-all"
+                                    >
+                                        <X className="w-6 h-6 text-white" />
+                                    </button>
+                                )}
+                                {categories.length > 0 && (
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <button
+                                            onClick={() => setSelectedCategory(null)}
                                             className={cn(
-                                                'px-3 py-1 rounded-full text-sm font-medium transition-colors border',
-                                                selectedCategory === cat
+                                                'px-3 py-1 rounded-full text-base font-medium transition-colors border',
+                                                selectedCategory === null
                                                     ? 'bg-amber-600 text-white border-amber-600'
                                                     : 'bg-white/15 text-white border-white/20 hover:bg-white/25 backdrop-blur-sm'
                                             )}
                                         >
-                                            {cat}
+                                            All
                                         </button>
-                                    ))}
-                                </motion.div>
-                            )}
+                                        {categories.map(cat => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => setSelectedCategory(cat)}
+                                                className={cn(
+                                                    'px-3 py-1 rounded-full text-base font-medium transition-colors border',
+                                                    selectedCategory === cat
+                                                        ? 'bg-amber-600 text-white border-amber-600'
+                                                        : 'bg-white/15 text-white border-white/20 hover:bg-white/25 backdrop-blur-sm'
+                                                )}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </motion.div>
 
                             {/* Stories Carousel */}
                             <AnimatePresence>
@@ -315,11 +412,11 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                             <motion.div
                                                 key={story.id}
                                                 whileHover={{ scale: 1.02 }}
-                                                className="flex-shrink-0 w-60 bg-white/10 rounded-xl border border-white/20 overflow-hidden cursor-pointer backdrop-blur-sm hover:bg-white/15 transition-colors"
+                                                className="flex-shrink-0 w-44 bg-white/10 rounded-xl border border-white/20 overflow-hidden cursor-pointer backdrop-blur-sm hover:bg-white/15 transition-colors"
                                                 onClick={() => handleStoryClick(story.id)}
                                             >
                                                 {story.display_image && (
-                                                    <div className="w-full h-32 bg-white/10 overflow-hidden">
+                                                    <div className="w-full h-24 bg-white/10 overflow-hidden">
                                                         <img
                                                             src={story.display_image}
                                                             alt={story.title}
@@ -327,17 +424,17 @@ export default function FloatingStorySlideshow({ isOpen, onClose, currentStoryId
                                                         />
                                                     </div>
                                                 )}
-                                                <div className="p-3">
-                                                    <h4 className="text-base font-semibold text-white mb-1 leading-tight">
+                                                <div className="p-2">
+                                                    <h4 className="text-base font-semibold text-white mb-0.5 leading-tight">
                                                         {story.title}
                                                     </h4>
                                                     {story.subtitle && (
-                                                        <p className="text-sm text-white/80 line-clamp-2 mb-1">
+                                                        <p className="text-sm text-white/80 line-clamp-2 mb-0.5">
                                                             {stripHtml(story.subtitle)}
                                                         </p>
                                                     )}
                                                     {story.author && (
-                                                        <p className="text-xs text-white/60">
+                                                        <p className="text-sm text-white/60">
                                                             by {story.author}
                                                         </p>
                                                     )}

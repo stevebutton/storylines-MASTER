@@ -10,8 +10,24 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
     ArrowLeft, Plus, Save, Trash2, ChevronUp, ChevronDown,
-    Upload, Loader2, X, Layers,
+    Upload, Loader2, X, Layers, ExternalLink, Check,
 } from 'lucide-react';
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A';
+
+const MAP_STYLES_CONFIG = {
+    a: { label: 'Style A',         description: 'Light cartographic — white banner, amber accents', owner: 'stevebutton', id: 'clummsfw1002701mpbiw3exg7' },
+    b: { label: 'Style B',         description: 'Mid-tone cartographic',                            owner: 'stevebutton', id: 'cktf8ygms085117nnzm4a97d0' },
+    c: { label: 'Style C',         description: 'Dark cartographic — strong route contrast',        owner: 'stevebutton', id: 'ckn1s2y342eq018tidycnavti' },
+    d: { label: 'Style D',         description: 'Mapbox Standard — dynamic lighting, 3D buildings', owner: 'stevebutton', id: 'cmm9edvor004m01sc0wyug8vz' },
+    e: { label: 'Style E',         description: 'Custom style',                                     owner: 'stevebutton', id: 'cmmanazrf000f01qvaghi0jhv' },
+    f: { label: 'Plouer',          description: 'Plouer cartographic — Oswald type',                owner: 'stevebutton', id: 'cmmd2lwzp001m01s24puoahpd' },
+    g: { label: 'Sauri',           description: 'Sauri',                                            owner: 'stevebutton', id: 'cmmd3clf0001o01s2biib8ju2' },
+    h: { label: 'SB4A',            description: 'SB4A',                                             owner: 'stevebutton', id: 'ck9i8wv640t4c1iqeiphu3soc' },
+    i: { label: 'PASSMAR',         description: 'PASSMAR',                                          owner: 'stevebutton', id: 'cllw84jo600f401r7afyy7ef4' },
+    j: { label: 'Cartogram',       description: 'Cartogram',                                        owner: 'stevebutton', id: 'cmmg2352g002q01s82q1d6zzo' },
+    k: { label: 'PASSMAR REWORK',  description: 'PASSMAR Rework',                                   owner: 'stevebutton', id: 'cmmmcnbw5009z01sb3xf72ldy' },
+};
 
 export default function SeriesEditor() {
     const [allSeries,           setAllSeries]           = useState([]);
@@ -136,6 +152,10 @@ export default function SeriesEditor() {
                 cover_image:  rest.cover_image  || null,
                 category:     rest.category     || null,
                 is_published: rest.is_published || false,
+                map_style:    rest.map_style  || 'a',
+                map_lat:      rest.map_lat    ?? 20,
+                map_lng:      rest.map_lng    ?? 20,
+                map_zoom:     rest.map_zoom   ?? 2,
                 updated_at:   new Date().toISOString(),
             };
 
@@ -169,8 +189,8 @@ export default function SeriesEditor() {
             await loadAllSeries();
             toast.success('Series saved');
         } catch (err) {
-            console.error(err);
-            toast.error('Save failed');
+            console.error('Series save error:', err);
+            toast.error(`Save failed: ${err.message || JSON.stringify(err)}`);
         } finally {
             setIsSaving(false);
         }
@@ -216,16 +236,28 @@ export default function SeriesEditor() {
                     </div>
                 </div>
                 {selected && (
-                    <Button
-                        onClick={save}
-                        disabled={isSaving}
-                        className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
-                    >
-                        {isSaving
-                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : <Save className="w-4 h-4" />}
-                        Save Series
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        {selected.id && !selected.isNew && (
+                            <Link
+                                to={`${createPageUrl('SeriesView')}?id=${selected.id}`}
+                                target="_blank"
+                                className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-amber-600 transition-colors"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                                View Series Page
+                            </Link>
+                        )}
+                        <Button
+                            onClick={save}
+                            disabled={isSaving}
+                            className="bg-amber-600 hover:bg-amber-700 text-white gap-2"
+                        >
+                            {isSaving
+                                ? <Loader2 className="w-4 h-4 animate-spin" />
+                                : <Save className="w-4 h-4" />}
+                            Save Series
+                        </Button>
+                    </div>
                 )}
             </div>
 
@@ -351,6 +383,103 @@ export default function SeriesEditor() {
                                             />
                                             <Label className="text-sm cursor-pointer">Published</Label>
                                         </div>
+                                    </div>
+
+                                    {/* Map Background Style — thumbnail grid */}
+                                    <div>
+                                        <Label className="text-xs mb-3 block">Map Background Style</Label>
+                                        <div className="flex flex-col gap-3">
+                                            {Object.entries(MAP_STYLES_CONFIG).map(([key, style]) => {
+                                                const lat  = selected.map_lat  ?? 20;
+                                                const lng  = selected.map_lng  ?? 20;
+                                                const zoom = selected.map_zoom ?? 2;
+                                                const thumbUrl = `https://api.mapbox.com/styles/v1/${style.owner}/${style.id}/static/${lng},${lat},${zoom}/600x220@2x?access_token=${MAPBOX_TOKEN}`;
+                                                const isSelected = (selected.map_style || 'a') === key;
+                                                return (
+                                                    <div
+                                                        key={key}
+                                                        onClick={() => setSelected(p => ({ ...p, map_style: key }))}
+                                                        className={`cursor-pointer rounded-xl overflow-hidden border-2 transition-all flex ${
+                                                            isSelected
+                                                                ? 'border-amber-500 shadow-lg shadow-amber-500/20'
+                                                                : 'border-slate-200 hover:border-slate-400'
+                                                        }`}
+                                                    >
+                                                        <div className="relative flex-shrink-0 w-[200px]">
+                                                            <img src={thumbUrl} alt={style.label} className="w-full h-[100px] object-cover" />
+                                                            {isSelected && (
+                                                                <div className="absolute top-2 right-2 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center shadow-md">
+                                                                    <Check className="w-3.5 h-3.5 text-white" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className={`flex-1 px-4 py-3 flex flex-col justify-center ${isSelected ? 'bg-amber-50' : 'bg-white'}`}>
+                                                            <span className={`text-sm font-semibold block mb-1 ${isSelected ? 'text-amber-600' : 'text-slate-800'}`}>
+                                                                {style.label}
+                                                            </span>
+                                                            <span className="text-xs text-slate-500">{style.description}</span>
+                                                            {isSelected && (
+                                                                <span className="mt-2 text-xs font-medium text-amber-600 bg-amber-500/20 px-2 py-0.5 rounded-full w-fit">Active</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Map Position */}
+                                    <div>
+                                        <Label className="text-xs mb-3 block">Map Position</Label>
+                                        <div className="grid grid-cols-3 gap-3 mb-3">
+                                            <div>
+                                                <Label className="text-xs text-slate-400 mb-1 block">Latitude</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={selected.map_lat ?? 20}
+                                                    onChange={e => setSelected(p => ({ ...p, map_lat: parseFloat(e.target.value) || 0 }))}
+                                                    className="h-9"
+                                                    step="0.1"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs text-slate-400 mb-1 block">Longitude</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={selected.map_lng ?? 20}
+                                                    onChange={e => setSelected(p => ({ ...p, map_lng: parseFloat(e.target.value) || 0 }))}
+                                                    className="h-9"
+                                                    step="0.1"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs text-slate-400 mb-1 block">Zoom</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={selected.map_zoom ?? 2}
+                                                    onChange={e => setSelected(p => ({ ...p, map_zoom: parseFloat(e.target.value) || 2 }))}
+                                                    className="h-9"
+                                                    min="0" max="20" step="0.5"
+                                                />
+                                            </div>
+                                        </div>
+                                        {/* Live preview at current position + selected style */}
+                                        {(() => {
+                                            const style = MAP_STYLES_CONFIG[selected.map_style || 'a'];
+                                            const lat   = selected.map_lat  ?? 20;
+                                            const lng   = selected.map_lng  ?? 20;
+                                            const zoom  = selected.map_zoom ?? 2;
+                                            const url   = `https://api.mapbox.com/styles/v1/${style.owner}/${style.id}/static/${lng},${lat},${zoom}/800x300@2x?access_token=${MAPBOX_TOKEN}`;
+                                            return (
+                                                <img
+                                                    key={url}
+                                                    src={url}
+                                                    alt="Map preview"
+                                                    className="w-full rounded-lg border border-slate-200"
+                                                    style={{ height: 160, objectFit: 'cover' }}
+                                                />
+                                            );
+                                        })()}
                                     </div>
 
                                     {/* Cover image */}
