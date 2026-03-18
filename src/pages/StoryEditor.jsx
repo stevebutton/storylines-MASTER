@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { normalizeCoordinatePair } from '@/components/utils/coordinateUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
@@ -7,7 +7,7 @@ import { supabase } from '@/api/supabaseClient';
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle, Images, Home } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle, Images, Home, Wand2 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
@@ -17,6 +17,8 @@ import HelpPanel from '@/components/editor/HelpPanel';
 import MapDataImportPanel from '@/components/editor/MapDataImportPanel';
 import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 import MediaLibraryDialog from '@/components/editor/MediaLibraryDialog';
+import VoiceSelectionPanel from '@/components/editor/VoiceSelectionPanel';
+import { toast } from 'sonner';
 
 export default function StoryEditor() {
     const location = useLocation();
@@ -29,6 +31,7 @@ export default function StoryEditor() {
     const [chapters, setChapters] = useState([]);
     const [slides, setSlides] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const initialLoadDone = useRef(false);
     const [isSaving, setIsSaving] = useState(false);
     const [selectedItem, setSelectedItem] = useState({ type: 'story', id: null });
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
@@ -39,6 +42,9 @@ export default function StoryEditor() {
     const [isComputingRoutes, setIsComputingRoutes] = useState(false);
     const [routeComputeStatus, setRouteComputeStatus] = useState(null);
     const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+    const [showCaptionPanel, setShowCaptionPanel] = useState(false);
+    const [captionChapterId, setCaptionChapterId] = useState(null); // null = story-wide
+    const [isGeneratingCaptions, setIsGeneratingCaptions] = useState(false);
 
     useEffect(() => {
         const prev = document.body.style.background;
@@ -51,7 +57,7 @@ export default function StoryEditor() {
     }, [currentStoryId]);
 
     const loadData = async () => {
-        setIsLoading(true);
+        if (!initialLoadDone.current) setIsLoading(true);
         try {
             if (currentStoryId) {
                 const { data: storyData, error: storyErr } = await supabase
@@ -74,6 +80,7 @@ export default function StoryEditor() {
             console.error('Failed to load data:', error);
         } finally {
             setIsLoading(false);
+            initialLoadDone.current = true;
         }
     };
 
@@ -386,6 +393,57 @@ export default function StoryEditor() {
         return null;
     };
 
+    const CAPTION_BATCH = 4;
+
+    const runCaptionGeneration = async (config) => {
+        const isStoryWide = captionChapterId === null;
+        const allIds = isStoryWide
+            ? slides.map(s => s.id)
+            : slides.filter(s => s.chapter_id === captionChapterId).map(s => s.id);
+
+        const idsToProcess = config.skip_existing
+            ? allIds.filter(id => {
+                const slide = slides.find(s => s.id === id);
+                return !slide?.description;
+              })
+            : allIds;
+
+        if (idsToProcess.length === 0) {
+            toast.info('No slides to update — all slides already have captions.');
+            setShowCaptionPanel(false);
+            return;
+        }
+
+        setIsGeneratingCaptions(true);
+        try {
+            for (let i = 0; i < idsToProcess.length; i += CAPTION_BATCH) {
+                const batch = idsToProcess.slice(i, i + CAPTION_BATCH);
+                await fetch('/.netlify/functions/generate-captions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ story_id: currentStoryId, slide_ids: batch, ...config }),
+                });
+            }
+            // Story-wide only: metadata pass updates chapter names + story title/subtitle
+            if (isStoryWide) {
+                await fetch('/.netlify/functions/generate-captions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ story_id: currentStoryId, is_full_run: true, ...config }),
+                });
+            }
+            await loadData();
+            toast.success(`Captions generated for ${idsToProcess.length} slide${idsToProcess.length !== 1 ? 's' : ''}.`);
+        } catch (e) {
+            console.error('[captions]', e);
+            toast.error('Caption generation failed. Please try again.');
+        } finally {
+            setIsGeneratingCaptions(false);
+            setShowCaptionPanel(false);
+            setCaptionChapterId(null);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -406,9 +464,9 @@ export default function StoryEditor() {
             {isBackTransitioning && (
                 <motion.div
                     className="fixed inset-0 bg-white z-[9999] pointer-events-all"
-                    initial={{ x: '-100%' }}
-                    animate={{ x: 0 }}
-                    transition={{ duration: 2, ease: 'easeIn' }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4, ease: 'easeInOut' }}
                     onAnimationComplete={() => navigate(createPageUrl('Stories'))}
                 />
             )}
@@ -493,6 +551,14 @@ export default function StoryEditor() {
                             >
                                 <Sparkles className="w-5 h-5 text-white mb-1" />
                                 <p className="text-xs text-white font-semibold">Story Helper</p>
+                            </button>
+                            <button
+                                onClick={() => { setCaptionChapterId(null); setShowCaptionPanel(true); }}
+                                disabled={isGeneratingCaptions}
+                                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
+                            >
+                                <Wand2 className="w-5 h-5 text-white mb-1" />
+                                <p className="text-xs text-white font-semibold">{isGeneratingCaptions ? 'Working...' : 'Captions'}</p>
                             </button>
                         </div>
 
@@ -585,6 +651,10 @@ export default function StoryEditor() {
                             totalChapterCount={chapters.length}
                             storyMapStyle={story.map_style || 'a'}
                             defaultTab={selectedItem?.tab}
+                            onGenerateCaptions={(chapterId) => {
+                                setCaptionChapterId(chapterId);
+                                setShowCaptionPanel(true);
+                            }}
                         />
                     </div>
                 </div>
@@ -618,8 +688,23 @@ export default function StoryEditor() {
             {/* Story Helper — append chapters via ZIP upload */}
             <MapDataImportPanel
                 isOpen={isStoryHelperOpen}
-                onClose={() => { setIsStoryHelperOpen(false); loadData(); }}
+                onClose={() => { setIsStoryHelperOpen(false); setTimeout(loadData, 2100); }}
                 appendToStoryId={currentStoryId}
+            />
+
+            {/* Caption Generation Panel */}
+            <VoiceSelectionPanel
+                isOpen={showCaptionPanel}
+                onClose={() => { setShowCaptionPanel(false); setCaptionChapterId(null); }}
+                onContinue={runCaptionGeneration}
+                defaultLanguage={story.story_language || 'en'}
+                initialContext={{
+                    story_title:        story.title             || '',
+                    story_description:  story.story_description || '',
+                    locations:          '',
+                    date_range:         '',
+                    additional_context: '',
+                }}
             />
 
             {/* AI Assistant Panel */}

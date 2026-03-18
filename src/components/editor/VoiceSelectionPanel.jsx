@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,19 +8,26 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SUPPORTED_LANGUAGES } from '@/utils/translationDefaults';
 
-export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defaultLanguage = 'en' }) {
+export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defaultLanguage = 'en', initialContext = null }) {
     const [selectedVoice, setSelectedVoice] = useState('berger');
     const [selectedLanguage, setSelectedLanguage] = useState(defaultLanguage);
     const [selectedModel, setSelectedModel] = useState('haiku');
     const [customVoiceDescription, setCustomVoiceDescription] = useState('');
-    const [showContext, setShowContext] = useState(false);
-    const [storyContext, setStoryContext] = useState({
-        story_title: '',
-        story_description: '',
-        locations: '',
-        date_range: '',
-        additional_context: ''
-    });
+    const [skipExisting, setSkipExisting] = useState(true);
+    const [showContext, setShowContext] = useState(!!initialContext);
+    const [storyContext, setStoryContext] = useState(
+        initialContext
+            ? { story_title: '', story_description: '', locations: '', date_range: '', additional_context: '', ...initialContext }
+            : { story_title: '', story_description: '', locations: '', date_range: '', additional_context: '' }
+    );
+
+    // Re-sync state whenever the panel opens
+    useEffect(() => {
+        if (isOpen && initialContext) {
+            setStoryContext({ story_title: '', story_description: '', locations: '', date_range: '', additional_context: '', ...initialContext });
+            setShowContext(true);
+        }
+    }, [isOpen]);
 
     const voices = [
         {
@@ -77,6 +84,7 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
             story_context: showContext ? storyContext : null,
             language: selectedLanguage,
             model: selectedModel,
+            skip_existing: skipExisting,
         });
     };
 
@@ -239,6 +247,20 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
                                 )}
                             </AnimatePresence>
 
+                            {/* Skip Existing Toggle */}
+                            <div className="flex items-center gap-2 py-3 border-t">
+                                <input
+                                    type="checkbox"
+                                    id="skipExisting"
+                                    checked={skipExisting}
+                                    onChange={(e) => setSkipExisting(e.target.checked)}
+                                    className="w-4 h-4 rounded"
+                                />
+                                <label htmlFor="skipExisting" className="text-sm text-slate-700">
+                                    Skip slides that already have captions
+                                </label>
+                            </div>
+
                             {/* Story Context Section */}
                             <div className="border-t pt-6">
                                 <button
@@ -247,7 +269,12 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
                                 >
                                     <div>
                                         <h3 className="text-lg font-semibold text-slate-800">Story Context</h3>
-                                        <p className="text-sm text-slate-600">Optional: Provide additional context for better captions</p>
+                                        <p className="text-sm text-slate-600">
+                                            {initialContext
+                                                ? 'Pre-filled from your story — edit as needed'
+                                                : 'Optional: Provide additional context for better captions'
+                                            }
+                                        </p>
                                     </div>
                                     {showContext ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                                 </button>

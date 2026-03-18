@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2, Check, Images } from 'lucide-react';
+import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2, Check, Images, Wand2 } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import * as exifr from 'exifr';
 
@@ -114,6 +114,7 @@ export default function TabbedContentEditor({
     totalChapterCount,
     storyMapStyle,
     defaultTab,
+    onGenerateCaptions = null,
 }) {
     const [activeTab, setActiveTab] = useState(defaultTab || 'content');
 
@@ -824,6 +825,16 @@ export default function TabbedContentEditor({
                                 <Button onClick={() => onAddSlide(item.id)} size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
                                     <Plus className="w-4 h-4 mr-1" /> Add Slide
                                 </Button>
+                                {onGenerateCaptions && itemType === 'chapter' && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => onGenerateCaptions(item.id)}
+                                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                    >
+                                        <Wand2 className="w-4 h-4 mr-1" /> Generate Captions
+                                    </Button>
+                                )}
                                 {onDelete && (
                                     <Button
                                         variant="destructive"
