@@ -84,25 +84,32 @@ export default function ScriptPanel({ isOpen, onClose, chapters, slides, onUpdat
                     <style>{QUILL_STYLES}</style>
 
                     {/* ── Left nav ── */}
-                    <div className="w-[220px] flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col h-full">
-                        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
-                            <div>
-                                <h2 className="text-base font-bold text-slate-800">Script</h2>
-                                <p className="text-xs text-slate-400 mt-0.5">Save when done</p>
+                    <div className="w-[340px] flex-shrink-0 border-r border-slate-200 bg-slate-50 flex flex-col h-full">
+                        <div className="px-5 pt-3 pb-4 border-b border-slate-200 flex-shrink-0">
+                            <div className="flex justify-end mb-2">
+                                <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-200 transition-colors text-slate-500 hover:text-slate-800">
+                                    <X className="w-7 h-7" />
+                                </button>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={onClose}>
-                                <X className="w-4 h-4" />
-                            </Button>
+                            <div className="text-right">
+                                <h2 className="text-base font-bold text-slate-800">Script</h2>
+                                <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                                    Click a chapter to jump to it. Edit any field directly.
+                                </p>
+                                <p className="text-sm text-amber-600 mt-1.5 leading-relaxed">
+                                    Changes sync to the editor immediately but are not saved to the database until you click <span className="font-semibold">Save</span> in the toolbar.
+                                </p>
+                            </div>
                         </div>
                         <div className="flex-1 overflow-y-auto py-3">
                             {localChapters.map((ch, idx) => (
                                 <button
                                     key={ch.id}
                                     onClick={() => scrollToChapter(idx)}
-                                    className="w-full text-left px-4 py-2.5 hover:bg-white transition-colors group"
+                                    className="w-full text-right px-5 py-[14px] hover:bg-white transition-colors group"
                                 >
                                     <span className="text-xs text-slate-400 block">Ch {idx + 1}</span>
-                                    <span className="text-sm text-slate-700 font-medium truncate block group-hover:text-amber-600 transition-colors">
+                                    <span className="text-xl text-slate-700 font-medium truncate block group-hover:text-amber-600 transition-colors">
                                         {ch.name || 'Untitled'}
                                     </span>
                                 </button>
