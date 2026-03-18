@@ -24,39 +24,60 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
     const [currentStoryId, setCurrentStoryId] = useState(null);
     const [storyOverview, setStoryOverview] = useState(null);
 
-    // Editable intro content
-    const [introContent, setIntroContent] = useState({ intro: null, introAppend: null });
+    // Editable content (intro + steps)
+    const [dbContent, setDbContent] = useState({});   // keyed by topic_id
     const [isEditing, setIsEditing] = useState(false);
-    const [introDraft, setIntroDraft] = useState('');
+    const [drafts, setDrafts] = useState({});          // keyed by topic_id → body string
     const [isSaving, setIsSaving] = useState(false);
+
+    const TOPIC_IDS = ['intro', 'intro-append', 'steps', 'steps-append'];
 
     useEffect(() => {
         if (!isOpen) return;
         supabase.from('app_content')
             .select('*')
             .eq('panel_id', 'story-helper')
-            .in('topic_id', ['intro', 'intro-append'])
+            .in('topic_id', TOPIC_IDS)
             .then(({ data }) => {
                 if (data) {
                     const map = {};
                     data.forEach(r => { map[r.topic_id] = r; });
-                    setIntroContent({ intro: map['intro'] ?? null, introAppend: map['intro-append'] ?? null });
+                    setDbContent(map);
                 }
             });
     }, [isOpen]);
 
-    const activeIntro = isAppendMode ? introContent.introAppend : introContent.intro;
-    const activeIntroBody = activeIntro?.body ?? '';
+    const introKey  = isAppendMode ? 'intro-append'  : 'intro';
+    const stepsKey  = isAppendMode ? 'steps-append'  : 'steps';
 
-    const handleSaveIntro = async () => {
-        if (!activeIntro) return;
+    const getBody = (key) => isEditing
+        ? (drafts[key] ?? dbContent[key]?.body ?? '')
+        : (dbContent[key]?.body ?? '');
+
+    const startEditing = () => {
+        const d = {};
+        TOPIC_IDS.forEach(k => { d[k] = dbContent[k]?.body ?? ''; });
+        setDrafts(d);
+        setIsEditing(true);
+    };
+
+    const handleSave = async () => {
         setIsSaving(true);
-        const { error } = await supabase.from('app_content')
-            .update({ body: introDraft, updated_at: new Date().toISOString() })
-            .eq('id', activeIntro.id);
-        if (!error) {
-            const key = isAppendMode ? 'introAppend' : 'intro';
-            setIntroContent(prev => ({ ...prev, [key]: { ...activeIntro, body: introDraft } }));
+        await Promise.all(
+            TOPIC_IDS
+                .filter(k => dbContent[k])
+                .map(k => supabase.from('app_content')
+                    .update({ body: drafts[k] ?? dbContent[k].body, updated_at: new Date().toISOString() })
+                    .eq('id', dbContent[k].id)
+                )
+        );
+        // Refresh
+        const { data } = await supabase.from('app_content')
+            .select('*').eq('panel_id', 'story-helper').in('topic_id', TOPIC_IDS);
+        if (data) {
+            const map = {};
+            data.forEach(r => { map[r.topic_id] = r; });
+            setDbContent(map);
         }
         setIsSaving(false);
         setIsEditing(false);
@@ -366,10 +387,10 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                                     </h1>
                                     {!isEditing ? (
                                         <button
-                                            onClick={() => { setIntroDraft(activeIntroBody); setIsEditing(true); }}
+                                            onClick={startEditing}
                                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-colors flex-shrink-0"
                                         >
-                                            <Pencil className="w-4 h-4" /> Edit Intro
+                                            <Pencil className="w-4 h-4" /> Edit
                                         </button>
                                     ) : (
                                         <div className="flex items-center gap-2 flex-shrink-0">
@@ -380,7 +401,7 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                                                 Cancel
                                             </button>
                                             <button
-                                                onClick={handleSaveIntro}
+                                                onClick={handleSave}
                                                 disabled={isSaving}
                                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium transition-colors"
                                             >
@@ -403,73 +424,32 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                                     <div className="bg-blue-50 rounded-lg px-6 py-5">
                                         {isEditing ? (
                                             <RichTextEditor
-                                                content={introDraft}
-                                                onChange={setIntroDraft}
+                                                content={getBody(introKey)}
+                                                onChange={body => setDrafts(d => ({ ...d, [introKey]: body }))}
                                                 placeholder="Describe how Story Helper works…"
                                             />
                                         ) : (
                                             <div
                                                 className="prose prose-sm prose-slate max-w-none text-slate-700"
-                                                dangerouslySetInnerHTML={{ __html: activeIntroBody }}
+                                                dangerouslySetInnerHTML={{ __html: getBody(introKey) }}
                                             />
                                         )}
                                     </div>
 
                                     {/* Steps */}
-                                    <div className="space-y-3">
-                                        {(isAppendMode ? [
-                                            {
-                                                n: '1',
-                                                title: 'Organise your new photos into folders',
-                                                body: 'Create one folder per new chapter. The folder name becomes the chapter title. Photos within each folder become individual slides.',
-                                            },
-                                            {
-                                                n: '2',
-                                                title: 'Create a ZIP archive',
-                                                body: 'Place all your chapter folders inside a single parent folder, then compress it as a .zip file. On Mac: select all folders → right-click → Compress.',
-                                            },
-                                            {
-                                                n: '3',
-                                                title: 'Upload the ZIP',
-                                                body: 'Select your .zip file below. Storylines will extract GPS data, create the new chapters and slides, and append them to the end of this story.',
-                                            },
-                                            {
-                                                n: '4',
-                                                title: 'Choose a writing voice',
-                                                body: 'Select the narrative tone for AI-generated captions. The new chapters will appear in the editor ready to review and refine.',
-                                            },
-                                        ] : [
-                                            {
-                                                n: '1',
-                                                title: 'Organise your photos into folders',
-                                                body: 'Create one folder per chapter. The folder name becomes the chapter title. Photos within each folder become individual slides.',
-                                            },
-                                            {
-                                                n: '2',
-                                                title: 'Create a ZIP archive',
-                                                body: 'Place all your chapter folders inside a single parent folder, then compress it as a .zip file. On Mac: select all folders → right-click → Compress.',
-                                            },
-                                            {
-                                                n: '3',
-                                                title: 'Upload the ZIP',
-                                                body: 'Select your .zip file below. Storylines will extract GPS data from each photo, create chapters and slides, and upload your images automatically.',
-                                            },
-                                            {
-                                                n: '4',
-                                                title: 'Choose a writing voice',
-                                                body: 'After processing, select the narrative tone for AI-generated captions. You can then review the full story structure before continuing.',
-                                            },
-                                        ]).map(({ n, title, body }) => (
-                                            <div key={n} className="flex gap-4 items-start">
-                                                <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                    {n}
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-slate-800">{title}</p>
-                                                    <p className="text-sm text-slate-500 mt-0.5 leading-relaxed">{body}</p>
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <div>
+                                        {isEditing ? (
+                                            <RichTextEditor
+                                                content={getBody(stepsKey)}
+                                                onChange={body => setDrafts(d => ({ ...d, [stepsKey]: body }))}
+                                                placeholder="Add numbered steps…"
+                                            />
+                                        ) : (
+                                            <div
+                                                className="prose prose-sm prose-slate max-w-none"
+                                                dangerouslySetInnerHTML={{ __html: getBody(stepsKey) }}
+                                            />
+                                        )}
                                     </div>
 
                                     <div className="border-2 border-dashed border-slate-300 rounded-lg p-12 text-center">

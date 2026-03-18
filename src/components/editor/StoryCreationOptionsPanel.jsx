@@ -97,11 +97,17 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
         setDrafts(d => ({ ...d, [topicId]: { ...d[topicId], body } }));
     };
 
+    const setDraftTitle = (topicId, title) => {
+        setDrafts(d => ({ ...d, [topicId]: { ...d[topicId], title } }));
+    };
+
     const getBody = (topicId) => isEditing
         ? (drafts[topicId]?.body ?? content[topicId]?.body ?? '')
         : (content[topicId]?.body ?? '');
 
-    const getTitle = (topicId) => content[topicId]?.title ?? '';
+    const getTitle = (topicId) => isEditing
+        ? (drafts[topicId]?.title ?? content[topicId]?.title ?? '')
+        : (content[topicId]?.title ?? '');
 
     // Option order and keys
     const optionOrder = ['scratch', 'map', 'interview', 'storyboarder'];
@@ -208,11 +214,15 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                                                         <Icon className={`w-8 h-8 ${colorSet.icon}`} />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <h3 className={`text-lg font-semibold mb-2 ${colorSet.text}`}>
-                                                            {title || id}
-                                                        </h3>
                                                         {isEditing ? (
-                                                            <div onClick={e => e.stopPropagation()}>
+                                                            <div onClick={e => e.stopPropagation()} className="space-y-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={getTitle(id)}
+                                                                    onChange={e => setDraftTitle(id, e.target.value)}
+                                                                    className={`w-full text-lg font-semibold border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400 bg-white ${colorSet.text}`}
+                                                                    placeholder="Option title…"
+                                                                />
                                                                 <RichTextEditor
                                                                     content={getBody(id)}
                                                                     onChange={body => setDraftBody(id, body)}
@@ -220,10 +230,15 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                                                                 />
                                                             </div>
                                                         ) : (
-                                                            <div
-                                                                className="prose prose-sm prose-slate max-w-none text-slate-600"
-                                                                dangerouslySetInnerHTML={{ __html: getBody(id) }}
-                                                            />
+                                                            <>
+                                                                <h3 className={`text-lg font-semibold mb-2 ${colorSet.text}`}>
+                                                                    {title || id}
+                                                                </h3>
+                                                                <div
+                                                                    className="prose prose-sm prose-slate max-w-none text-slate-600"
+                                                                    dangerouslySetInnerHTML={{ __html: getBody(id) }}
+                                                                />
+                                                            </>
                                                         )}
                                                     </div>
                                                 </div>
