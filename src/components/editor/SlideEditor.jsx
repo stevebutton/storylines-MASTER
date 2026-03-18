@@ -16,6 +16,7 @@ import 'react-quill/dist/quill.snow.css';
 import DocumentPicker from './DocumentPicker';
 import MediaLibraryDialog from './MediaLibraryDialog';
 import ImageFocalPointPicker from './ImageFocalPointPicker';
+import ImageHotspotPicker from './ImageHotspotPicker';
 
 const validateField = (field, value) => {
     switch (field) {
@@ -627,6 +628,22 @@ export default function SlideEditor({ slide, storyId, chapterId, onUpdate, onDel
                         <Trash2 className="w-4 h-4" />
                     </Button>
                 </div>
+                {slide.image && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                        <Label className="text-xs mb-1 block">Image Hotspot</Label>
+                        <ImageHotspotPicker
+                            imageUrl={slide.image}
+                            x={slide.hotspot_x ?? null}
+                            y={slide.hotspot_y ?? null}
+                            title={slide.hotspot_title || ''}
+                            body={slide.hotspot_body || ''}
+                            onChange={({ x, y, title, body }) =>
+                                onUpdate({ ...slide, hotspot_x: x, hotspot_y: y,
+                                           hotspot_title: title, hotspot_body: body })
+                            }
+                        />
+                    </div>
+                )}
             </CardContent>
         </Card>
         <MediaLibraryDialog

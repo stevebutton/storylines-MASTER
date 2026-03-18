@@ -7,6 +7,113 @@ import FloatingControlStrip from './FloatingControlStrip';
 import FilmstripBar from './FilmstripBar';
 import PdfViewer from '@/components/pdf/PdfViewer';
 
+const CHAPTER_COLORS = [
+    { main: '#d97706', rgb: '217,119,6'   },  // 0 amber
+    { main: '#2563eb', rgb: '37,99,235'   },  // 1 blue
+    { main: '#16a34a', rgb: '22,163,74'   },  // 2 green
+    { main: '#9333ea', rgb: '147,51,234'  },  // 3 purple
+    { main: '#e11d48', rgb: '225,29,72'   },  // 4 rose
+    { main: '#0d9488', rgb: '13,148,136'  },  // 5 teal
+];
+
+const HOTSPOT_PULSE_STYLE = CHAPTER_COLORS.map(({ rgb }, i) => `
+@keyframes hotspot-pulse-${i} {
+    0%   { box-shadow: 0 0 0 0px  rgba(${rgb},1.0), 0 2px 8px rgba(0,0,0,0.3); }
+    70%  { box-shadow: 0 0 0 36px rgba(${rgb},0),   0 2px 8px rgba(0,0,0,0.3); }
+    100% { box-shadow: 0 0 0 0px  rgba(${rgb},0),   0 2px 8px rgba(0,0,0,0.3); }
+}
+.hotspot-pulse-${i} { animation: hotspot-pulse-${i} 1.8s ease-out infinite; }
+`).join('\n');
+
+const THEME_FONTS = {
+    c: 'Righteous, cursive',
+    f: 'Oswald, sans-serif',
+    k: 'Oswald, sans-serif',
+};
+
+function ImageHotspot({ x, y, title, body, mapStyle = 'a', chapterColorIndex = 0 }) {
+    const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
+    const color = CHAPTER_COLORS[chapterColorIndex % CHAPTER_COLORS.length];
+    const [hovered, setHovered] = useState(false);
+    // Card appears to the right of the dot by default; flips left when near the right edge.
+    // Vertically centered on the dot via top:50% + translateY(-50%).
+    const toLeft = x > 0.7;
+    const cardStyle = {
+        top: '50%',
+        transform: 'translateY(-50%)',
+        ...(toLeft
+            ? { right: '100%', marginRight: 20 }
+            : { left: '100%', marginLeft: 20 }),
+    };
+
+    return (
+        <div
+            className="absolute z-20 cursor-default"
+            style={{
+                left: `${x * 100}%`,
+                top: `${y * 100}%`,
+                transform: 'translate(-50%, -50%)',
+            }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+        >
+            {/* Dot — matches map marker: 36px, chapter colour, white border */}
+            <motion.div
+                className={`hotspot-pulse-${chapterColorIndex % CHAPTER_COLORS.length} rounded-full`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6, delay: 1.5, ease: 'easeOut' }}
+                style={{
+                    width: 36,
+                    height: 36,
+                    background: color.main,
+                    border: '3px solid white',
+                    boxSizing: 'border-box',
+                }}
+            />
+            <AnimatePresence>
+                {hovered && (
+                    /* Outer div: absolute positioning to the side of the dot, top:50% */
+                    /* Inner div: translateY(-50%) centers the card on the dot — kept
+                       separate so Framer Motion's y animation doesn't clobber the offset */
+                    <div className="absolute" style={cardStyle}>
+                    <motion.div
+                        initial={{ opacity: 0, backdropFilter: 'blur(0px)', y: 6 }}
+                        animate={{ opacity: 1, backdropFilter: 'blur(24px)', y: 0 }}
+                        exit={{ opacity: 0, backdropFilter: 'blur(0px)', y: 6 }}
+                        transition={{ duration: 0.35 }}
+                        className="w-64 rounded-xl pointer-events-none overflow-hidden"
+                        style={{
+                            transform: 'translateY(-50%)',
+                            paddingTop: 12, paddingBottom: 32, paddingLeft: 26, paddingRight: 26,
+                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.15))',
+                        }}
+                    >
+                        <div className="relative">
+                            {title && (
+                                <p
+                                    className="text-base font-light text-white mb-2"
+                                    style={{ fontFamily: themeFont }}
+                                >
+                                    {title}
+                                </p>
+                            )}
+                            {body && (
+                                <div
+                                    className="leading-relaxed text-base font-light prose prose-sm max-w-none prose-invert"
+                                    style={{ color: 'white' }}
+                                    dangerouslySetInnerHTML={{ __html: body }}
+                                />
+                            )}
+                        </div>
+                    </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
 const VideoPlayer = ({ url, loop = false, onVideoEnded }) => {
     if (!url) return null;
 
@@ -92,12 +199,13 @@ export default function FullScreenImageViewer({
     currentIndex,
     onNavigate,
     chapterName,
-    mapStyle     = 'a',
-    viewMode     = 'story',    // 'picture' | 'story' | 'timeline'
+    mapStyle          = 'a',
+    viewMode          = 'story',    // 'picture' | 'story' | 'timeline'
     hideControlStrip  = false,
     hideTextPanel     = false,
     hideChapterTitle  = false,
     inOverlay         = false,  // true when rendered as an overlay inside StoryMapView
+    chapterColorIndex = 0,
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
 
@@ -170,6 +278,7 @@ export default function FullScreenImageViewer({
                         {/* overflow-hidden clips the push slides so they don't show
                             outside the container; absolute img allows mode="sync"
                             to run enter+exit simultaneously for the push effect.   */}
+                        <style>{HOTSPOT_PULSE_STYLE}</style>
                         <div className="absolute inset-0 overflow-hidden z-10">
                     <AnimatePresence
                         mode="sync"
@@ -193,6 +302,17 @@ export default function FullScreenImageViewer({
                             />
                         )}
                             </AnimatePresence>
+                            {currentSlide.hotspot_x != null && !currentSlide.video_url && (
+                                <ImageHotspot
+                                    key={currentSlide.id}
+                                    x={currentSlide.hotspot_x}
+                                    y={currentSlide.hotspot_y}
+                                    title={currentSlide.hotspot_title || ''}
+                                    body={currentSlide.hotspot_body || ''}
+                                    mapStyle={mapStyle}
+                                    chapterColorIndex={currentSlide._chapter_index ?? chapterColorIndex}
+                                />
+                            )}
                         </div>
 
                         {/* Text panel — hidden for non-looping videos (full video experience);

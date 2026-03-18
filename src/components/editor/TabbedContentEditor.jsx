@@ -16,7 +16,7 @@ const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
 import DocumentPicker from '@/components/editor/DocumentPicker';
 import MediaLibraryDialog from '@/components/editor/MediaLibraryDialog';
-import ImageFocalPointPicker from '@/components/editor/ImageFocalPointPicker';
+import ImageCropHotspotPicker from '@/components/editor/ImageCropHotspotPicker';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -1282,12 +1282,19 @@ export default function TabbedContentEditor({
                                 <FieldLabel>Image</FieldLabel>
                                 {item.image && (
                                     <div className="mt-2 relative">
-                                        <FieldLabel>Crop Position</FieldLabel>
                                         <div className="relative">
-                                            <ImageFocalPointPicker
+                                            <ImageCropHotspotPicker
                                                 imageUrl={item.image}
-                                                value={item.image_position || '50% 50%'}
-                                                onChange={(pos) => onUpdate({ ...item, image_position: pos })}
+                                                imagePosition={item.image_position || '50% 50%'}
+                                                onImagePositionChange={(pos) => onUpdate({ ...item, image_position: pos })}
+                                                hotspotX={item.hotspot_x ?? null}
+                                                hotspotY={item.hotspot_y ?? null}
+                                                hotspotTitle={item.hotspot_title || ''}
+                                                hotspotBody={item.hotspot_body || ''}
+                                                onHotspotChange={({ x, y, title, body }) =>
+                                                    onUpdate({ ...item, hotspot_x: x, hotspot_y: y,
+                                                               hotspot_title: title, hotspot_body: body })
+                                                }
                                             />
                                             <button
                                                 onClick={() => onUpdate({ ...item, image: '' })}
@@ -1429,6 +1436,7 @@ export default function TabbedContentEditor({
                                     setShowDocumentPicker(false);
                                 }}
                             />
+
                         </CardContent>
                     </Card>
                 </TabsContent>

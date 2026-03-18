@@ -370,6 +370,10 @@ export default function StoryMapView() {
                         capture_date: s.capture_date,
                         image_position: s.image_position,
                         milestone: s.milestone,
+                        hotspot_x: s.hotspot_x,
+                        hotspot_y: s.hotspot_y,
+                        hotspot_title: s.hotspot_title,
+                        hotspot_body: s.hotspot_body,
                     }))
             }));
 
@@ -712,6 +716,7 @@ export default function StoryMapView() {
                     ? `${translate('chapter_prefix')} ${String(chIdx + 1).padStart(2, '0')}: ${ch.name}`
                     : `${translate('chapter_prefix')} ${String(chIdx + 1).padStart(2, '0')}`,
                 _chapter_id: ch.id,
+                _chapter_index: chIdx,
             }))
         );
     }, [chapters, translate]);
@@ -1641,6 +1646,7 @@ export default function StoryMapView() {
                             hideTextPanel={overlayMode === 'picture'}
                             hideChapterTitle={overlayMode === 'story'}
                             inOverlay={true}
+                            chapterColorIndex={activeChapter >= 0 ? activeChapter % 6 : 0}
                         />
 
                         {/* Bottom gradient */}
