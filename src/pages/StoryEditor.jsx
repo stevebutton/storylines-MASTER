@@ -528,6 +528,7 @@ export default function StoryEditor() {
                         {/* Group 1: Status */}
                         <button
                             onClick={async () => {
+                                setShowScriptPanel(false);
                                 const updatedStory = { ...story, is_published: !story.is_published };
                                 setStory(updatedStory);
                                 if (currentStoryId) {
@@ -549,28 +550,28 @@ export default function StoryEditor() {
                         {/* Group 2: Media, Help, Story Helper */}
                         <div className="hidden md:flex items-stretch gap-2">
                             <button
-                                onClick={() => setIsMediaLibraryOpen(true)}
+                                onClick={() => { setShowScriptPanel(false); setIsMediaLibraryOpen(true); }}
                                 className="bg-amber-500 hover:bg-amber-600 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
                             >
                                 <Images className="w-5 h-5 text-white mb-1" />
                                 <p className="text-xs text-white font-semibold">Media</p>
                             </button>
                             <button
-                                onClick={() => setIsHelpPanelOpen(true)}
+                                onClick={() => { setShowScriptPanel(false); setIsHelpPanelOpen(true); }}
                                 className="bg-slate-600 hover:bg-slate-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
                             >
                                 <HelpCircle className="w-5 h-5 text-white mb-1" />
                                 <p className="text-xs text-white font-semibold">Help</p>
                             </button>
                             <button
-                                onClick={() => setIsStoryHelperOpen(true)}
+                                onClick={() => { setShowScriptPanel(false); setIsStoryHelperOpen(true); }}
                                 className="bg-purple-600 hover:bg-purple-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
                             >
                                 <Sparkles className="w-5 h-5 text-white mb-1" />
                                 <p className="text-xs text-white font-semibold">Story Helper</p>
                             </button>
                             <button
-                                onClick={() => { setCaptionChapterId(null); setShowCaptionPanel(true); }}
+                                onClick={() => { setShowScriptPanel(false); setCaptionChapterId(null); setShowCaptionPanel(true); }}
                                 disabled={isGeneratingCaptions}
                                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
                             >
