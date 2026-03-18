@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sparkles, Loader2, Copy, Check, Wand2, MapPin, FileText, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AIAssistant({ 
@@ -65,22 +67,32 @@ export default function AIAssistant({
                 initial={{ opacity: 0, x: 300 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 300 }}
-                className="fixed right-0 top-0 bottom-0 w-[400px] bg-white border-l shadow-2xl z-50 flex flex-col"
+                className="fixed right-0 top-0 bottom-0 w-[650px] bg-white border-l shadow-2xl z-50 flex flex-col"
             >
                 {/* Header */}
-                <div className="p-4 border-b flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50">
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 bg-amber-100 rounded-lg">
-                            <Sparkles className="w-5 h-5 text-amber-600" />
-                        </div>
-                        <div>
-                            <h2 className="font-semibold text-slate-800">AI Assistant</h2>
-                            <p className="text-xs text-slate-500">Story writing helper</p>
+                <div className="bg-white border-b shadow-sm">
+                    <div className="px-4 py-3">
+                        <div className="flex items-center gap-4 mb-4">
+                            <button
+                                onClick={onClose}
+                                className="p-2 text-slate-500 hover:text-slate-700 transition-colors flex-shrink-0"
+                            >
+                                <X className="w-8 h-8" />
+                            </button>
+                            <Link to={createPageUrl('HomePageView')}>
+                                <img
+                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                                    alt="Storylines"
+                                    width="250"
+                                    height="100"
+                                    className="hover:opacity-80 transition-opacity cursor-pointer"
+                                />
+                            </Link>
+                            <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
+                                Story Helper
+                            </h1>
                         </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={onClose}>
-                        <X className="w-5 h-5" />
-                    </Button>
                 </div>
 
                 {/* Tabs */}
