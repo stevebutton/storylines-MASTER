@@ -415,6 +415,7 @@ export default function StoryEditor() {
         }
 
         setIsGeneratingCaptions(true);
+        const toastId = toast.loading(`Generating captions for ${idsToProcess.length} slide${idsToProcess.length !== 1 ? 's' : ''}…`);
         let totalUpdated = 0;
         try {
             for (let i = 0; i < idsToProcess.length; i += CAPTION_BATCH) {
@@ -445,16 +446,15 @@ export default function StoryEditor() {
             }
             await loadData();
             if (totalUpdated === 0) {
-                toast.warning('No captions were written. Check that slides have titles or images, and that the AI service is configured.');
+                toast.warning('No captions were written. Check that slides have titles or images, and that the AI service is configured.', { id: toastId });
             } else {
-                toast.success(`Captions generated for ${totalUpdated} slide${totalUpdated !== 1 ? 's' : ''}.`);
+                toast.success(`Captions generated for ${totalUpdated} slide${totalUpdated !== 1 ? 's' : ''}.`, { id: toastId });
             }
         } catch (e) {
             console.error('[captions]', e);
-            toast.error(`Caption generation failed: ${e.message}`);
+            toast.error(`Caption generation failed: ${e.message}`, { id: toastId });
         } finally {
             setIsGeneratingCaptions(false);
-            setShowCaptionPanel(false);
             setCaptionChapterId(null);
         }
     };

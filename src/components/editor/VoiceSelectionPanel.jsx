@@ -14,6 +14,7 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
     const [selectedModel, setSelectedModel] = useState('haiku');
     const [customVoiceDescription, setCustomVoiceDescription] = useState('');
     const [skipExisting, setSkipExisting] = useState(true);
+    const [refinementNotes, setRefinementNotes] = useState('');
     const [showContext, setShowContext] = useState(!!initialContext);
     const [storyContext, setStoryContext] = useState(
         initialContext
@@ -78,6 +79,7 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
     };
 
     const handleContinue = () => {
+        onClose();
         onContinue({
             caption_voice: selectedVoice,
             custom_caption_voice_description: selectedVoice === 'custom' ? customVoiceDescription : null,
@@ -85,6 +87,7 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
             language: selectedLanguage,
             model: selectedModel,
             skip_existing: skipExisting,
+            refinement_notes: refinementNotes.trim() || null,
         });
     };
 
@@ -259,6 +262,25 @@ export default function VoiceSelectionPanel({ isOpen, onClose, onContinue, defau
                                 <label htmlFor="skipExisting" className="text-sm text-slate-700">
                                     Skip slides that already have captions
                                 </label>
+                            </div>
+
+                            {/* Refinement Notes */}
+                            <div className="border-t pt-4 pb-2">
+                                <Label htmlFor="refinementNotes" className="text-sm font-medium text-slate-700 mb-1 block">
+                                    Refinement notes <span className="font-normal text-slate-400">(optional)</span>
+                                </Label>
+                                <Textarea
+                                    id="refinementNotes"
+                                    value={refinementNotes}
+                                    onChange={(e) => setRefinementNotes(e.target.value)}
+                                    placeholder="e.g. 'Focus more on what's in the pictures' or 'Shorter, less formal'. Leave blank to generate fresh."
+                                    className="min-h-[80px] text-sm"
+                                />
+                                {refinementNotes.trim() && (
+                                    <p className="text-xs text-amber-600 mt-1">
+                                        Existing captions will be rewritten using this feedback. Uncheck "Skip slides that already have captions" to apply.
+                                    </p>
+                                )}
                             </div>
 
                             {/* Story Context Section */}

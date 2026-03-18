@@ -54,6 +54,7 @@ exports.handler = async (event) => {
         language,
         is_full_run,
         model,
+        refinement_notes,
     } = JSON.parse(event.body || '{}');
 
     if (!story_id)
@@ -90,7 +91,7 @@ exports.handler = async (event) => {
 
     if (!isExplicitFullRun) {
         let slidesQuery = supabase
-            .from('slides').select('id,title,chapter_id,coordinates')
+            .from('slides').select('id,title,chapter_id,coordinates,description,extended_content')
             .in('chapter_id', (chapters || []).map(c => c.id)).order('order');
         if (Array.isArray(slide_ids) && slide_ids.length > 0) {
             slidesQuery = slidesQuery.in('id', slide_ids);
@@ -115,9 +116,13 @@ exports.handler = async (event) => {
 
             const locationBlock = mapboxLocation ? ` Location: ${mapboxLocation}.` : '';
 
+            const existingBlock = refinement_notes && slide.description
+                ? `\n\nExisting caption: "${slide.description}"${slide.extended_content ? `\nExisting extended content: "${slide.extended_content}"` : ''}\nEditor feedback: "${refinement_notes}"\nRewrite the caption incorporating this feedback.`
+                : '';
+
             const prompt = `You are writing ${voiceStyle}.
 
-Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${locationBlock}${contextBlock}
+Chapter: "${chapter?.name || ''}". Image: "${slide.title || ''}".${locationBlock}${contextBlock}${existingBlock}
 
 Write all output in ${languageName}.
 
