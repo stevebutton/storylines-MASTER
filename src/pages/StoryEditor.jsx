@@ -7,7 +7,7 @@ import { supabase } from '@/api/supabaseClient';
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle, Images, Home, Wand2 } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle, Images, Home, Wand2, FileText } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
@@ -18,6 +18,7 @@ import MapDataImportPanel from '@/components/editor/MapDataImportPanel';
 import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 import MediaLibraryDialog from '@/components/editor/MediaLibraryDialog';
 import VoiceSelectionPanel from '@/components/editor/VoiceSelectionPanel';
+import ScriptPanel from '@/components/editor/ScriptPanel';
 import { toast } from 'sonner';
 
 export default function StoryEditor() {
@@ -42,6 +43,7 @@ export default function StoryEditor() {
     const [isComputingRoutes, setIsComputingRoutes] = useState(false);
     const [routeComputeStatus, setRouteComputeStatus] = useState(null);
     const [isMediaLibraryOpen, setIsMediaLibraryOpen] = useState(false);
+    const [showScriptPanel, setShowScriptPanel] = useState(false);
     const [showCaptionPanel, setShowCaptionPanel] = useState(false);
     const [captionChapterId, setCaptionChapterId] = useState(null); // null = story-wide
     const [isGeneratingCaptions, setIsGeneratingCaptions] = useState(false);
@@ -575,6 +577,13 @@ export default function StoryEditor() {
                                 <Wand2 className="w-5 h-5 text-white mb-1" />
                                 <p className="text-xs text-white font-semibold">{isGeneratingCaptions ? 'Working...' : 'Captions'}</p>
                             </button>
+                            <button
+                                onClick={() => setShowScriptPanel(true)}
+                                className="bg-teal-600 hover:bg-teal-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
+                            >
+                                <FileText className="w-5 h-5 text-white mb-1" />
+                                <p className="text-xs text-white font-semibold">Script</p>
+                            </button>
                         </div>
 
                         {/* Group 3: Preview + Save */}
@@ -705,6 +714,16 @@ export default function StoryEditor() {
                 isOpen={isStoryHelperOpen}
                 onClose={() => { setIsStoryHelperOpen(false); setTimeout(loadData, 2100); }}
                 appendToStoryId={currentStoryId}
+            />
+
+            {/* Script Panel */}
+            <ScriptPanel
+                isOpen={showScriptPanel}
+                onClose={() => setShowScriptPanel(false)}
+                chapters={chapters}
+                slides={slides}
+                onUpdateChapter={updateChapter}
+                onUpdateSlide={updateSlide}
             />
 
             {/* Caption Generation Panel */}
