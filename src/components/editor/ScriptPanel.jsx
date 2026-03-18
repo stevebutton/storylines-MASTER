@@ -79,7 +79,7 @@ export default function ScriptPanel({ isOpen, onClose, chapters, slides, onUpdat
                     animate={{ x: 0 }}
                     exit={{ x: '100%' }}
                     transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                    className="fixed inset-0 bg-white z-[90] flex"
+                    className="fixed top-[160px] left-0 right-0 bottom-0 bg-white z-[90] flex"
                 >
                     <style>{QUILL_STYLES}</style>
 
