@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import JSZip from 'jszip';
 import * as exifr from 'exifr';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Loader2, MapPin, CheckCircle, AlertTriangle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { X, Upload, Loader2, MapPin, CheckCircle, AlertTriangle, Pencil, Check } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import VoiceSelectionPanel from './VoiceSelectionPanel';
+import RichTextEditor from './RichTextEditor';
 import { toast } from "sonner";
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
@@ -22,6 +23,44 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
     const [step, setStep] = useState('upload'); // upload, processing_zip, voice_selection, generating_descriptions, overview
     const [currentStoryId, setCurrentStoryId] = useState(null);
     const [storyOverview, setStoryOverview] = useState(null);
+
+    // Editable intro content
+    const [introContent, setIntroContent] = useState({ intro: null, introAppend: null });
+    const [isEditing, setIsEditing] = useState(false);
+    const [introDraft, setIntroDraft] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        supabase.from('app_content')
+            .select('*')
+            .eq('panel_id', 'story-helper')
+            .in('topic_id', ['intro', 'intro-append'])
+            .then(({ data }) => {
+                if (data) {
+                    const map = {};
+                    data.forEach(r => { map[r.topic_id] = r; });
+                    setIntroContent({ intro: map['intro'] ?? null, introAppend: map['intro-append'] ?? null });
+                }
+            });
+    }, [isOpen]);
+
+    const activeIntro = isAppendMode ? introContent.introAppend : introContent.intro;
+    const activeIntroBody = activeIntro?.body ?? '';
+
+    const handleSaveIntro = async () => {
+        if (!activeIntro) return;
+        setIsSaving(true);
+        const { error } = await supabase.from('app_content')
+            .update({ body: introDraft, updated_at: new Date().toISOString() })
+            .eq('id', activeIntro.id);
+        if (!error) {
+            const key = isAppendMode ? 'introAppend' : 'intro';
+            setIntroContent(prev => ({ ...prev, [key]: { ...activeIntro, body: introDraft } }));
+        }
+        setIsSaving(false);
+        setIsEditing(false);
+    };
 
     const handleFileUpload = (e) => {
         const uploadedFile = e.target.files[0];
@@ -304,23 +343,53 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                         className="fixed right-0 top-0 h-full w-[60vw] bg-white shadow-2xl z-[80] flex flex-col"
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-cyan-50">
-                            <div className="flex items-center gap-3">
-                                <MapPin className="w-8 h-8 text-blue-600" />
-                                <div>
-                                    <h2 className="text-4xl font-bold text-slate-800">
-                                        {isAppendMode ? 'Add Chapters to Story' : 'Import from Map Data'}
-                                    </h2>
-                                    <p className="text-sm text-slate-600 mt-1">
-                                        {isAppendMode
-                                            ? 'Upload a ZIP to append new chapters to this story'
-                                            : 'Generate narratives from field documentation and geotagged media'}
-                                    </p>
+                        <div className="bg-white border-b shadow-sm">
+                            <div className="px-4 py-3">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <button
+                                        onClick={handleClose}
+                                        className="p-2 text-slate-500 hover:text-slate-700 transition-colors flex-shrink-0"
+                                    >
+                                        <X className="w-8 h-8" />
+                                    </button>
+                                    <Link to={createPageUrl('HomePageView')}>
+                                        <img
+                                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                                            alt="Storylines"
+                                            width="250"
+                                            height="100"
+                                            className="hover:opacity-80 transition-opacity cursor-pointer"
+                                        />
+                                    </Link>
+                                    <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
+                                        Story Helper
+                                    </h1>
+                                    {!isEditing ? (
+                                        <button
+                                            onClick={() => { setIntroDraft(activeIntroBody); setIsEditing(true); }}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-colors flex-shrink-0"
+                                        >
+                                            <Pencil className="w-4 h-4" /> Edit Intro
+                                        </button>
+                                    ) : (
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <button
+                                                onClick={() => setIsEditing(false)}
+                                                className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-medium transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleSaveIntro}
+                                                disabled={isSaving}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium transition-colors"
+                                            >
+                                                <Check className="w-4 h-4" /> {isSaving ? 'Saving…' : 'Save'}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={handleClose}>
-                                <X className="w-5 h-5" />
-                            </Button>
                         </div>
 
                         {/* Content */}
@@ -332,12 +401,18 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
 
                                     {/* Intro */}
                                     <div className="bg-blue-50 rounded-lg px-6 py-5">
-                                        <p className="text-sm text-slate-700 leading-relaxed">
-                                            {isAppendMode
-                                                ? 'Story Helper adds new chapters to this story from your geotagged field photographs. Each folder in the ZIP becomes a new chapter, GPS coordinates place images on the map, and AI generates captions in your chosen voice — all appended directly to the existing story.'
-                                                : 'Storylines builds a complete story from your geotagged field photographs. Images are organised into chapters by folder, GPS coordinates are extracted to place each image on the map, and AI generates captions and descriptions in your chosen voice.'
-                                            }
-                                        </p>
+                                        {isEditing ? (
+                                            <RichTextEditor
+                                                content={introDraft}
+                                                onChange={setIntroDraft}
+                                                placeholder="Describe how Story Helper works…"
+                                            />
+                                        ) : (
+                                            <div
+                                                className="prose prose-sm prose-slate max-w-none text-slate-700"
+                                                dangerouslySetInnerHTML={{ __html: activeIntroBody }}
+                                            />
+                                        )}
                                     </div>
 
                                     {/* Steps */}
