@@ -415,28 +415,43 @@ export default function StoryEditor() {
         }
 
         setIsGeneratingCaptions(true);
+        let totalUpdated = 0;
         try {
             for (let i = 0; i < idsToProcess.length; i += CAPTION_BATCH) {
                 const batch = idsToProcess.slice(i, i + CAPTION_BATCH);
-                await fetch('/.netlify/functions/generate-captions', {
+                const res = await fetch('/.netlify/functions/generate-captions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ story_id: currentStoryId, slide_ids: batch, ...config }),
                 });
+                if (!res.ok) {
+                    const errText = await res.text().catch(() => res.statusText);
+                    throw new Error(`Function error ${res.status}: ${errText}`);
+                }
+                const data = await res.json().catch(() => ({}));
+                totalUpdated += data.updated_count ?? 0;
             }
             // Story-wide only: metadata pass updates chapter names + story title/subtitle
             if (isStoryWide) {
-                await fetch('/.netlify/functions/generate-captions', {
+                const res = await fetch('/.netlify/functions/generate-captions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ story_id: currentStoryId, is_full_run: true, ...config }),
                 });
+                if (!res.ok) {
+                    const errText = await res.text().catch(() => res.statusText);
+                    console.error('[captions] metadata pass failed:', res.status, errText);
+                }
             }
             await loadData();
-            toast.success(`Captions generated for ${idsToProcess.length} slide${idsToProcess.length !== 1 ? 's' : ''}.`);
+            if (totalUpdated === 0) {
+                toast.warning('No captions were written. Check that slides have titles or images, and that the AI service is configured.');
+            } else {
+                toast.success(`Captions generated for ${totalUpdated} slide${totalUpdated !== 1 ? 's' : ''}.`);
+            }
         } catch (e) {
             console.error('[captions]', e);
-            toast.error('Caption generation failed. Please try again.');
+            toast.error(`Caption generation failed: ${e.message}`);
         } finally {
             setIsGeneratingCaptions(false);
             setShowCaptionPanel(false);
