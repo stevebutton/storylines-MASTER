@@ -19,6 +19,15 @@ const SLOT_WIDTH = 380;
 
 const THEME_FONTS = { c: 'Righteous, cursive', f: 'Oswald, sans-serif', k: 'Oswald, sans-serif' };
 
+const CHAPTER_COLORS = [
+    { main: '#d97706', rgb: '217,119,6'   },  // 0 amber
+    { main: '#2563eb', rgb: '37,99,235'   },  // 1 blue
+    { main: '#16a34a', rgb: '22,163,74'   },  // 2 green
+    { main: '#9333ea', rgb: '147,51,234'  },  // 3 purple
+    { main: '#e11d48', rgb: '225,29,72'   },  // 4 rose
+    { main: '#0d9488', rgb: '13,148,136'  },  // 5 teal
+];
+
 export default function ScaleBar({
     cursorPercent      = 0,
     mode               = 'chapters',
@@ -187,12 +196,17 @@ export default function ScaleBar({
                     background: 'rgba(255,255,255,0.85)',
                 }}
             >
-                {/* ── Amber cursor — draggable ── */}
+                {/* ── Cursor dot — draggable, colour matches active chapter ── */}
                 <motion.div
                     drag="x"
                     dragConstraints={{ left: 0, right: trackWidth }}
                     dragElastic={0}
                     dragMomentum={false}
+                    animate={{
+                        background: CHAPTER_COLORS[activeChapterIndex % CHAPTER_COLORS.length].main,
+                        boxShadow:  `0 0 20px rgba(${CHAPTER_COLORS[activeChapterIndex % CHAPTER_COLORS.length].rgb},0.9)`,
+                    }}
+                    transition={{ duration: 0.4 }}
                     style={{
                         x:             cursorX,
                         position:      'absolute',
@@ -201,8 +215,8 @@ export default function ScaleBar({
                         width:         20,
                         height:        20,
                         borderRadius:  '50%',
-                        background:    '#f59e0b',
-                        boxShadow:     '0 0 20px rgba(245,158,11,0.9)',
+                        border:        '1px solid white',
+                        boxSizing:     'border-box',
                         zIndex:        2,
                         pointerEvents: 'auto',
                         cursor:        'grab',
