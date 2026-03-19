@@ -1,21 +1,67 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Map, Languages, Info } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileText, MapPin, Image, GripVertical, Map, Languages, Info, PlusCircle, Images, ScrollText, Wand2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 const CHAPTER_COLORS = ['#d97706','#2563eb','#16a34a','#9333ea','#e11d48','#0d9488'];
 
-export default function StoryEditorSidebar({ 
-    story, 
-    chapters, 
+const GUIDE_KEY = 'storylines_editor_guide_dismissed';
+
+const GUIDE_STEPS = [
+    {
+        num: 1,
+        color: 'bg-orange-500',
+        title: 'Import your content',
+        body: 'Have photos from the field or a Storyboarder export? Use Story Helper to build chapters automatically from a ZIP archive.',
+    },
+    {
+        num: 2,
+        color: 'bg-amber-500',
+        title: 'Add chapters manually',
+        body: 'Building from scratch? Add a chapter and fill in slides, locations and media one by one.',
+    },
+    {
+        num: 3,
+        color: 'bg-teal-600',
+        title: 'Write a script first',
+        body: 'Prefer to plan before you build? Draft an outline in the Script panel — it stays alongside your story as you work.',
+    },
+    {
+        num: 4,
+        color: 'bg-blue-600',
+        title: 'Generate captions',
+        body: 'Once your slides have images, use Captions to write AI-powered descriptions shaped by the voice and context you choose.',
+    },
+];
+
+export default function StoryEditorSidebar({
+    story,
+    chapters,
     slides,
     selectedItem,
     onSelectStory,
     onSelectChapter,
     onSelectSlide,
-    onDragEnd
+    onDragEnd,
+    onAddChapter,
+    onOpenStoryHelper,
+    onOpenScript,
+    onOpenCaptions,
+    showGuide,
+    onGuideClose,
 }) {
     const [expandedChapters, setExpandedChapters] = useState([]);
+    const [guideLocalDismissed, setGuideLocalDismissed] = useState(
+        () => localStorage.getItem(GUIDE_KEY) === 'true'
+    );
+
+    const guideVisible = showGuide || !guideLocalDismissed;
+
+    const dismissGuide = () => {
+        localStorage.setItem(GUIDE_KEY, 'true');
+        setGuideLocalDismissed(true);
+        onGuideClose?.();
+    };
 
     const toggleChapter = (chapterId) => {
         setExpandedChapters(prev => 
@@ -53,17 +99,50 @@ export default function StoryEditorSidebar({
 
     return (
         <div className="w-full md:w-[450px] border-r flex flex-col bg-slate-100">
-            {/* Story Settings Card */}
-            <div className="ml-[100px] mr-[48px] mt-[100px] mb-1 rounded-3xl shadow-md overflow-hidden">
+
+            {/* ── TOOLS ── */}
+            <p className="ml-[50px] mt-6 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Tools</p>
+            <div className="ml-[50px] mr-[48px] mb-4 grid grid-cols-2 gap-2">
+                <button
+                    onClick={onAddChapter}
+                    className="bg-amber-500 hover:bg-amber-600 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 transition-colors"
+                >
+                    <PlusCircle className="w-5 h-5 text-white" />
+                    <span className="text-xs text-white font-semibold">Add Chapter</span>
+                </button>
+                <button
+                    onClick={onOpenStoryHelper}
+                    className="bg-orange-500 hover:bg-orange-600 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 transition-colors"
+                >
+                    <Images className="w-5 h-5 text-white" />
+                    <span className="text-xs text-white font-semibold">Story Helper</span>
+                </button>
+                <button
+                    onClick={onOpenScript}
+                    className="bg-teal-600 hover:bg-teal-700 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 transition-colors"
+                >
+                    <ScrollText className="w-5 h-5 text-white" />
+                    <span className="text-xs text-white font-semibold">Script</span>
+                </button>
+                <button
+                    onClick={onOpenCaptions}
+                    className="bg-blue-600 hover:bg-blue-700 rounded-xl p-3 flex flex-col items-center justify-center gap-1.5 transition-colors"
+                >
+                    <Wand2 className="w-5 h-5 text-white" />
+                    <span className="text-xs text-white font-semibold">Captions</span>
+                </button>
+            </div>
+
+            {/* ── PROJECT ── */}
+            <p className="ml-[50px] mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Project</p>
+            <div className="ml-[50px] mr-[48px] mb-4 rounded-3xl shadow-md overflow-hidden">
                 <div className="flex items-stretch">
-                    {/* Indigo strip — full height, 2px wider */}
                     <div
                         className="flex items-center justify-center px-[28px] bg-indigo-600 flex-shrink-0 cursor-pointer"
                         onClick={() => onSelectStory('story')}
                     >
                         <img src="https://uevxdwzgkodbkzludrni.supabase.co/storage/v1/object/public/media/43a4c13812d9402098d0daa5-logowhite.png" alt="Storylines" className="w-12 h-12 object-contain" />
                     </div>
-                    {/* Right: title + sub-buttons stacked */}
                     <div className="flex-1 bg-white">
                         <div
                             className="px-3 py-1 cursor-pointer hover:brightness-[0.97] transition-all"
@@ -84,7 +163,7 @@ export default function StoryEditorSidebar({
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onSelectStory('language'); }}
-                                className="flex items-center gap-2 px-3 py-1 pb-5 hover:bg-blue-50 transition-colors"
+                                className="flex items-center gap-2 px-3 py-1 hover:bg-blue-50 transition-colors border-b border-slate-100"
                                 title="Language"
                             >
                                 <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shadow-sm flex-shrink-0">
@@ -92,40 +171,59 @@ export default function StoryEditorSidebar({
                                 </div>
                                 <span className="text-sm font-medium text-blue-700">Language</span>
                             </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onSelectStory('about'); }}
+                                className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 transition-colors"
+                                title="About"
+                            >
+                                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center shadow-sm flex-shrink-0">
+                                    <Info className="w-3 h-3 text-slate-600" />
+                                </div>
+                                <span className="text-sm font-medium text-slate-600">About</span>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Separator */}
-            <div className="ml-[100px] mr-[48px] my-2 border-t border-slate-300" />
-
-            {/* About card */}
-            <div className="ml-[100px] mr-[48px] mb-4 rounded-3xl shadow-md overflow-hidden">
-                <div className="flex items-stretch">
-                    <div
-                        className="flex items-center justify-center px-[28px] bg-slate-600 flex-shrink-0 cursor-pointer"
-                        onClick={() => onSelectStory('about')}
-                    >
-                        <Info className="w-12 h-12 text-white" />
+            {/* ── HOW TO GUIDE ── */}
+            {guideVisible && (
+                <div className="ml-[50px] mr-[48px] mb-4 rounded-2xl bg-white shadow-md overflow-hidden">
+                    <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-slate-100">
+                        <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Getting Started</span>
+                        <button
+                            onClick={dismissGuide}
+                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                            title="Dismiss"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
                     </div>
-                    <div
-                        className="flex-1 bg-white px-3 py-3 cursor-pointer hover:brightness-[0.97] transition-all"
-                        onClick={() => onSelectStory('about')}
-                    >
-                        <span className="text-xl font-bold text-slate-900">About</span>
-                        <p className="text-xs text-slate-400 mt-0.5">Organisation info &amp; contact</p>
+                    <div className="divide-y divide-slate-100">
+                        {GUIDE_STEPS.map(step => (
+                            <div key={step.num} className="flex items-start gap-3 px-4 py-3">
+                                <span className={`${step.color} text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                                    {step.num}
+                                </span>
+                                <div>
+                                    <p className="text-xs font-semibold text-slate-700">{step.title}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{step.body}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
+            )}
+
+            {/* ── CHAPTERS ── */}
+            <p className="ml-[50px] mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Chapters</p>
 
             {/* Chapters List */}
-            <div className="bg-slate-100 flex-1 pt-2 pb-6">
+            <div className="bg-slate-100 flex-1 pb-6">
                 {chapters.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400">
-                        <p className="text-sm">No chapters yet</p>
-                        <p className="text-xs mt-1">Add a chapter to get started</p>
-                    </div>
+                    <p className="text-xs text-slate-400 text-center mt-6 px-8">
+                        No chapters yet — use the tools above to build your story
+                    </p>
                 ) : (
                     <DragDropContext onDragEnd={onDragEnd}>
                         <Droppable droppableId="chapters" type="chapter">

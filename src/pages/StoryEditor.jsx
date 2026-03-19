@@ -7,7 +7,7 @@ import { supabase } from '@/api/supabaseClient';
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, Eye, Loader2, Sparkles, HelpCircle, Images, Home, Wand2, FileText } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, HelpCircle, Images, Home } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryEditorSidebar from '@/components/editor/StoryEditorSidebar';
@@ -38,6 +38,7 @@ export default function StoryEditor() {
     const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
     const [isStoryHelperOpen, setIsStoryHelperOpen] = useState(false);
     const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(false);
+    const [showSidebarGuide, setShowSidebarGuide] = useState(false);
     const [showTitleValidationDialog, setShowTitleValidationDialog] = useState(false);
     const [pendingTitle, setPendingTitle] = useState('');
     const [isComputingRoutes, setIsComputingRoutes] = useState(false);
@@ -547,43 +548,21 @@ export default function StoryEditor() {
                             </p>
                         </button>
 
-                        {/* Group 2: Media, Help, Story Helper */}
+                        {/* Group 2: Media, Help */}
                         <div className="hidden md:flex items-stretch gap-2">
                             <button
-                                onClick={() => { setShowScriptPanel(false); setIsMediaLibraryOpen(true); }}
+                                onClick={() => setIsMediaLibraryOpen(true)}
                                 className="bg-amber-500 hover:bg-amber-600 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
                             >
                                 <Images className="w-5 h-5 text-white mb-1" />
                                 <p className="text-xs text-white font-semibold">Media</p>
                             </button>
                             <button
-                                onClick={() => { setShowScriptPanel(false); setIsHelpPanelOpen(true); }}
+                                onClick={() => { setIsHelpPanelOpen(true); setShowSidebarGuide(true); }}
                                 className="bg-slate-600 hover:bg-slate-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
                             >
                                 <HelpCircle className="w-5 h-5 text-white mb-1" />
                                 <p className="text-xs text-white font-semibold">Help</p>
-                            </button>
-                            <button
-                                onClick={() => { setShowScriptPanel(false); setIsStoryHelperOpen(true); }}
-                                className="bg-purple-600 hover:bg-purple-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
-                            >
-                                <Sparkles className="w-5 h-5 text-white mb-1" />
-                                <p className="text-xs text-white font-semibold">Story Helper</p>
-                            </button>
-                            <button
-                                onClick={() => { setShowScriptPanel(false); setCaptionChapterId(null); setShowCaptionPanel(true); }}
-                                disabled={isGeneratingCaptions}
-                                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
-                            >
-                                <Wand2 className="w-5 h-5 text-white mb-1" />
-                                <p className="text-xs text-white font-semibold">{isGeneratingCaptions ? 'Working...' : 'Captions'}</p>
-                            </button>
-                            <button
-                                onClick={() => setShowScriptPanel(true)}
-                                className="bg-teal-600 hover:bg-teal-700 rounded-lg p-2 md:p-3 cursor-pointer transition-colors flex flex-col items-center justify-center w-[100px]"
-                            >
-                                <FileText className="w-5 h-5 text-white mb-1" />
-                                <p className="text-xs text-white font-semibold">Script</p>
                             </button>
                         </div>
 
@@ -645,6 +624,12 @@ export default function StoryEditor() {
                         onSelectChapter={(chapter) => setSelectedItem({ type: 'chapter', id: chapter.id })}
                         onSelectSlide={(slide, tab) => setSelectedItem({ type: 'slide', id: slide.id, tab })}
                         onDragEnd={handleDragEnd}
+                        onAddChapter={addChapter}
+                        onOpenStoryHelper={() => setIsStoryHelperOpen(true)}
+                        onOpenScript={() => setShowScriptPanel(true)}
+                        onOpenCaptions={() => { setCaptionChapterId(null); setShowCaptionPanel(true); }}
+                        showGuide={showSidebarGuide}
+                        onGuideClose={() => setShowSidebarGuide(false)}
                     />
                 </div>
 
@@ -736,7 +721,7 @@ export default function StoryEditor() {
                 initialContext={{
                     story_title:        story.title             || '',
                     story_description:  story.story_description || '',
-                    locations:          '',
+                    locations:          story.story_locations   || '',
                     date_range:         '',
                     additional_context: '',
                 }}

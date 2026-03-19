@@ -1,176 +1,69 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
-
-const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Loader2, Sparkles, CheckCircle } from 'lucide-react';
+import { X, Loader2, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import TitleValidationDialog from '@/components/editor/TitleValidationDialog';
 
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
+
 export default function InterviewModePanel({ isOpen, onClose }) {
     const navigate = useNavigate();
-    const [messages, setMessages] = useState([
-        { role: 'assistant', content: "Welcome to Interview Mode. We'll help you structure your project narrative through a series of focused questions. Let's begin: What do you want to call your project? (Maximum 34 characters)" }
-    ]);
-    const [userInput, setUserInput] = useState('');
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [currentStep, setCurrentStep] = useState(0);
-    const [storyData, setStoryData] = useState({});
+    const [title, setTitle] = useState('');
+    const [locations, setLocations] = useState('');
+    const [description, setDescription] = useState('');
+    const [isCreating, setIsCreating] = useState(false);
+    const [error, setError] = useState(null);
     const [showTitleValidationDialog, setShowTitleValidationDialog] = useState(false);
     const [pendingTitle, setPendingTitle] = useState('');
-    const messagesEndRef = useRef(null);
 
-    const interviewSteps = [
-        { key: 'title', prompt: "What do you want to call your project? (Maximum 34 characters)" },
-        { key: 'location', prompt: "What is the primary geographic location or region for your project? (e.g., 'Nairobi, Kenya', 'The Mekong Delta', 'Northern Tanzania')" },
-        { key: 'theme', prompt: "Excellent. What is the central theme or focus of your project? Describe the concept, issue, or area of work." },
-        { key: 'chapters', prompt: "How many key sections or geographic areas should this narrative cover? (e.g., 3-5)" },
-        { key: 'style', prompt: "What approach should the narrative take? (e.g., analytical, educational, impact-focused, observational)" },
-        { key: 'details', prompt: "Please provide any specific details to include: key locations, stakeholder perspectives, contextual background, or critical milestones." }
-    ];
+    const handleCreate = async () => {
+        if (!title.trim()) return;
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    const handleSendMessage = async () => {
-        if (!userInput.trim() || isProcessing) return;
-
-        const stepKey = interviewSteps[currentStep].key;
-        
-        // Validate title length if this is the title step
-        if (stepKey === 'title' && userInput.length > 34) {
-            setPendingTitle(userInput);
+        if (title.trim().length > 34) {
+            setPendingTitle(title.trim());
             setShowTitleValidationDialog(true);
             return;
         }
 
-        const newMessages = [...messages, { role: 'user', content: userInput }];
-        setMessages(newMessages);
-        
-        const currentAnswer = userInput;
-        setUserInput('');
-        setIsProcessing(true);
+        setIsCreating(true);
+        setError(null);
 
-        // Store the answer
-        const updatedStoryData = { ...storyData, [stepKey]: currentAnswer };
-        setStoryData(updatedStoryData);
+        try {
+            const { data: newStory, error: storyErr } = await supabase
+                .from('stories')
+                .insert({
+                    id: generateId(),
+                    title: title.trim(),
+                    story_description: description.trim() || null,
+                    story_locations: locations.trim() || null,
+                    is_published: false,
+                })
+                .select()
+                .single();
 
-        // Move to next step or finalize
-        if (currentStep < interviewSteps.length - 1) {
-            setTimeout(() => {
-                const nextStep = currentStep + 1;
-                setMessages([...newMessages, { 
-                    role: 'assistant', 
-                    content: interviewSteps[nextStep].prompt 
-                }]);
-                setCurrentStep(nextStep);
-                setIsProcessing(false);
-            }, 800);
-        } else {
-            // Generate the story
-            await generateStory(updatedStoryData);
+            if (storyErr) throw storyErr;
+
+            navigate(`${createPageUrl('StoryEditor')}?id=${newStory.id}`);
+            onClose();
+        } catch (err) {
+            console.error('[project-brief] create failed:', err);
+            setError('Failed to create project. Please try again.');
+            setIsCreating(false);
         }
     };
 
-    const generateStory = async (data) => {
-        setMessages(prev => [...prev, { 
-            role: 'assistant', 
-            content: '✓ Thank you. We\'ll now generate your project narrative outline...' 
-        }]);
-
-        try {
-            const prompt = `Based on this interview for an NGO or consulting organization project:
-- Project Title: ${data.title}
-- Primary Geographic Location: ${data.location}
-- Theme/Concept: ${data.theme}
-- Number of chapters: ${data.chapters}
-- Tone/Style: ${data.style}
-- Details: ${data.details}
-
-Create a professional project narrative outline with:
-- Subtitle (complementing the title: "${data.title}")
-- Chapters with specific geographic locations and coordinates
-- EXACTLY 2 sample slides per chapter
-- For each slide, provide a relevant Wikimedia Commons image URL that illustrates the content
-- Each slide and chapter should have distinct geographic coordinates [latitude, longitude]
-- The first chapter should be centered on the primary geographic location provided
-
-Write in a professional style appropriate for NGO and consulting organization audiences.`;
-
-            throw new Error('AI generation requires LLM API key — not yet configured');
-
-            setMessages(prev => [...prev, { 
-                role: 'assistant', 
-                content: `✓ Narrative structure created: "${data.title}". Building your project now...` 
-            }]);
-
-            // Create the story with user-provided title
-            const { data: newStory, error: storyErr } = await supabase
-                .from('stories')
-                .insert({ id: generateId(), title: data.title, subtitle: response.subtitle, author: response.author || 'Unknown', category: response.category || 'other', is_published: false })
-                .select().single();
-            if (storyErr) throw storyErr;
-
-            // Create chapters and slides
-            for (let i = 0; i < response.chapters.length; i++) {
-                const chapterData = response.chapters[i];
-                
-                // Validate and normalize chapter coordinates
-                let chapterCoords = [0, 0];
-                if (Array.isArray(chapterData.coordinates) && chapterData.coordinates.length >= 2) {
-                    chapterCoords = [Number(chapterData.coordinates[0]), Number(chapterData.coordinates[1])];
-                }
-                
-                const { data: newChapter, error: chapErr } = await supabase
-                    .from('chapters')
-                    .insert({ id: generateId(), story_id: newStory.id, order: i, alignment: 'left' })
-                    .select().single();
-                if (chapErr) throw chapErr;
-
-                for (let j = 0; j < chapterData.slides.length; j++) {
-                    const slideData = chapterData.slides[j];
-                    
-                    // Validate and normalize slide coordinates
-                    let slideCoords = chapterCoords;
-                    if (Array.isArray(slideData.coordinates) && slideData.coordinates.length >= 2) {
-                        slideCoords = [Number(slideData.coordinates[0]), Number(slideData.coordinates[1])];
-                    }
-                    
-                    await supabase.from('slides').insert({
-                        id: generateId(),
-                        chapter_id: newChapter.id,
-                        order: j,
-                        title: slideData.title,
-                        description: slideData.description,
-                        location: chapterData.location,
-                        coordinates: slideCoords,
-                        image: slideData.image_url || ''
-                    });
-                }
-            }
-
-            setTimeout(() => {
-                navigate(`${createPageUrl('StoryEditor')}?id=${newStory.id}`);
-            }, 1500);
-
-        } catch (error) {
-            console.error('Failed to generate story:', error);
-            console.error('Error details:', error.message);
-            console.error('Response data:', response);
-            setMessages(prev => [...prev, { 
-                role: 'assistant', 
-                content: `An error occurred during processing: ${error.message}. Please try again.` 
-            }]);
-            setIsProcessing(false);
-        }
+    const handleClose = () => {
+        setTitle('');
+        setLocations('');
+        setDescription('');
+        setError(null);
+        onClose();
     };
 
     if (!isOpen) return null;
@@ -185,7 +78,7 @@ Write in a professional style appropriate for NGO and consulting organization au
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/50 z-[69]"
-                        onClick={onClose}
+                        onClick={handleClose}
                     />
                 )}
             </AnimatePresence>
@@ -205,88 +98,118 @@ Write in a professional style appropriate for NGO and consulting organization au
                             <div className="flex items-center gap-3">
                                 <Sparkles className="w-8 h-8 text-amber-600" />
                                 <div>
-                                    <h2 className="text-4xl font-bold text-slate-800">Interview Mode</h2>
-                                    <p className="text-sm text-slate-600 mt-1">Structured guidance for developing your project narrative</p>
+                                    <h2 className="text-4xl font-bold text-slate-800">Project Brief</h2>
+                                    <p className="text-sm text-slate-600 mt-1">Three questions to define your project — takes 60 seconds</p>
                                 </div>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={onClose}>
+                            <Button variant="ghost" size="icon" onClick={handleClose}>
                                 <X className="w-5 h-5" />
                             </Button>
                         </div>
 
-                        {/* Progress */}
-                        <div className="px-6 py-3 bg-slate-50 border-b">
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                                <span>Step {currentStep + 1} of {interviewSteps.length}</span>
-                                <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-                                    <motion.div 
-                                        className="h-full bg-amber-500"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${((currentStep + 1) / interviewSteps.length) * 100}%` }}
-                                        transition={{ duration: 0.5 }}
-                                    />
+                        {/* Form */}
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                            {/* Q1 */}
+                            <div className="space-y-2">
+                                <div className="flex items-baseline gap-3">
+                                    <span className="text-3xl font-bold text-amber-500">1</span>
+                                    <Label htmlFor="brief-title" className="text-lg font-semibold text-slate-800">
+                                        What do you want to call this project?
+                                    </Label>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                            {messages.map((msg, idx) => (
-                                <motion.div
-                                    key={idx}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                                        msg.role === 'user' 
-                                            ? 'bg-amber-600 text-white' 
-                                            : 'bg-slate-100 text-slate-800'
+                                <div className="relative">
+                                    <Input
+                                        id="brief-title"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        placeholder="e.g. Water Access in the Sahel"
+                                        className="h-12 text-base pr-16"
+                                        maxLength={60}
+                                    />
+                                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs ${
+                                        title.length > 34 ? 'text-amber-500 font-medium' : 'text-slate-400'
                                     }`}>
-                                        {msg.content}
-                                    </div>
-                                </motion.div>
-                            ))}
-                            {isProcessing && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="flex justify-start"
-                                >
-                                    <div className="bg-slate-100 text-slate-800 rounded-2xl px-4 py-3 flex items-center gap-2">
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        <span>Thinking...</span>
-                                    </div>
-                                </motion.div>
+                                        {title.length}/34
+                                    </span>
+                                </div>
+                                {title.length > 34 && (
+                                    <p className="text-xs text-amber-600">
+                                        Titles over 34 characters may be truncated in map view — you can shorten it in the editor.
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Q2 */}
+                            <div className="space-y-2">
+                                <div className="flex items-baseline gap-3">
+                                    <span className="text-3xl font-bold text-amber-500">2</span>
+                                    <Label htmlFor="brief-locations" className="text-lg font-semibold text-slate-800">
+                                        Where does it take place?
+                                    </Label>
+                                </div>
+                                <Input
+                                    id="brief-locations"
+                                    value={locations}
+                                    onChange={(e) => setLocations(e.target.value)}
+                                    placeholder="e.g. Northern Mali, Burkina Faso border region"
+                                    className="h-12 text-base"
+                                />
+                                <p className="text-xs text-slate-500">
+                                    Used to give the AI geographic context when generating captions.
+                                </p>
+                            </div>
+
+                            {/* Q3 */}
+                            <div className="space-y-2">
+                                <div className="flex items-baseline gap-3">
+                                    <span className="text-3xl font-bold text-amber-500">3</span>
+                                    <Label htmlFor="brief-description" className="text-lg font-semibold text-slate-800">
+                                        What is it about, and what tone should the narrative take?
+                                    </Label>
+                                </div>
+                                <Textarea
+                                    id="brief-description"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="e.g. A field documentation of a rural water infrastructure programme, focusing on community impact. Tone: factual, empathetic, suitable for donor reporting."
+                                    rows={5}
+                                    className="text-base resize-none"
+                                />
+                                <p className="text-xs text-slate-500">
+                                    Becomes the Story Description and shapes how captions are written throughout.
+                                </p>
+                            </div>
+
+                            {error && (
+                                <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{error}</p>
                             )}
-                            <div ref={messagesEndRef} />
                         </div>
 
-                        {/* Input */}
-                        <div className="border-t p-4 bg-white">
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder="Type your answer..."
-                                    value={userInput}
-                                    onChange={(e) => setUserInput(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                    disabled={isProcessing}
-                                    className="flex-1"
-                                />
-                                <Button 
-                                    onClick={handleSendMessage}
-                                    disabled={!userInput.trim() || isProcessing}
-                                    className="bg-amber-600 hover:bg-amber-700"
-                                >
-                                    <Send className="w-4 h-4" />
-                                </Button>
-                            </div>
+                        {/* Footer */}
+                        <div className="border-t p-6 flex items-center justify-between">
+                            <Button variant="outline" onClick={handleClose} disabled={isCreating}>
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleCreate}
+                                disabled={!title.trim() || isCreating}
+                                className="bg-amber-600 hover:bg-amber-700 min-w-[160px]"
+                            >
+                                {isCreating ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Creating…
+                                    </>
+                                ) : (
+                                    'Create Project'
+                                )}
+                            </Button>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Title Validation Dialog */}
+            {/* Title length advisory */}
             <TitleValidationDialog
                 isOpen={showTitleValidationDialog}
                 onClose={() => {
@@ -296,8 +219,8 @@ Write in a professional style appropriate for NGO and consulting organization au
                 title={pendingTitle}
                 onEdit={() => {
                     setShowTitleValidationDialog(false);
-                    setUserInput(pendingTitle);
                     setPendingTitle('');
+                    // User stays in the form to edit title
                 }}
             />
         </>

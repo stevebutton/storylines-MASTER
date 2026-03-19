@@ -6,7 +6,7 @@ import CategoryFilter from '@/components/storymap/CategoryFilter';
 import StoryMarker from '@/components/storymap/StoryMarker';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { ChevronUp, RotateCcw } from 'lucide-react';
+import { ChevronUp, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MAP_STYLES = {
@@ -642,7 +642,7 @@ export default function InteractiveStoryMap({
                   whiteSpace: 'nowrap',
                 }}
               >
-                <RotateCcw size={12} />
+                <Globe size={32} />
                 Reset the Globe
               </button>
             </div>

@@ -28,6 +28,9 @@ export default function HelpPanel({ isOpen, onClose }) {
         loadTopics();
     }, [isOpen]);
 
+    const [panelTitleRow, setPanelTitleRow] = useState(null);
+    const [panelTitleDraft, setPanelTitleDraft] = useState('');
+
     const loadTopics = async () => {
         const { data, error } = await supabase
             .from('app_content')
@@ -35,8 +38,11 @@ export default function HelpPanel({ isOpen, onClose }) {
             .eq('panel_id', PANEL_ID)
             .order('display_order');
         if (!error && data?.length) {
-            setTopics(data);
-            setActiveTopic(prev => prev ?? data[0].topic_id);
+            const pt = data.find(r => r.topic_id === 'panel-title');
+            const rest = data.filter(r => r.topic_id !== 'panel-title');
+            setPanelTitleRow(pt ?? null);
+            setTopics(rest);
+            setActiveTopic(prev => prev ?? rest[0]?.topic_id ?? null);
         }
     };
 
@@ -47,18 +53,33 @@ export default function HelpPanel({ isOpen, onClose }) {
         if (isEditing && activeContent) {
             setDraft({ title: activeContent.title, body: activeContent.body });
         }
+        if (isEditing && panelTitleRow) {
+            setPanelTitleDraft(panelTitleRow.title);
+        }
     }, [activeTopic, isEditing]);
 
     // ── Save current draft ───────────────────────────────────────────────────
     const handleSave = async () => {
         if (!activeContent) return;
         setIsSaving(true);
-        const { error } = await supabase
-            .from('app_content')
-            .update({ title: draft.title, body: draft.body, updated_at: new Date().toISOString() })
-            .eq('id', activeContent.id);
-        if (!error) {
+        const saves = [
+            supabase.from('app_content')
+                .update({ title: draft.title, body: draft.body, updated_at: new Date().toISOString() })
+                .eq('id', activeContent.id),
+        ];
+        if (panelTitleRow && panelTitleDraft !== panelTitleRow.title) {
+            saves.push(
+                supabase.from('app_content')
+                    .update({ title: panelTitleDraft, updated_at: new Date().toISOString() })
+                    .eq('id', panelTitleRow.id)
+            );
+        }
+        const results = await Promise.all(saves);
+        if (!results[0].error) {
             setTopics(prev => prev.map(t => t.id === activeContent.id ? { ...t, ...draft } : t));
+        }
+        if (panelTitleRow && panelTitleDraft !== panelTitleRow.title) {
+            setPanelTitleRow(prev => ({ ...prev, title: panelTitleDraft }));
         }
         setIsSaving(false);
         setIsEditing(false);
@@ -129,7 +150,7 @@ export default function HelpPanel({ isOpen, onClose }) {
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                        transition={{ duration: 2, ease: [0.25, 1, 0.5, 1] }}
                         className="fixed left-80 right-0 top-0 h-full bg-white shadow-2xl z-[70] flex flex-col"
                     >
                         {/* Header */}
@@ -151,9 +172,18 @@ export default function HelpPanel({ isOpen, onClose }) {
                                             className="hover:opacity-80 transition-opacity cursor-pointer"
                                         />
                                     </Link>
-                                    <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
-                                        Help
-                                    </h1>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={panelTitleDraft}
+                                            onChange={e => setPanelTitleDraft(e.target.value)}
+                                            className="text-[42px] font-bold text-slate-900 flex-1 leading-tight bg-transparent border-b-2 border-amber-400 focus:outline-none"
+                                        />
+                                    ) : (
+                                        <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
+                                            {panelTitleRow?.title || 'Help'}
+                                        </h1>
+                                    )}
                                     {/* Edit / Save controls */}
                                     {!isEditing ? (
                                         <button
@@ -192,8 +222,8 @@ export default function HelpPanel({ isOpen, onClose }) {
                         {/* Main Layout */}
                         <div className="flex flex-1 overflow-hidden">
                             {/* Sidebar */}
-                            <div className="w-56 border-r bg-slate-50 overflow-y-auto flex flex-col">
-                                <div className="flex flex-col p-3 gap-1 flex-1">
+                            <div className="w-72 border-r bg-slate-50 overflow-y-auto flex flex-col">
+                                <div className="flex flex-col p-4 gap-2 flex-1">
                                     {topics.map((topic, idx) => (
                                         <div key={topic.topic_id} className="flex items-center gap-1 group">
                                             {/* Reorder arrows (edit mode only) */}
@@ -213,22 +243,31 @@ export default function HelpPanel({ isOpen, onClose }) {
                                                     >▼</button>
                                                 </div>
                                             )}
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => {
-                                                    setActiveTopic(topic.topic_id);
-                                                    if (isEditing) setDraft({ title: topic.title, body: topic.body });
-                                                }}
-                                                className={cn(
-                                                    'justify-start flex-1 text-left truncate',
-                                                    activeTopic === topic.topic_id
-                                                        ? 'bg-slate-900 text-white hover:bg-slate-800 hover:text-white'
-                                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                                                )}
-                                            >
-                                                {topic.title}
-                                            </Button>
+                                            {isEditing && activeTopic === topic.topic_id ? (
+                                                <input
+                                                    type="text"
+                                                    value={draft.title}
+                                                    onChange={e => setDraft(d => ({ ...d, title: e.target.value }))}
+                                                    className="flex-1 text-base font-medium px-3 py-2 rounded bg-slate-900 text-white text-right focus:outline-none focus:ring-2 focus:ring-amber-400 min-w-0"
+                                                />
+                                            ) : (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="lg"
+                                                    onClick={() => {
+                                                        setActiveTopic(topic.topic_id);
+                                                        if (isEditing) setDraft({ title: topic.title, body: topic.body });
+                                                    }}
+                                                    className={cn(
+                                                        'justify-end flex-1 text-right text-base font-medium h-auto py-2.5',
+                                                        activeTopic === topic.topic_id
+                                                            ? 'bg-slate-900 text-white hover:bg-slate-800 hover:text-white'
+                                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                                                    )}
+                                                >
+                                                    {topic.title}
+                                                </Button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -247,16 +286,9 @@ export default function HelpPanel({ isOpen, onClose }) {
                             </div>
 
                             {/* Content */}
-                            <div className="flex-1 overflow-y-auto p-6">
+                            <div className="flex-1 overflow-y-auto py-6 pl-[100px] pr-[50px]">
                                 {isEditing && activeContent ? (
                                     <div className="space-y-4 max-w-2xl">
-                                        <input
-                                            type="text"
-                                            value={draft.title}
-                                            onChange={e => setDraft(d => ({ ...d, title: e.target.value }))}
-                                            className="w-full text-lg font-semibold text-slate-900 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-amber-400"
-                                            placeholder="Topic title"
-                                        />
                                         <RichTextEditor
                                             content={draft.body}
                                             onChange={body => setDraft(d => ({ ...d, body }))}

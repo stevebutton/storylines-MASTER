@@ -47,7 +47,7 @@ function SingleHotspot({ x, y, title, body, index, delay, isOpen, onOpen, onClos
 
     return (
         <div
-            className="absolute z-20 cursor-default"
+            className="absolute z-20 cursor-pointer"
             style={{
                 left: `${x * 100}%`,
                 top: `${y * 100}%`,
@@ -248,8 +248,8 @@ export default function FullScreenImageViewer({
         prevIndexRef.current = currentIndex;
     }, [currentIndex]);
 
-    // Reset hotspot spotlight when slide changes
-    useEffect(() => { setActiveHotspotPos(null); }, [currentIndex]);
+    // Reset hotspot spotlight when slide changes or mode leaves 'story'
+    useEffect(() => { setActiveHotspotPos(null); }, [currentIndex, viewMode]);
 
     if (!slides || slides.length === 0) return null;
 
@@ -350,25 +350,44 @@ export default function FullScreenImageViewer({
                             {/* Spotlight layer: sharp copy masked to active hotspot */}
                             <AnimatePresence>
                                 {activeHotspotPos && !currentSlide.video_url && (
-                                    <motion.img
-                                        key="spotlight"
-                                        src={currentSlide.image}
-                                        alt=""
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.35, ease: 'easeOut' }}
-                                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                                        style={{
-                                            objectPosition: currentSlide.image_position || '50% 50%',
-                                            maskImage: `radial-gradient(circle 300px at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 20%, transparent 100%)`,
-                                            WebkitMaskImage: `radial-gradient(circle 300px at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 20%, transparent 100%)`,
-                                        }}
-                                    />
+                                    <>
+                                        <motion.img
+                                            key="spotlight"
+                                            src={currentSlide.image}
+                                            alt=""
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.35, ease: 'easeOut' }}
+                                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                            style={{
+                                                objectPosition: currentSlide.image_position || '50% 50%',
+                                                maskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 220px, transparent 220px)`,
+                                                WebkitMaskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 220px, transparent 220px)`,
+                                            }}
+                                        />
+                                        {/* 1px white inset ring at spotlight edge */}
+                                        <motion.div
+                                            key="spotlight-ring"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.35, ease: 'easeOut' }}
+                                            className="absolute pointer-events-none rounded-full"
+                                            style={{
+                                                width: 440,
+                                                height: 440,
+                                                left: `${activeHotspotPos.x * 100}%`,
+                                                top: `${activeHotspotPos.y * 100}%`,
+                                                transform: 'translate(-50%, -50%)',
+                                                boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.9)',
+                                            }}
+                                        />
+                                    </>
                                 )}
                             </AnimatePresence>
 
-                            {!currentSlide.video_url && slideHotspots.length > 0 && (
+                            {!currentSlide.video_url && slideHotspots.length > 0 && viewMode === 'story' && (
                                 <ImageHotspots
                                     key={currentSlide.id}
                                     hotspots={slideHotspots}

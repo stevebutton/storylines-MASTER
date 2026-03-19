@@ -30,7 +30,8 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
     const [drafts, setDrafts] = useState({});          // keyed by topic_id → body string
     const [isSaving, setIsSaving] = useState(false);
 
-    const TOPIC_IDS = ['intro', 'intro-append', 'steps', 'steps-append'];
+    const TOPIC_IDS = ['panel-title', 'panel-title-append', 'intro', 'intro-append', 'steps', 'steps-append'];
+    const TITLE_KEYS = ['panel-title', 'panel-title-append'];
 
     useEffect(() => {
         if (!isOpen) return;
@@ -47,8 +48,9 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
             });
     }, [isOpen]);
 
-    const introKey  = isAppendMode ? 'intro-append'  : 'intro';
-    const stepsKey  = isAppendMode ? 'steps-append'  : 'steps';
+    const introKey      = isAppendMode ? 'intro-append'         : 'intro';
+    const stepsKey      = isAppendMode ? 'steps-append'         : 'steps';
+    const panelTitleKey = isAppendMode ? 'panel-title-append'   : 'panel-title';
 
     const getBody = (key) => isEditing
         ? (drafts[key] ?? dbContent[key]?.body ?? '')
@@ -56,7 +58,11 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
 
     const startEditing = () => {
         const d = {};
-        TOPIC_IDS.forEach(k => { d[k] = dbContent[k]?.body ?? ''; });
+        TOPIC_IDS.forEach(k => {
+            d[k] = TITLE_KEYS.includes(k)
+                ? (dbContent[k]?.title ?? '')
+                : (dbContent[k]?.body ?? '');
+        });
         setDrafts(d);
         setIsEditing(true);
     };
@@ -66,10 +72,12 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
         await Promise.all(
             TOPIC_IDS
                 .filter(k => dbContent[k])
-                .map(k => supabase.from('app_content')
-                    .update({ body: drafts[k] ?? dbContent[k].body, updated_at: new Date().toISOString() })
-                    .eq('id', dbContent[k].id)
-                )
+                .map(k => {
+                    const update = TITLE_KEYS.includes(k)
+                        ? { title: drafts[k] ?? dbContent[k].title, updated_at: new Date().toISOString() }
+                        : { body: drafts[k] ?? dbContent[k].body, updated_at: new Date().toISOString() };
+                    return supabase.from('app_content').update(update).eq('id', dbContent[k].id);
+                })
         );
         // Refresh
         const { data } = await supabase.from('app_content')
@@ -332,37 +340,31 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
     };
 
     const handleClose = () => {
-        resetPanel();
         onClose();
     };
 
-    if (!isOpen) return null;
-
     return (
         <>
-            {/* Backdrop */}
-            <AnimatePresence>
+            <AnimatePresence onExitComplete={resetPanel}>
                 {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 z-[69]"
-                        onClick={handleClose}
-                    />
-                )}
-            </AnimatePresence>
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/50 z-[69]"
+                            onClick={handleClose}
+                        />
 
-            {/* Panel */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed right-0 top-0 h-full w-[60vw] bg-white shadow-2xl z-[80] flex flex-col"
-                    >
+                        {/* Panel */}
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ duration: 2, ease: [0.25, 1, 0.5, 1] }}
+                            className="fixed right-0 top-0 h-full w-[60vw] bg-white shadow-2xl z-[80] flex flex-col"
+                        >
                         {/* Header */}
                         <div className="bg-white border-b shadow-sm">
                             <div className="px-4 py-3">
@@ -382,9 +384,18 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                                             className="hover:opacity-80 transition-opacity cursor-pointer"
                                         />
                                     </Link>
-                                    <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
-                                        Story Helper
-                                    </h1>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={drafts[panelTitleKey] ?? dbContent[panelTitleKey]?.title ?? 'Story Helper'}
+                                            onChange={e => setDrafts(d => ({ ...d, [panelTitleKey]: e.target.value }))}
+                                            className="text-[42px] font-bold text-slate-900 flex-1 leading-tight bg-transparent border-b-2 border-amber-400 focus:outline-none"
+                                        />
+                                    ) : (
+                                        <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
+                                            {dbContent[panelTitleKey]?.title || 'Story Helper'}
+                                        </h1>
+                                    )}
                                     {!isEditing ? (
                                         <button
                                             onClick={startEditing}
@@ -414,7 +425,7 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6">
+                        <div className="flex-1 overflow-y-auto py-6 pl-[100px] pr-[50px]">
 
                             {/* Upload Step */}
                             {step === 'upload' && (
@@ -595,6 +606,7 @@ export default function MapDataImportPanel({ isOpen, onClose, appendToStoryId = 
                             )}
                         </div>
                     </motion.div>
+                    </>
                 )}
             </AnimatePresence>
 

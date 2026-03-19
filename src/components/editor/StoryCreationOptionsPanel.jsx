@@ -1,40 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileEdit, Images, MessageSquare, Smartphone, ChevronRight, Mail, Pencil, Check } from 'lucide-react';
+import { X, FileEdit, Sparkles, Smartphone, ChevronRight, Mail, Pencil, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
 import InterviewModePanel from './InterviewModePanel';
-import MapDataImportPanel from './MapDataImportPanel';
 import RichTextEditor from './RichTextEditor';
 
 const PANEL_ID = 'new-story';
 
-const OPTION_META = {
-    scratch:      { icon: FileEdit,    colors: { bg: 'bg-blue-50',   hover: 'hover:bg-blue-100',   icon: 'text-blue-600',   text: 'text-blue-700'   } },
-    map:          { icon: Images,      colors: { bg: 'bg-amber-50',   hover: 'hover:bg-amber-100',  icon: 'text-amber-600',  text: 'text-amber-700'  } },
-    interview:    { icon: MessageSquare, colors: { bg: 'bg-indigo-50', hover: 'hover:bg-indigo-100', icon: 'text-indigo-600', text: 'text-indigo-700' } },
-    storyboarder: { icon: Smartphone,  colors: { bg: 'bg-orange-50',  hover: 'hover:bg-orange-100', icon: 'text-orange-600', text: 'text-orange-700' } },
+// Step 1 — Project Brief (prominent)
+const BRIEF_META = {
+    icon: Sparkles,
+    colors: { bg: 'bg-indigo-50', hover: 'hover:bg-indigo-100', icon: 'text-indigo-600', text: 'text-indigo-700', border: 'border-indigo-200' },
 };
 
-const OPTION_ACTIONS = {
-    scratch:      (navigate, onClose) => () => { navigate(createPageUrl('StoryEditor')); onClose(); },
-    map:          (navigate, onClose, setMapOpen) => () => setMapOpen(true),
-    interview:    (navigate, onClose, setMapOpen, setInterviewOpen) => () => setInterviewOpen(true),
-    storyboarder: (navigate, onClose, setMapOpen, setInterviewOpen, setExpanded) => () => setExpanded(v => !v),
+// Step 2 — Content paths (secondary)
+const STEP2_META = {
+    scratch:      { icon: FileEdit,   colors: { bg: 'bg-blue-50',   hover: 'hover:bg-blue-100',   icon: 'text-blue-600',   text: 'text-blue-700'   } },
+    storyboarder: { icon: Smartphone, colors: { bg: 'bg-orange-50', hover: 'hover:bg-orange-100', icon: 'text-orange-600', text: 'text-orange-700' } },
 };
+
+const STEP2_ORDER = ['scratch', 'storyboarder'];
 
 export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [isInterviewModeOpen, setIsInterviewModeOpen] = useState(false);
-    const [isMapDataImportOpen, setIsMapDataImportOpen] = useState(false);
     const [storyboarderExpanded, setStoryboarderExpanded] = useState(false);
     const [emailAddress, setEmailAddress] = useState('');
     const [emailSent, setEmailSent] = useState(false);
 
-    const [content, setContent] = useState({});   // keyed by topic_id → {id, title, body}
+    const [content, setContent] = useState({});
     const [isEditing, setIsEditing] = useState(false);
-    const [drafts, setDrafts] = useState({});      // keyed by topic_id → {title, body}
+    const [drafts, setDrafts] = useState({});
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -87,30 +85,19 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                     .eq('id', row.id);
             })
         );
-        // Refresh content
         await loadContent();
         setIsSaving(false);
         setIsEditing(false);
     };
 
-    const setDraftBody = (topicId, body) => {
-        setDrafts(d => ({ ...d, [topicId]: { ...d[topicId], body } }));
-    };
+    const setDraftBody  = (topicId, body)  => setDrafts(d => ({ ...d, [topicId]: { ...d[topicId], body } }));
+    const setDraftTitle = (topicId, title) => setDrafts(d => ({ ...d, [topicId]: { ...d[topicId], title } }));
 
-    const setDraftTitle = (topicId, title) => {
-        setDrafts(d => ({ ...d, [topicId]: { ...d[topicId], title } }));
-    };
+    const getBody  = (id) => isEditing ? (drafts[id]?.body  ?? content[id]?.body  ?? '') : (content[id]?.body  ?? '');
+    const getTitle = (id) => isEditing ? (drafts[id]?.title ?? content[id]?.title ?? '') : (content[id]?.title ?? '');
 
-    const getBody = (topicId) => isEditing
-        ? (drafts[topicId]?.body ?? content[topicId]?.body ?? '')
-        : (content[topicId]?.body ?? '');
-
-    const getTitle = (topicId) => isEditing
-        ? (drafts[topicId]?.title ?? content[topicId]?.title ?? '')
-        : (content[topicId]?.title ?? '');
-
-    // Option order and keys
-    const optionOrder = ['scratch', 'map', 'interview', 'storyboarder'];
+    const BriefIcon = BRIEF_META.icon;
+    const briefColors = BRIEF_META.colors;
 
     return (
         <AnimatePresence>
@@ -152,9 +139,18 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                                             className="hover:opacity-80 transition-opacity cursor-pointer"
                                         />
                                     </Link>
-                                    <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
-                                        New Story
-                                    </h1>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            value={getTitle('panel-title')}
+                                            onChange={e => setDraftTitle('panel-title', e.target.value)}
+                                            className="text-[42px] font-bold text-slate-900 flex-1 leading-tight bg-transparent border-b-2 border-amber-400 focus:outline-none"
+                                        />
+                                    ) : (
+                                        <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
+                                            {content['panel-title']?.title || 'New Story'}
+                                        </h1>
+                                    )}
                                     {!isEditing ? (
                                         <button
                                             onClick={startEditing}
@@ -184,67 +180,123 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <p className="text-sm text-slate-600 mb-6">
-                                Choose how you want to start. Each method is designed for a different workflow — from building in the editor to capturing on location.
+                        <div className="flex-1 overflow-y-auto py-6 pl-[100px] pr-[50px]">
+
+                            {/* ── STEP 1: Project Brief ── */}
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
+                                Step 1 — Name your project
                             </p>
 
-                            <div className="space-y-4">
-                                {optionOrder.map((id) => {
-                                    const meta = OPTION_META[id];
+                            <div className={`w-full rounded-lg overflow-hidden border-2 ${briefColors.border} ${briefColors.bg} mb-8`}>
+                                {isEditing ? (
+                                    <div className="flex items-start gap-4 p-5">
+                                        <div className="p-3 flex-shrink-0">
+                                            <BriefIcon className={`w-10 h-10 ${briefColors.icon}`} />
+                                        </div>
+                                        <div className="flex-1 min-w-0 space-y-2">
+                                            <input
+                                                type="text"
+                                                value={getTitle('interview')}
+                                                onChange={e => setDraftTitle('interview', e.target.value)}
+                                                className={`w-full text-xl font-semibold border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400 bg-white ${briefColors.text}`}
+                                                placeholder="Option title…"
+                                            />
+                                            <RichTextEditor
+                                                content={getBody('interview')}
+                                                onChange={body => setDraftBody('interview', body)}
+                                                placeholder="Option description…"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsInterviewModeOpen(true)}
+                                        className={`w-full text-left ${briefColors.hover} transition-colors`}
+                                    >
+                                        <div className="flex items-start gap-4 p-5">
+                                            <div className="p-3 flex-shrink-0">
+                                                <BriefIcon className={`w-10 h-10 ${briefColors.icon}`} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3 className={`text-xl font-semibold ${briefColors.text}`}>
+                                                        {getTitle('interview') || 'Project Brief'}
+                                                    </h3>
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-600 text-white px-2 py-0.5 rounded-full">
+                                                        Start here
+                                                    </span>
+                                                </div>
+                                                <div
+                                                    className="prose prose-sm prose-slate max-w-none text-slate-600"
+                                                    dangerouslySetInnerHTML={{ __html: getBody('interview') }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* ── STEP 2: How to build ── */}
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
+                                Step 2 — Choose how to build
+                            </p>
+
+                            <div className="space-y-3">
+                                {STEP2_ORDER.map((id) => {
+                                    const meta = STEP2_META[id];
                                     const Icon = meta.icon;
                                     const colorSet = meta.colors;
-                                    const title = getTitle(id);
 
                                     const handleClick = {
                                         scratch:      () => { navigate(createPageUrl('StoryEditor')); onClose(); },
-                                        map:          () => setIsMapDataImportOpen(true),
-                                        interview:    () => setIsInterviewModeOpen(true),
                                         storyboarder: () => setStoryboarderExpanded(v => !v),
                                     }[id];
 
                                     return (
                                         <div key={id} className={`w-full rounded-lg text-left overflow-hidden ${colorSet.bg}`}>
-                                            <button
-                                                onClick={isEditing ? undefined : handleClick}
-                                                className={`w-full text-left ${isEditing ? '' : colorSet.hover + ' transition-colors'}`}
-                                            >
+                                            {isEditing ? (
                                                 <div className="flex items-start gap-4 p-4">
                                                     <div className="p-3 flex-shrink-0">
                                                         <Icon className={`w-8 h-8 ${colorSet.icon}`} />
                                                     </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        {isEditing ? (
-                                                            <div onClick={e => e.stopPropagation()} className="space-y-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={getTitle(id)}
-                                                                    onChange={e => setDraftTitle(id, e.target.value)}
-                                                                    className={`w-full text-lg font-semibold border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400 bg-white ${colorSet.text}`}
-                                                                    placeholder="Option title…"
-                                                                />
-                                                                <RichTextEditor
-                                                                    content={getBody(id)}
-                                                                    onChange={body => setDraftBody(id, body)}
-                                                                    placeholder="Option description…"
-                                                                />
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                <h3 className={`text-lg font-semibold mb-2 ${colorSet.text}`}>
-                                                                    {title || id}
-                                                                </h3>
-                                                                <div
-                                                                    className="prose prose-sm prose-slate max-w-none text-slate-600"
-                                                                    dangerouslySetInnerHTML={{ __html: getBody(id) }}
-                                                                />
-                                                            </>
-                                                        )}
+                                                    <div className="flex-1 min-w-0 space-y-2">
+                                                        <input
+                                                            type="text"
+                                                            value={getTitle(id)}
+                                                            onChange={e => setDraftTitle(id, e.target.value)}
+                                                            className={`w-full text-lg font-semibold border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400 bg-white ${colorSet.text}`}
+                                                            placeholder="Option title…"
+                                                        />
+                                                        <RichTextEditor
+                                                            content={getBody(id)}
+                                                            onChange={body => setDraftBody(id, body)}
+                                                            placeholder="Option description…"
+                                                        />
                                                     </div>
                                                 </div>
-                                            </button>
+                                            ) : (
+                                                <button
+                                                    onClick={handleClick}
+                                                    className={`w-full text-left ${colorSet.hover} transition-colors`}
+                                                >
+                                                    <div className="flex items-start gap-4 p-4">
+                                                        <div className="p-3 flex-shrink-0">
+                                                            <Icon className={`w-8 h-8 ${colorSet.icon}`} />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h3 className={`text-lg font-semibold mb-2 ${colorSet.text}`}>
+                                                                {getTitle(id) || id}
+                                                            </h3>
+                                                            <div
+                                                                className="prose prose-sm prose-slate max-w-none text-slate-600"
+                                                                dangerouslySetInnerHTML={{ __html: getBody(id) }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            )}
 
-                                            {/* ── Storyboarder expanded detail ── */}
+                                            {/* Storyboarder expanded detail */}
                                             {id === 'storyboarder' && storyboarderExpanded && (
                                                 <div className="px-5 pb-6 border-t border-orange-200">
                                                     {isEditing ? (
@@ -261,8 +313,6 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                                                             dangerouslySetInnerHTML={{ __html: getBody('storyboarder-steps') }}
                                                         />
                                                     )}
-
-                                                    {/* Action buttons — always functional */}
                                                     <div className="mt-5 flex flex-col gap-3">
                                                         <button
                                                             onClick={() => { navigate(createPageUrl('Storyboarder')); onClose(); }}
@@ -298,21 +348,26 @@ export default function StoryCreationOptionsPanel({ isOpen, onClose }) {
                                     );
                                 })}
                             </div>
+
+                            {/* Skip link */}
+                            <div className="mt-6 pt-4 border-t border-slate-100">
+                                <button
+                                    onClick={() => { navigate(createPageUrl('StoryEditor')); onClose(); }}
+                                    className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    Skip — open an empty editor →
+                                </button>
+                            </div>
+
                         </div>
                     </motion.div>
                 </>
             )}
 
-            {/* Interview Mode Panel */}
+            {/* Project Brief Panel */}
             <InterviewModePanel
                 isOpen={isInterviewModeOpen}
                 onClose={() => setIsInterviewModeOpen(false)}
-            />
-
-            {/* Map / Photo Import Panel */}
-            <MapDataImportPanel
-                isOpen={isMapDataImportOpen}
-                onClose={() => setIsMapDataImportOpen(false)}
             />
         </AnimatePresence>
     );

@@ -53,9 +53,10 @@ export default function CategoryFilter({ categories, selectedCategory, onCategor
     return (
         <>
         <style>{INACTIVE_CSS}</style>
-        <div className="backdrop-blur-xl px-6 shadow-lg"
-             style={{ background: 'rgba(15,23,42,0.25)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '999px', paddingTop: '30px', paddingBottom: '30px' }}>
-            <div className="flex items-center gap-6">
+        <motion.div layout className="backdrop-blur-xl px-6 shadow-lg"
+             style={{ background: 'rgba(15,23,42,0.25)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '999px', paddingTop: '30px', paddingBottom: '30px' }}
+             transition={{ duration: 1, ease: 'easeOut' }}>
+            <motion.div layout className="flex items-center gap-6" transition={{ duration: 1, ease: 'easeOut' }}>
 
                 {/* Left — title */}
                 {showTitle && (
@@ -64,7 +65,7 @@ export default function CategoryFilter({ categories, selectedCategory, onCategor
                         style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 500 }}
                         initial={{ x: 50, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 2, ease: 'easeOut' }}
+                        transition={{ duration: 2, ease: 'easeOut', delay: 0.5 }}
                     >
                         Explore the Stories
                     </motion.span>
@@ -99,8 +100,8 @@ export default function CategoryFilter({ categories, selectedCategory, onCategor
                         All
                     </button>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
         </>
     );
 }
