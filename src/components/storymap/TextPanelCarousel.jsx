@@ -177,12 +177,11 @@ const TextPanelCarousel = ({
                                 <motion.div
                                     {...el(0.45)}
                                     className="text-right uppercase tracking-widest leading-snug"
-                                    style={{ fontFamily: themeFont }}
                                 >
                                     {prefix && (
-                                        <p className="text-lg font-medium text-white/70">{prefix}</p>
+                                        <p className="text-lg font-medium text-white/70" style={{ fontFamily: themeFont }}>{prefix}</p>
                                     )}
-                                    <p className="text-xl font-medium text-white">{title}</p>
+                                    <p className="text-xl font-medium text-white" style={{ fontFamily: themeFont }}>{title}</p>
                                 </motion.div>
                             );
                         })()}

@@ -812,7 +812,7 @@ export default function StoryMapView() {
                     percent: pct,
                     label:   isYear
                         ? cur.getFullYear().toString()
-                        : cur.toLocaleString('default', { month: 'short' }),
+                        : cur.toLocaleString('default', { month: 'short' }).toUpperCase() + ' ' + String(cur.getFullYear()).slice(2),
                     isYear,
                 });
             }
@@ -1803,6 +1803,55 @@ export default function StoryMapView() {
                 )}
             </AnimatePresence>
 
+            {/* Library title banner — fixed at pill level, slides in from left when library opens */}
+            <AnimatePresence>
+                {showLibraryModal && (
+                    <motion.div
+                        key="library-banner"
+                        className="fixed pointer-events-none overflow-hidden"
+                        style={{ top: 100, left: 388, right: 0, height: 60, zIndex: 200011 }}
+                        exit={{ opacity: 0, transition: { duration: 0.6, ease: 'easeInOut' } }}
+                    >
+                        {/* White background — expands from left */}
+                        <motion.div
+                            className="absolute inset-0"
+                            style={{ background: 'rgba(255,255,255,0.92)', transformOrigin: 'left' }}
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: 1 }}
+                            transition={{ delay: 0.3, duration: 1.5, ease: [0.4, 0, 0.2, 1] }}
+                        />
+                        <div className="relative flex items-center gap-3 h-full" style={{ paddingLeft: 50 }}>
+                            {/* "PROJECT" — slides in from left */}
+                            <motion.span
+                                className="text-slate-800 font-medium uppercase tracking-widest whitespace-nowrap"
+                                style={{ fontFamily: bannerThemeFont, fontSize: '1rem' }}
+                                initial={{ opacity: 0, x: -40 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.8, duration: 1.4, ease: 'easeOut' }}
+                            >
+                                Project
+                            </motion.span>
+                            <motion.div
+                                className="w-px h-5 bg-slate-400 flex-shrink-0"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 1.3, duration: 0.8 }}
+                            />
+                            {/* "Document Library" — slides in from right */}
+                            <motion.span
+                                className="text-slate-900 font-light text-4xl tracking-wide whitespace-nowrap"
+                                style={{ fontFamily: bannerThemeFont, fontWeight: 300, position: 'relative', top: '-3px' }}
+                                initial={{ opacity: 0, x: 40 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 1.0, duration: 1.4, ease: 'easeOut' }}
+                            >
+                                Document Library
+                            </motion.span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Document Library — full-viewport blur layer */}
             <AnimatePresence>
                 {showLibraryModal && (
@@ -1824,14 +1873,13 @@ export default function StoryMapView() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 200, transition: { duration: 2, ease: [0.25, 1, 0.5, 1] } }}
                         transition={{ duration: 3, ease: [0.25, 1, 0.5, 1] }}
-                        className="fixed z-[200010] rounded-2xl pointer-events-auto overflow-hidden flex flex-col"
-                        style={{ top: 150, left: 50, right: 50, bottom: 50 }}
+                        className="fixed z-[200010] pointer-events-auto flex flex-col"
+                        style={{ top: 160, left: 80, right: 80, bottom: 0 }}
                     >
-                        <div className="flex items-center pl-[200px] pr-8 py-5 border-b border-white/20 flex-shrink-0">
-                            <h2 className="text-3xl font-light text-white">Document Library</h2>
-                        </div>
-                        <div className="flex-1 overflow-auto mt-4">
-                            <DocumentManagerContent storyId={storyId} dark triggerUploadKey={libraryUploadKey} />
+                        {/* Top gradient — 30% black fading to transparent over 200px */}
+                        <div className="absolute top-0 pointer-events-none" style={{ left: -80, right: -80, height: 200, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)' }} />
+                        <div className="relative flex-1 overflow-auto mt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                            <DocumentManagerContent storyId={storyId} dark triggerUploadKey={libraryUploadKey} mapStyle={story?.map_style || 'a'} />
                         </div>
                     </motion.div>
                 )}

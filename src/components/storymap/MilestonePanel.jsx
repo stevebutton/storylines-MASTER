@@ -1,6 +1,12 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const THEME_FONTS = {
+    c: 'Righteous, cursive',
+    f: 'Oswald, sans-serif',
+    k: 'Oswald, sans-serif',
+};
+
 const PANEL_WIDTH       = 345;
 const TRACK_LEFT        = 396;
 const TRACK_RIGHT       = 48;
@@ -13,7 +19,8 @@ function formatDate(dateStr) {
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-export default function MilestonePanel({ milestone, date, cursorPercent, initialDelay = 0, slideKey }) {
+export default function MilestonePanel({ milestone, date, cursorPercent, initialDelay = 0, slideKey, mapStyle = 'a' }) {
+    const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
     const [panelHeight,   setPanelHeight]   = useState(80);
     const panelRef = useRef(null);
@@ -76,7 +83,7 @@ export default function MilestonePanel({ milestone, date, cursorPercent, initial
                         >
                             {formatDate(date) && (
                                 <div style={{
-                                    fontFamily:    'Raleway, sans-serif',
+                                    fontFamily:    themeFont,
                                     fontSize:      22,
                                     fontWeight:    500,
                                     letterSpacing: '0.08em',

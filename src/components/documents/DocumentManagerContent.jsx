@@ -16,7 +16,10 @@ import { Upload, FileText, Download, Trash2, Edit, Search, Folder } from 'lucide
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 
-export default function DocumentManagerContent({ storyId = null, dark = false, triggerUploadKey = 0 }) {
+const THEME_FONTS = { c: 'Righteous, cursive', f: 'Oswald, sans-serif', k: 'Oswald, sans-serif' };
+
+export default function DocumentManagerContent({ storyId = null, dark = false, triggerUploadKey = 0, mapStyle = 'a' }) {
+    const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const queryClient = useQueryClient();
     const [user, setUser] = useState(null);
     const [selectedDocs, setSelectedDocs] = useState([]);
@@ -197,7 +200,7 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
     const uniqueFolders = [...new Set(documents.map(d => d.folder).filter(Boolean))];
 
     return (
-        <div className="flex flex-col h-full space-y-6 overflow-y-auto">
+        <div className="flex flex-col h-full space-y-6 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {/* Toolbar */}
             <Card className={dark ? 'bg-transparent border-white/20' : ''}>
                 <CardContent className="p-4">
@@ -280,7 +283,7 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
 
                         {/* Title + category */}
                         <div className="px-5 pb-5">
-                            <p className="text-white text-sm font-medium leading-snug line-clamp-2">{doc.title}</p>
+                            <p className="text-white text-sm font-medium leading-snug line-clamp-2" style={{ fontFamily: themeFont }}>{doc.title}</p>
                             {doc.category && doc.category !== 'other' && (
                                 <p className="text-white/55 text-xs mt-0.5 uppercase tracking-widest">{doc.category}</p>
                             )}
@@ -452,7 +455,7 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
                 <Dialog open={showPdfDialog} onOpenChange={setShowPdfDialog}>
                     <DialogContent className="max-w-6xl h-[80vh] z-[300000]">
                         <DialogHeader>
-                            <DialogTitle>{currentDoc.title}</DialogTitle>
+                            <DialogTitle style={{ fontFamily: themeFont }}>{currentDoc.title}</DialogTitle>
                         </DialogHeader>
                         <div className="flex-1 h-full overflow-hidden">
                             <PdfViewer url={currentDoc.file_url} />

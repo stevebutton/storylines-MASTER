@@ -283,7 +283,7 @@ export default function ScaleBar({
                                     left:          `${tick.percent}%`,
                                     top:           3,
                                     width:         tick.isYear ? 4 : 2,
-                                    height:        tick.isYear ? 26 : 20,
+                                    height:        tick.isYear ? 36 : 20,
                                     background:    tick.isYear
                                         ? 'rgba(255,255,255,1)'
                                         : 'rgba(255,255,255,0.6)',
@@ -294,15 +294,16 @@ export default function ScaleBar({
                                 <span style={{
                                     position:      'absolute',
                                     left:          `${tick.percent}%`,
-                                    top:           tick.isYear ? -28 : -24,
+                                    top:           tick.isYear ? -42 : -29,
                                     transform:     'translateX(-50%)',
-                                    fontSize:      tick.isYear ? 20 : 18,
+                                    fontSize:      tick.isYear ? 32 : 22,
                                     fontWeight:    500,
+                                    fontFamily:    themeFont,
                                     color:         tick.isYear
                                         ? 'rgba(255,255,255,1)'
                                         : 'rgba(255,255,255,0.7)',
                                     whiteSpace:    'nowrap',
-                                    letterSpacing: '0.1em',
+                                    letterSpacing: tick.isYear ? '0.02em' : '0.1em',
                                     textTransform: 'uppercase',
                                     pointerEvents: 'none',
                                     lineHeight:    1,
