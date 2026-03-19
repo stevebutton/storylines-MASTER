@@ -1298,14 +1298,14 @@ export default function TabbedContentEditor({
                                                 imageUrl={item.image}
                                                 imagePosition={item.image_position || '50% 50%'}
                                                 onImagePositionChange={(pos) => onUpdate({ ...item, image_position: pos })}
-                                                hotspotX={item.hotspot_x ?? null}
-                                                hotspotY={item.hotspot_y ?? null}
-                                                hotspotTitle={item.hotspot_title || ''}
-                                                hotspotBody={item.hotspot_body || ''}
-                                                onHotspotChange={({ x, y, title, body }) =>
-                                                    onUpdate({ ...item, hotspot_x: x, hotspot_y: y,
-                                                               hotspot_title: title, hotspot_body: body })
+                                                hotspots={
+                                                    item.hotspots?.length
+                                                        ? item.hotspots
+                                                        : (item.hotspot_x != null
+                                                            ? [{ x: item.hotspot_x, y: item.hotspot_y, title: item.hotspot_title || '', body: item.hotspot_body || '' }]
+                                                            : [])
                                                 }
+                                                onHotspotsChange={(hotspots) => onUpdate({ ...item, hotspots })}
                                             />
                                             <button
                                                 onClick={() => onUpdate({ ...item, image: '' })}

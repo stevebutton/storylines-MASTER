@@ -31,19 +31,18 @@ const THEME_FONTS = {
     k: 'Oswald, sans-serif',
 };
 
-function ImageHotspot({ x, y, title, body, mapStyle = 'a', chapterColorIndex = 0 }) {
+// Single hotspot dot + card — hover to show card
+function SingleHotspot({ x, y, title, body, index, delay, isOpen, onOpen, onClose, mapStyle = 'a', chapterColorIndex = 0 }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const color = CHAPTER_COLORS[chapterColorIndex % CHAPTER_COLORS.length];
-    const [hovered, setHovered] = useState(false);
-    // Card appears to the right of the dot by default; flips left when near the right edge.
-    // Vertically centered on the dot via top:50% + translateY(-50%).
+    // Card appears to the right by default; flips left when near the right edge.
     const toLeft = x > 0.7;
     const cardStyle = {
         top: '50%',
         transform: 'translateY(-50%)',
         ...(toLeft
-            ? { right: '100%', marginRight: 20 }
-            : { left: '100%', marginLeft: 20 }),
+            ? { right: '100%', marginRight: 50 }
+            : { left: '100%', marginLeft: 50 }),
     };
 
     return (
@@ -54,15 +53,15 @@ function ImageHotspot({ x, y, title, body, mapStyle = 'a', chapterColorIndex = 0
                 top: `${y * 100}%`,
                 transform: 'translate(-50%, -50%)',
             }}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
+            onMouseEnter={onOpen}
+            onMouseLeave={onClose}
         >
-            {/* Dot — matches map marker: 36px, chapter colour, white border */}
+            {/* Numbered dot — matches map marker style */}
             <motion.div
-                className={`hotspot-pulse-${chapterColorIndex % CHAPTER_COLORS.length} rounded-full`}
+                className={`hotspot-pulse-${chapterColorIndex % CHAPTER_COLORS.length} rounded-full flex items-center justify-center`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 1.5, ease: 'easeOut' }}
+                transition={{ duration: 0.6, delay, ease: 'easeOut' }}
                 style={{
                     width: 36,
                     height: 36,
@@ -70,26 +69,24 @@ function ImageHotspot({ x, y, title, body, mapStyle = 'a', chapterColorIndex = 0
                     border: '3px solid white',
                     boxSizing: 'border-box',
                 }}
-            />
+            >
+                <span className="text-white text-xs font-bold select-none">{index + 1}</span>
+            </motion.div>
             <AnimatePresence>
-                {hovered && (
-                    /* Outer div: absolute positioning to the side of the dot, top:50% */
-                    /* Inner div: translateY(-50%) centers the card on the dot — kept
-                       separate so Framer Motion's y animation doesn't clobber the offset */
+                {isOpen && (
                     <div className="absolute" style={cardStyle}>
-                    <motion.div
-                        initial={{ opacity: 0, backdropFilter: 'blur(0px)', y: 6 }}
-                        animate={{ opacity: 1, backdropFilter: 'blur(24px)', y: 0 }}
-                        exit={{ opacity: 0, backdropFilter: 'blur(0px)', y: 6 }}
-                        transition={{ duration: 0.35 }}
-                        className="w-64 rounded-xl pointer-events-none overflow-hidden"
-                        style={{
-                            transform: 'translateY(-50%)',
-                            paddingTop: 12, paddingBottom: 32, paddingLeft: 26, paddingRight: 26,
-                            background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.15))',
-                        }}
-                    >
-                        <div className="relative">
+                        <motion.div
+                            initial={{ opacity: 0, backdropFilter: 'blur(0px)', y: 6 }}
+                            animate={{ opacity: 1, backdropFilter: 'blur(24px)', y: 0 }}
+                            exit={{ opacity: 0, backdropFilter: 'blur(0px)', y: 6 }}
+                            transition={{ duration: 0.35 }}
+                            className="w-64 rounded-xl pointer-events-none overflow-hidden"
+                            style={{
+                                transform: 'translateY(-50%)',
+                                paddingTop: 12, paddingBottom: 32, paddingLeft: 26, paddingRight: 26,
+                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.15))',
+                            }}
+                        >
                             {title && (
                                 <p
                                     className="text-base font-light text-white mb-2"
@@ -105,12 +102,45 @@ function ImageHotspot({ x, y, title, body, mapStyle = 'a', chapterColorIndex = 0
                                     dangerouslySetInnerHTML={{ __html: body }}
                                 />
                             )}
-                        </div>
-                    </motion.div>
+                        </motion.div>
                     </div>
                 )}
             </AnimatePresence>
         </div>
+    );
+}
+
+// Renders all hotspots for the current slide; manages which card is open
+function ImageHotspots({ hotspots, mapStyle, chapterColorIndex, onAnyCardOpen }) {
+    const [openIdx, setOpenIdx] = useState(null);
+
+    useEffect(() => {
+        onAnyCardOpen?.(openIdx !== null && hotspots[openIdx]
+            ? { x: hotspots[openIdx].x, y: hotspots[openIdx].y }
+            : null);
+    }, [openIdx]);
+
+    if (!hotspots?.length) return null;
+
+    return (
+        <>
+            {hotspots.map((h, i) => (
+                <SingleHotspot
+                    key={i}
+                    x={h.x}
+                    y={h.y}
+                    title={h.title || ''}
+                    body={h.body || ''}
+                    index={i}
+                    delay={3.5 + i * 2.0}
+                    isOpen={openIdx === i}
+                    onOpen={() => setOpenIdx(i)}
+                    onClose={() => setOpenIdx(null)}
+                    mapStyle={mapStyle}
+                    chapterColorIndex={chapterColorIndex}
+                />
+            ))}
+        </>
     );
 }
 
@@ -208,6 +238,7 @@ export default function FullScreenImageViewer({
     chapterColorIndex = 0,
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
+    const [activeHotspotPos, setActiveHotspotPos] = useState(null); // { x, y } | null
 
     // Track slide navigation direction for timeline push transition
     const prevIndexRef = useRef(currentIndex);
@@ -217,9 +248,19 @@ export default function FullScreenImageViewer({
         prevIndexRef.current = currentIndex;
     }, [currentIndex]);
 
+    // Reset hotspot spotlight when slide changes
+    useEffect(() => { setActiveHotspotPos(null); }, [currentIndex]);
+
     if (!slides || slides.length === 0) return null;
 
     const currentSlide = slides[currentIndex];
+
+    // Normalise: use new hotspots array, or fall back to legacy single-hotspot columns
+    const slideHotspots = currentSlide.hotspots?.length
+        ? currentSlide.hotspots
+        : (currentSlide.hotspot_x != null
+            ? [{ x: currentSlide.hotspot_x, y: currentSlide.hotspot_y, title: currentSlide.hotspot_title || '', body: currentSlide.hotspot_body || '' }]
+            : []);
     const hasMultipleSlides = slides.length > 1;
     const pdfTitle = currentSlide?.pdf_title ||
         (currentSlide?.pdf_url
@@ -298,19 +339,42 @@ export default function FullScreenImageViewer({
                                 src={currentSlide.image}
                                 alt={currentSlide.title}
                                 className="absolute inset-0 w-full h-full object-cover"
-                                style={{ objectPosition: currentSlide.image_position || '50% 50%' }}
+                                style={{
+                                    objectPosition: currentSlide.image_position || '50% 50%',
+                                    filter: activeHotspotPos ? 'grayscale(70%) blur(8px)' : 'none',
+                                    transition: 'filter 0.4s ease',
+                                }}
                             />
                         )}
                             </AnimatePresence>
-                            {currentSlide.hotspot_x != null && !currentSlide.video_url && (
-                                <ImageHotspot
+                            {/* Spotlight layer: sharp copy masked to active hotspot */}
+                            <AnimatePresence>
+                                {activeHotspotPos && !currentSlide.video_url && (
+                                    <motion.img
+                                        key="spotlight"
+                                        src={currentSlide.image}
+                                        alt=""
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.35, ease: 'easeOut' }}
+                                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                        style={{
+                                            objectPosition: currentSlide.image_position || '50% 50%',
+                                            maskImage: `radial-gradient(circle 300px at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 20%, transparent 100%)`,
+                                            WebkitMaskImage: `radial-gradient(circle 300px at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 20%, transparent 100%)`,
+                                        }}
+                                    />
+                                )}
+                            </AnimatePresence>
+
+                            {!currentSlide.video_url && slideHotspots.length > 0 && (
+                                <ImageHotspots
                                     key={currentSlide.id}
-                                    x={currentSlide.hotspot_x}
-                                    y={currentSlide.hotspot_y}
-                                    title={currentSlide.hotspot_title || ''}
-                                    body={currentSlide.hotspot_body || ''}
+                                    hotspots={slideHotspots}
                                     mapStyle={mapStyle}
                                     chapterColorIndex={currentSlide._chapter_index ?? chapterColorIndex}
+                                    onAnyCardOpen={setActiveHotspotPos}
                                 />
                             )}
                         </div>

@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 
 const PRESETS = [
     ['0% 0%',   '50% 0%',   '100% 0%'],
@@ -35,18 +35,15 @@ export default function ImageCropHotspotPicker({
     imageUrl,
     imagePosition = '50% 50%',
     onImagePositionChange,
-    hotspotX,
-    hotspotY,
-    hotspotTitle = '',
-    hotspotBody = '',
-    onHotspotChange,
+    hotspots = [],
+    onHotspotsChange,
 }) {
     const [mode, setMode] = useState('crop');
+    const [selectedIdx, setSelectedIdx] = useState(null);
     const containerRef = useRef(null);
     const isDragging = useRef(false);
 
     const { x: fpX, y: fpY } = parsePosition(imagePosition);
-    const hasHotspot = hotspotX != null && hotspotY != null;
 
     // ── Crop handlers ──────────────────────────────────────────────────────────
     const computePos = (e) => {
@@ -78,13 +75,44 @@ export default function ImageCropHotspotPicker({
         onImagePositionChange(`${Math.round(px)}% ${Math.round(py)}%`);
     };
 
-    // ── Hotspot handler ────────────────────────────────────────────────────────
+    // ── Hotspot click on image ─────────────────────────────────────────────────
     const handleClick = (e) => {
         if (mode !== 'hotspot') return;
         const rect = containerRef.current.getBoundingClientRect();
         const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         const ny = Math.max(0, Math.min(1, (e.clientY - rect.top)  / rect.height));
-        onHotspotChange({ x: nx, y: ny, title: hotspotTitle, body: hotspotBody });
+
+        if (selectedIdx !== null) {
+            // Move selected hotspot to clicked position
+            const updated = hotspots.map((h, i) => i === selectedIdx ? { ...h, x: nx, y: ny } : h);
+            onHotspotsChange(updated);
+        } else if (hotspots.length < 3) {
+            // Add new hotspot; auto-select it for editing
+            const updated = [...hotspots, { x: nx, y: ny, title: '', body: '' }];
+            onHotspotsChange(updated);
+            setSelectedIdx(updated.length - 1);
+        }
+        // At max (3) with nothing selected: ignore click
+    };
+
+    const addHotspotAtCenter = () => {
+        if (hotspots.length >= 3) return;
+        const updated = [...hotspots, { x: 0.5, y: 0.5, title: '', body: '' }];
+        onHotspotsChange(updated);
+        setSelectedIdx(updated.length - 1);
+    };
+
+    const removeSelected = () => {
+        if (selectedIdx === null) return;
+        const updated = hotspots.filter((_, i) => i !== selectedIdx);
+        onHotspotsChange(updated);
+        setSelectedIdx(null);
+    };
+
+    const updateSelectedField = (field, value) => {
+        if (selectedIdx === null) return;
+        const updated = hotspots.map((h, i) => i === selectedIdx ? { ...h, [field]: value } : h);
+        onHotspotsChange(updated);
     };
 
     return (
@@ -113,14 +141,16 @@ export default function ImageCropHotspotPicker({
                             : 'text-slate-500 hover:text-slate-700'
                     }`}
                 >
-                    Hotspot
-                    {hasHotspot && (
-                        <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                    Hotspots
+                    {hotspots.length > 0 && (
+                        <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">
+                            {hotspots.length}
+                        </span>
                     )}
                 </button>
             </div>
 
-            {/* Single image preview */}
+            {/* Image preview */}
             <div
                 ref={containerRef}
                 className="relative w-full aspect-video rounded-md overflow-hidden cursor-crosshair bg-slate-200 select-none"
@@ -151,27 +181,49 @@ export default function ImageCropHotspotPicker({
                     />
                 )}
 
-                {/* Hotspot mode — amber pulse dot */}
-                {mode === 'hotspot' && hasHotspot && (
+                {/* Hotspot mode — numbered dots */}
+                {mode === 'hotspot' && hotspots.map((h, i) => (
                     <div
-                        className="hotspot-pulse absolute rounded-full bg-amber-500 pointer-events-none"
+                        key={i}
+                        className="hotspot-pulse absolute rounded-full bg-amber-500 flex items-center justify-center"
                         style={{
-                            width: 20,
-                            height: 20,
-                            border: '2px solid white',
+                            width: 24,
+                            height: 24,
+                            border: selectedIdx === i ? '3px solid white' : '2px solid white',
                             boxSizing: 'border-box',
-                            left: `${hotspotX * 100}%`,
-                            top: `${hotspotY * 100}%`,
+                            left: `${h.x * 100}%`,
+                            top: `${h.y * 100}%`,
                             transform: 'translate(-50%, -50%)',
+                            outline: selectedIdx === i ? '2px solid #f59e0b' : 'none',
+                            outlineOffset: 2,
+                            zIndex: 10,
+                            cursor: 'pointer',
                         }}
-                    />
-                )}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedIdx(prev => prev === i ? null : i);
+                        }}
+                    >
+                        <span className="text-white text-[9px] font-bold select-none">{i + 1}</span>
+                    </div>
+                ))}
 
-                {/* Hotspot mode — placement hint */}
-                {mode === 'hotspot' && !hasHotspot && (
+                {/* Hotspot hints */}
+                {mode === 'hotspot' && hotspots.length === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <span className="text-xs text-slate-400 bg-white/70 rounded px-2 py-1">
                             Click to place hotspot
+                        </span>
+                    </div>
+                )}
+                {mode === 'hotspot' && hotspots.length > 0 && (
+                    <div className="absolute bottom-2 left-0 right-0 flex justify-center pointer-events-none">
+                        <span className="text-xs text-slate-500 bg-white/80 rounded px-2 py-1">
+                            {selectedIdx !== null
+                                ? `Click image to move hotspot ${selectedIdx + 1}`
+                                : hotspots.length < 3
+                                    ? 'Click image to add · Click dot to edit'
+                                    : 'Max 3 hotspots · Click dot to edit'}
                         </span>
                     </div>
                 )}
@@ -202,40 +254,72 @@ export default function ImageCropHotspotPicker({
                 </div>
             )}
 
-            {/* Hotspot mode — title / body inputs */}
+            {/* Hotspot mode — selector tabs + edit form */}
             {mode === 'hotspot' && (
                 <div className="space-y-2">
-                    <div>
-                        <Label className="text-xs mb-1 block">Hotspot Title</Label>
-                        <Input
-                            value={hotspotTitle}
-                            onChange={(e) => onHotspotChange({ x: hotspotX, y: hotspotY, title: e.target.value, body: hotspotBody })}
-                            placeholder="Label for this point of interest"
-                            className="h-8 text-xs"
-                            disabled={!hasHotspot}
-                        />
+                    {/* Hotspot selector row */}
+                    <div className="flex gap-1 flex-wrap">
+                        {hotspots.map((_, i) => (
+                            <button
+                                key={i}
+                                type="button"
+                                onClick={() => setSelectedIdx(prev => prev === i ? null : i)}
+                                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                    selectedIdx === i
+                                        ? 'bg-amber-500 text-white'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-700'
+                                }`}
+                            >
+                                Hotspot {i + 1}
+                            </button>
+                        ))}
+                        {hotspots.length < 3 && (
+                            <button
+                                type="button"
+                                onClick={addHotspotAtCenter}
+                                className="px-2 py-1 rounded text-xs text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors flex items-center gap-1"
+                            >
+                                <Plus className="w-3 h-3" /> Add
+                            </button>
+                        )}
                     </div>
-                    <div>
-                        <Label className="text-xs mb-1 block">Hotspot Details</Label>
-                        <textarea
-                            value={hotspotBody}
-                            onChange={(e) => onHotspotChange({ x: hotspotX, y: hotspotY, title: hotspotTitle, body: e.target.value })}
-                            placeholder="Additional details shown on hover..."
-                            rows={3}
-                            disabled={!hasHotspot}
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                        />
-                    </div>
-                    {hasHotspot && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onHotspotChange({ x: null, y: null, title: '', body: '' })}
-                            className="h-7 text-xs text-slate-500 hover:text-red-500 px-2"
-                        >
-                            <X className="w-3 h-3 mr-1" /> Clear hotspot
-                        </Button>
+
+                    {/* Edit form for selected hotspot */}
+                    {selectedIdx !== null && hotspots[selectedIdx] && (
+                        <>
+                            <div>
+                                <Label className="text-xs mb-1 block">Hotspot Title</Label>
+                                <Input
+                                    value={hotspots[selectedIdx].title || ''}
+                                    onChange={(e) => updateSelectedField('title', e.target.value)}
+                                    placeholder="Label for this point of interest"
+                                    className="h-8 text-xs"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs mb-1 block">Hotspot Details</Label>
+                                <textarea
+                                    value={hotspots[selectedIdx].body || ''}
+                                    onChange={(e) => updateSelectedField('body', e.target.value)}
+                                    placeholder="Additional details shown on click…"
+                                    rows={3}
+                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                                />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={removeSelected}
+                                className="h-7 text-xs text-slate-500 hover:text-red-500 px-2"
+                            >
+                                <X className="w-3 h-3 mr-1" /> Remove hotspot {selectedIdx + 1}
+                            </Button>
+                        </>
+                    )}
+
+                    {hotspots.length === 0 && (
+                        <p className="text-xs text-slate-400 italic">Click the image above to place up to 3 hotspots.</p>
                     )}
                 </div>
             )}

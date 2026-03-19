@@ -374,6 +374,7 @@ export default function StoryMapView() {
                         hotspot_y: s.hotspot_y,
                         hotspot_title: s.hotspot_title,
                         hotspot_body: s.hotspot_body,
+                        hotspots: s.hotspots,
                     }))
             }));
 
