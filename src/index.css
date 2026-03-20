@@ -168,6 +168,16 @@ button:focus-visible {
   }
 }
 
+/* Login panel overview — white text for Quill-generated HTML on dark background */
+.login-overview-content,
+.login-overview-content * {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+.login-overview-content a {
+    color: rgba(251, 191, 36, 0.9) !important;
+    text-decoration: underline;
+}
+
 /* Milestone panel — force white text regardless of Quill inline colour styles */
 .milestone-panel-content,
 .milestone-panel-content * {

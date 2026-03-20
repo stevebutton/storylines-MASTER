@@ -5,6 +5,8 @@ import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
 import { ArrowLeft, Save, Loader2, Upload, X, RotateCcw } from 'lucide-react';
 import LoginDisplay from '@/components/auth/LoginDisplay';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const DEFAULT = {
   heading:             'Sign in',
@@ -14,14 +16,15 @@ const DEFAULT = {
   background_image:    '',
   background_video:    '',
   anim_bg_delay:       0.5,
-  anim_panel_delay:    1.0,
-  anim_panel_duration: 2.4,
-  anim_content_delay:  2.2,
+  anim_panel_delay:    10.0,
+  anim_panel_duration: 3.0,
   welcome_title:       'Welcome to Storylines',
   welcome_tagline:     '',
   welcome_body:        '',
+  welcome_overview:    '',
   welcome_cta_text:    'Request Access',
   welcome_cta_email:   '',
+  video_loop:          true,
 };
 
 // ── Upload ────────────────────────────────────────────────────────────────────
@@ -187,10 +190,11 @@ export default function LoginEditor() {
       background_image: s.background_image || null,
       background_video: s.background_video || null,
       anim_bg_delay: s.anim_bg_delay, anim_panel_delay: s.anim_panel_delay,
-      anim_panel_duration: s.anim_panel_duration, anim_content_delay: s.anim_content_delay,
+      anim_panel_duration: s.anim_panel_duration,
       welcome_title: s.welcome_title, welcome_tagline: s.welcome_tagline,
-      welcome_body: s.welcome_body, welcome_cta_text: s.welcome_cta_text,
-      welcome_cta_email: s.welcome_cta_email,
+      welcome_body: s.welcome_body, welcome_overview: s.welcome_overview || null,
+      welcome_cta_text: s.welcome_cta_text, welcome_cta_email: s.welcome_cta_email,
+      video_loop: s.video_loop,
     }).eq('id', 1);
     if (error) toast.error('Failed to save: ' + error.message);
     else       toast.success('Login page saved');
@@ -246,6 +250,17 @@ export default function LoginEditor() {
                 </Field>
                 <Field label="Description">
                   <Textarea value={s.welcome_body} onChange={set('welcome_body')} placeholder="Short description of the app and who it's for…" rows={4} />
+                </Field>
+                <Field label="Overview (rich text)">
+                  <div className="rounded-lg overflow-hidden border border-slate-200">
+                    <ReactQuill
+                      value={s.welcome_overview || ''}
+                      onChange={set('welcome_overview')}
+                      theme="snow"
+                      modules={{ toolbar: [['bold', 'italic'], [{ list: 'bullet' }, { list: 'ordered' }], ['link'], ['clean']] }}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Appears between description and Request Access button</p>
                 </Field>
                 <Field label="Request access button text">
                   <TextInput value={s.welcome_cta_text} onChange={set('welcome_cta_text')} placeholder="Request Access" />
@@ -324,6 +339,15 @@ export default function LoginEditor() {
                     )}
                     <input type="text" value={s.background_video} onChange={e => set('background_video')(e.target.value)} placeholder="Or paste URL…"
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={!!s.video_loop}
+                        onChange={e => set('video_loop')(e.target.checked)}
+                        className="rounded accent-amber-600"
+                      />
+                      <span className="text-xs text-slate-600">Loop video</span>
+                    </label>
                   </div>
                 )}
               </div>
@@ -335,10 +359,9 @@ export default function LoginEditor() {
             <section>
               <SectionTitle>Animation Timing</SectionTitle>
               <div className="space-y-4">
-                <TimingSlider label="Background fade" value={s.anim_bg_delay} onChange={set('anim_bg_delay')} min={0} max={3} hint="Delay before background appears" />
-                <TimingSlider label="Panel slide delay" value={s.anim_panel_delay} onChange={set('anim_panel_delay')} min={0} max={6} hint="Wait before panel drops in" />
+                <TimingSlider label="Background fade" value={s.anim_bg_delay} onChange={set('anim_bg_delay')} min={0} max={5} hint="Delay before background appears" />
+                <TimingSlider label="Panel slide delay" value={s.anim_panel_delay} onChange={set('anim_panel_delay')} min={0} max={20} hint="Wait before panel slides in" />
                 <TimingSlider label="Panel slide duration" value={s.anim_panel_duration} onChange={set('anim_panel_duration')} min={0.3} max={5} hint="How long the slide takes" />
-                <TimingSlider label="Content fade-in" value={s.anim_content_delay} onChange={set('anim_content_delay')} min={0} max={8} hint="When text and form appear" />
               </div>
             </section>
 
@@ -353,11 +376,12 @@ export default function LoginEditor() {
               key={replayKey}
               heading={s.heading}       subtitle={s.subtitle}       buttonText={s.button_text}
               welcomeTitle={s.welcome_title}   welcomeTagline={s.welcome_tagline}
-              welcomeBody={s.welcome_body}     welcomeCtaText={s.welcome_cta_text}
-              welcomeCtaEmail={s.welcome_cta_email}
+              welcomeBody={s.welcome_body}     welcomeOverview={s.welcome_overview}
+              welcomeCtaText={s.welcome_cta_text} welcomeCtaEmail={s.welcome_cta_email}
               heroImage={previewImage}  heroVideo={previewVideo}    heroType={previewType}
+              heroLoop={s.video_loop}
               bgDelay={s.anim_bg_delay}         panelDelay={s.anim_panel_delay}
-              panelDuration={s.anim_panel_duration} contentDelay={s.anim_content_delay}
+              panelDuration={s.anim_panel_duration}
               className="absolute inset-0"
             />
           </div>

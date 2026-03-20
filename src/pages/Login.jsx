@@ -47,13 +47,14 @@ export default function Login() {
         welcomeTitle:   ls?.welcome_title    || 'Welcome to Storylines',
         welcomeTagline: ls?.welcome_tagline  || '',
         welcomeBody:    ls?.welcome_body     || '',
-        welcomeCtaText: ls?.welcome_cta_text || 'Request Access',
-        welcomeCtaEmail:ls?.welcome_cta_email|| '',
+        welcomeOverview:ls?.welcome_overview  || '',
+        welcomeCtaText: ls?.welcome_cta_text  || 'Request Access',
+        welcomeCtaEmail:ls?.welcome_cta_email || '',
         heroImage, heroVideo, heroType,
+        heroLoop:      ls?.video_loop ?? true,
         bgDelay:       ls?.anim_bg_delay       ?? 0.5,
-        panelDelay:    ls?.anim_panel_delay     ?? 1.0,
-        panelDuration: ls?.anim_panel_duration  ?? 2.4,
-        contentDelay:  ls?.anim_content_delay   ?? 2.2,
+        panelDelay:    ls?.anim_panel_delay     ?? 10.0,
+        panelDuration: ls?.anim_panel_duration  ?? 3.0,
       });
     };
     load().catch(() => setSettings({}));
