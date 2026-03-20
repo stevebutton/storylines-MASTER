@@ -27,7 +27,7 @@ const USER_PAGES = new Set([
 ]);
 
 // Pages that require 'admin' role
-const ADMIN_PAGES = new Set(['UserManagement']);
+const ADMIN_PAGES = new Set(['UserManagement', 'LoginEditor']);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>

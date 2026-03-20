@@ -13,6 +13,11 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Login page settings
+  const [heading, setHeading] = useState('Sign in');
+  const [subtitle, setSubtitle] = useState('Enter your credentials to continue');
+  const [buttonText, setButtonText] = useState('Sign in');
   const [heroImage, setHeroImage] = useState(null);
   const [heroVideo, setHeroVideo] = useState(null);
   const [heroType, setHeroType] = useState('image');
@@ -25,17 +30,46 @@ export default function Login() {
   }, [isAuthenticated, isLoadingAuth, navigate]);
 
   useEffect(() => {
-    supabase.from('homepage').select('hero_image,hero_video,hero_type').eq('id', 1).single()
-      .then(({ data }) => {
-        if (data) {
-          setHeroImage(data.hero_image || null);
-          setHeroVideo(data.hero_video || null);
-          setHeroType(data.hero_type || 'image');
+    const fetchSettings = async () => {
+      const [{ data: ls }, { data: hp }] = await Promise.all([
+        supabase.from('login_settings').select('*').eq('id', 1).single(),
+        supabase.from('homepage').select('hero_image,hero_video,hero_type').eq('id', 1).single(),
+      ]);
+
+      if (ls) {
+        if (ls.heading)     setHeading(ls.heading);
+        if (ls.subtitle)    setSubtitle(ls.subtitle);
+        if (ls.button_text) setButtonText(ls.button_text);
+
+        // Resolve background
+        if (ls.background_source === 'image' && ls.background_image) {
+          setHeroImage(ls.background_image);
+          setHeroType('image');
+        } else if (ls.background_source === 'video' && ls.background_video) {
+          setHeroVideo(ls.background_video);
+          setHeroType('video');
+        } else {
+          // Fall back to homepage hero
+          if (hp) {
+            setHeroImage(hp.hero_image || null);
+            setHeroVideo(hp.hero_video || null);
+            setHeroType(hp.hero_type || 'image');
+          }
         }
-        // If no hero media, show panel immediately
-        if (!data?.hero_image && !data?.hero_video) setMediaLoaded(true);
-      })
-      .catch(() => setMediaLoaded(true));
+      } else if (hp) {
+        setHeroImage(hp.hero_image || null);
+        setHeroVideo(hp.hero_video || null);
+        setHeroType(hp.hero_type || 'image');
+      }
+
+      // If no media at all, show panel immediately
+      const hasMedia = (ls?.background_source === 'image' && ls?.background_image) ||
+                       (ls?.background_source === 'video' && ls?.background_video) ||
+                       hp?.hero_image || hp?.hero_video;
+      if (!hasMedia) setMediaLoaded(true);
+    };
+
+    fetchSettings().catch(() => setMediaLoaded(true));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -90,7 +124,7 @@ export default function Login() {
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20 z-[1]" />
 
-      {/* Login panel — slides in from top, same as StoryHeader content panel */}
+      {/* Login panel */}
       {mediaLoaded && (
         <motion.div
           className="relative z-10 w-[460px] max-w-[90vw] flex flex-col items-center px-10 py-12 bg-black/25 backdrop-blur-lg"
@@ -119,10 +153,10 @@ export default function Login() {
               className="text-white text-3xl font-light mb-2"
               style={{ fontFamily: 'Raleway, sans-serif', letterSpacing: '0.04em' }}
             >
-              Sign in
+              {heading}
             </h1>
             <p className="text-white/50 text-sm" style={{ fontFamily: 'Raleway, sans-serif' }}>
-              Enter your credentials to continue
+              {subtitle}
             </p>
           </motion.div>
 
@@ -179,7 +213,7 @@ export default function Login() {
               style={{ fontFamily: 'Raleway, sans-serif' }}
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Sign in
+              {buttonText}
             </button>
           </motion.form>
         </motion.div>

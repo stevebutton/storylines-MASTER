@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb, LogOut, Users } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb, LogOut, Users, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsPanel';
@@ -296,13 +296,22 @@ export default function Stories() {
                         </div>
                         <div className="flex items-center gap-4">
                             {currentUser?.role === 'admin' && (
-                                <Link
-                                    to={createPageUrl('UserManagement')}
-                                    className="text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors flex items-center gap-1"
-                                >
-                                    <Users className="w-4 h-4" />
-                                    Manage Users
-                                </Link>
+                                <>
+                                    <Link
+                                        to={createPageUrl('LoginEditor')}
+                                        className="text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors flex items-center gap-1"
+                                    >
+                                        <LogIn className="w-4 h-4" />
+                                        Edit Login
+                                    </Link>
+                                    <Link
+                                        to={createPageUrl('UserManagement')}
+                                        className="text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors flex items-center gap-1"
+                                    >
+                                        <Users className="w-4 h-4" />
+                                        Manage Users
+                                    </Link>
+                                </>
                             )}
                             <Link
                                 to={createPageUrl('HomePageView')}

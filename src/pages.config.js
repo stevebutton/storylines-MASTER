@@ -71,6 +71,7 @@ import StoryTimeline from './pages/StoryTimeline';
 import SeriesEditor from './pages/SeriesEditor';
 import SeriesView from './pages/SeriesView';
 import Login from './pages/Login';
+import LoginEditor from './pages/LoginEditor';
 import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
@@ -100,6 +101,7 @@ export const PAGES = {
     "SeriesEditor": SeriesEditor,
     "SeriesView": SeriesView,
     "Login": Login,
+    "LoginEditor": LoginEditor,
     "UserManagement": UserManagement,
 }
 
