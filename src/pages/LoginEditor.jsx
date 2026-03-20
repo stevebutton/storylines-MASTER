@@ -1,123 +1,125 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Loader2, Monitor } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Upload, X, RotateCcw } from 'lucide-react';
+import LoginDisplay from '@/components/auth/LoginDisplay';
 
-const DEFAULT_SETTINGS = {
-  heading: 'Sign in',
-  subtitle: 'Enter your credentials to continue',
-  button_text: 'Sign in',
-  background_source: 'homepage',
-  background_image: '',
-  background_video: '',
+const DEFAULT = {
+  heading:             'Sign in',
+  subtitle:            'Enter your credentials to continue',
+  button_text:         'Sign in',
+  background_source:   'homepage',
+  background_image:    '',
+  background_video:    '',
+  anim_bg_delay:       0.5,
+  anim_panel_delay:    1.0,
+  anim_panel_duration: 2.4,
+  anim_content_delay:  2.2,
+  welcome_title:       'Welcome to Storylines',
+  welcome_tagline:     '',
+  welcome_body:        '',
+  welcome_cta_text:    'Request Access',
+  welcome_cta_email:   '',
 };
 
-// ── Live preview ─────────────────────────────────────────────────────────────
+// ── Upload ────────────────────────────────────────────────────────────────────
 
-function LoginPreview({ settings, homepageBg }) {
-  const bgImage =
-    settings.background_source === 'homepage' ? homepageBg :
-    settings.background_source === 'image'    ? settings.background_image :
-    null;
-
-  return (
-    <div className="relative w-full h-full overflow-hidden bg-slate-900 flex items-center justify-center">
-
-      {/* Background */}
-      {bgImage && (
-        <img
-          src={bgImage}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: 'brightness(0.85)' }}
-        />
-      )}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/20" />
-
-      {/* Panel */}
-      <div
-        className="relative z-10 flex flex-col items-center px-8 py-10 bg-black/25 backdrop-blur-lg"
-        style={{ width: 280 }}
-      >
-        {/* Logo */}
-        <img
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
-          alt="Storylines"
-          className="h-6 object-contain brightness-0 invert opacity-90 mb-6"
-        />
-
-        {/* Heading */}
-        <div className="text-center mb-5">
-          <h2
-            className="text-white font-light mb-1"
-            style={{ fontFamily: 'Raleway, sans-serif', fontSize: 18, letterSpacing: '0.04em' }}
-          >
-            {settings.heading || 'Sign in'}
-          </h2>
-          <p className="text-white/50" style={{ fontFamily: 'Raleway, sans-serif', fontSize: 11 }}>
-            {settings.subtitle || 'Enter your credentials to continue'}
-          </p>
-        </div>
-
-        {/* Fields */}
-        <div className="w-full space-y-2.5 mb-4">
-          <div>
-            <label className="block text-white/50 mb-1" style={{ fontFamily: 'Raleway, sans-serif', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Email
-            </label>
-            <div className="w-full h-7 bg-white/10 border border-white/20" />
-          </div>
-          <div>
-            <label className="block text-white/50 mb-1" style={{ fontFamily: 'Raleway, sans-serif', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Password
-            </label>
-            <div className="w-full h-7 bg-white/10 border border-white/20" />
-          </div>
-        </div>
-
-        {/* Button */}
-        <div
-          className="w-full h-8 flex items-center justify-center bg-amber-600/80 text-white"
-          style={{ fontFamily: 'Raleway, sans-serif', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em' }}
-        >
-          {settings.button_text || 'Sign in'}
-        </div>
-      </div>
-    </div>
-  );
+async function uploadToStorage(file) {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const filePath = `${crypto.randomUUID().replace(/-/g, '').substring(0, 24)}-${safeName}`;
+  const { error } = await supabase.storage
+    .from('media')
+    .upload(filePath, file, { contentType: file.type, upsert: false });
+  if (error) throw error;
+  const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+  return publicUrl;
 }
 
-// ── Editor field helpers ──────────────────────────────────────────────────────
+// ── Field components ──────────────────────────────────────────────────────────
 
-function FieldLabel({ children }) {
+function SectionTitle({ children }) {
+  return <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{children}</h2>;
+}
+
+function Field({ label, children }) {
   return (
-    <label className="block text-xs font-medium text-slate-600 mb-1.5 uppercase tracking-wider">
+    <div>
+      <label className="block text-xs font-medium text-slate-600 mb-1.5">{label}</label>
       {children}
-    </label>
+    </div>
   );
 }
 
 function TextInput({ value, onChange, placeholder }) {
   return (
     <input
-      type="text"
-      value={value}
+      type="text" value={value} placeholder={placeholder}
       onChange={e => onChange(e.target.value)}
-      placeholder={placeholder}
       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
     />
   );
 }
 
-// ── Main editor ───────────────────────────────────────────────────────────────
+function Textarea({ value, onChange, placeholder, rows = 3 }) {
+  return (
+    <textarea
+      value={value} placeholder={placeholder} rows={rows}
+      onChange={e => onChange(e.target.value)}
+      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+    />
+  );
+}
+
+function TimingSlider({ label, value, onChange, min = 0, max, step = 0.1, hint }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs font-medium text-slate-600">{label}</span>
+        <span className="text-xs font-mono text-amber-600">{Number(value).toFixed(1)}s</span>
+      </div>
+      <input
+        type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(parseFloat(e.target.value))}
+        className="w-full accent-amber-600"
+      />
+      {hint && <p className="text-xs text-slate-400 mt-0.5">{hint}</p>}
+    </div>
+  );
+}
+
+function UploadButton({ label, accept, isUploading, fileRef, onFileChange }) {
+  return (
+    <>
+      <input ref={fileRef} type="file" accept={accept} className="hidden" onChange={onFileChange} />
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        disabled={isUploading}
+        className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 text-xs font-medium rounded-lg transition-colors w-full justify-center"
+      >
+        {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+        {isUploading ? 'Uploading…' : label}
+      </button>
+    </>
+  );
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 export default function LoginEditor() {
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [s, setS]                   = useState(DEFAULT);
   const [homepageBg, setHomepageBg] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [homepageVideo, setHomepageVideo] = useState(null);
+  const [homepageType, setHomepageType]   = useState('image');
+  const [isSaving, setIsSaving]     = useState(false);
+  const [isLoading, setIsLoading]   = useState(true);
+  const [isUploadingImg, setIsUploadingImg] = useState(false);
+  const [isUploadingVid, setIsUploadingVid] = useState(false);
+  const [replayKey, setReplayKey]   = useState(0);
+  const imgRef = useRef(null);
+  const vidRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
@@ -125,40 +127,73 @@ export default function LoginEditor() {
       supabase.from('homepage').select('hero_image,hero_video,hero_type').eq('id', 1).single(),
     ]).then(([{ data: ls }, { data: hp }]) => {
       if (ls) {
-        setSettings({
-          heading:           ls.heading           ?? DEFAULT_SETTINGS.heading,
-          subtitle:          ls.subtitle          ?? DEFAULT_SETTINGS.subtitle,
-          button_text:       ls.button_text       ?? DEFAULT_SETTINGS.button_text,
-          background_source: ls.background_source ?? DEFAULT_SETTINGS.background_source,
-          background_image:  ls.background_image  ?? '',
-          background_video:  ls.background_video  ?? '',
-        });
+        setS(prev => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.keys(DEFAULT).map(k => [k, ls[k] ?? DEFAULT[k]])
+          ),
+          background_image: ls.background_image ?? '',
+          background_video: ls.background_video ?? '',
+        }));
       }
-      if (hp) setHomepageBg(hp.hero_image || null);
+      if (hp) {
+        setHomepageBg(hp.hero_image || null);
+        setHomepageVideo(hp.hero_video || null);
+        setHomepageType(hp.hero_type || 'image');
+      }
     }).finally(() => setIsLoading(false));
   }, []);
 
-  const set = (key) => (value) => setSettings(prev => ({ ...prev, [key]: value }));
+  const set = useCallback((key) => (value) => setS(prev => ({ ...prev, [key]: value })), []);
+
+  // Resolve preview background
+  const previewImage = s.background_source === 'image'    ? (s.background_image || null)
+                     : s.background_source === 'homepage' ? homepageBg
+                     : null;
+  const previewVideo = s.background_source === 'video'    ? (s.background_video || null)
+                     : s.background_source === 'homepage' ? homepageVideo
+                     : null;
+  const previewType  = s.background_source === 'video'    ? 'video'
+                     : s.background_source === 'homepage' ? homepageType
+                     : 'image';
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    setIsUploadingImg(true);
+    try {
+      const url = await uploadToStorage(file);
+      setS(prev => ({ ...prev, background_image: url, background_source: 'image' }));
+      toast.success('Image uploaded');
+    } catch (err) { toast.error('Upload failed: ' + err.message); }
+    finally { setIsUploadingImg(false); e.target.value = ''; }
+  };
+
+  const handleVideoUpload = async (e) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    setIsUploadingVid(true);
+    try {
+      const url = await uploadToStorage(file);
+      setS(prev => ({ ...prev, background_video: url, background_source: 'video' }));
+      toast.success('Video uploaded');
+    } catch (err) { toast.error('Upload failed: ' + err.message); }
+    finally { setIsUploadingVid(false); e.target.value = ''; }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
-    const { error } = await supabase
-      .from('login_settings')
-      .update({
-        heading:           settings.heading,
-        subtitle:          settings.subtitle,
-        button_text:       settings.button_text,
-        background_source: settings.background_source,
-        background_image:  settings.background_image || null,
-        background_video:  settings.background_video || null,
-      })
-      .eq('id', 1);
-
-    if (error) {
-      toast.error('Failed to save: ' + error.message);
-    } else {
-      toast.success('Login page saved');
-    }
+    const { error } = await supabase.from('login_settings').update({
+      heading: s.heading, subtitle: s.subtitle, button_text: s.button_text,
+      background_source: s.background_source,
+      background_image: s.background_image || null,
+      background_video: s.background_video || null,
+      anim_bg_delay: s.anim_bg_delay, anim_panel_delay: s.anim_panel_delay,
+      anim_panel_duration: s.anim_panel_duration, anim_content_delay: s.anim_content_delay,
+      welcome_title: s.welcome_title, welcome_tagline: s.welcome_tagline,
+      welcome_body: s.welcome_body, welcome_cta_text: s.welcome_cta_text,
+      welcome_cta_email: s.welcome_cta_email,
+    }).eq('id', 1);
+    if (error) toast.error('Failed to save: ' + error.message);
+    else       toast.success('Login page saved');
     setIsSaving(false);
   };
 
@@ -171,21 +206,19 @@ export default function LoginEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
 
       {/* Header */}
       <div className="bg-white border-b flex-shrink-0">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link to={createPageUrl('Stories')} className="text-slate-400 hover:text-slate-600 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <Monitor className="w-5 h-5 text-slate-500" />
-            <h1 className="text-lg font-semibold text-slate-800">Login Page Editor</h1>
+            <h1 className="text-base font-semibold text-slate-800">Login Page Editor</h1>
           </div>
           <button
-            onClick={handleSave}
-            disabled={isSaving}
+            onClick={handleSave} disabled={isSaving}
             className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -194,109 +227,150 @@ export default function LoginEditor() {
         </div>
       </div>
 
-      {/* Body — two columns */}
-      <div className="flex flex-1 max-w-7xl mx-auto w-full px-4 py-6 gap-6">
+      {/* Body */}
+      <div className="flex flex-1 min-h-0">
 
-        {/* Left — fields */}
-        <div className="w-80 flex-shrink-0 space-y-6">
+        {/* ── Left: settings ── */}
+        <div className="w-72 flex-shrink-0 border-r bg-white overflow-y-auto">
+          <div className="p-4 space-y-5">
 
-          {/* Text content */}
-          <div className="bg-white rounded-xl border shadow-sm p-5 space-y-4">
-            <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider">Text Content</h2>
-
-            <div>
-              <FieldLabel>Heading</FieldLabel>
-              <TextInput value={settings.heading} onChange={set('heading')} placeholder="Sign in" />
-            </div>
-
-            <div>
-              <FieldLabel>Subtitle</FieldLabel>
-              <TextInput value={settings.subtitle} onChange={set('subtitle')} placeholder="Enter your credentials to continue" />
-            </div>
-
-            <div>
-              <FieldLabel>Button Text</FieldLabel>
-              <TextInput value={settings.button_text} onChange={set('button_text')} placeholder="Sign in" />
-            </div>
-          </div>
-
-          {/* Background */}
-          <div className="bg-white rounded-xl border shadow-sm p-5 space-y-4">
-            <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider">Background</h2>
-
-            <div>
-              <FieldLabel>Source</FieldLabel>
-              <div className="flex rounded-lg border border-slate-200 overflow-hidden text-sm">
-                {[
-                  { value: 'homepage', label: 'Homepage hero' },
-                  { value: 'image',    label: 'Custom image' },
-                  { value: 'video',    label: 'Custom video' },
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => set('background_source')(opt.value)}
-                    className={`flex-1 py-2 px-2 text-center text-xs transition-colors ${
-                      settings.background_source === opt.value
-                        ? 'bg-amber-600 text-white'
-                        : 'bg-white text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+            {/* Welcome panel */}
+            <section>
+              <SectionTitle>Welcome Panel</SectionTitle>
+              <div className="space-y-3">
+                <Field label="Tagline (small, above title)">
+                  <TextInput value={s.welcome_tagline} onChange={set('welcome_tagline')} placeholder="e.g. a Storylines platform" />
+                </Field>
+                <Field label="Title">
+                  <TextInput value={s.welcome_title} onChange={set('welcome_title')} placeholder="Welcome to Storylines" />
+                </Field>
+                <Field label="Description">
+                  <Textarea value={s.welcome_body} onChange={set('welcome_body')} placeholder="Short description of the app and who it's for…" rows={4} />
+                </Field>
+                <Field label="Request access button text">
+                  <TextInput value={s.welcome_cta_text} onChange={set('welcome_cta_text')} placeholder="Request Access" />
+                </Field>
+                <Field label="Request access email">
+                  <TextInput value={s.welcome_cta_email} onChange={set('welcome_cta_email')} placeholder="hello@yourorg.com" />
+                  <p className="text-xs text-slate-400 mt-1">Leave blank to hide the button</p>
+                </Field>
               </div>
-              {settings.background_source === 'homepage' && (
-                <p className="text-xs text-slate-400 mt-2">
-                  Uses your homepage hero image/video automatically.
-                </p>
-              )}
-            </div>
+            </section>
 
-            {settings.background_source === 'image' && (
-              <div>
-                <FieldLabel>Image URL</FieldLabel>
-                <TextInput
-                  value={settings.background_image}
-                  onChange={set('background_image')}
-                  placeholder="https://..."
-                />
-                {settings.background_image && (
-                  <img
-                    src={settings.background_image}
-                    alt="preview"
-                    className="mt-2 w-full h-20 object-cover rounded-lg border"
-                    onError={e => e.target.style.display = 'none'}
-                  />
+            <div className="border-t" />
+
+            {/* Login form text */}
+            <section>
+              <SectionTitle>Login Form</SectionTitle>
+              <div className="space-y-3">
+                <Field label="Heading"><TextInput value={s.heading} onChange={set('heading')} placeholder="Sign in" /></Field>
+                <Field label="Subtitle"><TextInput value={s.subtitle} onChange={set('subtitle')} placeholder="Enter your credentials to continue" /></Field>
+                <Field label="Button text"><TextInput value={s.button_text} onChange={set('button_text')} placeholder="Sign in" /></Field>
+              </div>
+            </section>
+
+            <div className="border-t" />
+
+            {/* Background */}
+            <section>
+              <SectionTitle>Background</SectionTitle>
+              <div className="space-y-3">
+                <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs">
+                  {[
+                    { value: 'homepage', label: 'Homepage' },
+                    { value: 'image',    label: 'Image' },
+                    { value: 'video',    label: 'Video' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => set('background_source')(opt.value)}
+                      className={`flex-1 py-2 text-center transition-colors ${
+                        s.background_source === opt.value
+                          ? 'bg-amber-600 text-white font-medium'
+                          : 'bg-white text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {s.background_source === 'homepage' && (
+                  <p className="text-xs text-slate-400">Uses your homepage hero automatically.</p>
+                )}
+
+                {s.background_source === 'image' && (
+                  <div className="space-y-2">
+                    <UploadButton label="Upload Image" accept="image/*" isUploading={isUploadingImg} fileRef={imgRef} onFileChange={handleImageUpload} />
+                    {s.background_image && (
+                      <div className="relative rounded-lg overflow-hidden border">
+                        <img src={s.background_image} alt="" className="w-full h-24 object-cover" />
+                        <button onClick={() => set('background_image')('')} className="absolute top-1.5 right-1.5 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"><X className="w-3 h-3" /></button>
+                      </div>
+                    )}
+                    <input type="text" value={s.background_image} onChange={e => set('background_image')(e.target.value)} placeholder="Or paste URL…"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  </div>
+                )}
+
+                {s.background_source === 'video' && (
+                  <div className="space-y-2">
+                    <UploadButton label="Upload Video" accept="video/*" isUploading={isUploadingVid} fileRef={vidRef} onFileChange={handleVideoUpload} />
+                    {s.background_video && (
+                      <div className="relative rounded-lg overflow-hidden border bg-black">
+                        <video src={s.background_video} className="w-full h-24 object-cover" muted playsInline preload="metadata" />
+                        <button onClick={() => set('background_video')('')} className="absolute top-1.5 right-1.5 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"><X className="w-3 h-3" /></button>
+                      </div>
+                    )}
+                    <input type="text" value={s.background_video} onChange={e => set('background_video')(e.target.value)} placeholder="Or paste URL…"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                  </div>
                 )}
               </div>
-            )}
+            </section>
 
-            {settings.background_source === 'video' && (
-              <div>
-                <FieldLabel>Video URL</FieldLabel>
-                <TextInput
-                  value={settings.background_video}
-                  onChange={set('background_video')}
-                  placeholder="https://..."
-                />
+            <div className="border-t" />
+
+            {/* Timing */}
+            <section>
+              <SectionTitle>Animation Timing</SectionTitle>
+              <div className="space-y-4">
+                <TimingSlider label="Background fade" value={s.anim_bg_delay} onChange={set('anim_bg_delay')} min={0} max={3} hint="Delay before background appears" />
+                <TimingSlider label="Panel slide delay" value={s.anim_panel_delay} onChange={set('anim_panel_delay')} min={0} max={6} hint="Wait before panel drops in" />
+                <TimingSlider label="Panel slide duration" value={s.anim_panel_duration} onChange={set('anim_panel_duration')} min={0.3} max={5} hint="How long the slide takes" />
+                <TimingSlider label="Content fade-in" value={s.anim_content_delay} onChange={set('anim_content_delay')} min={0} max={8} hint="When text and form appear" />
               </div>
-            )}
+            </section>
+
+            <div className="pb-4" />
           </div>
         </div>
 
-        {/* Right — preview */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Preview</span>
-            <div className="flex-1 h-px bg-slate-200" />
+        {/* ── Right: live preview ── */}
+        <div className="flex-1 relative min-h-0">
+          <div className="absolute inset-0">
+            <LoginDisplay
+              key={replayKey}
+              heading={s.heading}       subtitle={s.subtitle}       buttonText={s.button_text}
+              welcomeTitle={s.welcome_title}   welcomeTagline={s.welcome_tagline}
+              welcomeBody={s.welcome_body}     welcomeCtaText={s.welcome_cta_text}
+              welcomeCtaEmail={s.welcome_cta_email}
+              heroImage={previewImage}  heroVideo={previewVideo}    heroType={previewType}
+              bgDelay={s.anim_bg_delay}         panelDelay={s.anim_panel_delay}
+              panelDuration={s.anim_panel_duration} contentDelay={s.anim_content_delay}
+              className="absolute inset-0"
+            />
           </div>
-          <div className="flex-1 rounded-xl overflow-hidden border shadow-sm" style={{ minHeight: 480 }}>
-            <LoginPreview settings={settings} homepageBg={homepageBg} />
-          </div>
-          <p className="text-xs text-slate-400 mt-2 text-center">
-            Animations are not shown in preview. Changes take effect after saving.
-          </p>
+          {/* Replay button */}
+          <button
+            onClick={() => setReplayKey(k => k + 1)}
+            className="absolute bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-sm text-white text-xs font-medium rounded-lg transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Replay
+          </button>
         </div>
+
       </div>
     </div>
   );
