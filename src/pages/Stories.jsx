@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsPanel';
@@ -94,11 +94,9 @@ export default function Stories() {
     }
 
     // Status filter
-    if (statusFilter !== 'all') {
-      result = result.filter((story) =>
-      statusFilter === 'published' ? story.is_published : !story.is_published
-      );
-    }
+    if (statusFilter === 'ideas')     result = result.filter(s => s.is_idea);
+    if (statusFilter === 'published') result = result.filter(s => s.is_published && !s.is_idea);
+    if (statusFilter === 'draft')     result = result.filter(s => !s.is_published && !s.is_idea);
 
     // User filter (admin only)
     if (userFilter !== 'all') {
@@ -130,17 +128,29 @@ export default function Stories() {
     return result;
   }, [stories, searchQuery, categoryFilter, statusFilter, sortBy, userFilter]);
 
-  const togglePublishStatus = async (story) => {
-    try {
-      const { error } = await supabase
-        .from('stories')
-        .update({ is_published: !story.is_published })
-        .eq('id', story.id);
-      if (error) throw error;
-      loadStories();
-    } catch (error) {
-      console.error('Failed to update story:', error);
-    }
+  const setAsIdea = async (story) => {
+    const { error } = await supabase.from('stories')
+      .update({ is_idea: true, is_published: false }).eq('id', story.id);
+    if (!error) loadStories();
+  };
+
+  const moveToDraft = async (story) => {
+    const { error } = await supabase.from('stories')
+      .update({ is_idea: false, is_published: false }).eq('id', story.id);
+    if (!error) loadStories();
+  };
+
+  const publishStory = async (story) => {
+    if (story.is_idea) return;
+    const { error } = await supabase.from('stories')
+      .update({ is_published: true }).eq('id', story.id);
+    if (!error) loadStories();
+  };
+
+  const unpublishStory = async (story) => {
+    const { error } = await supabase.from('stories')
+      .update({ is_published: false }).eq('id', story.id);
+    if (!error) loadStories();
   };
 
   const toggleFeatured = async (story) => {
@@ -317,7 +327,13 @@ export default function Stories() {
                         <div className="bg-amber-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
                             <p className="text-sm text-amber-600">Drafts</p>
                             <p className="text-2xl font-bold text-amber-700">
-                                {stories.filter((s) => !s.is_published).length}
+                                {stories.filter((s) => !s.is_published && !s.is_idea).length}
+                            </p>
+                        </div>
+                        <div className="bg-teal-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
+                            <p className="text-sm text-teal-600">Ideas</p>
+                            <p className="text-2xl font-bold text-teal-700">
+                                {stories.filter((s) => s.is_idea).length}
                             </p>
                         </div>
                         <div className="bg-purple-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
@@ -391,6 +407,7 @@ export default function Stories() {
                                 <SelectItem value="all">All Status</SelectItem>
                                 <SelectItem value="published">Published</SelectItem>
                                 <SelectItem value="draft">Drafts</SelectItem>
+                                <SelectItem value="ideas">Ideas</SelectItem>
                             </SelectContent>
                         </Select>
                         <Select value={sortBy} onValueChange={setSortBy}>
@@ -448,7 +465,15 @@ export default function Stories() {
                         </CardContent>
                     </Card> :
 
-        <div className="grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div>
+                        {statusFilter !== 'all' && (
+                          <h2 className="text-3xl font-bold text-slate-800 mb-6 pb-3 border-b border-slate-200">
+                            {statusFilter === 'published' && 'Published Stories'}
+                            {statusFilter === 'draft'     && 'Draft Stories'}
+                            {statusFilter === 'ideas'     && 'Story Ideas'}
+                          </h2>
+                        )}
+                        <div className="grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {filteredAndSortedStories.map((story) =>
           <Card key={story.id} className="group hover:shadow-lg transition-shadow overflow-hidden">
                                 <CardContent className="p-0">
@@ -468,17 +493,25 @@ export default function Stories() {
                                     )}
 
                                     {/* Status bar */}
-                                    <div className={`px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between ${story.is_main_story ? 'bg-purple-50' : story.is_published ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                    <div className={`px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between ${
+                                      story.is_idea        ? 'bg-teal-50'   :
+                                      story.is_main_story  ? 'bg-purple-50' :
+                                      story.is_published   ? 'bg-green-50'  : 'bg-amber-50'
+                                    }`}>
                                         <div className="flex items-center gap-2">
-                                            {story.is_main_story && <>
+                                            {story.is_idea && <>
+                                                <Lightbulb className="w-3 h-3 md:w-3.5 md:h-3.5 text-teal-600" />
+                                                <span className="text-[10px] md:text-xs font-medium text-teal-700">Idea</span>
+                                            </>}
+                                            {!story.is_idea && story.is_main_story && <>
                                                 <Star className="w-3 h-3 md:w-3.5 md:h-3.5 text-purple-600 fill-purple-600" />
                                                 <span className="text-[10px] md:text-xs font-medium text-purple-700">Main Story</span>
                                             </>}
-                                            {!story.is_main_story && story.is_published && <>
+                                            {!story.is_idea && !story.is_main_story && story.is_published && <>
                                                 <Globe className="w-3 h-3 md:w-3.5 md:h-3.5 text-green-600" />
                                                 <span className="text-[10px] md:text-xs font-medium text-green-700">Published</span>
                                             </>}
-                                            {!story.is_main_story && !story.is_published && <>
+                                            {!story.is_idea && !story.is_main_story && !story.is_published && <>
                                                 <FileEdit className="w-3 h-3 md:w-3.5 md:h-3.5 text-amber-600" />
                                                 <span className="text-[10px] md:text-xs font-medium text-amber-700">Draft</span>
                                             </>}
@@ -492,25 +525,44 @@ export default function Stories() {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => toggleFeatured(story)}
-                                                className={`h-6 text-xs ${story.category === 'featured' ? 'text-amber-600' : ''}`}
+                                                className={`h-6 w-6 p-0 ${story.category === 'featured' ? 'text-amber-500' : 'text-slate-400'}`}
                                                 title={story.category === 'featured' ? 'Remove from Featured' : 'Add to Featured'}
                                             >
                                                 {story.category === 'featured'
-                                                    ? <><StarOff className="w-3 h-3 mr-1" /> Unfeature</>
-                                                    : <><Star className="w-3 h-3 mr-1" /> Feature</>
+                                                    ? <StarOff className="w-3.5 h-3.5" />
+                                                    : <Star className="w-3.5 h-3.5" />
                                                 }
                                             </Button>
                                             {!story.is_main_story &&
-                                                <Button variant="ghost" size="sm" onClick={() => setAsMainStory(story)} className="h-6 text-xs" title="Set as Main Story">
-                                                    <Star className="w-3 h-3 mr-1" /> Set Main
+                                                <Button variant="ghost" size="sm" onClick={() => setAsMainStory(story)} className="h-6 w-6 p-0 text-slate-400" title="Set as Main Story">
+                                                    <Home className="w-3.5 h-3.5" />
                                                 </Button>
                                             }
-                                            <Button variant="ghost" size="sm" onClick={() => togglePublishStatus(story)} className="h-6 text-xs">
-                                                {story.is_published
-                                                    ? <><Lock className="w-3 h-3 mr-1" /> Unpublish</>
-                                                    : <><Globe className="w-3 h-3 mr-1" /> Publish</>
-                                                }
-                                            </Button>
+                                            {/* Idea → Move to Draft only */}
+                                            {story.is_idea && (
+                                              <Button variant="ghost" size="sm" onClick={() => moveToDraft(story)} className="h-6 text-xs">
+                                                <FileEdit className="w-3 h-3 mr-1" /> Move to Draft
+                                              </Button>
+                                            )}
+
+                                            {/* Draft → Mark as Idea OR Publish */}
+                                            {!story.is_idea && !story.is_published && (
+                                              <>
+                                                <Button variant="ghost" size="sm" onClick={() => setAsIdea(story)} className="h-6 text-xs">
+                                                  <Lightbulb className="w-3 h-3 mr-1" /> Mark as Idea
+                                                </Button>
+                                                <Button variant="ghost" size="sm" onClick={() => publishStory(story)} className="h-6 text-xs">
+                                                  <Globe className="w-3 h-3 mr-1" /> Publish
+                                                </Button>
+                                              </>
+                                            )}
+
+                                            {/* Published → Unpublish (returns to Draft, not Idea) */}
+                                            {story.is_published && !story.is_idea && (
+                                              <Button variant="ghost" size="sm" onClick={() => unpublishStory(story)} className="h-6 text-xs">
+                                                <Lock className="w-3 h-3 mr-1" /> Unpublish
+                                              </Button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -616,6 +668,7 @@ export default function Stories() {
                                 </CardContent>
                             </Card>
           )}
+                        </div>
                     </div>
         }
             </div>
