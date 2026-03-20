@@ -314,38 +314,38 @@ export default function Stories() {
 
                     {/* Stats & Actions */}
                     <div className="flex flex-wrap items-stretch gap-4 mb-6">
-                        <div className="bg-blue-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
+                        <button onClick={() => setStatusFilter('all')} className={`rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer ${statusFilter === 'all' ? 'bg-blue-200 ring-2 ring-blue-400' : 'bg-blue-50 hover:bg-blue-100'}`}>
                             <p className="text-sm text-blue-600">Total Stories</p>
                             <p className="text-2xl font-bold text-blue-700">{stories.length}</p>
-                        </div>
-                        <div className="bg-green-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
+                        </button>
+                        <button onClick={() => setStatusFilter('published')} className={`rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer ${statusFilter === 'published' ? 'bg-green-200 ring-2 ring-green-400' : 'bg-green-50 hover:bg-green-100'}`}>
                             <p className="text-sm text-green-600">Published</p>
                             <p className="text-2xl font-bold text-green-700">
                                 {stories.filter((s) => s.is_published).length}
                             </p>
-                        </div>
-                        <div className="bg-amber-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
+                        </button>
+                        <button onClick={() => setStatusFilter('draft')} className={`rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer ${statusFilter === 'draft' ? 'bg-amber-200 ring-2 ring-amber-400' : 'bg-amber-50 hover:bg-amber-100'}`}>
                             <p className="text-sm text-amber-600">Drafts</p>
                             <p className="text-2xl font-bold text-amber-700">
                                 {stories.filter((s) => !s.is_published && !s.is_idea).length}
                             </p>
-                        </div>
-                        <div className="bg-teal-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
+                        </button>
+                        <button onClick={() => setStatusFilter('ideas')} className={`rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer ${statusFilter === 'ideas' ? 'bg-teal-200 ring-2 ring-teal-400' : 'bg-teal-50 hover:bg-teal-100'}`}>
                             <p className="text-sm text-teal-600">Ideas</p>
                             <p className="text-2xl font-bold text-teal-700">
                                 {stories.filter((s) => s.is_idea).length}
                             </p>
-                        </div>
-                        <div className="bg-purple-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
+                        </button>
+                        <button onClick={() => setIsCategoryManagerOpen(true)} className="bg-purple-50 hover:bg-purple-100 rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer">
                             <p className="text-sm text-purple-600">Categories</p>
                             <p className="text-2xl font-bold text-purple-700">
                                 {new Set(stories.map((s) => s.category).filter(Boolean)).size}
                             </p>
-                        </div>
-                        <div className="bg-teal-50 rounded-lg px-4 py-3 flex flex-col items-start justify-center">
-                            <p className="text-sm text-teal-600">Series</p>
-                            <p className="text-2xl font-bold text-teal-700">{seriesCount}</p>
-                        </div>
+                        </button>
+                        <Link to={createPageUrl('SeriesEditor')} className="bg-indigo-50 hover:bg-indigo-100 rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer">
+                            <p className="text-sm text-indigo-600">Series</p>
+                            <p className="text-2xl font-bold text-indigo-700">{seriesCount}</p>
+                        </Link>
                         <button
                             className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
                             onClick={() => setIsCategoryManagerOpen(true)}
@@ -366,13 +366,6 @@ export default function Stories() {
                         >
                             <Home className="w-6 h-6 mb-1" />
                             <span className="text-sm font-semibold">Edit Home Page</span>
-                        </Link>
-                        <Link
-                            to={createPageUrl('SeriesEditor')}
-                            className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
-                        >
-                            <Layers className="w-6 h-6 mb-1" />
-                            <span className="text-sm font-semibold">Series</span>
                         </Link>
                     </div>
 
