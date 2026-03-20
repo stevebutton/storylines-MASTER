@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/lib/AuthContext';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
@@ -9,15 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb, LogOut, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsPanel';
 
 export default function Stories() {
+  const { profile: currentUser, logout } = useAuth();
   const [stories, setStories] = useState([]);
   const [isLoadingStories, setIsLoadingStories] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -294,6 +295,15 @@ export default function Stories() {
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
+                            {currentUser?.role === 'admin' && (
+                                <Link
+                                    to={createPageUrl('UserManagement')}
+                                    className="text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors flex items-center gap-1"
+                                >
+                                    <Users className="w-4 h-4" />
+                                    Manage Users
+                                </Link>
+                            )}
                             <Link
                                 to={createPageUrl('HomePageView')}
                                 className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors flex items-center gap-1"
@@ -309,6 +319,14 @@ export default function Stories() {
                             >
                                 Debug view
                             </Link>
+                            <button
+                                onClick={logout}
+                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
+                                title="Sign out"
+                            >
+                                <LogOut className="w-3.5 h-3.5" />
+                                Sign out
+                            </button>
                         </div>
                     </div>
 

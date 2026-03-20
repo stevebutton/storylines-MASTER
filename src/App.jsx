@@ -6,17 +6,28 @@ import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import PageTransition from '@/components/PageTransition';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { useEffect } from 'react';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+
+// Pages that require at least 'user' role (editors)
+const USER_PAGES = new Set([
+  'Stories', 'StoryEditor', 'SeriesEditor', 'HomePageEditor',
+  'MediaLibrary', 'DocumentManager', 'Storyboarder', 'MobileStoryCapture',
+  'AudioRecorder', 'ChapterPreview', 'LocationPickerPage',
+]);
+
+// Pages that require 'admin' role
+const ADMIN_PAGES = new Set(['UserManagement']);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -48,7 +59,6 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
@@ -65,19 +75,26 @@ const AuthenticatedApp = () => {
             </LayoutWrapper>
           </PageTransition>
         } />
-        {Object.entries(Pages).map(([path, Page]) => (
-          <Route
-            key={path}
-            path={`/${path}`}
-            element={
-              <PageTransition>
-                <LayoutWrapper currentPageName={path}>
-                  <Page />
-                </LayoutWrapper>
-              </PageTransition>
-            }
-          />
-        ))}
+        {Object.entries(Pages).map(([path, Page]) => {
+          const pageEl = (
+            <PageTransition>
+              <LayoutWrapper currentPageName={path}>
+                <Page />
+              </LayoutWrapper>
+            </PageTransition>
+          );
+
+          let element;
+          if (ADMIN_PAGES.has(path)) {
+            element = <ProtectedRoute requiredRole="admin">{pageEl}</ProtectedRoute>;
+          } else if (USER_PAGES.has(path)) {
+            element = <ProtectedRoute>{pageEl}</ProtectedRoute>;
+          } else {
+            element = pageEl;
+          }
+
+          return <Route key={path} path={`/${path}`} element={element} />;
+        })}
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </AnimatePresence>

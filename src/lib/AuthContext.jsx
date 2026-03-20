@@ -1,32 +1,79 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { supabase } from '@/api/supabaseClient';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [appPublicSettings, setAppPublicSettings] = useState(null);
 
-  // Auth is handled by Supabase — no Base44 startup calls needed.
-  // Supabase Auth integration is a future phase; for now the app
-  // runs in unauthenticated viewer mode.
+  const fetchProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      if (error) throw error;
+      setProfile(data);
+    } catch (err) {
+      console.error('Failed to fetch profile:', err);
+      setProfile(null);
+    }
+  };
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        setIsAuthenticated(true);
+        fetchProfile(session.user.id).finally(() => setIsLoadingAuth(false));
+      } else {
+        setIsLoadingAuth(false);
+      }
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        setIsAuthenticated(true);
+        fetchProfile(session.user.id);
+      } else {
+        setUser(null);
+        setProfile(null);
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const checkAppState = () => {};
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
+    setProfile(null);
     setIsAuthenticated(false);
+    window.location.href = '/Login';
   };
 
-  const navigateToLogin = () => {};
+  const navigateToLogin = () => {
+    window.location.href = '/Login';
+  };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated, 
+    <AuthContext.Provider value={{
+      user,
+      profile,
+      isAuthenticated,
       isLoadingAuth,
       isLoadingPublicSettings,
       authError,

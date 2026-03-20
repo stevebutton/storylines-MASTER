@@ -210,14 +210,18 @@ export default function StoryChapter({
                                     />
                                 ) : null}
                                 <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.3) 70%)' }} />
+                                <div className="absolute inset-0" style={{ background: 'linear-gradient(to top right, rgba(0,0,0,0.55) 0%, transparent 75%)' }} />
                             </div>
                             {/* White outline — sits above the background image */}
                             <div className="absolute inset-0 rounded-2xl pointer-events-none z-20"
                                  style={{ boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.6)' }} />
 
                             {/* Text content */}
-                            <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: 620, paddingRight: '2rem' }}>
+                            <div className="relative z-10 flex flex-col p-6 md:p-8" style={{ minHeight: 620 }}>
                                 <div className="flex-1" />
+
+                                {/* 60% max line length, left-aligned */}
+                                <div style={{ maxWidth: '60%' }}>
 
                                 {/* Chapter number + name — staggered build */}
                                 <div className="mb-5">
@@ -246,14 +250,16 @@ export default function StoryChapter({
                                 {/* Chapter description */}
                                 {chapter.description && (
                                     <motion.div
-                                        className="text-white/90 text-base font-light leading-relaxed"
-                                        style={{ fontFamily: 'Raleway, sans-serif', paddingBottom: '90px' }}
+                                        className="text-white/90 font-light leading-snug"
+                                        style={{ fontFamily: 'Raleway, sans-serif', fontSize: 18, paddingBottom: '90px' }}
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                                         transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 3.3 }}
                                         dangerouslySetInnerHTML={{ __html: chapter.description }}
                                     />
                                 )}
+
+                                </div>
                             </div>
 
                             {/* Explore button — slides in after card has fully landed */}

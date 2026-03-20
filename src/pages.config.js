@@ -70,6 +70,8 @@ import StoryFullscreen from './pages/StoryFullscreen';
 import StoryTimeline from './pages/StoryTimeline';
 import SeriesEditor from './pages/SeriesEditor';
 import SeriesView from './pages/SeriesView';
+import Login from './pages/Login';
+import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -97,6 +99,8 @@ export const PAGES = {
     "StoryTimeline": StoryTimeline,
     "SeriesEditor": SeriesEditor,
     "SeriesView": SeriesView,
+    "Login": Login,
+    "UserManagement": UserManagement,
 }
 
 export const pagesConfig = {
