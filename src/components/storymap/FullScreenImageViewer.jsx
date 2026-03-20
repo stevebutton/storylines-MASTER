@@ -59,7 +59,7 @@ function SingleHotspot({
                 left: `${x * 100}%`,
                 top: `${y * 100}%`,
                 transform: 'translate(-50%, -50%)',
-                cursor: canEdit ? 'move' : 'pointer',
+                cursor: 'pointer',
             }}
             onMouseEnter={suppressHover ? undefined : onOpen}
             onMouseLeave={suppressHover ? undefined : onClose}
@@ -390,7 +390,7 @@ export default function FullScreenImageViewer({
                                 className="absolute inset-0 w-full h-full object-cover"
                                 style={{
                                     objectPosition: currentSlide.image_position || '50% 50%',
-                                    filter: activeHotspotPos ? 'grayscale(100%) blur(8px)' : 'none',
+                                    filter: activeHotspotPos ? 'grayscale(50%) blur(16px)' : 'none',
                                     transition: 'filter 0.4s ease',
                                 }}
                             />

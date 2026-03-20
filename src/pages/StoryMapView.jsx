@@ -24,7 +24,8 @@ import { fadeMapLayer } from '@/utils/mapLayerFade';
 import { createPageUrl } from '@/utils';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
-import { Loader2 } from 'lucide-react';
+import { Loader2, LogOut } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { StoryTranslationProvider } from '@/contexts/StoryTranslationContext';
@@ -63,6 +64,7 @@ function buildRouteFromVisited(visited, segCache) {
 }
 
 export default function StoryMapView() {
+    const { profile: currentUser, logout } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
     const storyIdParam = searchParams.get('id');
 
@@ -1891,6 +1893,27 @@ export default function StoryMapView() {
                 onClose={() => setShowAboutPanel(false)}
                 story={story}
             />
+
+            {/* Logged-in user badge — fixed lower right; clears filmstrip (80px) in Story View */}
+            {currentUser && (
+                <div
+                    className="fixed right-6 z-[200020] flex items-center gap-3 pointer-events-auto transition-all duration-300"
+                    style={{ bottom: showStoryOverlay ? 88 : 32 }}
+                >
+                    <span className="text-sm text-white/70" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+                        {currentUser.full_name || currentUser.email}
+                    </span>
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
+                        style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
+                        title="Log out"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Log out
+                    </button>
+                </div>
+            )}
 
             </div>
         </StoryTranslationProvider>

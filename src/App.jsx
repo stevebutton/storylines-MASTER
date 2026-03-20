@@ -23,7 +23,7 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const USER_PAGES = new Set([
   'Stories', 'StoryEditor', 'SeriesEditor', 'HomePageEditor',
   'MediaLibrary', 'DocumentManager', 'Storyboarder', 'MobileStoryCapture',
-  'AudioRecorder', 'ChapterPreview', 'LocationPickerPage',
+  'AudioRecorder', 'ChapterPreview', 'LocationPickerPage', 'Account',
 ]);
 
 // Pages that require 'admin' role

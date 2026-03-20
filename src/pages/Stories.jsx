@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb, LogOut, Users, LogIn } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb, LogOut, Users, LogIn, UserCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsPanel';
@@ -271,73 +271,82 @@ export default function Stories() {
     );
   }
 
+  const adminLinkClass = "flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors px-3 py-1.5 rounded hover:bg-slate-100";
+
   return (
     <div className="min-h-screen bg-slate-50">
-            {/* Header */}
+            {/* Main header */}
             <div className="bg-white border-b">
                 <div className="bg-white mx-auto px-4 py-6 max-w-6xl">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-4">
-                            <Link to={createPageUrl('HomePageView')}>
-                                <img
-                                    src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
-                                    alt="Storylines"
-                                    width="250"
-                                    height="100"
-                                    className="hover:opacity-80 transition-opacity cursor-pointer"
-                                />
-                            </Link>
-                            <div>
-                                <h1 className="text-slate-800 text-[42px] font-bold">
-                                    Project Collection: {currentUser?.full_name || currentUser?.email || 'User'}
-                                </h1>
-                                <p className="text-slate-500 mt-1">Connecting your world with stories that matter...</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            {currentUser?.role === 'admin' && (
-                                <>
-                                    <Link
-                                        to={createPageUrl('LoginEditor')}
-                                        className="text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors flex items-center gap-1"
-                                    >
-                                        <LogIn className="w-4 h-4" />
-                                        Edit Login
-                                    </Link>
-                                    <Link
-                                        to={createPageUrl('UserManagement')}
-                                        className="text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors flex items-center gap-1"
-                                    >
-                                        <Users className="w-4 h-4" />
-                                        Manage Users
-                                    </Link>
-                                </>
-                            )}
+                    {/* Banner */}
+                    <div className="flex items-center gap-4 mb-4">
+                        <Link to={createPageUrl('HomePageView')}>
+                            <img
+                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
+                                alt="Storylines"
+                                width="250"
+                                height="100"
+                                className="hover:opacity-80 transition-opacity cursor-pointer"
+                            />
+                        </Link>
+                        <h1 className="text-[42px] font-bold text-slate-800 flex-1 leading-tight">
+                            Project Collection
+                        </h1>
+                        <div className="flex items-center gap-3 flex-shrink-0">
                             <Link
-                                to={createPageUrl('HomePageView')}
-                                className="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors flex items-center gap-1"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                to={createPageUrl('Account')}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
                             >
-                                <Home className="w-4 h-4" />
-                                View Home Page
-                            </Link>
-                            <Link
-                                to={createPageUrl('StoriesDebug')}
-                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                            >
-                                Debug view
+                                <UserCircle className="w-4 h-4 text-slate-500" />
+                                <span className="text-sm text-slate-700 font-medium">
+                                    {currentUser?.full_name || currentUser?.email || 'Account'}
+                                </span>
                             </Link>
                             <button
                                 onClick={logout}
                                 className="text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1"
-                                title="Sign out"
                             >
                                 <LogOut className="w-3.5 h-3.5" />
                                 Sign out
                             </button>
                         </div>
                     </div>
+
+                    {/* Welcome strip */}
+                    <div className="border-t border-b border-slate-100 py-4 mb-4">
+                        <p className="text-xl font-semibold text-slate-800">
+                            Welcome back, {currentUser?.full_name || currentUser?.email || 'there'}
+                        </p>
+                        <p className="text-slate-500 text-base mt-1">Your project collection — create, manage and publish your stories</p>
+                    </div>
+
+                    {/* Admin bar */}
+                    {currentUser?.role === 'admin' && (
+                        <div className="border-b border-slate-100 pb-3 mb-4 flex items-center gap-1">
+                            <Link to={createPageUrl('HomePageView')} target="_blank" rel="noopener noreferrer" className={adminLinkClass}>
+                                <Home className="w-3.5 h-3.5" /> View Home Page
+                            </Link>
+                            <span className="text-slate-200 px-1">|</span>
+                            <Link to={createPageUrl('HomePageEditor')} className={adminLinkClass}>
+                                <Edit2 className="w-3.5 h-3.5" /> Edit Home Page
+                            </Link>
+                            <span className="text-slate-200 px-1">|</span>
+                            <Link to={createPageUrl('LoginEditor')} className={adminLinkClass}>
+                                <LogIn className="w-3.5 h-3.5" /> Edit Login
+                            </Link>
+                            <span className="text-slate-200 px-1">|</span>
+                            <Link to={createPageUrl('UserManagement')} className={adminLinkClass}>
+                                <Users className="w-3.5 h-3.5" /> Manage Users
+                            </Link>
+                            <span className="text-slate-200 px-1">|</span>
+                            <Link to={createPageUrl('StoriesDebug')} className={adminLinkClass}>
+                                Debug
+                            </Link>
+                        </div>
+                    )}
+
+                    {/* Stories section heading */}
+                    <h2 className="text-3xl font-bold text-slate-800 mb-6 pb-3 border-b border-slate-200">Stories</h2>
 
                     {/* Stats & Actions */}
                     <div className="flex flex-wrap items-stretch gap-4 mb-6">

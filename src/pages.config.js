@@ -72,6 +72,7 @@ import SeriesEditor from './pages/SeriesEditor';
 import SeriesView from './pages/SeriesView';
 import Login from './pages/Login';
 import LoginEditor from './pages/LoginEditor';
+import Account from './pages/Account';
 import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
@@ -102,6 +103,7 @@ export const PAGES = {
     "SeriesView": SeriesView,
     "Login": Login,
     "LoginEditor": LoginEditor,
+    "Account": Account,
     "UserManagement": UserManagement,
 }
 

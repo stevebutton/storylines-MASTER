@@ -7,6 +7,12 @@ html, body, #root {
   background: #000;
 }
 
+/* Prevent horizontal elastic scroll on macOS — triggered by animated x-transforms
+   (e.g. carousel card entrance at x:300→0) appearing to overflow the viewport */
+html, body {
+  overflow-x: hidden;
+}
+
 
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
