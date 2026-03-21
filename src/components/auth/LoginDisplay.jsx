@@ -55,14 +55,14 @@ export default function LoginDisplay({
   }, [mediaLoaded, panelDelay, panelDuration, panelLanded]);
 
   // Element delays are relative to when children mount (i.e. when panel has landed).
-  const logoDelay    = 0;
-  const taglineDelay = 0.45;
-  const titleDelay   = 0.9;
-  const bodyDelay    = 1.35;
-  const ctaDelay     = 1.8;
-  const dividerDelay = 2.15;
-  const headingDelay = 2.6;
-  const formDelay    = 3.1;
+  // Explanation section builds first; sign-in section starts 2 s later as a distinct step.
+  const taglineDelay = 0;
+  const titleDelay   = 0.45;
+  const bodyDelay    = 0.9;
+  const ctaDelay     = 1.35;
+  const dividerDelay = 3.5;   // pause after explanation, then divider sweeps in
+  const headingDelay = 4.0;   // sign-in heading + logo appear together
+  const formDelay    = 4.5;
 
   return (
     <div className={`${className} flex overflow-hidden bg-slate-900`}>
@@ -100,41 +100,27 @@ export default function LoginDisplay({
         />
       ) : null}
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/30 z-[1]" />
 
       {/* Left spacer — transparent, shows background */}
       <div className="flex-1 relative z-10" />
 
-      {/* ── Right panel — 40% width, slides in from right ── */}
+      {/* ── Right panel — 50% width, slides in from right ── */}
       {mediaLoaded && (
         <motion.div
           className="relative z-10 flex flex-col items-center justify-center py-14 bg-black/40 backdrop-blur-xl overflow-y-auto"
-          style={{ width: '50%', paddingLeft: 0, paddingRight: 0 }}
+          style={{ width: '50%', paddingLeft: 0, paddingRight: 0, paddingTop: 100 }}
           initial={{ x: '100%', opacity: 0 }}
           animate={{ x: '0%', opacity: 1 }}
           transition={{ duration: panelDuration, ease: [0.25, 0.46, 0.45, 0.94], delay: panelDelay }}
         >
-          <div className="w-full max-w-[500px] flex flex-col items-center text-center">
+          <div className="w-full max-w-[500px] flex flex-col items-start text-left">
           {panelLanded && (<>
-
-            {/* Logo — full size 250×100 */}
-            <motion.img
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
-              alt="Storylines"
-              width={250}
-              height={100}
-              className="object-contain brightness-0 invert opacity-90 mb-8"
-              initial={{ opacity: 0, y: -24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: 'easeOut', delay: logoDelay }}
-            />
 
             {/* ── Welcome content ── */}
             {welcomeTagline && (
               <motion.p
-                className="text-amber-400/90 text-sm font-light mb-4 uppercase tracking-widest"
-                style={{ fontFamily: 'Raleway, sans-serif' }}
+                className="text-amber-400/90 font-light mb-2 uppercase tracking-widest"
+                style={{ fontFamily: 'Raleway, sans-serif', fontSize: '1rem' }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: 'easeOut', delay: taglineDelay }}
@@ -144,8 +130,8 @@ export default function LoginDisplay({
             )}
 
             <motion.h2
-              className="text-white font-light leading-tight mb-5"
-              style={{ fontFamily: 'Raleway, sans-serif', fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)' }}
+              className="text-white font-light leading-tight mb-0"
+              style={{ fontFamily: 'Raleway, sans-serif', fontSize: 'clamp(2rem, 3.5vw, 3rem)' }}
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, ease: 'easeOut', delay: titleDelay }}
@@ -156,7 +142,7 @@ export default function LoginDisplay({
             {welcomeBody && (
               <motion.p
                 className="text-white/60 leading-relaxed mb-8"
-                style={{ fontFamily: 'Raleway, sans-serif', fontSize: '0.95rem' }}
+                style={{ fontFamily: 'Raleway, sans-serif', fontSize: '1.25rem' }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: 'easeOut', delay: bodyDelay }}
@@ -209,29 +195,35 @@ export default function LoginDisplay({
 
             {/* Divider */}
             <motion.div
-              className="w-full h-px bg-white/15 mb-10"
+              className="w-full h-px bg-white/15 mb-[10px]"
               initial={{ opacity: 0, scaleX: 0 }}
               animate={{ opacity: 1, scaleX: 1 }}
-              style={{ originX: 0.5 }}
+              style={{ originX: 0 }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: dividerDelay }}
             />
 
-            {/* ── Sign-in heading ── */}
+            {/* ── Sign-in heading + logo inline ── */}
             <motion.div
-              className="mb-8"
+              className="mb-1 w-full"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: headingDelay }}
             >
-              <h1
-                className="text-white text-2xl font-light mb-1.5"
-                style={{ fontFamily: 'Raleway, sans-serif', letterSpacing: '0.04em' }}
-              >
-                {heading}
-              </h1>
-              <p className="text-white/45 text-sm" style={{ fontFamily: 'Raleway, sans-serif' }}>
-                {subtitle}
-              </p>
+              <div className="flex items-center gap-4" style={{ marginBottom: 2 }}>
+                <img
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                  alt="Storylines"
+                  width={250}
+                  height={100}
+                  className="object-contain brightness-0 invert opacity-90 flex-shrink-0"
+                />
+                <h1
+                  className="text-white text-2xl font-light"
+                  style={{ fontFamily: 'Raleway, sans-serif', letterSpacing: '0.04em' }}
+                >
+                  {heading}
+                </h1>
+              </div>
             </motion.div>
 
             {/* ── Form ── */}
@@ -244,7 +236,7 @@ export default function LoginDisplay({
               {isPreview ? (
                 <div className="space-y-5">
                   {['Email', 'Password'].map(label => (
-                    <div key={label} className="w-full flex flex-col items-center">
+                    <div key={label} className="w-full flex flex-col items-start">
                       <p
                         className="text-white/55 text-xs mb-1.5 uppercase tracking-wider"
                         style={{ fontFamily: 'Raleway, sans-serif' }}
@@ -254,7 +246,7 @@ export default function LoginDisplay({
                       <div className="w-3/4 h-10 bg-white/10 border border-white/20 rounded-xl" />
                     </div>
                   ))}
-                  <div className="pt-2 flex justify-center w-full">
+                  <div className="pt-2">
                     <div
                       className="w-1/2 h-11 flex items-center justify-center bg-amber-600/80 text-white text-xs uppercase tracking-wider rounded-xl"
                       style={{ fontFamily: 'Raleway, sans-serif' }}
@@ -265,7 +257,7 @@ export default function LoginDisplay({
                 </div>
               ) : (
                 <form onSubmit={onSubmit} className="space-y-5 w-full">
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-start">
                     <label
                       className="text-xs font-medium text-white/55 mb-1.5 uppercase tracking-wider"
                       style={{ fontFamily: 'Raleway, sans-serif' }}
@@ -276,7 +268,7 @@ export default function LoginDisplay({
                       type="email" autoComplete="email" required
                       value={email} onChange={e => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-center"
+                      className="w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-left"
                       style={{
                         fontFamily: 'Raleway, sans-serif',
                         background: 'rgba(255,255,255,0.08)',
@@ -286,7 +278,7 @@ export default function LoginDisplay({
                       }}
                     />
                   </div>
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-start">
                     <label
                       className="text-xs font-medium text-white/55 mb-1.5 uppercase tracking-wider"
                       style={{ fontFamily: 'Raleway, sans-serif' }}
@@ -297,7 +289,7 @@ export default function LoginDisplay({
                       type="password" autoComplete="current-password" required
                       value={password} onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-center"
+                      className="w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-left"
                       style={{
                         fontFamily: 'Raleway, sans-serif',
                         background: 'rgba(255,255,255,0.08)',
@@ -312,7 +304,7 @@ export default function LoginDisplay({
                       {error}
                     </p>
                   )}
-                  <div className="pt-2 flex justify-center w-full">
+                  <div className="pt-2">
                     <button
                       type="submit" disabled={isLoading}
                       className="w-1/2 py-3 px-4 bg-amber-600/80 hover:bg-amber-600 disabled:bg-amber-600/40 text-white font-medium transition-colors flex items-center justify-center gap-2 text-sm uppercase tracking-wider rounded-xl"
