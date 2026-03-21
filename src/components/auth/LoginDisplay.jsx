@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Mail } from 'lucide-react';
+import RequestAccessModal from './RequestAccessModal';
 
 /**
  * LoginDisplay — pure animated login UI, no auth logic.
@@ -37,7 +38,8 @@ export default function LoginDisplay({
   // Layout
   className = 'fixed inset-0',
 }) {
-  const [mediaLoaded, setMediaLoaded] = useState(!heroImage && !heroVideo);
+  const [mediaLoaded, setMediaLoaded]         = useState(!heroImage && !heroVideo);
+  const [showRequestForm, setShowRequestForm] = useState(false);
 
   const isPreview = !onSubmit;
 
@@ -101,6 +103,15 @@ export default function LoginDisplay({
       ) : null}
 
 
+      {/* Request Access modal */}
+      {!isPreview && (
+        <RequestAccessModal
+          isOpen={showRequestForm}
+          onClose={() => setShowRequestForm(false)}
+          ctaText={welcomeCtaText}
+        />
+      )}
+
       {/* Left spacer — transparent, shows background */}
       <div className="flex-1 relative z-10" />
 
@@ -163,33 +174,22 @@ export default function LoginDisplay({
               />
             )}
 
-            {/* Request Access — prominent amber CTA, 50% width */}
-            {(welcomeCtaText || welcomeCtaEmail) && (
+            {/* Request Access — shown whenever button text is configured */}
+            {welcomeCtaText && (
               <motion.div
                 className="mb-10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: 'easeOut', delay: ctaDelay }}
               >
-                {welcomeCtaEmail ? (
-                  <a
-                    href={isPreview ? undefined : `mailto:${welcomeCtaEmail}`}
-                    className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-white transition-colors uppercase tracking-widest text-sm font-medium rounded-xl whitespace-nowrap"
-                    style={{ fontFamily: 'Raleway, sans-serif' }}
-                    onClick={isPreview ? e => e.preventDefault() : undefined}
-                  >
-                    <Mail className="w-4 h-4" />
-                    {welcomeCtaText || 'Request Access'}
-                  </a>
-                ) : (
-                  <div
-                    className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-amber-500/70 text-white uppercase tracking-widest text-sm font-medium rounded-xl whitespace-nowrap"
-                    style={{ fontFamily: 'Raleway, sans-serif' }}
-                  >
-                    <Mail className="w-4 h-4" />
-                    {welcomeCtaText}
-                  </div>
-                )}
+                <button
+                  onClick={isPreview ? undefined : () => setShowRequestForm(true)}
+                  className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-white transition-colors uppercase tracking-widest text-sm font-medium rounded-xl whitespace-nowrap"
+                  style={{ fontFamily: 'Raleway, sans-serif', cursor: isPreview ? 'default' : 'pointer' }}
+                >
+                  <Mail className="w-4 h-4" />
+                  {welcomeCtaText}
+                </button>
               </motion.div>
             )}
 
@@ -209,13 +209,13 @@ export default function LoginDisplay({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: headingDelay }}
             >
-              <div className="flex items-center gap-4" style={{ marginBottom: 2 }}>
+              <div className="flex items-center gap-0" style={{ marginBottom: 2 }}>
                 <img
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                  src="https://uevxdwzgkodbkzludrni.supabase.co/storage/v1/object/public/media/755f1936001f45de86c469cc-LogoCenteredWhite.png"
                   alt="Storylines"
                   width={250}
                   height={100}
-                  className="object-contain brightness-0 invert opacity-90 flex-shrink-0"
+                  className="object-contain opacity-90 flex-shrink-0"
                 />
                 <h1
                   className="text-white text-2xl font-light"

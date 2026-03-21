@@ -266,10 +266,11 @@ export default function LoginEditor() {
                 </Field>
                 <Field label="Request access button text">
                   <TextInput value={s.welcome_cta_text} onChange={set('welcome_cta_text')} placeholder="Request Access" />
-                </Field>
-                <Field label="Request access email">
-                  <TextInput value={s.welcome_cta_email} onChange={set('welcome_cta_email')} placeholder="hello@yourorg.com" />
                   <p className="text-xs text-slate-400 mt-1">Leave blank to hide the button</p>
+                </Field>
+                <Field label="Notification email">
+                  <TextInput value={s.welcome_cta_email} onChange={set('welcome_cta_email')} placeholder="hello@yourorg.com" />
+                  <p className="text-xs text-slate-400 mt-1">Where to send new request alerts (requires RESEND_API_KEY in Netlify)</p>
                 </Field>
               </div>
             </section>
