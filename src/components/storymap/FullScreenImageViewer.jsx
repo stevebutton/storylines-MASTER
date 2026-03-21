@@ -260,6 +260,9 @@ export default function FullScreenImageViewer({
     const canEdit = currentUser?.role === 'user' || currentUser?.role === 'admin';
     const [repositioningIdx, setRepositioningIdx] = useState(null); // hotspot index being moved
     const [pendingPos, setPendingPos]             = useState(null);  // { x, y, clientX, clientY }
+    const [pendingTitle, setPendingTitle]         = useState('');
+    const [pendingBody, setPendingBody]           = useState('');
+    const [saveState, setSaveState]               = useState(null); // null | 'saving' | 'saved' | 'error'
     const [localOverrides, setLocalOverrides]     = useState({});    // slideId → hotspots[]
     const imageContainerRef = useRef(null);
 
@@ -275,7 +278,7 @@ export default function FullScreenImageViewer({
     useEffect(() => { setActiveHotspotPos(null); }, [currentIndex, viewMode]);
 
     // Cancel repositioning on slide navigation
-    useEffect(() => { setRepositioningIdx(null); setPendingPos(null); }, [currentIndex]);
+    useEffect(() => { setRepositioningIdx(null); setPendingPos(null); setPendingTitle(''); setPendingBody(''); setSaveState(null); }, [currentIndex]);
 
     // Handle escape key — cancel reposition first, then close viewer
     useEffect(() => {
@@ -285,6 +288,9 @@ export default function FullScreenImageViewer({
                 if (repositioningIdx !== null) {
                     setRepositioningIdx(null);
                     setPendingPos(null);
+                    setPendingTitle('');
+                    setPendingBody('');
+                    setSaveState(null);
                 } else {
                     onClose();
                 }
@@ -327,16 +333,28 @@ export default function FullScreenImageViewer({
     };
 
     const handleSaveReposition = async () => {
+        setSaveState('saving');
         const updated = slideHotspots.map((h, i) =>
-            i === repositioningIdx ? { ...h, x: pendingPos.x, y: pendingPos.y } : h
+            i === repositioningIdx
+                ? { ...h, x: pendingPos.x, y: pendingPos.y, title: pendingTitle, body: pendingBody }
+                : h
         );
         const { error } = await supabase
             .from('slides').update({ hotspots: updated }).eq('id', currentSlide.id);
-        if (error) { toast.error('Failed to save position'); return; }
+        if (error) {
+            setSaveState('error');
+            setTimeout(() => setSaveState(null), 2500);
+            return;
+        }
         setLocalOverrides(prev => ({ ...prev, [currentSlide.id]: updated }));
-        toast.success('Hotspot position saved');
-        setRepositioningIdx(null);
-        setPendingPos(null);
+        setSaveState('saved');
+        setTimeout(() => {
+            setRepositioningIdx(null);
+            setPendingPos(null);
+            setPendingTitle('');
+            setPendingBody('');
+            setSaveState(null);
+        }, 1000);
     };
 
     return (
@@ -390,7 +408,7 @@ export default function FullScreenImageViewer({
                                 className="absolute inset-0 w-full h-full object-cover"
                                 style={{
                                     objectPosition: currentSlide.image_position || '50% 50%',
-                                    filter: activeHotspotPos ? 'grayscale(50%) blur(16px)' : 'none',
+                                    filter: activeHotspotPos && repositioningIdx === null ? 'grayscale(50%) blur(6px)' : 'none',
                                     transition: 'filter 0.4s ease',
                                 }}
                             />
@@ -429,7 +447,7 @@ export default function FullScreenImageViewer({
                                                 left: `${activeHotspotPos.x * 100}%`,
                                                 top: `${activeHotspotPos.y * 100}%`,
                                                 transform: 'translate(-50%, -50%)',
-                                                boxShadow: 'none',
+                                                boxShadow: 'inset 0 0 0 15px rgba(255,255,255,0.35)',
                                             }}
                                         />
                                     </>
@@ -444,7 +462,7 @@ export default function FullScreenImageViewer({
                                     chapterColorIndex={currentSlide._chapter_index ?? chapterColorIndex}
                                     onAnyCardOpen={setActiveHotspotPos}
                                     canEdit={canEdit}
-                                    onStartReposition={(idx) => { setRepositioningIdx(idx); setPendingPos(null); }}
+                                    onStartReposition={(idx) => { setRepositioningIdx(idx); setPendingPos(null); setActiveHotspotPos(null); }}
                                     repositioningActive={repositioningIdx !== null}
                                 />
                             )}
@@ -455,6 +473,9 @@ export default function FullScreenImageViewer({
                                     className="absolute inset-0 z-30 cursor-crosshair"
                                     onClick={(e) => {
                                         const rect = imageContainerRef.current.getBoundingClientRect();
+                                        const h = slideHotspots[repositioningIdx];
+                                        setPendingTitle(h?.title || '');
+                                        setPendingBody(h?.body ? h.body.replace(/<[^>]*>/g, '') : '');
                                         setPendingPos({
                                             x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
                                             y: Math.max(0, Math.min(1, (e.clientY - rect.top)  / rect.height)),
@@ -465,52 +486,10 @@ export default function FullScreenImageViewer({
                                 />
                             )}
 
-                            {/* Instruction banner — shown while repositioning, before a position is picked */}
-                            {repositioningIdx !== null && pendingPos === null && (
-                                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
-                                    Hotspot {repositioningIdx + 1}&nbsp;&nbsp;·&nbsp;&nbsp;Click image to set new position&nbsp;&nbsp;·&nbsp;&nbsp;Esc to cancel
-                                </div>
-                            )}
+                            {/* Instruction banner — portalled to body (see below) */}
                         </div>
 
-                        {/* Confirmation popup — fixed position above the click point */}
-                        {pendingPos !== null && (
-                            <div
-                                className="fixed z-[200100] bg-white rounded-xl shadow-2xl px-4 py-3"
-                                style={{
-                                    left: pendingPos.clientX,
-                                    top: pendingPos.clientY - 76,
-                                    transform: 'translateX(-50%)',
-                                }}
-                            >
-                                <p className="text-sm font-medium text-slate-800 mb-2">Move hotspot here?</p>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handleSaveReposition}
-                                        className="px-3 py-1 bg-amber-500 text-white rounded-lg text-xs font-medium hover:bg-amber-600 transition-colors"
-                                    >
-                                        Save
-                                    </button>
-                                    <button
-                                        onClick={() => setPendingPos(null)}
-                                        className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                                {/* Downward arrow pointing toward click location */}
-                                <div
-                                    className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full"
-                                    style={{
-                                        width: 0,
-                                        height: 0,
-                                        borderLeft: '6px solid transparent',
-                                        borderRight: '6px solid transparent',
-                                        borderTop: '6px solid white',
-                                    }}
-                                />
-                            </div>
-                        )}
+                        {/* Confirmation popup — rendered at top level to escape stacking context */}
 
                         {/* Text panel — hidden for non-looping videos (full video experience);
                             shown for looping videos (they function as illustrated stills) */}
@@ -580,6 +559,78 @@ export default function FullScreenImageViewer({
                     </motion.div>
                 )}
             </AnimatePresence>,
+            document.body
+        )}
+
+        {/* Instruction banner — portalled to body to escape blur compositing layer */}
+        {isOpen && repositioningIdx !== null && pendingPos === null && createPortal(
+            <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[300100] bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
+                Hotspot {repositioningIdx + 1}&nbsp;&nbsp;·&nbsp;&nbsp;Click image to set new position&nbsp;&nbsp;·&nbsp;&nbsp;Esc to cancel
+            </div>,
+            document.body
+        )}
+
+        {/* Hotspot edit popup — portalled to body to escape all stacking contexts */}
+        {isOpen && pendingPos !== null && createPortal(
+            <div
+                className="fixed z-[300100] bg-white rounded-xl shadow-2xl p-4"
+                style={{
+                    left: pendingPos.clientX,
+                    top: Math.max(16, pendingPos.clientY - 250),
+                    transform: 'translateX(-50%)',
+                    width: 280,
+                }}
+            >
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+                    Hotspot {repositioningIdx + 1}
+                </p>
+                <div className="space-y-2 mb-3">
+                    <input
+                        type="text"
+                        value={pendingTitle}
+                        onChange={e => setPendingTitle(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && e.preventDefault()}
+                        placeholder="Label"
+                        className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                        autoFocus
+                    />
+                    <textarea
+                        value={pendingBody}
+                        onChange={e => setPendingBody(e.target.value)}
+                        placeholder="Note (optional)"
+                        rows={3}
+                        className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+                    />
+                </div>
+                {saveState === 'saved' && (
+                    <p className="text-xs font-medium text-green-600 mb-2">✓ Saved</p>
+                )}
+                {saveState === 'error' && (
+                    <p className="text-xs font-medium text-red-500 mb-2">Failed to save — try again</p>
+                )}
+                {saveState !== 'saved' && (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleSaveReposition}
+                            disabled={saveState === 'saving'}
+                            className="flex-1 px-3 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-medium hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                        >
+                            {saveState === 'saving' ? 'Saving…' : 'Save'}
+                        </button>
+                        <button
+                            onClick={() => { setPendingPos(null); setPendingTitle(''); setPendingBody(''); setSaveState(null); }}
+                            disabled={saveState === 'saving'}
+                            className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                )}
+                <div
+                    className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full"
+                    style={{ width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid white' }}
+                />
+            </div>,
             document.body
         )}
         </>

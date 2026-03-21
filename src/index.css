@@ -184,6 +184,30 @@ button:focus-visible {
     color: rgba(255, 255, 255, 0.92) !important;
 }
 
+/* Pointer cursor on all interactive elements */
+button, [role="button"], a {
+  cursor: pointer !important;
+}
+
+/* Chrome/macOS GPU compositor cursor fix — canvas hit-test falls through to the
+   Mapbox canvas container; setting pointer here ensures any layer shows pointer
+   when the user is over interactive UI positioned above the map. */
+.mapboxgl-canvas-container {
+  cursor: pointer !important;
+}
+
+/* Sonner toast — force above all stacking contexts including blur overlay */
+[data-sonner-toaster] {
+  z-index: 400000 !important;
+}
+
+/* Mapbox attribution — centre bottom instead of default bottom-right */
+.mapboxgl-ctrl-bottom-right {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+}
+
 /* Resizable Quill rich-text editors */
 .ql-container {
   resize: vertical;

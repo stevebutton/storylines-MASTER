@@ -338,6 +338,27 @@ export default function TabbedContentEditor({
                                 }}
                             />
                         </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <FieldLabel>Hero CTA Label</FieldLabel>
+                                <Input
+                                    value={item.hero_cta_label || ''}
+                                    onChange={(e) => onUpdate({ ...item, hero_cta_label: e.target.value })}
+                                    placeholder="e.g. Go to Dashboard"
+                                    className="text-xs"
+                                />
+                            </div>
+                            <div>
+                                <FieldLabel>Hero CTA URL</FieldLabel>
+                                <Input
+                                    value={item.hero_cta_url || ''}
+                                    onChange={(e) => onUpdate({ ...item, hero_cta_url: e.target.value })}
+                                    placeholder="e.g. /Stories"
+                                    className="text-xs"
+                                />
+                            </div>
+                            <p className="col-span-2 text-xs text-slate-400 -mt-1">Optional secondary button on the hero section</p>
+                        </div>
                         <div>
                             <FieldLabel>Story Description</FieldLabel>
                             <p className="text-sm text-slate-900 mb-1">Shown as a full panel between the hero and chapter one. Leave blank to skip.</p>

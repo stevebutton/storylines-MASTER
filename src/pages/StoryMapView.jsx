@@ -8,7 +8,7 @@ import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import BottomPillBar from '@/components/storymap/BottomPillBar';
-import StoryViewPill from '@/components/storymap/StoryViewPill';
+import StoryViewPill, { pillShell, pillDivider } from '@/components/storymap/StoryViewPill';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
@@ -24,10 +24,10 @@ import { fadeMapLayer } from '@/utils/mapLayerFade';
 import { createPageUrl } from '@/utils';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, Pencil } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { StoryTranslationProvider } from '@/contexts/StoryTranslationContext';
 import { getT } from '@/utils/translationDefaults';
 
@@ -1062,7 +1062,6 @@ export default function StoryMapView() {
                 onOpenAbout={() => setShowAboutPanel(true)}
                 mapStyle={story?.map_style || 'a'}
                 onViewOtherStories={() => { setShowLibraryModal(false); setIsStorySlideshowOpen(true); }}
-                onEditStory={() => setIsEditTransitioning(true)}
             />
             </div>
 
@@ -1116,6 +1115,11 @@ export default function StoryMapView() {
                     heroType={story.hero_type}
                     heroVideoLoop={story.hero_video_loop}
                     mapStyle={story?.map_style || 'a'}
+                    heroCta={
+                        (story.hero_cta_label || story.hero_cta_url)
+                            ? { label: story.hero_cta_label, url: story.hero_cta_url }
+                            : null
+                    }
                     onExplore={() => {
                         setHasExplored(true);
                         if (story.story_description) {
@@ -1562,7 +1566,7 @@ export default function StoryMapView() {
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, width: 380, height: 80 }}
+                            style={{ bottom: 0, width: 380, height: 80, cursor: 'pointer', willChange: 'transform' }}
                         >
                             <LibraryPill onUpload={() => setLibraryUploadKey(k => k + 1)} />
                         </motion.div>
@@ -1574,7 +1578,7 @@ export default function StoryMapView() {
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, width: 380, height: 80 }}
+                            style={{ bottom: 0, width: 380, height: 80, cursor: 'pointer', willChange: 'transform' }}
                         >
                             <FullscreenNavPill
                                 onPrev={() => {
@@ -1605,7 +1609,7 @@ export default function StoryMapView() {
                             exit={{ opacity: 0, y: 20 }}
                             transition={{ duration: 0.5, ease: 'easeOut', delay: pillsInitialized ? 0 : 5 }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, height: 80, width: 'fit-content', minWidth: 380 }}
+                            style={{ bottom: 0, height: 80, width: 'fit-content', minWidth: 380, cursor: 'pointer', willChange: 'transform' }}
                         >
                             <BottomPillBar
                                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
@@ -1894,24 +1898,65 @@ export default function StoryMapView() {
                 story={story}
             />
 
-            {/* Logged-in user badge — fixed lower right; clears filmstrip (80px) in Story View */}
+            {/* Logged-in user pill — fixed lower right; matches sub-pill style */}
             {currentUser && (
                 <div
-                    className="fixed right-6 z-[200020] flex items-center gap-3 pointer-events-auto transition-all duration-300"
-                    style={{ bottom: showStoryOverlay ? 88 : 32 }}
+                    className="fixed right-6 z-[200020] pointer-events-auto transition-all duration-300"
+                    style={{ bottom: showStoryOverlay ? 88 : 10, height: 60, cursor: 'pointer', willChange: 'transform' }}
                 >
-                    <span className="text-sm text-white/70" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-                        {currentUser.full_name || currentUser.email}
-                    </span>
-                    <button
-                        onClick={logout}
-                        className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
-                        style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
-                        title="Log out"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Log out
-                    </button>
+                    <div className={pillShell} style={{ width: 'auto', paddingInline: 0 }}>
+
+                        {/* Edit story */}
+                        <div className="relative group h-full">
+                            <button
+                                onClick={() => setIsEditTransitioning(true)}
+                                className="h-full px-5 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
+                                style={{ cursor: 'pointer' }}
+                                onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
+                                onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
+                                aria-label="Edit story"
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </button>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-[10px] text-white text-xs font-light whitespace-nowrap uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none select-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                Edit Story
+                            </span>
+                        </div>
+
+                        {pillDivider}
+
+                        {/* Username — links to dashboard */}
+                        <div className="relative group h-full flex items-center">
+                            <Link
+                                to={createPageUrl('Stories')}
+                                className="h-full px-4 flex items-center text-sm text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
+                                style={{ cursor: 'pointer' }}
+                                onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
+                                onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
+                            >
+                                <span className="whitespace-nowrap max-w-[180px] truncate block">
+                                    {currentUser.full_name || currentUser.email}
+                                </span>
+                            </Link>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-[10px] text-white text-xs font-light whitespace-nowrap uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none select-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                Visit Dashboard
+                            </span>
+                        </div>
+
+                        {pillDivider}
+
+                        <button
+                            onClick={logout}
+                            className="h-full px-5 flex items-center gap-2 text-sm text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
+                            style={{ cursor: 'pointer' }}
+                            onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
+                            onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
+                            aria-label="Log out"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            <span>Log out</span>
+                        </button>
+                    </div>
                 </div>
             )}
 

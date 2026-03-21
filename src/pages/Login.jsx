@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
@@ -15,10 +15,15 @@ export default function Login() {
   const [error, setError]         = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings]   = useState(null);
+  const welcomeStoryIdRef = useRef(null);
 
   useEffect(() => {
     if (!isLoadingAuth && isAuthenticated) {
-      navigate(createPageUrl('Stories'), { replace: true });
+      const id = welcomeStoryIdRef.current;
+      navigate(
+        id ? `${createPageUrl('StoryMapView')}?id=${id}` : createPageUrl('Stories'),
+        { replace: true }
+      );
     }
   }, [isAuthenticated, isLoadingAuth, navigate]);
 
@@ -40,6 +45,7 @@ export default function Login() {
         heroType  = hp.hero_type  || 'image';
       }
 
+      welcomeStoryIdRef.current = ls?.welcome_story_id || null;
       setSettings({
         heading:        ls?.heading          || 'Sign in',
         subtitle:       ls?.subtitle         || 'Enter your credentials to continue',
@@ -66,7 +72,13 @@ export default function Login() {
     setIsLoading(true);
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
     if (authError) { setError(authError.message); setIsLoading(false); }
-    else navigate(createPageUrl('Stories'), { replace: true });
+    else {
+      const id = welcomeStoryIdRef.current;
+      navigate(
+        id ? `${createPageUrl('StoryMapView')}?id=${id}` : createPageUrl('Stories'),
+        { replace: true }
+      );
+    }
   };
 
   if (isLoadingAuth || !settings) {

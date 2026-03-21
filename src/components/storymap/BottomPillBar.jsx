@@ -13,11 +13,13 @@ import { pillShell, pillDivider } from './StoryViewPill';
  */
 
 const ctrl = (active) => cn(
-    'flex-1 h-full flex items-center justify-center transition-colors duration-200',
+    'flex-1 h-full flex items-center justify-center transition-colors duration-200 cursor-pointer',
     active
         ? 'bg-white text-slate-900'
         : 'text-white/70 hover:text-white hover:bg-white/15 disabled:opacity-30 disabled:cursor-not-allowed'
 );
+
+const forcePointer = (e) => e.currentTarget.style.setProperty('cursor', 'pointer', 'important');
 
 export default function BottomPillBar({
     onZoomIn,
@@ -42,29 +44,29 @@ export default function BottomPillBar({
                 display: 'flex',
                 alignItems: 'stretch',
             }}>
-                <button onClick={onZoomIn}     className={ctrl(false)} title="Zoom in">
+                <button onClick={onZoomIn}     className={ctrl(false)} style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Zoom in">
                     <Plus className="w-4 h-4" />
                 </button>
-                <button onClick={onZoomOut}    className={ctrl(false)} title="Zoom out">
+                <button onClick={onZoomOut}    className={ctrl(false)} style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Zoom out">
                     <Minus className="w-4 h-4" />
                 </button>
-                <button onClick={onResetNorth} className={ctrl(false)} title="Reset north">
+                <button onClick={onResetNorth} className={ctrl(false)} style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Reset north">
                     <Compass className="w-4 h-4" />
                 </button>
 
                 {pillDivider}
 
-                <button onClick={onToggleRoute}   className={ctrl(showRoute)}   title="Toggle route">
+                <button onClick={onToggleRoute}   className={ctrl(showRoute)}   style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Toggle route">
                     <Navigation className="w-4 h-4" />
                 </button>
-                <button onClick={onToggleMarkers} className={ctrl(showMarkers)} title="Toggle markers">
+                <button onClick={onToggleMarkers} className={ctrl(showMarkers)} style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Toggle markers">
                     <MapPin className="w-4 h-4" />
                 </button>
 
                 {onOpenMapEditor && (
                     <>
                         {pillDivider}
-                        <button onClick={onOpenMapEditor} className={ctrl(false)} title="Map editor">
+                        <button onClick={onOpenMapEditor} className={ctrl(false)} style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Map editor">
                             <SlidersHorizontal className="w-4 h-4" />
                         </button>
                     </>
@@ -90,6 +92,7 @@ export default function BottomPillBar({
                     {pillDivider}
                     <button
                         onClick={() => onToggleLayer?.(layer.id)}
+                        style={{ cursor: 'pointer' }}
                         className={cn(
                             'flex-none h-full px-3',
                             'flex flex-col items-center justify-center',

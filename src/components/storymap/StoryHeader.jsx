@@ -8,7 +8,7 @@ const THEME_FONTS = {
     k: 'Oswald, sans-serif',
 };
 
-export default function StoryHeader({ title, subtitle, tagline, titleImage, subtitleImage, heroImage, heroVideo, heroType, heroVideoLoop = true, onExplore, onWhatIsStorylines, onHeroLoaded, mapStyle = 'a' }) {
+export default function StoryHeader({ title, subtitle, tagline, titleImage, subtitleImage, heroImage, heroVideo, heroType, heroVideoLoop = true, onExplore, onWhatIsStorylines, onHeroLoaded, mapStyle = 'a', heroCta = null }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
   const [mediaLoaded, setMediaLoaded] = useState(false);
 
@@ -142,27 +142,42 @@ export default function StoryHeader({ title, subtitle, tagline, titleImage, subt
             />
           </div>
 
-          {/* Scroll Arrow */}
-          <motion.button
-            onClick={onExplore}
-            className="cursor-pointer pointer-events-auto"
-            data-name="scroll-arrow"
-            initial={{ translateY: '50px', opacity: 0 }}
-            animate={{ translateY: '0', opacity: 1 }}
-            transition={{ duration: 2, delay: 7 }}
-            whileHover={{
-              scale: 1.1,
-              filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
-              transition: { duration: 0.2, ease: 'easeInOut' }
-            }}
-          >
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
-              alt="Scroll down"
-              width="74"
-              height="50"
-            />
-          </motion.button>
+          {/* Bottom row: scroll arrow + optional secondary CTA */}
+          <div className={`flex items-center w-full mt-6 ${heroCta?.url ? 'justify-between' : 'justify-center'}`}>
+            <motion.button
+              onClick={onExplore}
+              className="cursor-pointer pointer-events-auto"
+              data-name="scroll-arrow"
+              initial={{ translateY: '50px', opacity: 0 }}
+              animate={{ translateY: '0', opacity: 1 }}
+              transition={{ duration: 2, delay: 7 }}
+              whileHover={{
+                scale: 1.1,
+                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
+                transition: { duration: 0.2, ease: 'easeInOut' }
+              }}
+            >
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/a1c59b412_scrolldown-arrow.png"
+                alt="Scroll down"
+                width="74"
+                height="50"
+              />
+            </motion.button>
+
+            {heroCta?.url && (
+              <motion.button
+                onClick={() => { window.location.href = heroCta.url; }}
+                className="cursor-pointer pointer-events-auto border border-white/50 text-white/80 hover:text-white hover:bg-white/10 px-5 py-2 text-xs uppercase tracking-widest transition-colors"
+                style={{ fontFamily: 'Raleway, sans-serif' }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 2, delay: 7 }}
+              >
+                {heroCta.label || 'Skip'}
+              </motion.button>
+            )}
+          </div>
         </motion.div>
       )}
     </div>

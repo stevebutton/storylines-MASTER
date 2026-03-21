@@ -5,6 +5,8 @@ import { pillShell, pillBtn, pillBtnActive, pillDivider } from './StoryViewPill'
 const pillBtnInner = pillBtn.replace('flex-1', 'w-full');
 const pillBtnActiveInner = pillBtnActive.replace('flex-1', 'w-full');
 
+const forcePointer = (e) => e.currentTarget.style.setProperty('cursor', 'pointer', 'important');
+
 function TooltipBtn({ label, active, onClick, align = 'center', offsetX = 0, children }) {
     const pos = align === 'left'
         ? 'left-0'
@@ -14,6 +16,9 @@ function TooltipBtn({ label, active, onClick, align = 'center', offsetX = 0, chi
             <button
                 onClick={onClick}
                 className={active ? pillBtnActiveInner : pillBtnInner}
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={forcePointer}
+                onMouseMove={forcePointer}
                 aria-label={label}
             >
                 {children}
@@ -74,6 +79,9 @@ export default function FullscreenNavPill({
                 onClick={onPrev}
                 disabled={!hasMultiple}
                 className={pillBtn}
+                style={{ cursor: hasMultiple ? 'pointer' : 'default' }}
+                onMouseEnter={hasMultiple ? forcePointer : undefined}
+                onMouseMove={hasMultiple ? forcePointer : undefined}
                 aria-label="Previous slide"
             >
                 <ChevronLeft className="w-8 h-8" />
@@ -83,6 +91,9 @@ export default function FullscreenNavPill({
                 onClick={onNext}
                 disabled={!hasMultiple}
                 className={pillBtn}
+                style={{ cursor: hasMultiple ? 'pointer' : 'default' }}
+                onMouseEnter={hasMultiple ? forcePointer : undefined}
+                onMouseMove={hasMultiple ? forcePointer : undefined}
                 aria-label="Next slide"
             >
                 <ChevronRight className="w-8 h-8" />

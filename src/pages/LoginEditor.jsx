@@ -25,6 +25,7 @@ const DEFAULT = {
   welcome_cta_text:    'Request Access',
   welcome_cta_email:   '',
   video_loop:          true,
+  welcome_story_id:    '',
 };
 
 // ── Upload ────────────────────────────────────────────────────────────────────
@@ -195,6 +196,7 @@ export default function LoginEditor() {
       welcome_body: s.welcome_body, welcome_overview: s.welcome_overview || null,
       welcome_cta_text: s.welcome_cta_text, welcome_cta_email: s.welcome_cta_email,
       video_loop: s.video_loop,
+      welcome_story_id: s.welcome_story_id || null,
     }).eq('id', 1);
     if (error) toast.error('Failed to save: ' + error.message);
     else       toast.success('Login page saved');
@@ -362,6 +364,19 @@ export default function LoginEditor() {
                 <TimingSlider label="Background fade" value={s.anim_bg_delay} onChange={set('anim_bg_delay')} min={0} max={5} hint="Delay before background appears" />
                 <TimingSlider label="Panel slide delay" value={s.anim_panel_delay} onChange={set('anim_panel_delay')} min={0} max={20} hint="Wait before panel slides in" />
                 <TimingSlider label="Panel slide duration" value={s.anim_panel_duration} onChange={set('anim_panel_duration')} min={0.3} max={5} hint="How long the slide takes" />
+              </div>
+            </section>
+
+            <div className="border-t" />
+
+            {/* Post-Login Routing */}
+            <section>
+              <SectionTitle>Post-Login Routing</SectionTitle>
+              <div className="space-y-3">
+                <Field label="Welcome Story ID">
+                  <TextInput value={s.welcome_story_id} onChange={set('welcome_story_id')} placeholder="e.g. 42" />
+                  <p className="text-xs text-slate-400 mt-1">Story to land on after login. Leave blank to go to Stories.</p>
+                </Field>
               </div>
             </section>
 

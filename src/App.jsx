@@ -45,6 +45,26 @@ const AuthenticatedApp = () => {
     if (loader) loader.remove();
   }, []);
 
+  // Chrome/macOS WebGL canvas compositor can steal cursor from overlaid elements.
+  // Run after each mousemove frame (via rAF) to re-assert pointer on interactive elements.
+  useEffect(() => {
+    let rafId = null;
+    const handler = (e) => {
+      const el = e.target.closest('button, a, [role="button"]');
+      if (!el) return;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        el.style.setProperty('cursor', 'pointer', 'important');
+        rafId = null;
+      });
+    };
+    document.addEventListener('mousemove', handler);
+    return () => {
+      document.removeEventListener('mousemove', handler);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (

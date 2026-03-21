@@ -28,6 +28,7 @@ export const pillBtn = [
     'transition-all duration-200',
     'text-white/70 hover:text-white hover:bg-white/15',
     'disabled:opacity-30 disabled:cursor-not-allowed',
+    'cursor-pointer',
 ].join(' ');
 
 export const pillBtnActive = [
@@ -35,6 +36,7 @@ export const pillBtnActive = [
     'flex items-center justify-center',
     'transition-all duration-200',
     'bg-white text-slate-900',
+    'cursor-pointer',
 ].join(' ');
 
 export const pillDivider = (
@@ -103,11 +105,11 @@ export default function StoryViewPill({
                                 <React.Fragment key={key}>
                                     {idx > 0 && pillDivider}
                                     {url ? (
-                                        <Link to={url} onClick={handleClick} className={btnClass}>
+                                        <Link to={url} onClick={handleClick} className={btnClass} style={{ cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')} onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}>
                                             {t(VIEW_KEY_MAP[key])}
                                         </Link>
                                     ) : (
-                                        <button onClick={handleClick} className={btnClass}>
+                                        <button onClick={handleClick} className={btnClass} style={{ cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')} onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}>
                                             {t(VIEW_KEY_MAP[key])}
                                         </button>
                                     )}
