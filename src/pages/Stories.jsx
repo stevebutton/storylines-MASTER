@@ -282,7 +282,7 @@ export default function Stories() {
                     <div className="flex items-center gap-4 mb-4">
                         <Link to={createPageUrl('HomePageView')}>
                             <img
-                                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/af03c100d_storyline-logo.png"
+                                src="https://uevxdwzgkodbkzludrni.supabase.co/storage/v1/object/public/media/98980ac156dd43069c1b7635-LogoCentered.png"
                                 alt="Storylines"
                                 width="250"
                                 height="100"
