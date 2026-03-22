@@ -14,6 +14,8 @@ import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
 import LiveMapEditor from '@/components/storymap/LiveMapEditor';
 import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
+import ToolPalette from '@/components/storymap/ToolPalette';
+import SlideImagePositionModal from '@/components/storymap/SlideImagePositionModal';
 import FullscreenNavPill from '@/components/storymap/FullscreenNavPill';
 import LibraryPill from '@/components/storymap/LibraryPill';
 import ScaleBar from '@/components/storymap/ScaleBar';
@@ -24,7 +26,7 @@ import { fadeMapLayer } from '@/utils/mapLayerFade';
 import { createPageUrl } from '@/utils';
 
 import DocumentManagerContent from '@/components/documents/DocumentManagerContent';
-import { Loader2, LogOut, Pencil } from 'lucide-react';
+import { Loader2, LogOut, Pencil, Wrench } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 import { normalizeCoordinatePair, areCoordinatesEqual, isValidCoordinatePair } from '@/components/utils/coordinateUtils';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
@@ -119,6 +121,9 @@ export default function StoryMapView() {
 
     const [activeSlide, setActiveSlide] = useState(null);
     const [isLiveEditorOpen, setIsLiveEditorOpen] = useState(false);
+    const [showToolPalette, setShowToolPalette]         = useState(false);
+    const [addHotspotMode, setAddHotspotMode]           = useState(false);
+    const [showImagePositionModal, setShowImagePositionModal] = useState(false);
     const [showRoute, setShowRoute] = useState(true);
     const [showMarkers, setShowMarkers] = useState(true);
     const [isEditTransitioning, setIsEditTransitioning] = useState(false);
@@ -1619,7 +1624,6 @@ export default function StoryMapView() {
                                 onToggleRoute={() => setShowRoute(v => !v)}
                                 showMarkers={showMarkers}
                                 onToggleMarkers={() => setShowMarkers(v => !v)}
-                                onOpenMapEditor={() => setIsLiveEditorOpen(prev => !prev)}
                                 pinnedLayers={pinnedLayers}
                                 onToggleLayer={togglePinnedLayer}
                             />
@@ -1654,6 +1658,8 @@ export default function StoryMapView() {
                             hideChapterTitle={overlayMode === 'story'}
                             inOverlay={true}
                             chapterColorIndex={activeChapter >= 0 ? activeChapter % 6 : 0}
+                            addHotspotMode={addHotspotMode}
+                            onAddHotspotModeConsumed={() => setAddHotspotMode(false)}
                         />
 
                         {/* Bottom gradient */}
@@ -1906,6 +1912,25 @@ export default function StoryMapView() {
                 >
                     <div className={pillShell} style={{ width: 'auto', paddingInline: 0 }}>
 
+                        {/* Tools palette */}
+                        <div className="relative group h-full">
+                            <button
+                                onClick={() => setShowToolPalette(v => !v)}
+                                className="h-full px-5 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
+                                style={{ cursor: 'pointer' }}
+                                onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
+                                onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
+                                aria-label="Tools"
+                            >
+                                <Wrench className="w-4 h-4" />
+                            </button>
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-[10px] text-white text-xs font-light whitespace-nowrap uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none select-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                Tools
+                            </span>
+                        </div>
+
+                        {pillDivider}
+
                         {/* Edit story */}
                         <div className="relative group h-full">
                             <button
@@ -1959,6 +1984,36 @@ export default function StoryMapView() {
                     </div>
                 </div>
             )}
+
+            {/* Tool palette — anchored above user pill */}
+            {currentUser && (
+                <ToolPalette
+                    isOpen={showToolPalette}
+                    onClose={() => setShowToolPalette(false)}
+                    view={showStoryOverlay ? 'story' : 'map'}
+                    hasActiveSlide={!showStoryOverlay && !!activeSlide?.image}
+                    bottom={showStoryOverlay ? 156 : 78}
+                    onOpenMapEditor={() => setIsLiveEditorOpen(true)}
+                    onOpenImagePosition={() => setShowImagePositionModal(true)}
+                    onAddTooltip={() => setAddHotspotMode(true)}
+                />
+            )}
+
+            {/* Slide image position modal */}
+            <SlideImagePositionModal
+                slide={activeSlide}
+                isOpen={showImagePositionModal}
+                onClose={() => setShowImagePositionModal(false)}
+                onSaved={(slideId, pos) => {
+                    setChapters(prev => prev.map(ch => ({
+                        ...ch,
+                        slides: ch.slides?.map(sl =>
+                            sl.id === slideId ? { ...sl, image_position: pos } : sl
+                        ),
+                    })));
+                    setActiveSlide(prev => prev?.id === slideId ? { ...prev, image_position: pos } : prev);
+                }}
+            />
 
             </div>
         </StoryTranslationProvider>

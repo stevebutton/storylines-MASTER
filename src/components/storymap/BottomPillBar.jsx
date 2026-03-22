@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Navigation, MapPin, SlidersHorizontal, Plus, Minus, Compass } from 'lucide-react';
+import { Navigation, MapPin, Plus, Minus, Compass } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { pillShell, pillDivider } from './StoryViewPill';
 
@@ -29,7 +29,6 @@ export default function BottomPillBar({
     onToggleRoute,
     showMarkers = true,
     onToggleMarkers,
-    onOpenMapEditor,
     pinnedLayers = [],
     onToggleLayer,
 }) {
@@ -63,14 +62,6 @@ export default function BottomPillBar({
                     <MapPin className="w-4 h-4" />
                 </button>
 
-                {onOpenMapEditor && (
-                    <>
-                        {pillDivider}
-                        <button onClick={onOpenMapEditor} className={ctrl(false)} style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Map editor">
-                            <SlidersHorizontal className="w-4 h-4" />
-                        </button>
-                    </>
-                )}
             </div>
 
             {/* Layer toggles — each entry grows from width:0, pulling the pill

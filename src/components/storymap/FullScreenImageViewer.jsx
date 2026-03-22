@@ -251,6 +251,8 @@ export default function FullScreenImageViewer({
     hideChapterTitle  = false,
     inOverlay         = false,  // true when rendered as an overlay inside StoryMapView
     chapterColorIndex = 0,
+    addHotspotMode    = false,  // true = enter "place new hotspot" mode immediately
+    onAddHotspotModeConsumed = null,
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [activeHotspotPos, setActiveHotspotPos] = useState(null); // { x, y } | null
@@ -258,8 +260,9 @@ export default function FullScreenImageViewer({
     // Reposition mode state
     const { profile: currentUser } = useAuth();
     const canEdit = currentUser?.role === 'user' || currentUser?.role === 'admin';
-    const [repositioningIdx, setRepositioningIdx] = useState(null); // hotspot index being moved
-    const [pendingPos, setPendingPos]             = useState(null);  // { x, y, clientX, clientY }
+    const [isAddingHotspot, setIsAddingHotspot]   = useState(false); // placing a brand-new hotspot
+    const [repositioningIdx, setRepositioningIdx] = useState(null);  // hotspot index being moved
+    const [pendingPos, setPendingPos]             = useState(null);   // { x, y, clientX, clientY }
     const [pendingTitle, setPendingTitle]         = useState('');
     const [pendingBody, setPendingBody]           = useState('');
     const [saveState, setSaveState]               = useState(null); // null | 'saving' | 'saved' | 'error'
@@ -277,15 +280,17 @@ export default function FullScreenImageViewer({
     // Reset hotspot spotlight when slide changes or mode leaves 'story'
     useEffect(() => { setActiveHotspotPos(null); }, [currentIndex, viewMode]);
 
-    // Cancel repositioning on slide navigation
-    useEffect(() => { setRepositioningIdx(null); setPendingPos(null); setPendingTitle(''); setPendingBody(''); setSaveState(null); }, [currentIndex]);
+    // Cancel repositioning / add mode on slide navigation
+    useEffect(() => { setIsAddingHotspot(false); setRepositioningIdx(null); setPendingPos(null); setPendingTitle(''); setPendingBody(''); setSaveState(null); }, [currentIndex]);
 
     // Handle escape key — cancel reposition first, then close viewer
     useEffect(() => {
         if (!isOpen) return;
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
-                if (repositioningIdx !== null) {
+                if (isAddingHotspot) {
+                    setIsAddingHotspot(false);
+                } else if (repositioningIdx !== null) {
                     setRepositioningIdx(null);
                     setPendingPos(null);
                     setPendingTitle('');
@@ -299,6 +304,19 @@ export default function FullScreenImageViewer({
         window.addEventListener('keydown', handleEscape);
         return () => window.removeEventListener('keydown', handleEscape);
     }, [isOpen, onClose, repositioningIdx]);
+
+    // Activate "add new hotspot" mode when prop fires
+    useEffect(() => {
+        if (addHotspotMode && isOpen) {
+            setIsAddingHotspot(true);
+            setRepositioningIdx(null);
+            setPendingPos(null);
+            setPendingTitle('');
+            setPendingBody('');
+            setActiveHotspotPos(null);
+            onAddHotspotModeConsumed?.();
+        }
+    }, [addHotspotMode, isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!slides || slides.length === 0) return null;
 
@@ -334,11 +352,14 @@ export default function FullScreenImageViewer({
 
     const handleSaveReposition = async () => {
         setSaveState('saving');
-        const updated = slideHotspots.map((h, i) =>
-            i === repositioningIdx
-                ? { ...h, x: pendingPos.x, y: pendingPos.y, title: pendingTitle, body: pendingBody }
-                : h
-        );
+        const isNew = repositioningIdx >= slideHotspots.length;
+        const updated = isNew
+            ? [...slideHotspots, { x: pendingPos.x, y: pendingPos.y, title: pendingTitle, body: pendingBody }]
+            : slideHotspots.map((h, i) =>
+                i === repositioningIdx
+                    ? { ...h, x: pendingPos.x, y: pendingPos.y, title: pendingTitle, body: pendingBody }
+                    : h
+              );
         const { error } = await supabase
             .from('slides').update({ hotspots: updated }).eq('id', currentSlide.id);
         if (error) {
@@ -467,13 +488,18 @@ export default function FullScreenImageViewer({
                                 />
                             )}
 
-                            {/* Click-capture overlay — intercepts clicks to pick new hotspot position */}
-                            {repositioningIdx !== null && (
+                            {/* Click-capture overlay — intercepts clicks to pick hotspot position */}
+                            {(repositioningIdx !== null || isAddingHotspot) && (
                                 <div
                                     className="absolute inset-0 z-30 cursor-crosshair"
                                     onClick={(e) => {
                                         const rect = imageContainerRef.current.getBoundingClientRect();
-                                        const h = slideHotspots[repositioningIdx];
+                                        const idx = isAddingHotspot ? slideHotspots.length : repositioningIdx;
+                                        const h = slideHotspots[idx];
+                                        if (isAddingHotspot) {
+                                            setIsAddingHotspot(false);
+                                            setRepositioningIdx(slideHotspots.length);
+                                        }
                                         setPendingTitle(h?.title || '');
                                         setPendingBody(h?.body ? h.body.replace(/<[^>]*>/g, '') : '');
                                         setPendingPos({
@@ -563,9 +589,12 @@ export default function FullScreenImageViewer({
         )}
 
         {/* Instruction banner — portalled to body to escape blur compositing layer */}
-        {isOpen && repositioningIdx !== null && pendingPos === null && createPortal(
+        {isOpen && (repositioningIdx !== null || isAddingHotspot) && pendingPos === null && createPortal(
             <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[300100] bg-amber-500 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg pointer-events-none whitespace-nowrap">
-                Hotspot {repositioningIdx + 1}&nbsp;&nbsp;·&nbsp;&nbsp;Click image to set new position&nbsp;&nbsp;·&nbsp;&nbsp;Esc to cancel
+                {isAddingHotspot
+                    ? 'Click image to place tooltip\u00a0\u00a0·\u00a0\u00a0Esc to cancel'
+                    : `Hotspot ${repositioningIdx + 1}\u00a0\u00a0·\u00a0\u00a0Click image to set new position\u00a0\u00a0·\u00a0\u00a0Esc to cancel`
+                }
             </div>,
             document.body
         )}
