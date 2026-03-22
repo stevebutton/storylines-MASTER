@@ -42,19 +42,10 @@ function SingleHotspot({
 }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const color = CHAPTER_COLORS[chapterColorIndex % CHAPTER_COLORS.length];
-    // Card appears to the right by default; flips left when near the right edge.
-    const toLeft = x > 0.7;
-    const cardStyle = {
-        top: '50%',
-        transform: 'translateY(-50%)',
-        ...(toLeft
-            ? { right: '100%', marginRight: 50 }
-            : { left: '100%', marginLeft: 50 }),
-    };
 
     return (
         <div
-            className="absolute z-20"
+            className="absolute z-[10000]"
             style={{
                 left: `${x * 100}%`,
                 top: `${y * 100}%`,
@@ -84,9 +75,11 @@ function SingleHotspot({
             >
                 <span className="text-white text-xs font-bold select-none">{index + 1}</span>
             </motion.div>
+
+            {/* Card — appears below the dot, centred on it */}
             <AnimatePresence>
                 {isOpen && (
-                    <div className="absolute" style={cardStyle}>
+                    <div className="absolute" style={{ top: '100%', left: '50%', transform: 'translateX(calc(-50% + 25px))', marginTop: 12 }}>
                         <motion.div
                             initial={{ opacity: 0, backdropFilter: 'blur(0px)', y: 6 }}
                             animate={{ opacity: 1, backdropFilter: 'blur(24px)', y: 0 }}
@@ -94,16 +87,12 @@ function SingleHotspot({
                             transition={{ duration: 0.35 }}
                             className="w-64 rounded-xl pointer-events-none"
                             style={{
-                                transform: 'translateY(-50%)',
                                 paddingTop: 12, paddingBottom: 32, paddingLeft: 26, paddingRight: 26,
                                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.15))',
                             }}
                         >
                             {title && (
-                                <p
-                                    className="text-base font-light text-white mb-2"
-                                    style={{ fontFamily: themeFont }}
-                                >
+                                <p className="text-base font-light text-white mb-2" style={{ fontFamily: themeFont }}>
                                     {title}
                                 </p>
                             )}
@@ -442,7 +431,7 @@ export default function FullScreenImageViewer({
                                 {activeHotspotPos && (
                                     <>
                                         {!currentSlide.video_url ? (
-                                            /* Image: sharp copy of the image masked to the spotlight circle */
+                                            /* Image: sharp copy masked to the spotlight circle */
                                             <motion.img
                                                 key="spotlight"
                                                 src={currentSlide.image}
@@ -454,12 +443,12 @@ export default function FullScreenImageViewer({
                                                 className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                                                 style={{
                                                     objectPosition: currentSlide.image_position || '50% 50%',
-                                                    maskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 220px, transparent 220px)`,
-                                                    WebkitMaskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 220px, transparent 220px)`,
+                                                    maskImage: `radial-gradient(circle at calc(${activeHotspotPos.x * 100}% - 190px) calc(${activeHotspotPos.y * 100}% + 110px), black 220px, transparent 220px)`,
+                                                    WebkitMaskImage: `radial-gradient(circle at calc(${activeHotspotPos.x * 100}% - 190px) calc(${activeHotspotPos.y * 100}% + 110px), black 220px, transparent 220px)`,
                                                 }}
                                             />
                                         ) : (
-                                            /* Video: backdrop-filter overlay masked to outside the circle */
+                                            /* Video: backdrop-filter overlay masked outside the spotlight circle */
                                             <motion.div
                                                 key="video-spotlight"
                                                 initial={{ opacity: 0 }}
@@ -470,12 +459,12 @@ export default function FullScreenImageViewer({
                                                 style={{
                                                     backdropFilter: 'blur(8px) grayscale(30%)',
                                                     WebkitBackdropFilter: 'blur(8px) grayscale(30%)',
-                                                    maskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, transparent 220px, black 220px)`,
-                                                    WebkitMaskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, transparent 220px, black 220px)`,
+                                                    maskImage: `radial-gradient(circle at calc(${activeHotspotPos.x * 100}% - 190px) calc(${activeHotspotPos.y * 100}% + 110px), transparent 220px, black 220px)`,
+                                                    WebkitMaskImage: `radial-gradient(circle at calc(${activeHotspotPos.x * 100}% - 190px) calc(${activeHotspotPos.y * 100}% + 110px), transparent 220px, black 220px)`,
                                                 }}
                                             />
                                         )}
-                                        {/* White inset ring at spotlight edge — same for image and video */}
+                                        {/* White inset ring — centre offset 220px below dot so dot sits on the ring border */}
                                         <motion.div
                                             key="spotlight-ring"
                                             initial={{ opacity: 0 }}
@@ -486,8 +475,8 @@ export default function FullScreenImageViewer({
                                             style={{
                                                 width: 440,
                                                 height: 440,
-                                                left: `${activeHotspotPos.x * 100}%`,
-                                                top: `${activeHotspotPos.y * 100}%`,
+                                                left: `calc(${activeHotspotPos.x * 100}% - 190px)`,
+                                                top: `calc(${activeHotspotPos.y * 100}% + 110px)`,
                                                 transform: 'translate(-50%, -50%)',
                                                 boxShadow: 'inset 0 0 0 15px rgba(255,255,255,0.35)',
                                             }}
