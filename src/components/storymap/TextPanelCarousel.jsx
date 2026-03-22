@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { supabase } from '@/api/supabaseClient';
 
 const PANEL_WIDTH = 380;
 
@@ -58,6 +59,136 @@ const THEME_FONTS = {
     k: 'Oswald, sans-serif',
 };
 
+// ── Inline save helper ────────────────────────────────────────────────────────
+
+async function saveSlideField(slideId, field, value) {
+    const { error } = await supabase
+        .from('slides')
+        .update({ [field]: value || null })
+        .eq('id', slideId);
+    return !error;
+}
+
+// ── Editable inline field components ─────────────────────────────────────────
+
+/** Single-line inline editor — renders as styled text or input */
+function InlineText({ value, onSave, className, style, placeholder = 'Click to edit…', tag: Tag = 'span' }) {
+    const [editing, setEditing]   = useState(false);
+    const [draft, setDraft]       = useState(value || '');
+    const [saveState, setSaveState] = useState(null); // null | 'saving' | 'saved'
+    const inputRef = useRef(null);
+
+    useEffect(() => { setDraft(value || ''); }, [value]);
+    useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
+
+    const commit = useCallback(async () => {
+        setEditing(false);
+        if (draft === (value || '')) return;
+        setSaveState('saving');
+        const ok = await onSave(draft.trim());
+        setSaveState(ok ? 'saved' : null);
+        if (ok) setTimeout(() => setSaveState(null), 1500);
+    }, [draft, value, onSave]);
+
+    if (editing) {
+        return (
+            <input
+                ref={inputRef}
+                value={draft}
+                onChange={e => setDraft(e.target.value)}
+                onBlur={commit}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } if (e.key === 'Escape') { setDraft(value || ''); setEditing(false); } }}
+                className={className}
+                style={{ ...style, background: 'rgba(255,255,255,0.12)', border: 'none', outline: 'none', borderBottom: '1px solid rgba(255,255,255,0.4)', width: '100%', borderRadius: 0 }}
+                placeholder={placeholder}
+            />
+        );
+    }
+
+    return (
+        <Tag
+            className={`${className} group/edit relative cursor-text`}
+            style={style}
+            onClick={() => setEditing(true)}
+            title="Click to edit"
+        >
+            {value || <span className="opacity-30 italic">{placeholder}</span>}
+            {saveState === 'saved' && (
+                <span className="ml-2 text-xs text-green-400 font-normal not-italic">✓</span>
+            )}
+            <span className="absolute -right-5 top-0 opacity-0 group-hover/edit:opacity-60 transition-opacity text-white text-xs select-none pointer-events-none">✎</span>
+        </Tag>
+    );
+}
+
+/** Multi-line body editor — replaces pagination with textareas for description + extended */
+function BodyEditor({ description, extendedContent, onSaveDescription, onSaveExtended, allowExtended, onDone }) {
+    const [desc, setDesc]       = useState(description || '');
+    const [ext, setExt]         = useState(extendedContent || '');
+    const [saveState, setSaveState] = useState(null);
+
+    const save = useCallback(async () => {
+        setSaveState('saving');
+        const results = await Promise.all([
+            desc !== (description || '') ? onSaveDescription(desc) : Promise.resolve(true),
+            allowExtended && ext !== (extendedContent || '') ? onSaveExtended(ext) : Promise.resolve(true),
+        ]);
+        setSaveState(results.every(Boolean) ? 'saved' : 'error');
+        if (results.every(Boolean)) setTimeout(() => { setSaveState(null); onDone(); }, 800);
+    }, [desc, ext, description, extendedContent, onSaveDescription, onSaveExtended, allowExtended, onDone]);
+
+    const taClass = 'w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm leading-relaxed resize-none focus:outline-none focus:border-white/50 transition-colors text-right';
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-1 text-right">Description</p>
+                <textarea
+                    value={desc}
+                    onChange={e => setDesc(e.target.value)}
+                    rows={4}
+                    className={taClass}
+                    style={{ fontFamily: 'Raleway, sans-serif' }}
+                    placeholder="Slide description…"
+                    autoFocus
+                />
+            </div>
+            {allowExtended && (
+                <div>
+                    <p className="text-white/40 text-xs uppercase tracking-wider mb-1 text-right">Extended content</p>
+                    <textarea
+                        value={ext}
+                        onChange={e => setExt(e.target.value)}
+                        rows={5}
+                        className={taClass}
+                        style={{ fontFamily: 'Raleway, sans-serif' }}
+                        placeholder="Additional content…"
+                    />
+                </div>
+            )}
+            <div className="flex items-center justify-end gap-2 pt-1">
+                {saveState === 'error' && <span className="text-red-400 text-xs">Save failed</span>}
+                {saveState === 'saved' && <span className="text-green-400 text-xs">✓ Saved</span>}
+                <button
+                    onClick={onDone}
+                    className="px-3 py-1.5 text-xs text-white/60 hover:text-white transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    onClick={save}
+                    disabled={saveState === 'saving'}
+                    className="px-4 py-1.5 text-xs bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white rounded-lg transition-colors"
+                >
+                    {saveState === 'saving' ? 'Saving…' : 'Save'}
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * TextPanelCarousel
  *
@@ -69,6 +200,8 @@ const THEME_FONTS = {
  * Entrance: panel slides in from left on mount; content elements
  * stagger in sequentially. No per-slide transition — content
  * updates in place without re-animating.
+ *
+ * canEdit + onSaved enable inline editing for editors/admins.
  */
 const TextPanelCarousel = ({
     chapterTitle,
@@ -77,16 +210,20 @@ const TextPanelCarousel = ({
     extendedContent,
     location,
     slideId,
-    mapStyle = 'a',
-    initialOpen = true,
+    chapterId     = null,
+    mapStyle      = 'a',
+    initialOpen   = true,
+    canEdit       = false,
+    allowExtended = false,  // show extended_content editor (Story View)
+    onSaved       = null,   // (slideId, field, value) => void — update parent state
+    onChapterNameSaved = null, // (chapterId, name) => void — update parent state
 }) => {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
-    const [currentPage, setCurrentPage] = useState(0);
-    const [isPanelOpen, setIsPanelOpen] = useState(initialOpen);
+    const [currentPage, setCurrentPage]   = useState(0);
+    const [isPanelOpen, setIsPanelOpen]   = useState(initialOpen);
     const [contentHeight, setContentHeight] = useState('auto');
-    const pageRefs = useRef([]);
-    const titleControls = useAnimation();
-    const bodyControls  = useAnimation();
+    const [editingBody, setEditingBody]   = useState(false);
+    const pageRefs    = useRef([]);
 
     // Build paginated content
     const extendedArray = Array.isArray(extendedContent)
@@ -104,6 +241,7 @@ const TextPanelCarousel = ({
     // Reset to page 0 on slide change
     useEffect(() => {
         setCurrentPage(0);
+        setEditingBody(false);
     }, [chapterTitle, slideTitle]);
 
     // Measure page height
@@ -120,21 +258,8 @@ const TextPanelCarousel = ({
         return () => clearTimeout(t);
     }, [slideTitle]);
 
-    // Re-animate title and body when the slide changes.
-    // Using controls (instead of key) avoids double-rendering the element.
-    useEffect(() => {
-        titleControls.set({ opacity: 0, y: 12 });
-        titleControls.start({ opacity: 1, y: 0, transition: { delay: 0.5, duration: 0.55, ease: 'easeOut' } });
-        bodyControls.set({ opacity: 0, y: 12 });
-        bodyControls.start({ opacity: 1, y: 0, transition: { delay: 1.0, duration: 0.55, ease: 'easeOut' } });
-    }, [slideTitle]);
-
-    const nextPage = () => {
-        if (currentPage < pages.length - 1) setCurrentPage(p => p + 1);
-    };
-    const prevPage = () => {
-        if (currentPage > 0) setCurrentPage(p => p - 1);
-    };
+    const nextPage = () => { if (currentPage < pages.length - 1) setCurrentPage(p => p + 1); };
+    const prevPage = () => { if (currentPage > 0) setCurrentPage(p => p - 1); };
 
     // Shared entrance transition for content elements — staggered delays
     const el = (delay) => ({
@@ -143,9 +268,29 @@ const TextPanelCarousel = ({
         transition: { delay, duration: 0.55, ease: 'easeOut' },
     });
 
+    // Save helpers — Supabase write + parent state update
+    const makeSaver = useCallback((field) => async (value) => {
+        const ok = await saveSlideField(slideId, field, value);
+        if (ok) onSaved?.(slideId, field, value);
+        return ok;
+    }, [slideId, onSaved]);
+
+    const saveTitle       = useCallback(makeSaver('title'),            [makeSaver]);
+    const saveLocation    = useCallback(makeSaver('location'),         [makeSaver]);
+    const saveDescription = useCallback(makeSaver('description'),      [makeSaver]);
+    const saveExtended    = useCallback(makeSaver('extended_content'), [makeSaver]);
+
+    const saveChapterName = useCallback(async (value) => {
+        if (!chapterId) return false;
+        const { error } = await supabase
+            .from('chapters')
+            .update({ name: value || null })
+            .eq('id', chapterId);
+        if (!error) onChapterNameSaved?.(chapterId, value);
+        return !error;
+    }, [chapterId, onChapterNameSaved]);
+
     return (
-        // Outer wrapper — panel + tab translate together via Framer Motion.
-        // initial: off-screen left  →  animate: in-view or collapsed based on isPanelOpen.
         <motion.div
             className="fixed left-0 top-[100px] bottom-0 z-[9999] flex items-stretch pointer-events-auto"
             initial={{ x: -(PANEL_WIDTH + 48) }}
@@ -154,8 +299,6 @@ const TextPanelCarousel = ({
             transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
         >
             {/* ── Text panel ── */}
-            {/* Blur + gradient on a separate stable layer so it never re-paints
-                during slide-change animations, preventing the snap-to-blur artifact. */}
             <div className="relative overflow-y-auto flex-shrink-0 rounded-br-2xl" style={{ width: PANEL_WIDTH }}>
                 <div
                     className="absolute inset-0 backdrop-blur-xl pointer-events-none rounded-br-2xl"
@@ -166,8 +309,7 @@ const TextPanelCarousel = ({
                 />
                 <div className="relative p-8 space-y-5">
 
-                    {/* Eyebrow block — fixed-height, bottom-aligned: chapter prefix/title + Location.
-                        Location is the anchor that aligns with the timeline track. */}
+                    {/* Eyebrow block */}
                     <div key={slideId} style={{ minHeight: 130, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 12 }}>
                         {chapterTitle && (() => {
                             const colonIdx = chapterTitle.indexOf(': ');
@@ -181,39 +323,100 @@ const TextPanelCarousel = ({
                                     {prefix && (
                                         <p className="text-lg font-medium text-white/70" style={{ fontFamily: themeFont }}>{prefix}</p>
                                     )}
-                                    <p className="text-xl font-medium text-white" style={{ fontFamily: themeFont }}>{title}</p>
+                                    {canEdit && chapterId ? (
+                                        <InlineText
+                                            value={title}
+                                            onSave={saveChapterName}
+                                            className="text-xl font-medium text-white"
+                                            style={{ fontFamily: themeFont, textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                                            placeholder="Chapter name…"
+                                            tag="p"
+                                        />
+                                    ) : (
+                                        <p className="text-xl font-medium text-white" style={{ fontFamily: themeFont }}>{title}</p>
+                                    )}
                                 </motion.div>
                             );
                         })()}
 
-                        {location && (
+                        {/* Location — inline editable */}
+                        {(location || canEdit) && (
                             <motion.div
                                 {...el(0.6)}
                                 className="flex items-center justify-end"
                                 style={{ paddingRight: 15 }}
                             >
-                                <span className="text-sm text-white" style={{ fontFamily: themeFont }}>
-                                    {location}
-                                </span>
+                                {canEdit ? (
+                                    <InlineText
+                                        value={location}
+                                        onSave={saveLocation}
+                                        className="text-sm text-white"
+                                        style={{ fontFamily: themeFont, textAlign: 'right' }}
+                                        placeholder="Add location…"
+                                    />
+                                ) : (
+                                    <span className="text-sm text-white" style={{ fontFamily: themeFont }}>
+                                        {location}
+                                    </span>
+                                )}
                             </motion.div>
                         )}
                     </div>
 
-                    {/* Content block — slide title, description, extended content */}
-                    {slideTitle && (
-                        <motion.h3
-                            animate={titleControls}
+                    {/* Slide title — inline editable; keyed so it re-animates on slide change */}
+                    {(slideTitle || canEdit) && (
+                        <motion.div
+                            key={`title-${slideId}`}
                             initial={{ opacity: 0, y: 12 }}
-                            className="text-5xl font-light text-white text-right"
-                            style={{ fontFamily: themeFont, lineHeight: '0.95' }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.55, ease: 'easeOut' }}
                         >
-                            {slideTitle}
-                        </motion.h3>
+                            {canEdit ? (
+                                <InlineText
+                                    value={slideTitle}
+                                    onSave={saveTitle}
+                                    className="text-5xl font-light text-white text-right block w-full"
+                                    style={{ fontFamily: themeFont, lineHeight: '0.95' }}
+                                    placeholder="Add title…"
+                                    tag="div"
+                                />
+                            ) : (
+                                <h3
+                                    className="text-5xl font-light text-white text-right"
+                                    style={{ fontFamily: themeFont, lineHeight: '0.95' }}
+                                >
+                                    {slideTitle}
+                                </h3>
+                            )}
+                        </motion.div>
                     )}
 
-                    {/* Paginated body — re-animates via controls on each slide change */}
-                    {pages.length > 0 && (
-                        <motion.div animate={bodyControls} initial={{ opacity: 0, y: 12 }}>
+                    {/* Body — paginated display or inline editor */}
+                    {canEdit && editingBody ? (
+                        /* Editor opens instantly — no entrance delay */
+                        <motion.div
+                            key="body-editor"
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
+                        >
+                            <BodyEditor
+                                description={description}
+                                extendedContent={typeof extendedContent === 'string' ? extendedContent : (extendedContent?.[0] || '')}
+                                onSaveDescription={saveDescription}
+                                onSaveExtended={saveExtended}
+                                allowExtended={allowExtended}
+                                onDone={() => setEditingBody(false)}
+                            />
+                        </motion.div>
+                    ) : pages.length > 0 ? (
+                        /* Keyed so it re-animates on slide change */
+                        <motion.div
+                            key={`body-${slideId}`}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.0, duration: 0.55, ease: 'easeOut' }}
+                        >
                             <motion.div
                                 className="relative overflow-hidden"
                                 animate={{ height: contentHeight }}
@@ -226,9 +429,14 @@ const TextPanelCarousel = ({
                                         className={index === currentPage ? 'block' : 'hidden'}
                                     >
                                         <div
-                                            className="leading-relaxed text-base font-light prose prose-sm max-w-none text-right prose-invert"
+                                            className={[
+                                                'leading-relaxed text-base font-light prose prose-sm max-w-none text-right prose-invert',
+                                                canEdit ? 'cursor-text hover:bg-white/10 rounded-lg px-2 -mx-2 transition-colors' : '',
+                                            ].join(' ')}
                                             style={{ color: 'white' }}
                                             dangerouslySetInnerHTML={{ __html: page.content }}
+                                            onClick={canEdit ? () => setEditingBody(true) : undefined}
+                                            title={canEdit ? 'Click to edit' : undefined}
                                         />
                                     </div>
                                 ))}
@@ -272,11 +480,26 @@ const TextPanelCarousel = ({
                                 </div>
                             )}
                         </motion.div>
-                    )}
+                    ) : canEdit ? (
+                        /* Empty body — placeholder when canEdit and no content */
+                        <motion.div
+                            key={`body-empty-${slideId}`}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.0, duration: 0.55, ease: 'easeOut' }}
+                        >
+                            <div
+                                className="text-white/30 text-sm text-right italic cursor-text hover:bg-white/10 rounded-lg px-2 py-3 -mx-2 transition-colors"
+                                onClick={() => setEditingBody(true)}
+                            >
+                                Click to add description…
+                            </div>
+                        </motion.div>
+                    ) : null}
                 </div>
             </div>
 
-            {/* ── Collapse tab — stays at left edge when panel is hidden ── */}
+            {/* ── Collapse tab ── */}
             <button
                 onClick={() => setIsPanelOpen(open => !open)}
                 className="self-center w-8 h-16 backdrop-blur-xl rounded-r-xl

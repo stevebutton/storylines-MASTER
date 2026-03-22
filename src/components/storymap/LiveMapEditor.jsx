@@ -2,9 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
+import * as SliderPrimitive from '@radix-ui/react-slider';
 import { X, Crosshair, MapPin, Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 
 export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanceRef, onSlideSave }) {
@@ -113,9 +112,7 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
     };
 
     // Capture View: reads zoom, bearing, pitch AND map centre (flyTo target).
-    // The amber dot moves to the new centre — use Pin Location to set a precise point instead.
     const captureMapPosition = () => {
-        // Update state immediately so the button reacts even if map calls fail
         setJustCaptured(true);
         setTimeout(() => setJustCaptured(false), 1500);
 
@@ -168,7 +165,6 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         try {
             const patchData = { zoom, bearing, pitch, fly_duration: flyDuration };
             if (coordinatesModified && coordinates) patchData.coordinates = coordinates;
-            console.log('[LiveMapEditor] Saving slide', activeSlide.id, patchData);
             const { error } = await supabase
                 .from('slides')
                 .update(patchData)
@@ -189,103 +185,108 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0, x: -20, y: '-50%' }}
-                    animate={{ opacity: 1, x: 0, y: '-50%' }}
-                    exit={{ opacity: 0, x: -20, y: '-50%' }}
-                    transition={{ type: 'tween', duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="fixed top-1/2 left-[40px] z-[9990] w-[300px] bg-white/97 backdrop-blur-xl rounded-xl shadow-2xl border border-slate-200/60"
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 16 }}
+                    transition={{ type: 'tween', duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="fixed left-0 z-[9990] bg-black/50 backdrop-blur-xl border border-white/20 shadow-2xl rounded-tr-2xl"
+                    style={{ bottom: 88, width: 380 }}
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                         <div className="min-w-0">
-                            <div className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Map Editor</div>
-                            <div className="text-base font-semibold text-slate-800 truncate">{slideLabel}</div>
+                            <div className="text-[10px] font-medium text-white/50 uppercase tracking-widest">Map Editor</div>
+                            <div className="text-sm font-medium text-white truncate">{slideLabel}</div>
                         </div>
-                        <button onClick={onClose} className="ml-2 shrink-0 text-slate-400 hover:text-slate-700 transition-colors">
+                        <button onClick={onClose} className="ml-2 shrink-0 text-white/40 hover:text-white transition-colors">
                             <X className="w-4 h-4" />
                         </button>
                     </div>
 
                     {/* Sliders */}
-                    <div className="px-4 py-3 space-y-3">
-                        <SliderRow label="Zoom" value={zoom} min={1} max={20} step={0.5}
-                            display={zoom.toFixed(1)} onChange={v => handleSliderChange('zoom', v)} />
-                        <SliderRow label="Bearing" value={bearing} min={-180} max={180} step={1}
-                            display={`${bearing}°`} onChange={v => handleSliderChange('bearing', v)} />
-                        <SliderRow label="Pitch" value={pitch} min={0} max={85} step={1}
-                            display={`${pitch}°`} onChange={v => handleSliderChange('pitch', v)} />
-                        <SliderRow label="Fly (s)" value={flyDuration} min={1} max={20} step={0.5}
-                            display={`${flyDuration}s`} onChange={v => handleSliderChange('flyDuration', v)} />
+                    <div className="px-4 py-3 space-y-3.5">
+                        <SliderRow label="Zoom"    value={zoom}        min={1}    max={20}  step={0.5}
+                            display={zoom.toFixed(1)}    onChange={v => handleSliderChange('zoom', v)} />
+                        <SliderRow label="Bearing" value={bearing}     min={-180} max={180} step={1}
+                            display={`${bearing}°`}      onChange={v => handleSliderChange('bearing', v)} />
+                        <SliderRow label="Pitch"   value={pitch}       min={0}    max={85}  step={1}
+                            display={`${pitch}°`}        onChange={v => handleSliderChange('pitch', v)} />
+                        <SliderRow label="Fly (s)" value={flyDuration} min={1}    max={20}  step={0.5}
+                            display={`${flyDuration}s`}  onChange={v => handleSliderChange('flyDuration', v)} />
                     </div>
 
-                    {/* Buttons */}
+                    {/* Action buttons */}
                     <div className="px-4 pb-3 space-y-2">
 
-                        {/* Capture View — orientation + centre */}
+                        {/* Capture View */}
                         <div>
                             <button
                                 onClick={captureMapPosition}
                                 className={`w-full py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
                                     justCaptured
-                                        ? 'bg-green-100 text-green-800 border border-green-300'
-                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                                        ? 'bg-white text-slate-900'
+                                        : 'bg-white/10 hover:bg-white/20 text-white/80 hover:text-white'
                                 }`}
                             >
-                                <Crosshair className="w-4 h-4" />
+                                <Crosshair className="w-4 h-4 shrink-0" />
                                 {justCaptured ? 'Captured ✓' : 'Capture View'}
                             </button>
-                            <p className="text-xs text-slate-600 text-center mt-1 leading-snug">
+                            <p className="text-xs text-white/55 text-center mt-1.5 leading-snug px-1">
                                 {justCaptured
-                                    ? `zoom ${zoom.toFixed(1)}  bearing ${bearing}°  pitch ${pitch}°`
-                                    : 'Captures zoom, bearing & pitch. Use Pin Location to move the map target.'}
+                                    ? `zoom ${zoom.toFixed(1)}  ·  bearing ${bearing}°  ·  pitch ${pitch}°`
+                                    : 'Captures zoom, bearing & pitch from the live map'}
                             </p>
                         </div>
 
-                        {/* Set Location — click-to-pin flyTo target */}
+                        {/* Pin Location */}
                         <div>
                             {isPickingLocation ? (
                                 <button
                                     onClick={cancelPickMode}
-                                    className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-sm font-medium text-white flex items-center justify-center gap-2 transition-colors"
+                                    className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-sm font-medium text-white flex items-center justify-center gap-2 transition-colors"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-4 h-4 shrink-0" />
                                     Cancel — click map to pin
                                 </button>
                             ) : (
                                 <button
                                     onClick={startPickMode}
-                                    className="w-full py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-medium text-slate-700 flex items-center justify-center gap-2 transition-colors"
+                                    className="w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-medium text-white/80 hover:text-white flex items-center justify-center gap-2 transition-colors"
                                 >
-                                    <MapPin className="w-4 h-4" />
+                                    <MapPin className="w-4 h-4 shrink-0" />
                                     Pin Location
                                 </button>
                             )}
-                            <p className="text-xs text-slate-600 text-center mt-1 leading-snug">
+                            <p className="text-xs text-white/55 text-center mt-1.5 leading-snug px-1">
                                 {isPickingLocation
                                     ? 'Click the exact spot on the map'
-                                    : 'Click a precise point as the flyTo target'}
+                                    : 'Set a precise flyTo target point'}
                             </p>
                         </div>
 
                         {coordinates && (
-                            <p className="text-xs text-slate-500 text-center font-mono pt-0.5">
+                            <p className="text-xs text-white/45 text-center font-mono pt-0.5">
                                 {coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}
-                                {coordinatesModified && <span className="text-amber-500"> *</span>}
+                                {coordinatesModified && <span className="text-amber-400"> *</span>}
                             </p>
                         )}
                     </div>
 
                     {/* Footer */}
-                    <div className="px-4 pb-4 flex gap-2 justify-end border-t border-slate-100 pt-3">
-                        <Button size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
-                        <Button
-                            size="sm"
+                    <div className="px-4 pb-4 flex gap-2 justify-end border-t border-white/10 pt-3">
+                        <button
+                            onClick={onClose}
+                            className="px-3 py-1.5 text-xs text-white/55 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+                        >
+                            Cancel
+                        </button>
+                        <button
                             onClick={handleSave}
                             disabled={isSaving || !activeSlide?.id}
-                            className="bg-slate-800 hover:bg-slate-700 text-white"
+                            className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium bg-white hover:bg-white/90 text-slate-900 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                            {isSaving ? 'Saving…' : <><Save className="w-3 h-3 mr-1" />Save</>}
-                        </Button>
+                            {isSaving ? 'Saving…' : <><Save className="w-3 h-3" />Save</>}
+                        </button>
                     </div>
                 </motion.div>
             )}
@@ -296,10 +297,18 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
 function SliderRow({ label, value, min, max, step, display, onChange }) {
     return (
         <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-500 w-[52px] shrink-0">{label}</span>
-            <Slider min={min} max={max} step={step} value={[value]}
-                onValueChange={([v]) => onChange(v)} className="flex-1" />
-            <span className="text-xs font-mono text-slate-700 w-[40px] text-right shrink-0">{display}</span>
+            <span className="text-[11px] text-white/50 w-[52px] shrink-0">{label}</span>
+            <SliderPrimitive.Root
+                className="relative flex flex-1 touch-none select-none items-center"
+                min={min} max={max} step={step} value={[value]}
+                onValueChange={([v]) => onChange(v)}
+            >
+                <SliderPrimitive.Track className="relative h-[3px] w-full grow overflow-hidden rounded-full bg-white/20">
+                    <SliderPrimitive.Range className="absolute h-full bg-white/60" />
+                </SliderPrimitive.Track>
+                <SliderPrimitive.Thumb className="block h-3.5 w-3.5 rounded-full bg-white shadow-md focus-visible:outline-none cursor-pointer" />
+            </SliderPrimitive.Root>
+            <span className="text-[11px] font-mono text-white/70 w-[40px] text-right shrink-0">{display}</span>
         </div>
     );
 }

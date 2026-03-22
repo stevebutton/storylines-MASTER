@@ -8,6 +8,8 @@ import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 import { createPageUrl } from '@/utils';
 import { useTranslation } from '@/contexts/StoryTranslationContext';
+import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/api/supabaseClient';
 
 const THEME_FONTS = {
     c: 'Righteous, cursive',
@@ -42,12 +44,23 @@ export default function StoryChapter({
     onExplore,
     storyId = null,
     onOpenFullscreen = null,
+    onSlideFieldUpdate = null,
+    onChapterFieldUpdate = null,
+    isLastChapter = false,
+    onNextChapter = null,
+    nextChapterName = null,
 }) {
     const themeFont = THEME_FONTS[mapStyle] || null;
     const titleColorClass = TITLE_COLORS[mapStyle] || 'text-amber-400';
     const chapterColor = CHAPTER_COLORS[index % CHAPTER_COLORS.length];
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { profile } = useAuth();
+    const canEdit = profile?.role === 'user' || profile?.role === 'admin';
+    const [editingField, setEditingField]           = useState(null); // 'title' | 'description' | 'location' | null
+    const [draft, setDraft]                         = useState('');
+    const [editingChapterName, setEditingChapterName] = useState(false);
+    const [chapterNameDraft, setChapterNameDraft]     = useState('');
     const [showCarousel, setShowCarousel] = useState(false);
 
     const handleOpenCarousel = (e) => {
@@ -79,6 +92,8 @@ export default function StoryChapter({
         if (!isActive) {
             setShowCarousel(false);
             setActiveSlideIndex(0);
+            setEditingField(null);
+            setEditingChapterName(false);
         }
     }, [isActive]);
 
@@ -162,10 +177,48 @@ export default function StoryChapter({
 
     const handleSlideChange = (slideIndex) => {
         setActiveSlideIndex(slideIndex);
+        setEditingField(null);
         const slide = chapter.slides?.[slideIndex];
         if (slide && onSlideChange) {
             onSlideChange(slide);
         }
+    };
+
+    // Inline edit helpers
+    const startEdit = (field) => {
+        if (!currentSlide?.id) return;
+        let value = currentSlide?.[field] || '';
+        // Strip HTML for description textarea
+        if (field === 'description' && value) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = value;
+            value = tmp.textContent || '';
+        }
+        setDraft(value);
+        setEditingField(field);
+    };
+
+    const commitEdit = async () => {
+        if (!editingField || !currentSlide?.id) { setEditingField(null); return; }
+        const value = draft.trim();
+        setEditingField(null);
+        if (value === (currentSlide[editingField] || '')) return;
+        const { error } = await supabase
+            .from('slides')
+            .update({ [editingField]: value || null })
+            .eq('id', currentSlide.id);
+        if (!error) onSlideFieldUpdate?.(currentSlide.id, editingField, value);
+    };
+
+    const commitChapterNameEdit = async () => {
+        setEditingChapterName(false);
+        const value = chapterNameDraft.trim();
+        if (value === (chapter.name || '')) return;
+        const { error } = await supabase
+            .from('chapters')
+            .update({ name: value || null })
+            .eq('id', chapter.id);
+        if (!error) onChapterFieldUpdate?.(chapter.id, 'name', value);
     };
 
     return (
@@ -234,16 +287,31 @@ export default function StoryChapter({
                                     >
                                         {t('chapter_prefix')} {String(index + 1).padStart(2, '0')}
                                     </motion.span>
-                                    {chapter.name && (
-                                        <motion.span
-                                            className={`block text-5xl font-light ${titleColorClass}`}
-                                            style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}
-                                            initial={{ opacity: 0, y: 75 }}
-                                            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 75 }}
-                                            transition={{ duration: 1.1, ease: 'easeOut', delay: delay / 1000 + 2.9 }}
-                                        >
-                                            {chapter.name}
-                                        </motion.span>
+                                    {(chapter.name || canEdit) && (
+                                        canEdit && editingChapterName ? (
+                                            <input
+                                                autoFocus
+                                                value={chapterNameDraft}
+                                                onChange={e => setChapterNameDraft(e.target.value)}
+                                                onBlur={commitChapterNameEdit}
+                                                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commitChapterNameEdit(); } if (e.key === 'Escape') setEditingChapterName(false); }}
+                                                className={`block text-5xl font-light ${titleColorClass} bg-transparent border-b-2 border-white/60 outline-none w-full`}
+                                                style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}
+                                                placeholder="Chapter name…"
+                                            />
+                                        ) : (
+                                            <motion.span
+                                                className={`block text-5xl font-light ${titleColorClass}${canEdit ? ' cursor-text hover:opacity-70 transition-opacity' : ''}`}
+                                                style={themeFont ? { fontFamily: themeFont, lineHeight: '0.9' } : { fontFamily: 'Raleway, sans-serif', lineHeight: '0.9' }}
+                                                initial={{ opacity: 0, y: 75 }}
+                                                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 75 }}
+                                                transition={{ duration: 1.1, ease: 'easeOut', delay: delay / 1000 + 2.9 }}
+                                                onClick={canEdit ? () => { setChapterNameDraft(chapter.name || ''); setEditingChapterName(true); } : undefined}
+                                                title={canEdit ? 'Click to edit chapter name' : undefined}
+                                            >
+                                                {chapter.name || <span className="opacity-40 italic text-3xl">Add chapter name…</span>}
+                                            </motion.span>
+                                        )
                                     )}
                                 </div>
 
@@ -315,6 +383,9 @@ export default function StoryChapter({
                                         onSlideChange={handleSlideChange}
                                         scrollToRef={carouselScrollToRef}
                                         onImageClick={handleImageClick}
+                                        onNextChapter={!isLastChapter ? onNextChapter : null}
+                                        nextChapterName={nextChapterName}
+                                        nextChapterColor={!isLastChapter ? CHAPTER_COLORS[(index + 1) % CHAPTER_COLORS.length] : null}
                                     />
                                     {/* Location overlaid on image */}
                                     {currentSlide?.location && (
@@ -345,33 +416,68 @@ export default function StoryChapter({
                             {/* Slide text panel */}
                             <div className="p-6 md:p-8">
                                 {/* Title */}
-                                <AnimatePresence mode="wait">
-                                    <motion.h2
-                                        key={currentSlide?.title}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        transition={{ duration: 0.3 }}
-                                        className="text-3xl font-light text-slate-800 mb-4 leading-tight"
+                                {canEdit && editingField === 'title' ? (
+                                    <input
+                                        autoFocus
+                                        value={draft}
+                                        onChange={e => setDraft(e.target.value)}
+                                        onBlur={commitEdit}
+                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commitEdit(); } if (e.key === 'Escape') setEditingField(null); }}
+                                        className="text-3xl font-light text-slate-800 mb-4 leading-tight w-full bg-amber-50 border-b-2 border-amber-400 outline-none rounded-none px-1"
                                         style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}
-                                    >
-                                        {currentSlide?.title}
-                                    </motion.h2>
-                                </AnimatePresence>
+                                    />
+                                ) : (
+                                    <AnimatePresence mode="wait">
+                                        <motion.h2
+                                            key={currentSlide?.title}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ duration: 0.3 }}
+                                            className={`text-3xl font-light text-slate-800 mb-4 leading-tight${canEdit ? ' cursor-text hover:bg-amber-50/70 rounded px-1 -mx-1 transition-colors' : ''}`}
+                                            style={themeFont ? { fontFamily: themeFont } : { fontFamily: 'Raleway, sans-serif' }}
+                                            onClick={canEdit ? () => startEdit('title') : undefined}
+                                            title={canEdit ? 'Click to edit' : undefined}
+                                        >
+                                            {currentSlide?.title || (canEdit ? <span className="text-slate-300 italic text-xl">Add title…</span> : '')}
+                                        </motion.h2>
+                                    </AnimatePresence>
+                                )}
 
                                 {/* Description */}
-                                <AnimatePresence mode="wait">
-                                    <motion.div
-                                        key={currentSlide?.description}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        transition={{ duration: 0.3, delay: 0.1 }}
-                                        className="text-slate-600 leading-relaxed text-base font-light prose prose-sm max-w-none"
-                                        style={{ fontFamily: 'Raleway, sans-serif', paddingLeft: '25px', paddingRight: '20px' }}
-                                        dangerouslySetInnerHTML={{ __html: currentSlide?.description || '' }}
-                                    />
-                                </AnimatePresence>
+                                {canEdit && editingField === 'description' ? (
+                                    <div>
+                                        <textarea
+                                            autoFocus
+                                            value={draft}
+                                            onChange={e => setDraft(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Escape') setEditingField(null); }}
+                                            rows={5}
+                                            className="w-full text-slate-600 leading-relaxed text-base font-light bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 outline-none resize-none focus:border-amber-400 transition-colors"
+                                            style={{ fontFamily: 'Raleway, sans-serif' }}
+                                            placeholder="Slide description…"
+                                        />
+                                        <div className="flex justify-end gap-2 mt-2">
+                                            <button onClick={() => setEditingField(null)} className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 transition-colors">Cancel</button>
+                                            <button onClick={commitEdit} className="text-xs bg-amber-500 hover:bg-amber-400 text-white px-3 py-1 rounded transition-colors">Save</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={currentSlide?.description}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ duration: 0.3, delay: 0.1 }}
+                                            className={`text-slate-600 leading-relaxed text-base font-light prose prose-sm max-w-none${canEdit ? ' cursor-text hover:bg-amber-50/70 rounded transition-colors px-1 -mx-1' : ''}`}
+                                            style={{ fontFamily: 'Raleway, sans-serif', paddingLeft: '25px', paddingRight: '20px' }}
+                                            dangerouslySetInnerHTML={{ __html: currentSlide?.description || (canEdit ? '<span style="color:#cbd5e1;font-style:italic">Click to add description…</span>' : '') }}
+                                            onClick={canEdit ? () => startEdit('description') : undefined}
+                                            title={canEdit ? 'Click to edit' : undefined}
+                                        />
+                                    </AnimatePresence>
+                                )}
 
                                 {/* PDF */}
                                 {currentSlide?.pdf_url && (
@@ -392,6 +498,28 @@ export default function StoryChapter({
                                         </button>
                                     </div>
                                 )}
+
+                                {/* End-of-chapter footer — restart only */}
+                                <AnimatePresence>
+                                {showCarousel && chapter.slides?.length > 0 && activeSlideIndex === chapter.slides.length - 1 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        transition={{ duration: 0.5, delay: 0.3 }}
+                                        className="mt-5 pt-4 border-t border-slate-200/60 flex items-center"
+                                    >
+                                        <button
+                                            onClick={() => { carouselScrollToRef.current?.(0); }}
+                                            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors px-2 py-1.5 rounded hover:bg-slate-100"
+                                            style={{ fontFamily: 'Raleway, sans-serif' }}
+                                        >
+                                            <span>↺</span>
+                                            <span>Restart chapter</span>
+                                        </button>
+                                    </motion.div>
+                                )}
+                                </AnimatePresence>
                             </div>
                         </div>
                     </motion.div>

@@ -1229,7 +1229,24 @@ export default function StoryMapView() {
                             storyId={storyId}
                             targetSlideIndex={targetSlide?.chapter === index ? targetSlide.slide : undefined}
                             mapStyle={chapter.map_style || story?.map_style || 'a'}
+                            isLastChapter={index === chapters.length - 1}
+                            onNextChapter={() => navigateToChapter(index + 1)}
+                            nextChapterName={chapters[index + 1]?.name || null}
                             onOpenFullscreen={(chId, slId) => openOverlay(chId, slId)}
+                            onSlideFieldUpdate={(slideId, field, value) => {
+                                setChapters(prev => prev.map(ch => ({
+                                    ...ch,
+                                    slides: ch.slides?.map(sl =>
+                                        sl.id === slideId ? { ...sl, [field]: value } : sl
+                                    ),
+                                })));
+                                setActiveSlide(prev => prev?.id === slideId ? { ...prev, [field]: value } : prev);
+                            }}
+                            onChapterFieldUpdate={(chapterId, field, value) => {
+                                setChapters(prev => prev.map(ch =>
+                                    ch.id === chapterId ? { ...ch, [field]: value } : ch
+                                ));
+                            }}
                             onSlideChange={(slide) => {
                                 setActiveSlide(slide);
 
@@ -1660,6 +1677,19 @@ export default function StoryMapView() {
                             chapterColorIndex={activeChapter >= 0 ? activeChapter % 6 : 0}
                             addHotspotMode={addHotspotMode}
                             onAddHotspotModeConsumed={() => setAddHotspotMode(false)}
+                            onSlideFieldUpdate={(slideId, field, value) => {
+                                setChapters(prev => prev.map(ch => ({
+                                    ...ch,
+                                    slides: ch.slides?.map(sl =>
+                                        sl.id === slideId ? { ...sl, [field]: value } : sl
+                                    ),
+                                })));
+                            }}
+                            onChapterNameSaved={(chapterId, name) => {
+                                setChapters(prev => prev.map(ch =>
+                                    ch.id === chapterId ? { ...ch, name } : ch
+                                ));
+                            }}
                         />
 
                         {/* Bottom gradient */}

@@ -253,6 +253,8 @@ export default function FullScreenImageViewer({
     chapterColorIndex = 0,
     addHotspotMode    = false,  // true = enter "place new hotspot" mode immediately
     onAddHotspotModeConsumed = null,
+    onSlideFieldUpdate = null,   // (slideId, field, value) => void — update parent state
+    onChapterNameSaved = null,   // (chapterId, name) => void — update parent state
 }) {
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [activeHotspotPos, setActiveHotspotPos] = useState(null); // { x, y } | null
@@ -528,8 +530,13 @@ export default function FullScreenImageViewer({
                             extendedContent={currentSlide.extended_content || ''}
                             location={currentSlide.location}
                             slideId={currentSlide.id}
+                            chapterId={currentSlide._chapter_id || currentSlide.chapter_id || null}
                             mapStyle={mapStyle}
                             initialOpen={true}
+                            canEdit={canEdit}
+                            allowExtended={!hideChapterTitle}
+                            onSaved={onSlideFieldUpdate}
+                            onChapterNameSaved={onChapterNameSaved}
                         />
                         )}
                         </AnimatePresence>
