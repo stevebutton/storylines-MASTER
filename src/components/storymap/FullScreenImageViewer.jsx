@@ -437,26 +437,45 @@ export default function FullScreenImageViewer({
                             />
                         )}
                             </AnimatePresence>
-                            {/* Spotlight layer: sharp copy masked to active hotspot */}
+                            {/* Spotlight layer: sharp circle reveal on image; backdrop-blur on video */}
                             <AnimatePresence>
-                                {activeHotspotPos && !currentSlide.video_url && (
+                                {activeHotspotPos && (
                                     <>
-                                        <motion.img
-                                            key="spotlight"
-                                            src={currentSlide.image}
-                                            alt=""
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{ duration: 0.35, ease: 'easeOut' }}
-                                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                                            style={{
-                                                objectPosition: currentSlide.image_position || '50% 50%',
-                                                maskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 220px, transparent 220px)`,
-                                                WebkitMaskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 220px, transparent 220px)`,
-                                            }}
-                                        />
-                                        {/* 1px white inset ring at spotlight edge */}
+                                        {!currentSlide.video_url ? (
+                                            /* Image: sharp copy of the image masked to the spotlight circle */
+                                            <motion.img
+                                                key="spotlight"
+                                                src={currentSlide.image}
+                                                alt=""
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.35, ease: 'easeOut' }}
+                                                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                                style={{
+                                                    objectPosition: currentSlide.image_position || '50% 50%',
+                                                    maskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 220px, transparent 220px)`,
+                                                    WebkitMaskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, black 220px, transparent 220px)`,
+                                                }}
+                                            />
+                                        ) : (
+                                            /* Video: backdrop-filter overlay masked to outside the circle */
+                                            <motion.div
+                                                key="video-spotlight"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.35, ease: 'easeOut' }}
+                                                className="absolute inset-0 pointer-events-none"
+                                                style={{
+                                                    backdropFilter: 'blur(8px) grayscale(30%)',
+                                                    WebkitBackdropFilter: 'blur(8px) grayscale(30%)',
+                                                    maskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, transparent 220px, black 220px)`,
+                                                    WebkitMaskImage: `radial-gradient(circle at ${activeHotspotPos.x * 100}% ${activeHotspotPos.y * 100}%, transparent 220px, black 220px)`,
+                                                }}
+                                            />
+                                        )}
+                                        {/* White inset ring at spotlight edge — same for image and video */}
                                         <motion.div
                                             key="spotlight-ring"
                                             initial={{ opacity: 0 }}
@@ -477,7 +496,7 @@ export default function FullScreenImageViewer({
                                 )}
                             </AnimatePresence>
 
-                            {!currentSlide.video_url && slideHotspots.length > 0 && viewMode === 'story' && (
+                            {slideHotspots.length > 0 && viewMode === 'story' && (
                                 <ImageHotspots
                                     key={currentSlide.id}
                                     hotspots={slideHotspots}

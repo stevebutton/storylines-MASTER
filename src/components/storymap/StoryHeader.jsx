@@ -45,7 +45,7 @@ export default function StoryHeader({ title, subtitle, tagline, titleImage, subt
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative" data-name="story-header-container">
+    <div className="min-h-screen w-full flex items-center justify-center relative isolate" data-name="story-header-container">
       {/* Hero Video or Image Background */}
       {heroType === 'video' && heroVideo ? (
         <motion.video

@@ -11,6 +11,7 @@ import { AnimatePresence } from 'framer-motion';
 import PageTransition from '@/components/PageTransition';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { useEffect } from 'react';
@@ -127,6 +128,7 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
+        <TooltipProvider delayDuration={300}>
         <Router>
           <NavigationTracker />
           <AuthenticatedApp />
@@ -138,6 +140,7 @@ function App() {
           richColors
         />
         <VisualEditAgent />
+        </TooltipProvider>
       </QueryClientProvider>
     </AuthProvider>
   )
