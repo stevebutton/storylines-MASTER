@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Navigation, MapPin, Plus, Minus, Compass } from 'lucide-react';
+import { Navigation, MapPin, Plus, Minus, Compass, CloudRain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { pillShell, pillDivider } from './StoryViewPill';
 
@@ -31,6 +31,9 @@ export default function BottomPillBar({
     onToggleMarkers,
     pinnedLayers = [],
     onToggleLayer,
+    showRainButton = false,
+    rainActive     = false,
+    onToggleRain,
 }) {
     return (
         <div className={pillShell}>
@@ -66,6 +69,36 @@ export default function BottomPillBar({
 
             {/* Layer toggles — each entry grows from width:0, pulling the pill
                 right without affecting the controls section. */}
+            {/* Rain effect toggle */}
+            {showRainButton && (
+                <motion.div
+                    key="rain"
+                    initial={{ width: 0, opacity: 0, y: 12 }}
+                    animate={{ width: 'auto', opacity: 1, y: 0 }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                    style={{ flexShrink: 0, height: '100%', display: 'flex', alignItems: 'stretch', overflowX: 'hidden' }}
+                >
+                    {pillDivider}
+                    <button
+                        onClick={onToggleRain}
+                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={forcePointer} onMouseMove={forcePointer}
+                        className={cn(
+                            'flex-none h-full px-3',
+                            'flex flex-col items-center justify-center',
+                            'transition-colors duration-200 whitespace-nowrap',
+                            rainActive
+                                ? 'bg-white text-slate-900'
+                                : 'text-white/70 hover:text-white hover:bg-white/15'
+                        )}
+                        title={rainActive ? 'Stop rain' : 'Start rain'}
+                    >
+                        <CloudRain className="w-3 h-3 flex-shrink-0 mb-0.5" />
+                        <span className="text-xs font-medium leading-none">Rain</span>
+                    </button>
+                </motion.div>
+            )}
+
             {pinnedLayers.map((layer) => (
                 <motion.div
                     key={layer.id}

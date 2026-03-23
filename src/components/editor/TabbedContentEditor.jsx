@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, X, MapPin, FileText, Video, Image as ImageIcon, Trash2, Check, Images, Wand2 } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
+import { toast } from 'sonner';
 import * as exifr from 'exifr';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
@@ -138,6 +139,7 @@ export default function TabbedContentEditor({
     const [isUploadingChapterImage, setIsUploadingChapterImage] = useState(false);
     const [isUploadingChapterVideo, setIsUploadingChapterVideo] = useState(false);
     const [mediaPickerTarget, setMediaPickerTarget] = useState(null);
+    const [isFillingCoords, setIsFillingCoords] = useState(false);
 
     // ── Pill helpers ────────────────────────────────────────────────────────
     const PanelTitle = ({ children }) => (
@@ -238,6 +240,76 @@ export default function TabbedContentEditor({
                 onUpdate({ ...item, thumbnail: file_url });
             } finally {
                 setIsUploadingThumbnail(false);
+            }
+        };
+
+        const handleFillMissingCoordinates = async () => {
+            const coords = item?.coordinates;
+            if (!Array.isArray(coords) || coords.length < 2 || isNaN(coords[0]) || isNaN(coords[1])) {
+                toast.error('Set the story\'s opening map position first (Map View section above)');
+                return;
+            }
+            setIsFillingCoords(true);
+            try {
+                const { data: chapters, error: chapErr } = await supabase
+                    .from('chapters').select('id').eq('story_id', storyId);
+                if (chapErr) throw chapErr;
+                if (!chapters?.length) { toast.info('No chapters found'); return; }
+
+                const { data: slides, error: slideErr } = await supabase
+                    .from('slides').select('id, coordinates')
+                    .in('chapter_id', chapters.map(c => c.id));
+                if (slideErr) throw slideErr;
+
+                const missing = (slides || []).filter(s =>
+                    !s.coordinates ||
+                    !Array.isArray(s.coordinates) ||
+                    s.coordinates.length < 2 ||
+                    isNaN(s.coordinates[0]) ||
+                    isNaN(s.coordinates[1])
+                );
+                if (!missing.length) { toast.success('All slides already have coordinates'); return; }
+
+                const patch = {
+                    coordinates: coords,
+                    zoom:    item.zoom    ?? 12,
+                    bearing: item.bearing ?? 0,
+                    pitch:   item.pitch   ?? 0,
+                };
+
+                // Update slides
+                const updateResults = await Promise.all(
+                    missing.map(s =>
+                        supabase.from('slides').update(patch).eq('id', s.id)
+                    )
+                );
+                const writeErrors = updateResults.filter(r => r.error);
+                if (writeErrors.length > 0) {
+                    throw new Error(writeErrors[0].error.message);
+                }
+
+                // Re-fetch to verify what the DB actually saved
+                const { data: verifySlides, error: verifyErr } = await supabase
+                    .from('slides')
+                    .select('id, coordinates')
+                    .in('id', missing.map(s => s.id));
+                if (verifyErr) throw verifyErr;
+
+                const saved = (verifySlides || []).filter(s =>
+                    Array.isArray(s.coordinates) && s.coordinates.length >= 2 && !isNaN(s.coordinates[0])
+                );
+
+                if (saved.length === missing.length) {
+                    toast.success(`Filled coordinates for ${saved.length} slide${saved.length === 1 ? '' : 's'}`);
+                } else if (saved.length > 0) {
+                    toast.success(`Partially filled: ${saved.length} of ${missing.length} slides updated`);
+                } else {
+                    toast.error(`Supabase accepted the update but nothing was saved — likely missing UPDATE policy on slides table`);
+                }
+            } catch (err) {
+                toast.error('Failed: ' + (err?.message || 'unknown error'));
+            } finally {
+                setIsFillingCoords(false);
             }
         };
 
@@ -609,6 +681,26 @@ export default function TabbedContentEditor({
                                     )}
                                 </div>
                             )}
+                        </div>
+
+                        {/* Fill missing slide coordinates */}
+                        <div className="border-t pt-4 mt-4 space-y-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleFillMissingCoordinates}
+                                disabled={isFillingCoords || !item.coordinates}
+                                className="w-full"
+                            >
+                                {isFillingCoords
+                                    ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Filling…</>
+                                    : <><MapPin className="w-4 h-4 mr-2" />Fill Missing Slide Coordinates</>
+                                }
+                            </Button>
+                            <p className="text-xs text-slate-500">
+                                Assigns the story's opening map position to any slides that have no coordinates set.
+                                {!item.coordinates && <span className="text-amber-600"> Set the opening map position above first.</span>}
+                            </p>
                         </div>
 
                         <div className="pt-4 border-t">
@@ -1299,6 +1391,20 @@ export default function TabbedContentEditor({
                                     />
                                     <p className="text-sm text-slate-900 mt-1">
                                         Label shown on the map layer toggle button
+                                    </p>
+                                </div>
+                                <div className="pt-2">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={!!item.show_rain_button}
+                                            onChange={(e) => onUpdate({ ...item, show_rain_button: e.target.checked })}
+                                            className="w-4 h-4 rounded border-slate-300 cursor-pointer"
+                                        />
+                                        <span className="text-sm font-medium text-slate-700">Show Rain Button</span>
+                                    </label>
+                                    <p className="text-sm text-slate-500 mt-1">
+                                        Adds a rain effect toggle to the map pill when this slide is active
                                     </p>
                                 </div>
                             </div>

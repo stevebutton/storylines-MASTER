@@ -58,22 +58,22 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setIsPickingLocation(false);
     };
 
-    // Snap the map to the current slide's saved state (no offset)
+    // Snap the map to the current slide's saved state.
+    // jumpTo is the correct API for instant camera changes — easeTo({duration:0})
+    // goes through the animation pipeline unnecessarily.
     const previewOnMap = (z, b, p, coords) => {
         const map = mapInstanceRef?.current;
         const c = coords ?? activeSlide?.coordinates;
         if (!map || !c) return;
-        map.easeTo({
+        map.jumpTo({
             center: [c[1], c[0]],
             zoom: z,
             bearing: b,
             pitch: p,
-            offset: [0, 0],
-            duration: 0
         });
     };
 
-    // Sync from slide record when editor opens or slide changes
+    // Sync from slide record when editor opens or slide changes.
     useEffect(() => {
         if (!isOpen || !activeSlide) return;
         const z  = activeSlide.zoom         ?? 12;
@@ -89,8 +89,11 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         setCoordinatesModified(false);
         cancelPickMode();
         const map = mapInstanceRef?.current;
+        // triggerRepaint keeps Mapbox GL actively rendering through the editor-mount
+        // compositor changes. Without it, an idle map with an active rain shader
+        // produces a WebGL black screen when the editor panel animates in.
+        if (map) map.triggerRepaint();
         updateMarker(map, c);
-        previewOnMap(z, b, p, c);
     }, [isOpen, activeSlide?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Clean up on close
@@ -185,12 +188,12 @@ export default function LiveMapEditor({ isOpen, onClose, activeSlide, mapInstanc
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0, y: 16 }}
+                    initial={{ opacity: 0, y: -16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 16 }}
+                    exit={{ opacity: 0, y: -16 }}
                     transition={{ type: 'tween', duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="fixed left-0 z-[9990] bg-black/50 backdrop-blur-xl border border-white/20 shadow-2xl rounded-tr-2xl"
-                    style={{ bottom: 88, width: 380 }}
+                    className="fixed left-0 z-[9990] bg-slate-900/95 border border-white/20 shadow-2xl"
+                    style={{ top: 220, width: 380 }}
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">

@@ -33,6 +33,18 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { StoryTranslationProvider } from '@/contexts/StoryTranslationContext';
 import { getT } from '@/utils/translationDefaults';
 
+// Rain effect constants — module-level so they are not recreated on every render.
+const RAIN_BASE = {
+    intensity:             1.0,
+    color:                 '#a8adbc',
+    'vignette-color':      '#464646',
+    direction:             [0, 80],
+    'droplet-size':        [2.6, 18.2],
+    'distortion-strength': 0.7,
+    'center-thinning':     0,
+};
+const RAIN_FADE_MS = 2000;
+
 // Straight-line distance in metres between two [lat, lng] points (Haversine formula).
 function haversineMetres([lat1, lng1], [lat2, lng2]) {
     const R = 6371000;
@@ -122,6 +134,8 @@ export default function StoryMapView() {
     const [activeSlide, setActiveSlide] = useState(null);
     const [isLiveEditorOpen, setIsLiveEditorOpen] = useState(false);
     const [showToolPalette, setShowToolPalette]         = useState(false);
+    const [rainActive, setRainActive] = useState(false);
+    const [mapReady, setMapReady] = useState(false);
     const [addHotspotMode, setAddHotspotMode]           = useState(false);
     const [showImagePositionModal, setShowImagePositionModal] = useState(false);
     const [showRoute, setShowRoute] = useState(true);
@@ -385,6 +399,7 @@ export default function StoryMapView() {
                         hotspot_title: s.hotspot_title,
                         hotspot_body: s.hotspot_body,
                         hotspots: s.hotspots,
+                        show_rain_button: s.show_rain_button,
                     }))
             }));
 
@@ -905,6 +920,12 @@ export default function StoryMapView() {
         }));
     }, [overlayMode, overlayCurrentIndex, showStoryOverlay]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Lock body scroll when library is open so background map-view doesn't scroll
+    useEffect(() => {
+        document.body.style.overflow = showLibraryModal ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [showLibraryModal]);
+
     const openOverlay = (chapterId, slideId, mode = 'story') => {
         const sourceSlides = mode === 'timeline' ? overlayTimelineSlides : overlaySlides;
         const idx = sourceSlides.findIndex(sl =>
@@ -932,6 +953,77 @@ export default function StoryMapView() {
             return { ...l, visible: next };
         }));
     };
+
+    const toggleRain = () => setRainActive(v => !v);
+    const animateRainRef = useRef(null);  // rAF handle for rain fade
+    const rainFactorRef  = useRef(0);     // current rendered factor (0 = off, 1 = fully on)
+
+    // Rain is driven purely by activeSlide.show_rain_button — no suppression for
+    // Tools palette or Map Editor. Suppressing rain (setRain(null/invisible)) while
+    // those panels open causes a Mapbox GL WebGL black screen on the rain slide
+    // regardless of timing or approach. Since previewOnMap/jumpTo was removed from
+    // LiveMapEditor's open handler there is no concurrent GL operation to guard against.
+    // style.load listener re-applies state after any style reload.
+    useEffect(() => {
+        const map = mapInstanceRef.current;
+        if (!map || typeof map.setRain !== 'function') return;
+
+        const applyRain = () => {
+            if (animateRainRef.current) {
+                cancelAnimationFrame(animateRainRef.current);
+                animateRainRef.current = null;
+            }
+
+            const shouldBeOn = !!activeSlide?.show_rain_button;
+            const fromFactor = rainFactorRef.current;
+            const toFactor   = shouldBeOn ? 1 : 0;
+
+            if (fromFactor === toFactor) return;
+
+            // Proportional duration so mid-transition reversals feel consistent
+            const duration = RAIN_FADE_MS * Math.abs(toFactor - fromFactor);
+            const start = performance.now();
+            const ease = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+            const tick = (now) => {
+                const raw    = Math.min((now - start) / duration, 1);
+                const factor = fromFactor + (toFactor - fromFactor) * ease(raw);
+                rainFactorRef.current = factor;
+
+                if (factor <= 0) {
+                    map.setRain(null);
+                } else {
+                    map.setRain({
+                        ...RAIN_BASE,
+                        opacity:  0.7 * factor,
+                        vignette: 1.0 * factor,
+                        density:  0.5 * factor,
+                    });
+                }
+
+                if (raw < 1) {
+                    animateRainRef.current = requestAnimationFrame(tick);
+                } else {
+                    animateRainRef.current = null;
+                    rainFactorRef.current  = toFactor;
+                }
+            };
+
+            animateRainRef.current = requestAnimationFrame(tick);
+        };
+
+        applyRain();
+
+        // Re-apply after any style reload (style changes re-activate style-level rain)
+        map.on('style.load', applyRain);
+        return () => {
+            map.off('style.load', applyRain);
+            if (animateRainRef.current) {
+                cancelAnimationFrame(animateRainRef.current);
+                animateRainRef.current = null;
+            }
+        };
+    }, [activeSlide, mapReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleOverlayClose = () => {
         const savedScroll = overlayScrollRef.current;
@@ -1134,7 +1226,7 @@ export default function StoryMapView() {
                         setTargetSlide({ chapter: marker.chapterIndex, slide: marker.slideIndex });
                     }
                 }}
-                onMapReady={(mapInstance) => { mapInstanceRef.current = mapInstance; }}
+                onMapReady={(mapInstance) => { mapInstanceRef.current = mapInstance; setMapReady(true); }}
                 showRoute={showRoute}
                 showMarkers={showMarkers}
             />
@@ -1521,7 +1613,7 @@ export default function StoryMapView() {
             {/* Live Map Editor */}
             <LiveMapEditor
                 isOpen={isLiveEditorOpen}
-                onClose={() => setIsLiveEditorOpen(false)}
+                onClose={() => { setIsLiveEditorOpen(false); setShowToolPalette(false); }}
                 activeSlide={activeSlide}
                 mapInstanceRef={mapInstanceRef}
                 onSlideSave={(slideId, values) => {
@@ -1676,6 +1768,9 @@ export default function StoryMapView() {
                                 onToggleMarkers={() => setShowMarkers(v => !v)}
                                 pinnedLayers={pinnedLayers}
                                 onToggleLayer={togglePinnedLayer}
+                                showRainButton={!!activeSlide?.show_rain_button}
+                                rainActive={!!activeSlide?.show_rain_button}
+                                onToggleRain={toggleRain}
                             />
                         </motion.div>
                     )}
@@ -2015,6 +2110,20 @@ export default function StoryMapView() {
                         </button>
                     </div>
                 </div>
+            )}
+
+            {/* Scroll shield — invisible strip behind the chapter carousel (right half).
+                Intercepts wheel events so manual mouse-wheel scrolling moves the
+                story rather than zooming the map. Only active in map view. */}
+            {!showStoryOverlay && (
+                <div
+                    className="fixed right-0 pointer-events-auto"
+                    style={{ top: -100, left: 'calc(50% - 40px)', height: 'calc(100vh + 100px)', zIndex: 100 }}
+                    onWheel={(e) => {
+                        e.preventDefault();
+                        window.scrollBy({ top: e.deltaY, behavior: 'auto' });
+                    }}
+                />
             )}
 
             {/* Tool palette — anchored below banner on the left */}

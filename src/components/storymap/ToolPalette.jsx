@@ -16,7 +16,7 @@ export default function ToolPalette({
     onOpenMapEditor,
     onOpenImagePosition,
     onAddTooltip,
-    top = 108,         // px from top of viewport (below banner)
+    top = 160,         // px from top — flush below StoryViewPill (top:100 + height:60)
 }) {
     const ref = useRef(null);
 
@@ -36,6 +36,7 @@ export default function ToolPalette({
                 label: 'Map Editor',
                 onClick: onOpenMapEditor,
                 enabled: true,
+                keepOpen: true,   // palette stays visible while editor is open
             },
             {
                 icon: Move,
@@ -59,32 +60,33 @@ export default function ToolPalette({
             {isOpen && (
                 <motion.div
                     ref={ref}
-                    className="fixed left-6 z-[200025] pointer-events-auto"
-                    style={{ top }}
-                    initial={{ opacity: 0, y: 6, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0,  scale: 1    }}
-                    exit={   { opacity: 0, y: 6,  scale: 0.96 }}
+                    className="fixed left-0 z-[200025] pointer-events-auto"
+                    style={{ top, width: 380 }}
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0  }}
+                    exit={   { opacity: 0, y: -6 }}
                     transition={{ duration: 0.15, ease: 'easeOut' }}
                 >
-                    <div className="bg-black/50 backdrop-blur-xl border border-white/20 shadow-2xl rounded-xl overflow-hidden min-w-[200px]">
-                        {tools.map(({ icon: Icon, label, onClick, enabled, hint }, idx) => (
-                            <button
-                                key={label}
-                                onClick={() => { if (enabled) { onClick(); onClose(); } }}
-                                disabled={!enabled}
-                                title={hint || label}
-                                className={[
-                                    'flex items-center gap-3 w-full px-4 py-3 text-sm text-left whitespace-nowrap',
-                                    'transition-colors duration-150',
-                                    idx > 0 ? 'border-t border-white/10' : '',
-                                    enabled
-                                        ? 'text-white/80 hover:text-white hover:bg-white/10 cursor-pointer'
-                                        : 'text-white/25 cursor-not-allowed',
-                                ].join(' ')}
-                            >
-                                <Icon className="w-4 h-4 flex-shrink-0" />
-                                <span>{label}</span>
-                            </button>
+                    <div className="flex items-stretch bg-black/30 backdrop-blur-xl border border-white/20 overflow-hidden" style={{ width: 380, height: 60 }}>
+                        {tools.map(({ icon: Icon, label, onClick, enabled, hint, keepOpen }, idx) => (
+                            <React.Fragment key={label}>
+                                {idx > 0 && <div className="w-px self-stretch bg-white/20 flex-shrink-0" />}
+                                <button
+                                    onClick={() => { if (enabled) { onClick(); if (!keepOpen) onClose(); } }}
+                                    disabled={!enabled}
+                                    title={hint || label}
+                                    className={[
+                                        'flex-1 h-full flex items-center justify-center gap-2 text-sm whitespace-nowrap',
+                                        'transition-colors duration-150',
+                                        enabled
+                                            ? 'text-white/70 hover:text-white hover:bg-white/15 cursor-pointer'
+                                            : 'text-white/25 cursor-not-allowed',
+                                    ].join(' ')}
+                                >
+                                    <Icon className="w-4 h-4 flex-shrink-0" />
+                                    <span>{label}</span>
+                                </button>
+                            </React.Fragment>
                         ))}
                     </div>
                 </motion.div>
