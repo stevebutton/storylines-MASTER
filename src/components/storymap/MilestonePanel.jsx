@@ -19,7 +19,7 @@ function formatDate(dateStr) {
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-export default function MilestonePanel({ milestone, date, cursorPercent, initialDelay = 0, slideKey, mapStyle = 'a' }) {
+export default function MilestonePanel({ milestone, date, cursorPercent, initialDelay = 0, slideKey, mapStyle = 'a', slideImage = null, imagePosition = '50% 50%' }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
     const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
     const [panelHeight,   setPanelHeight]   = useState(80);
@@ -44,6 +44,11 @@ export default function MilestonePanel({ milestone, date, cursorPercent, initial
     const cursorX      = TRACK_LEFT + (Math.max(0, Math.min(100, cursorPercent)) / 100) * trackWidth;
     const panelLeft    = Math.max(TRACK_LEFT, Math.min(viewportWidth - PANEL_WIDTH - 16, cursorX - PANEL_WIDTH / 2));
 
+    // Keep card bottom fixed: shift top up by image height so adding an image
+    // grows the card upward rather than pushing its base down.
+    const IMAGE_HEIGHT = 180;
+    const cardTop      = PANEL_TOP - (slideImage ? IMAGE_HEIGHT : 0);
+
     return (
         <>
             {/* Panel — dissolves in with 50px upward move, dissolves out */}
@@ -54,7 +59,7 @@ export default function MilestonePanel({ milestone, date, cursorPercent, initial
                         ref={panelRef}
                         style={{
                             position:      'fixed',
-                            top:           PANEL_TOP,
+                            top:           cardTop,
                             left:          panelLeft,
                             width:         PANEL_WIDTH,
                             zIndex:        2,
@@ -72,6 +77,23 @@ export default function MilestonePanel({ milestone, date, cursorPercent, initial
                                 WebkitBackdropFilter: 'blur(24px)',
                                 background:           'rgba(0,0,0,0.25)',
                             }}
+                        />
+                        {/* Slide image at top of card */}
+                        {slideImage && (
+                            <div className="relative w-full overflow-hidden rounded-t-xl" style={{ height: 180 }}>
+                                <img
+                                    src={slideImage}
+                                    alt=""
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    style={{ objectPosition: imagePosition }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40 pointer-events-none" />
+                            </div>
+                        )}
+                        {/* Border — rendered after image so it sits in front */}
+                        <div
+                            className="absolute inset-0 rounded-xl pointer-events-none"
+                            style={{ border: '1px solid rgba(255,255,255,0.8)', zIndex: 20 }}
                         />
                         {/* Text dissolves in after panel lands */}
                         <motion.div
@@ -112,7 +134,7 @@ export default function MilestonePanel({ milestone, date, cursorPercent, initial
                         style={{
                             position:   'fixed',
                             left:       cursorX - 7,
-                            top:        PANEL_TOP + panelHeight,
+                            top:        cardTop + panelHeight,
                             bottom:     TRACK_FROM_BOTTOM,
                             width:      1,
                             background: 'linear-gradient(to bottom, rgba(255,255,255,0.75), rgba(255,255,255,0.1))',

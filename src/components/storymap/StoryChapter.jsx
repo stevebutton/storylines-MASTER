@@ -398,7 +398,7 @@ export default function StoryChapter({
                                                     animate={{ opacity: 1, y: 0 }}
                                                     exit={{ opacity: 0, y: -6 }}
                                                     transition={{ duration: 0.3 }}
-                                                    className="absolute bottom-[30px] left-6 flex items-center gap-2 text-sm text-white pointer-events-none"
+                                                    className="absolute bottom-[15px] left-6 flex items-center gap-2 text-sm text-white pointer-events-none"
                                                 >
                                                     <div style={{
                                                         width: 20, height: 20, borderRadius: '50%',
@@ -499,27 +499,6 @@ export default function StoryChapter({
                                     </div>
                                 )}
 
-                                {/* End-of-chapter footer — restart only */}
-                                <AnimatePresence>
-                                {showCarousel && chapter.slides?.length > 0 && activeSlideIndex === chapter.slides.length - 1 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        transition={{ duration: 0.5, delay: 0.3 }}
-                                        className="mt-5 pt-4 border-t border-slate-200/60 flex items-center"
-                                    >
-                                        <button
-                                            onClick={() => { carouselScrollToRef.current?.(0); }}
-                                            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors px-2 py-1.5 rounded hover:bg-slate-100"
-                                            style={{ fontFamily: 'Raleway, sans-serif' }}
-                                        >
-                                            <span>↺</span>
-                                            <span>Restart chapter</span>
-                                        </button>
-                                    </motion.div>
-                                )}
-                                </AnimatePresence>
                             </div>
                         </div>
                     </motion.div>

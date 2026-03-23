@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Upload, FileText, Download, Trash2, Edit, Search, Folder } from 'lucide-react';
@@ -200,68 +199,74 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
     const uniqueFolders = [...new Set(documents.map(d => d.folder).filter(Boolean))];
 
     return (
-        <div className="flex flex-col h-full space-y-6 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {/* Toolbar */}
-            <Card className={dark ? 'bg-transparent border-white/20' : ''}>
-                <CardContent className="p-4">
-                    <div className="flex flex-wrap gap-4 items-center justify-between">
-                        <div className="flex gap-2 flex-1">
-                            <div className="relative flex-1 max-w-md">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <Input
-                                    placeholder="Search documents..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className={`pl-9 ${dark ? 'text-white border-white/30 bg-transparent placeholder:text-white/50' : ''}`}
-                                />
-                            </div>
-                            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                                <SelectTrigger className={`w-40 ${dark ? 'text-white border-white/30 bg-transparent' : ''}`}>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="z-[100]">
-                                    <SelectItem value="all">All Categories</SelectItem>
-                                    <SelectItem value="research">Research</SelectItem>
-                                    <SelectItem value="education">Education</SelectItem>
-                                    <SelectItem value="reports">Reports</SelectItem>
-                                    <SelectItem value="presentations">Presentations</SelectItem>
-                                    <SelectItem value="legal">Legal</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Select value={folderFilter} onValueChange={setFolderFilter}>
-                                <SelectTrigger className={`w-40 ${dark ? 'text-white border-white/30 bg-transparent' : ''}`}>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="z-[100]">
-                                    <SelectItem value="all">All Folders</SelectItem>
-                                    {uniqueFolders.map(folder => (
-                                        <SelectItem key={folder} value={folder}>{folder}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                            {selectedDocs.length > 0 && (
-                                <>
-                                    <Button variant="outline" onClick={handleBulkDownload}>
-                                        <Download className="w-4 h-4 mr-2" />
-                                        Download ({selectedDocs.length})
-                                    </Button>
-                                    <Button variant="destructive" onClick={handleBulkDelete}>
-                                        <Trash2 className="w-4 h-4 mr-2" />
-                                        Delete ({selectedDocs.length})
-                                    </Button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+        <div className="flex h-full overflow-hidden">
 
-            {/* Documents Grid - 5 columns */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {/* ── Left column — fixed intro text ── */}
+            <div
+                className="flex-shrink-0 border-r border-white/10 overflow-y-auto"
+                style={{ width: 360, padding: '36px 90px 40px 40px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+                <p className="text-white/70 text-sm font-light leading-relaxed text-right">
+                    This library serves as a working appendix to Storylines — a curated collection of documents, reports, and reference materials selected to support your projects in the field.<br /><br />Browse online or download and share resources with your team, partners, or stakeholders. Whether you're scoping a new engagement, deepening your analysis, or building an evidence base, everything here is designed to complement your work in Storylines and keep key knowledge within reach.
+                </p>
+            </div>
+
+            {/* ── Right section — toolbar + scrollable grid ── */}
+            <div className="flex-1 flex flex-col overflow-hidden" style={{ paddingLeft: 32 }}>
+
+                {/* Toolbar */}
+                <div className="flex-shrink-0 flex flex-wrap gap-3 items-center pb-5 pt-1">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                        <Input
+                            placeholder="Search documents..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-9 text-white border-white/30 bg-transparent placeholder:text-white/40"
+                        />
+                    </div>
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className="w-40 text-white border-white/30 bg-transparent">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="z-[300100]">
+                            <SelectItem value="all">All Categories</SelectItem>
+                            <SelectItem value="research">Research</SelectItem>
+                            <SelectItem value="education">Education</SelectItem>
+                            <SelectItem value="reports">Reports</SelectItem>
+                            <SelectItem value="presentations">Presentations</SelectItem>
+                            <SelectItem value="legal">Legal</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={folderFilter} onValueChange={setFolderFilter}>
+                        <SelectTrigger className="w-40 text-white border-white/30 bg-transparent">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="z-[300100]">
+                            <SelectItem value="all">All Folders</SelectItem>
+                            {uniqueFolders.map(folder => (
+                                <SelectItem key={folder} value={folder}>{folder}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {selectedDocs.length > 0 && (
+                        <>
+                            <Button variant="outline" onClick={handleBulkDownload}>
+                                <Download className="w-4 h-4 mr-2" />
+                                Download ({selectedDocs.length})
+                            </Button>
+                            <Button variant="destructive" onClick={handleBulkDelete}>
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete ({selectedDocs.length})
+                            </Button>
+                        </>
+                    )}
+                </div>
+
+                {/* Documents Grid — scrollable */}
+                <div className="flex-1 overflow-y-auto pr-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {filteredDocs.map((doc, index) => (
                     <motion.div
                         key={doc.id}
@@ -309,7 +314,10 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
                         </div>
                     </motion.div>
                 ))}
-            </div>
+                </div>
+                </div>
+
+            </div>{/* end right section */}
 
             {/* Upload Dialog */}
             <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>

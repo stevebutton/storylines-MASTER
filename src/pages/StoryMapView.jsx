@@ -8,7 +8,7 @@ import StoryHeader from '@/components/storymap/StoryHeader';
 import StoryFooter from '@/components/storymap/StoryFooter';
 import StoryMapBanner from '@/components/storymap/StoryMapBanner';
 import BottomPillBar from '@/components/storymap/BottomPillBar';
-import StoryViewPill, { pillShell, pillDivider } from '@/components/storymap/StoryViewPill';
+import StoryViewPill from '@/components/storymap/StoryViewPill';
 import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
@@ -146,6 +146,9 @@ export default function StoryMapView() {
     const [overlayMode, setOverlayMode] = useState('story'); // 'picture' | 'story' | 'timeline'
     const timelineEnteredAtRef = useRef(null); // timestamp when timeline mode was entered
     const overlayScrollRef = useRef(0);
+    // Stays true for 1 s after leaving timeline so the dissolve masks map-view content
+    const [timelineContentHidden, setTimelineContentHidden] = useState(false);
+    const timelineHideTimerRef = useRef(null);
 
 
     const chapterRefs = useRef([]);
@@ -874,6 +877,34 @@ export default function StoryMapView() {
         return scaleSegments.length - 1;
     }, [overlayCurrentIndex, scaleSegments]);
 
+    // Keep map-view content hidden while the dissolve plays when leaving timeline mode
+    useEffect(() => {
+        if (showStoryOverlay && overlayMode === 'timeline') {
+            if (timelineHideTimerRef.current) clearTimeout(timelineHideTimerRef.current);
+            setTimelineContentHidden(true);
+        } else {
+            timelineHideTimerRef.current = setTimeout(() => setTimelineContentHidden(false), 1000);
+        }
+        return () => { if (timelineHideTimerRef.current) clearTimeout(timelineHideTimerRef.current); };
+    }, [showStoryOverlay, overlayMode]);
+
+    // Fly the map to the current slide's coordinates when navigating in Timeline mode
+    useEffect(() => {
+        if (overlayMode !== 'timeline' || !showStoryOverlay) return;
+        const slide = overlayActiveSlides[overlayCurrentIndex];
+        if (!slide || !isValidCoordinatePair(slide.coordinates)) return;
+        setMapConfig(prev => ({
+            ...prev,
+            center: slide.coordinates,
+            zoom:    slide.zoom    !== undefined ? slide.zoom    : prev.zoom,
+            bearing: slide.bearing !== undefined ? slide.bearing : 0,
+            pitch:   slide.pitch   !== undefined ? slide.pitch   : 0,
+            mapStyle: slide.map_style || prev.mapStyle,
+            flyDuration: 3,
+            offset: [0, 0],
+        }));
+    }, [overlayMode, overlayCurrentIndex, showStoryOverlay]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const openOverlay = (chapterId, slideId, mode = 'story') => {
         const sourceSlides = mode === 'timeline' ? overlayTimelineSlides : overlaySlides;
         const idx = sourceSlides.findIndex(sl =>
@@ -915,8 +946,10 @@ export default function StoryMapView() {
 
     const handleOverlayModeChange = (newMode) => {
         if (newMode === overlayMode) return;
-        if (newMode === 'timeline') timelineEnteredAtRef.current = Date.now();
-        else timelineEnteredAtRef.current = null;
+        if (newMode === 'timeline') {
+            timelineEnteredAtRef.current = Date.now();
+            setShowEpisodeGallery(false);
+        } else timelineEnteredAtRef.current = null;
         const currentSlide = overlayActiveSlides[overlayCurrentIndex];
         const newSlides = newMode === 'timeline' ? overlayTimelineSlides : overlaySlides;
         const newIdx = currentSlide ? newSlides.findIndex(sl => sl.id === currentSlide.id) : 0;
@@ -1107,7 +1140,7 @@ export default function StoryMapView() {
             />
             
             {/* Story Content */}
-            <div className="relative pointer-events-none" data-name="story-content-container">
+            <div className="relative pointer-events-none" data-name="story-content-container" style={{ visibility: timelineContentHidden ? 'hidden' : 'visible', opacity: timelineContentHidden ? 0 : 1, transition: timelineContentHidden ? 'none' : 'opacity 0.5s ease-out' }}>
                 {/* Header */}
                 <div className="pointer-events-auto" data-name="header-wrapper">
                 <StoryHeader
@@ -1472,7 +1505,7 @@ export default function StoryMapView() {
 
             {/* Episode Gallery — triggered by pressing Next past the last slide */}
             <NextEpisodePanel
-                isVisible={showEpisodeGallery}
+                isVisible={showEpisodeGallery && overlayMode !== 'timeline'}
                 seriesTitle={seriesData?.series?.title || ''}
                 seriesId={seriesData?.series?.id || ''}
                 episodes={seriesData?.episodes || []}
@@ -1671,6 +1704,7 @@ export default function StoryMapView() {
                             mapStyle={story?.map_style || 'a'}
                             viewMode={overlayMode}
                             hideControlStrip={true}
+                            hideMedia={overlayMode === 'timeline'}
                             hideTextPanel={overlayMode === 'picture'}
                             hideChapterTitle={overlayMode === 'story'}
                             inOverlay={true}
@@ -1824,6 +1858,8 @@ export default function StoryMapView() {
                             initialDelay={timelineEnteredAtRef.current
                                 ? Math.max(0, (3000 - (Date.now() - timelineEnteredAtRef.current)) / 1000)
                                 : 0}
+                            slideImage={overlayActiveSlides?.[overlayCurrentIndex]?.image || null}
+                            imagePosition={overlayActiveSlides?.[overlayCurrentIndex]?.image_position || '50% 50%'}
                         />
                     </motion.div>
                 )}
@@ -1920,7 +1956,7 @@ export default function StoryMapView() {
                     >
                         {/* Top gradient — 30% black fading to transparent over 200px */}
                         <div className="absolute top-0 pointer-events-none" style={{ left: -80, right: -80, height: 200, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)' }} />
-                        <div className="relative flex-1 overflow-auto mt-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        <div className="relative flex-1 overflow-hidden mt-4">
                             <DocumentManagerContent storyId={storyId} dark triggerUploadKey={libraryUploadKey} mapStyle={story?.map_style || 'a'} />
                         </div>
                     </motion.div>
@@ -1934,95 +1970,60 @@ export default function StoryMapView() {
                 story={story}
             />
 
-            {/* Logged-in user pill — fixed lower right; matches sub-pill style */}
-            {currentUser && (
+            {/* User control — top-left of banner, before logo */}
+            {currentUser && isBannerVisible && (
                 <div
-                    className="fixed right-6 z-[200020] pointer-events-auto transition-all duration-300"
-                    style={{ bottom: showStoryOverlay ? 88 : 10, height: 60, cursor: 'pointer', willChange: 'transform' }}
+                    className="fixed top-0 left-0 h-[100px] z-[200002] pointer-events-auto group transition-colors duration-150 group-hover:bg-slate-100/80"
+                    style={{ width: 380 }}
                 >
-                    <div className={pillShell} style={{ width: 'auto', paddingInline: 0 }}>
+                    {/* Username link — centred in the upper 70px above the palette */}
+                    <Link
+                        to={createPageUrl('Stories')}
+                        className="absolute text-slate-300 text-sm font-light group-hover:text-slate-800 transition-colors duration-150 whitespace-nowrap"
+                        style={{ top: 15, height: 70, left: 24, display: 'flex', alignItems: 'center' }}
+                    >
+                        {currentUser.full_name || currentUser.email}
+                    </Link>
 
-                        {/* Tools palette */}
-                        <div className="relative group h-full">
-                            <button
-                                onClick={() => setShowToolPalette(v => !v)}
-                                className="h-full px-5 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
-                                style={{ cursor: 'pointer' }}
-                                onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
-                                onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
-                                aria-label="Tools"
-                            >
-                                <Wrench className="w-4 h-4" />
-                            </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-[10px] text-white text-xs font-light whitespace-nowrap uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none select-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                Tools
-                            </span>
-                        </div>
-
-                        {pillDivider}
-
-                        {/* Edit story */}
-                        <div className="relative group h-full">
-                            <button
-                                onClick={() => setIsEditTransitioning(true)}
-                                className="h-full px-5 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
-                                style={{ cursor: 'pointer' }}
-                                onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
-                                onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
-                                aria-label="Edit story"
-                            >
-                                <Pencil className="w-4 h-4" />
-                            </button>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-[10px] text-white text-xs font-light whitespace-nowrap uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none select-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                Edit Story
-                            </span>
-                        </div>
-
-                        {pillDivider}
-
-                        {/* Username — links to dashboard */}
-                        <div className="relative group h-full flex items-center">
-                            <Link
-                                to={createPageUrl('Stories')}
-                                className="h-full px-4 flex items-center text-sm text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
-                                style={{ cursor: 'pointer' }}
-                                onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
-                                onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
-                            >
-                                <span className="whitespace-nowrap max-w-[180px] truncate block">
-                                    {currentUser.full_name || currentUser.email}
-                                </span>
-                            </Link>
-                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-[10px] text-white text-xs font-light whitespace-nowrap uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none select-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                Visit Dashboard
-                            </span>
-                        </div>
-
-                        {pillDivider}
-
+                    {/* Hover palette — 380×30, bottom of banner, aligns exactly with pill below */}
+                    <div
+                        className="absolute bottom-0 left-0 flex items-stretch bg-black/50 backdrop-blur-xl border border-white/20 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none group-hover:pointer-events-auto"
+                        style={{ width: 380, height: 30 }}
+                    >
                         <button
                             onClick={logout}
-                            className="h-full px-5 flex items-center gap-2 text-sm text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
-                            style={{ cursor: 'pointer' }}
-                            onMouseEnter={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
-                            onMouseMove={(e) => e.currentTarget.style.setProperty('cursor','pointer','important')}
-                            aria-label="Log out"
+                            title="Log out"
+                            className="flex-1 h-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
                         >
                             <LogOut className="w-4 h-4" />
-                            <span>Log out</span>
+                        </button>
+                        <div className="w-px self-stretch bg-white/20 flex-shrink-0" />
+                        <button
+                            onClick={() => setIsEditTransitioning(true)}
+                            title="Edit story"
+                            className="flex-1 h-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
+                        >
+                            <Pencil className="w-4 h-4" />
+                        </button>
+                        <div className="w-px self-stretch bg-white/20 flex-shrink-0" />
+                        <button
+                            onClick={() => setShowToolPalette(v => !v)}
+                            title="Tools"
+                            className="flex-1 h-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
+                        >
+                            <Wrench className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Tool palette — anchored above user pill */}
+            {/* Tool palette — anchored below banner on the left */}
             {currentUser && (
                 <ToolPalette
                     isOpen={showToolPalette}
                     onClose={() => setShowToolPalette(false)}
                     view={showStoryOverlay ? 'story' : 'map'}
                     hasActiveSlide={!showStoryOverlay && !!activeSlide?.image}
-                    bottom={showStoryOverlay ? 156 : 78}
                     onOpenMapEditor={() => setIsLiveEditorOpen(true)}
                     onOpenImagePosition={() => setShowImagePositionModal(true)}
                     onAddTooltip={() => setAddHotspotMode(true)}

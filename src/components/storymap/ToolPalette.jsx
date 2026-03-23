@@ -16,7 +16,7 @@ export default function ToolPalette({
     onOpenMapEditor,
     onOpenImagePosition,
     onAddTooltip,
-    bottom = 78,       // px from bottom of viewport
+    top = 108,         // px from top of viewport (below banner)
 }) {
     const ref = useRef(null);
 
@@ -59,8 +59,8 @@ export default function ToolPalette({
             {isOpen && (
                 <motion.div
                     ref={ref}
-                    className="fixed right-6 z-[200025] pointer-events-auto"
-                    style={{ bottom }}
+                    className="fixed left-6 z-[200025] pointer-events-auto"
+                    style={{ top }}
                     initial={{ opacity: 0, y: 6, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0,  scale: 1    }}
                     exit={   { opacity: 0, y: 6,  scale: 0.96 }}

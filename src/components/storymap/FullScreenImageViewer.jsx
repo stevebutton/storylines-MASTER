@@ -238,6 +238,7 @@ export default function FullScreenImageViewer({
     hideControlStrip  = false,
     hideTextPanel     = false,
     hideChapterTitle  = false,
+    hideMedia         = false,
     inOverlay         = false,  // true when rendered as an overlay inside StoryMapView
     chapterColorIndex = 0,
     addHotspotMode    = false,  // true = enter "place new hotspot" mode immediately
@@ -389,17 +390,17 @@ export default function FullScreenImageViewer({
                     {/* Main Content */}
                     <motion.div
                         initial={inOverlay ? { opacity: 0 } : { y: "100vh", opacity: 0 }}
-                        animate={inOverlay ? { opacity: 1 } : { y: 0, opacity: 1 }}
+                        animate={inOverlay ? { opacity: 1, backgroundColor: hideMedia ? 'rgba(0,0,0,0)' : 'rgb(2,6,23)' } : { y: 0, opacity: 1 }}
                         exit={inOverlay ? { opacity: 0 } : { y: "100vh", opacity: 0 }}
-                        transition={inOverlay ? { duration: 0.4, ease: "easeOut" } : { duration: 1.5, ease: "easeOut" }}
-                        className={`fixed inset-x-0 bottom-0 z-[9998] overflow-y-auto pointer-events-auto ${inOverlay ? 'bg-slate-950 top-[100px]' : 'bg-white top-0'}`}
+                        transition={inOverlay ? { opacity: { duration: 0.4, ease: 'easeOut' }, backgroundColor: { duration: 1, ease: 'easeInOut' } } : { duration: 1.5, ease: "easeOut" }}
+                        className={`fixed inset-x-0 bottom-0 z-[9998] overflow-y-auto pointer-events-auto ${inOverlay ? 'top-[100px]' : 'bg-white top-0'}`}
                     >
                         {/* Image or Video Display */}
                         {/* overflow-hidden clips the push slides so they don't show
                             outside the container; absolute img allows mode="sync"
                             to run enter+exit simultaneously for the push effect.   */}
                         <style>{HOTSPOT_PULSE_STYLE}</style>
-                        <div ref={imageContainerRef} className="absolute inset-0 overflow-hidden z-10">
+                        <motion.div ref={imageContainerRef} className="absolute inset-0 overflow-hidden z-10" animate={{ opacity: hideMedia ? 0 : 1 }} transition={{ duration: 1, ease: 'easeInOut' }} style={{ pointerEvents: hideMedia ? 'none' : undefined }}>
                     <AnimatePresence
                         mode="sync"
                         custom={directionRef.current}
@@ -523,7 +524,7 @@ export default function FullScreenImageViewer({
                             )}
 
                             {/* Instruction banner — portalled to body (see below) */}
-                        </div>
+                        </motion.div>
 
                         {/* Confirmation popup — rendered at top level to escape stacking context */}
 
@@ -545,6 +546,7 @@ export default function FullScreenImageViewer({
                             allowExtended={!hideChapterTitle}
                             onSaved={onSlideFieldUpdate}
                             onChapterNameSaved={onChapterNameSaved}
+
                         />
                         )}
                         </AnimatePresence>

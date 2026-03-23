@@ -201,12 +201,6 @@ button, [role="button"], a {
   z-index: 400000 !important;
 }
 
-/* Mapbox attribution — centre bottom instead of default bottom-right */
-.mapboxgl-ctrl-bottom-right {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-}
 
 /* Resizable Quill rich-text editors */
 .ql-container {

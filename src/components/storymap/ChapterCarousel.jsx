@@ -48,47 +48,91 @@ const FULLSCREEN_CURSOR = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.
 
 // Tab shown at the right edge of the carousel when the last slide is reached.
 // Pixel offsets only — avoids conflict with Framer Motion's transform system.
-function NextChapterTab({ onNextChapter, nextChapterName, nextChapterColor }) {
+// Shows a Restart button on the left (when onRestart is provided) and a Next
+// Chapter button on the right (when onNextChapter is provided), separated by a
+// thin divider.
+function NextChapterTab({ onNextChapter, nextChapterName, nextChapterColor, onRestart }) {
     return (
-        <motion.button
+        <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            whileHover={{ scale: 1.06, boxShadow: '0 8px 32px rgba(0,0,0,0.55)', background: 'rgba(30, 41, 59, 0.96)' }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ boxShadow: '0 8px 32px rgba(0,0,0,0.55)' }}
             transition={{ duration: 0.4, delay: 0.25 }}
-            onClick={onNextChapter}
-            className="absolute z-20 flex flex-col items-start pointer-events-auto cursor-pointer"
+            className="absolute z-20 flex flex-row items-stretch pointer-events-auto overflow-hidden"
             style={{
                 right: -40,
                 bottom: -30,
                 background: 'rgba(15, 23, 42, 0.88)',
                 backdropFilter: 'blur(12px)',
-                padding: '14px 20px',
                 borderRadius: '14px',
-                minWidth: 150,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
             }}
         >
-            <span style={{
-                fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.45)', fontFamily: 'Raleway, sans-serif',
-                marginBottom: 5, display: 'flex', alignItems: 'center', gap: 10,
-            }}>
-                {nextChapterColor && (
-                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: nextChapterColor, border: '1px solid white', flexShrink: 0, display: 'inline-block' }} />
-                )}
-                Next Chapter
-            </span>
-            {nextChapterName && (
-                <span style={{
-                    fontSize: 13, fontFamily: 'Raleway, sans-serif', fontWeight: 300,
-                    lineHeight: 1.35, color: 'white', maxWidth: 130, display: 'block',
-                }}>
-                    {nextChapterName}
-                </span>
+            {/* Restart section */}
+            {onRestart && (
+                <button
+                    onClick={onRestart}
+                    className="flex items-center gap-2 transition-colors hover:bg-white/10 cursor-pointer"
+                    style={{
+                        padding: '14px 18px',
+                        fontFamily: 'Raleway, sans-serif',
+                        fontSize: 13,
+                        color: 'rgba(255,255,255,0.6)',
+                        letterSpacing: '0.08em',
+                        background: 'transparent',
+                        border: 'none',
+                    }}
+                >
+                    <span style={{ fontSize: 16 }}>↺</span>
+                    <span>Restart</span>
+                </button>
             )}
-        </motion.button>
+
+            {/* Divider — only when both sections are present */}
+            {onRestart && onNextChapter && (
+                <div style={{
+                    width: 1,
+                    background: 'rgba(255,255,255,0.2)',
+                    margin: '8px 0',
+                    flexShrink: 0,
+                }} />
+            )}
+
+            {/* Next Chapter section */}
+            {onNextChapter && (
+                <button
+                    onClick={onNextChapter}
+                    className="flex flex-col items-start transition-colors hover:bg-white/10 cursor-pointer"
+                    style={{
+                        padding: '14px 20px',
+                        minWidth: 150,
+                        background: 'transparent',
+                        border: 'none',
+                    }}
+                >
+                    <span style={{
+                        fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
+                        color: 'rgba(255,255,255,0.45)', fontFamily: 'Raleway, sans-serif',
+                        marginBottom: 5, display: 'flex', alignItems: 'center', gap: 10,
+                    }}>
+                        {nextChapterColor && (
+                            <span style={{ width: 20, height: 20, borderRadius: '50%', background: nextChapterColor, border: '1px solid white', flexShrink: 0, display: 'inline-block' }} />
+                        )}
+                        Next Chapter
+                    </span>
+                    {nextChapterName && (
+                        <span style={{
+                            fontSize: 15, fontFamily: 'Raleway, sans-serif', fontWeight: 300,
+                            lineHeight: 1.35, color: 'white', maxWidth: 150, display: 'block',
+                            textAlign: 'left',
+                        }}>
+                            {nextChapterName}
+                        </span>
+                    )}
+                </button>
+            )}
+        </motion.div>
     );
 }
 
@@ -122,7 +166,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
     if (!slides || slides.length === 0) return null;
 
     const atEnd = selectedIndex === slides.length - 1;
-    const showTab = atEnd && !!onNextChapter;
+    const showTab = atEnd;
 
     // Single slide — no nav controls, but still show the tab if a next chapter exists
     if (slides.length === 1) {
@@ -195,20 +239,19 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                 <ChevronLeft className="w-5 h-5 text-white" />
             </button>
 
-            {/* Next arrow ↔ Next Chapter tab — swap on last slide */}
+            {/* Next arrow ↔ Restart+NextChapter tab — swap on last slide */}
             <AnimatePresence mode="wait">
                 {showTab ? (
-                    <NextChapterTab key="tab" onNextChapter={onNextChapter} nextChapterName={nextChapterName} nextChapterColor={nextChapterColor} />
+                    <NextChapterTab key="tab" onNextChapter={onNextChapter} nextChapterName={nextChapterName} nextChapterColor={nextChapterColor} onRestart={() => emblaApi?.scrollTo(0)} />
                 ) : (
                     <motion.button
                         key="next-arrow"
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: atEnd ? 0.2 : 0.6 }}
+                        animate={{ opacity: 0.6 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.25 }}
                         onClick={scrollNext}
-                        disabled={atEnd}
-                        className={`absolute z-10 rounded-full flex items-center justify-center ${atEnd ? 'pointer-events-none' : 'hover:opacity-100'}`}
+                        className="absolute z-10 rounded-full flex items-center justify-center hover:opacity-100"
                         style={{ width: 36, height: 36, bottom: -18, right: 0, transform: 'translateX(50%)', background: '#000', border: '3px solid white', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
                         aria-label="Next slide"
                     >
