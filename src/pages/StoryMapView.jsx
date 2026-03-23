@@ -168,6 +168,8 @@ export default function StoryMapView() {
     const chapterRefs = useRef([]);
     const containerRef = useRef(null);
     const projectDescriptionRef = useRef(null);
+    const footerRef = useRef(null);
+    const [atEnd, setAtEnd] = useState(false);
     // Per-chapter ordered list of slide coordinates the user has visited.
     // Reset to [] each time the chapter activates. Used to rebuild route progressively.
     const visitedSlideCoordsRef = useRef({});  // { [chKey]: [[lat,lng],...] }
@@ -958,6 +960,18 @@ export default function StoryMapView() {
     const animateRainRef = useRef(null);  // rAF handle for rain fade
     const rainFactorRef  = useRef(0);     // current rendered factor (0 = off, 1 = fully on)
 
+    // Fade both pills out when the End / footer section scrolls into view.
+    useEffect(() => {
+        const el = footerRef.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(
+            ([entry]) => setAtEnd(entry.isIntersecting),
+            { threshold: 0.1 }
+        );
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
     // Rain is driven purely by activeSlide.show_rain_button — no suppression for
     // Tools palette or Map Editor. Suppressing rain (setRain(null/invisible)) while
     // those panels open causes a Mapbox GL WebGL black screen on the rain slide
@@ -1535,7 +1549,7 @@ export default function StoryMapView() {
                 ))}
                 
                 {/* End-of-story section */}
-                <div className="pointer-events-auto" data-name="footer-wrapper">
+                <div ref={footerRef} className="pointer-events-auto" data-name="footer-wrapper">
                 <StoryFooter
                     onRestart={scrollToTop}
                     relatedStories={relatedStories}
@@ -1646,6 +1660,7 @@ export default function StoryMapView() {
                     else openOverlay(null, activeSlide?.id || null, 'story');
                 }}
                 onOpenLibrary={handleLibraryOpen}
+                atEnd={atEnd}
             />
 
             {/* Chapter announcement banner — shows when user clicks Explore on a chapter card */}
@@ -1709,11 +1724,11 @@ export default function StoryMapView() {
                         <motion.div
                             key="library-pill"
                             initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            animate={{ opacity: atEnd ? 0 : 1, y: 0 }}
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, width: 380, height: 80, cursor: 'pointer', willChange: 'transform' }}
+                            style={{ bottom: 0, width: 380, height: 80, cursor: 'pointer', willChange: 'transform', pointerEvents: atEnd ? 'none' : undefined }}
                         >
                             <LibraryPill onUpload={() => setLibraryUploadKey(k => k + 1)} />
                         </motion.div>
@@ -1721,11 +1736,11 @@ export default function StoryMapView() {
                         <motion.div
                             key="fullscreen-nav"
                             initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            animate={{ opacity: atEnd ? 0 : 1, y: 0 }}
                             exit={{ opacity: 0, y: 6 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, width: 380, height: 80, cursor: 'pointer', willChange: 'transform' }}
+                            style={{ bottom: 0, width: 380, height: 80, cursor: 'pointer', willChange: 'transform', pointerEvents: atEnd ? 'none' : undefined }}
                         >
                             <FullscreenNavPill
                                 onPrev={() => {
@@ -1752,11 +1767,11 @@ export default function StoryMapView() {
                         <motion.div
                             key="bottom-pill"
                             initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            animate={{ opacity: atEnd ? 0 : 1, y: 0 }}
                             exit={{ opacity: 0, y: 20 }}
                             transition={{ duration: 0.5, ease: 'easeOut', delay: pillsInitialized ? 0 : 5 }}
                             className="fixed left-0 z-[200020] pointer-events-auto"
-                            style={{ bottom: 0, height: 80, width: 'fit-content', minWidth: 380, cursor: 'pointer', willChange: 'transform' }}
+                            style={{ bottom: 0, height: 80, width: 'fit-content', minWidth: 380, cursor: 'pointer', willChange: 'transform', pointerEvents: atEnd ? 'none' : undefined }}
                         >
                             <BottomPillBar
                                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
@@ -2112,16 +2127,19 @@ export default function StoryMapView() {
                 </div>
             )}
 
-            {/* Scroll shield — invisible strip behind the chapter carousel (right half).
-                Intercepts wheel events so manual mouse-wheel scrolling moves the
-                story rather than zooming the map. Only active in map view. */}
+
+            {/* Scroll shield — sits in the lower portion of the carousel column, behind
+                the chapter card. Intercepts wheel events so scrolling in that area
+                advances the story rather than zooming the map. 50px insets clear the
+                ChapterNavigation circles on the right. z-[5] keeps it above the map
+                canvas but well below all UI elements. Map view only. */}
             {!showStoryOverlay && (
                 <div
-                    className="fixed right-0 pointer-events-auto"
-                    style={{ top: -100, left: 'calc(50% - 40px)', height: 'calc(100vh + 100px)', zIndex: 100 }}
+                    className="fixed pointer-events-auto"
+                    style={{ left: 'calc(50% + 10px)', right: 50, top: '60vh', bottom: 0, zIndex: 5 }}
                     onWheel={(e) => {
                         e.preventDefault();
-                        window.scrollBy({ top: e.deltaY, behavior: 'auto' });
+                        window.scrollBy({ top: e.deltaY });
                     }}
                 />
             )}

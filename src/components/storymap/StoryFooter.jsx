@@ -51,13 +51,12 @@ export default function StoryFooter({
                     {t('back_to_beginning')}
                 </Button>
 
-                {/* 2. End / Thank you */}
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                    {t('end_label')}
-                </h2>
-                <p className="text-white/70 mb-12">
-                    {t('thank_you')}
-                </p>
+                {/* Thank you — shown alone when there are no episodes or related stories */}
+                {!hasSeries && relatedStories.length === 0 && (
+                    <p className="text-white/70 mt-4 text-left" style={{ fontSize: 28, paddingLeft: 50 }}>
+                        {t('thank_you')}
+                    </p>
+                )}
 
                 {/* 3. Series episodes — only when story is part of a series */}
                 {hasSeries && (
@@ -67,6 +66,9 @@ export default function StoryFooter({
                         transition={{ duration: 0.8, delay: 0.2 }}
                         viewport={{ once: false }}
                     >
+                        <p className="text-white/70 mb-4 text-left" style={{ fontSize: 28, paddingLeft: 50 }}>
+                            {t('thank_you')}
+                        </p>
                         <h3
                             className="mb-8 text-left"
                             style={{
@@ -147,7 +149,10 @@ export default function StoryFooter({
                         viewport={{ once: false }}
                         className="mt-4"
                     >
-                        <h3 className="text-xl font-light text-white/80 mb-6">
+                        <p className="text-white/70 mb-4 text-left" style={{ fontSize: 28, paddingLeft: 50 }}>
+                            {t('thank_you')}
+                        </p>
+                        <h3 className="text-xl font-light text-white/80 mb-6 text-left">
                             {t('more_stories')}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

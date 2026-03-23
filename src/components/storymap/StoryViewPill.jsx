@@ -55,6 +55,7 @@ export default function StoryViewPill({
     onOpenStory    = null,
     onOpenMap      = null,
     onOpenLibrary  = null,
+    atEnd          = false,
 }) {
     const { t } = useTranslation();
 
@@ -83,11 +84,11 @@ export default function StoryViewPill({
             {isVisible && (
                 <motion.div
                     initial={{ opacity: 0, y: -16 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    animate={{ opacity: atEnd ? 0 : 1, y: 0 }}
                     exit={{ opacity: 0, y: -16 }}
                     transition={{ duration: 0.35, ease: 'easeOut', delay: entranceDelay }}
                     className="fixed left-0 z-[200020] pointer-events-auto"
-                    style={{ top: 100, width: 380, height: 60 }}
+                    style={{ top: 100, width: 380, height: 60, pointerEvents: atEnd ? 'none' : undefined }}
                 >
                     <div className={pillShell}>
                         {views.map(({ key, url, onNav }, idx) => {
