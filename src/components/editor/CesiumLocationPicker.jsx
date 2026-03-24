@@ -7,7 +7,19 @@ import { Search, MapPin, Loader2 } from 'lucide-react'
 import { useCesiumViewer } from '@/components/cesium/useCesiumViewer'
 import { setViewInstant } from '@/components/cesium/flyToPromise'
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY || 'pk.eyJ1Ijoic3RldmVidXR0b24iLCJhIjoiNEw1T183USJ9.Sv_1qSC23JdXot8YIRPi8A'
+const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+
+/**
+ * Estimate a good camera altitude from a Google Geocoding viewport.
+ * Larger places (countries, regions) → higher altitude; streets/POIs → lower.
+ */
+function altitudeFromViewport(viewport, lat) {
+    const latSpan = Math.abs(viewport.northeast.lat - viewport.southwest.lat) * 111111
+    const lngSpan = Math.abs(viewport.northeast.lng - viewport.southwest.lng) * 111111
+        * Math.cos(lat * Math.PI / 180)
+    const span = Math.max(latSpan, lngSpan)
+    return Math.round(Math.max(300, Math.min(80000, span * 0.55)))
+}
 
 /**
  * Embedded Cesium viewer for selecting a chapter camera position.
@@ -58,65 +70,69 @@ export default function CesiumLocationPicker({ value, onChange }) {
         onChange(next)
     }
 
-    const handleSearch = async () => {
-        if (!searchQuery.trim()) return
-        setIsSearching(true)
-        try {
-            const res = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${MAPBOX_TOKEN}&limit=5`
-            )
-            const data = await res.json()
-            setSearchResults(data.features || [])
-        } catch (e) {
-            console.error('Geocode failed:', e)
-        } finally {
-            setIsSearching(false)
-        }
-    }
+    // Debounced live search — fires 450ms after the user stops typing
+    useEffect(() => {
+        const q = searchQuery.trim()
+        if (q.length < 2) { setSearchResults([]); return }
+        const timer = setTimeout(async () => {
+            setIsSearching(true)
+            try {
+                const res  = await fetch(
+                    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(q)}&key=${GOOGLE_KEY}`
+                )
+                const data = await res.json()
+                setSearchResults(data.results?.slice(0, 6) || [])
+            } catch (e) {
+                console.error('Geocode failed:', e)
+            } finally {
+                setIsSearching(false)
+            }
+        }, 450)
+        return () => clearTimeout(timer)
+    }, [searchQuery])
 
     const selectResult = (result) => {
-        const [lng, lat] = result.center
+        const { lat, lng } = result.geometry.location
+        const alt = altitudeFromViewport(result.geometry.viewport, lat)
         if (viewer) {
             viewer.camera.flyTo({
-                destination: Cesium.Cartesian3.fromDegrees(lng, lat, 800),
+                destination: Cesium.Cartesian3.fromDegrees(lng, lat, alt),
                 orientation: { heading: 0, pitch: Cesium.Math.toRadians(-35), roll: 0 },
                 duration: 2,
             })
         }
         setSearchResults([])
-        setSearchQuery(result.place_name)
+        setSearchQuery(result.formatted_address)
     }
 
     return (
         <div className="space-y-3">
             {/* Search bar */}
             <div className="relative">
-                <div className="flex gap-2">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <Input
-                            placeholder="Search for a location..."
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                            className="pl-10"
-                        />
-                    </div>
-                    <Button onClick={handleSearch} disabled={isSearching} variant="outline">
-                        {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
-                    </Button>
+                <div className="relative">
+                    {isSearching
+                        ? <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 animate-spin" />
+                        : <Search  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    }
+                    <Input
+                        placeholder="Search for a location…"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        onKeyDown={e => e.key === 'Escape' && setSearchResults([])}
+                        className="pl-10"
+                    />
                 </div>
 
                 {searchResults.length > 0 && (
-                    <div className="absolute top-full mt-1 w-full bg-white border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-                        {searchResults.map(result => (
+                    <div className="absolute top-full mt-1 w-full bg-white border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                        {searchResults.map((result, i) => (
                             <button
-                                key={result.id}
+                                key={i}
                                 onClick={() => selectResult(result)}
-                                className="w-full text-left px-4 py-2 hover:bg-slate-50 flex items-start gap-2 border-b last:border-0"
+                                className="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-start gap-2 border-b last:border-0"
                             >
                                 <MapPin className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                                <span className="text-sm">{result.place_name}</span>
+                                <span className="text-sm">{result.formatted_address}</span>
                             </button>
                         ))}
                     </div>
@@ -129,7 +145,7 @@ export default function CesiumLocationPicker({ value, onChange }) {
 
                 {/* Loading state */}
                 {!viewer && !error && (
-                    <div className="absolute inset-0 flex items-center justify-center gap-2 text-slate-400 text-sm pointer-events-none">
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 text-slate-400 text-sm pointer-events-none" style={{ zIndex: 9999 }}>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Loading 3D tiles…
                     </div>
@@ -144,7 +160,7 @@ export default function CesiumLocationPicker({ value, onChange }) {
 
                 {/* Capture button */}
                 {viewer && (
-                    <div className="absolute top-2 left-2 z-10">
+                    <div className="absolute top-2 left-2" style={{ zIndex: 9999 }}>
                         <Button
                             onClick={captureView}
                             size="sm"
@@ -158,7 +174,7 @@ export default function CesiumLocationPicker({ value, onChange }) {
 
                 {/* Captured readout */}
                 {captured?.lat != null && (
-                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-xs text-white z-10 pointer-events-none">
+                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 text-xs text-white pointer-events-none" style={{ zIndex: 9999 }}>
                         <div className="font-medium mb-0.5">
                             {captured.lat.toFixed(4)}, {captured.lng.toFixed(4)}
                         </div>

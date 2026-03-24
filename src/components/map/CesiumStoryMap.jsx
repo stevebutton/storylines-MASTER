@@ -10,11 +10,11 @@ import { useCesiumChapter } from '../cesium/useCesiumChapter'
  *
  * NOTE: Do not import mapbox-gl or any Mapbox utility in this file.
  */
-export default function CesiumStoryMap({ story, currentChapter, currentSlide }) {
+export default function CesiumStoryMap({ story, chapters, currentChapter, currentSlide, hidden, viewerRef }) {
     const containerRef = useRef(null)
     const [error, setError] = useState(null)
 
-    const viewer = useCesiumViewer(containerRef, setError)
+    const viewer = useCesiumViewer(containerRef, setError, viewerRef)
     useCesiumChapter(viewer, currentChapter)
     // Slide-level camera — fires after chapter, overrides it when slide has cesium_camera
     useCesiumChapter(viewer, currentSlide)
@@ -41,10 +41,15 @@ export default function CesiumStoryMap({ story, currentChapter, currentSlide }) 
         )
     }
 
+    // The Cesium canvas is GPU-composited separately and bypasses CSS opacity/visibility
+    // applied to ancestor elements. We must hide it directly and synchronously in the
+    // render path (not in a useEffect) so the canvas disappears before the page transition
+    // overlay fades in.
     return (
         <div
             ref={containerRef}
             className="fixed inset-0 z-0"
+            style={hidden ? { display: 'none' } : undefined}
         />
     )
 }

@@ -12,7 +12,7 @@ import 'cesium/Build/Cesium/Widgets/widgets.css'
  *   - showCreditsOnScreen: true is set (Google ToS requirement)
  *   - API key is read from VITE_GOOGLE_MAPS_API_KEY — never hardcoded
  */
-export function useCesiumViewer(containerRef, onError) {
+export function useCesiumViewer(containerRef, onError, externalRef) {
     const viewerRef = useRef(null)
     const [ready, setReady] = useState(false)
 
@@ -37,11 +37,27 @@ export function useCesiumViewer(containerRef, onError) {
             showCreditsOnScreen:  true,   // required by Google ToS
         })
 
+        // cancelFlight() is called via canvas listeners once the tileset loads.
+        // Start as a no-op so the cleanup function can always call it safely.
+        let removeInteractListeners = () => {}
+
         Cesium.createGooglePhotorealistic3DTileset()
             .then(tileset => {
                 viewer.scene.primitives.add(tileset)
                 viewerRef.current = viewer
+                if (externalRef) externalRef.current = viewer
                 setReady(true)
+
+                // Cancel any programmatic camera flight when the user interacts,
+                // matching Mapbox GL's behaviour where a click or scroll stops a flyTo.
+                const canvas = viewer.scene.canvas
+                const cancelFlight = () => viewer.camera.cancelFlight()
+                canvas.addEventListener('pointerdown', cancelFlight)
+                canvas.addEventListener('wheel',       cancelFlight, { passive: true })
+                removeInteractListeners = () => {
+                    canvas.removeEventListener('pointerdown', cancelFlight)
+                    canvas.removeEventListener('wheel',       cancelFlight)
+                }
             })
             .catch(err => {
                 console.error('Failed to load Google 3D tileset:', err)
@@ -49,6 +65,14 @@ export function useCesiumViewer(containerRef, onError) {
             })
 
         return () => {
+            removeInteractListeners()
+            // Hide immediately so the WebGL canvas doesn't flash during
+            // page transitions (fixed-position WebGL layers can bypass
+            // CSS opacity fades applied to ancestor elements).
+            if (containerRef.current) {
+                containerRef.current.style.visibility = 'hidden'
+            }
+            if (externalRef) externalRef.current = null
             viewer.camera.cancelFlight()
             viewer.destroy()
             viewerRef.current = null

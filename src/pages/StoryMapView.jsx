@@ -13,6 +13,7 @@ import ChapterProgress from '@/components/storymap/ChapterProgress';
 import FloatingStorySlideshow from '@/components/storymap/FloatingStorySlideshow';
 import ProjectDescriptionSection from '@/components/storymap/ProjectDescriptionSection';
 import LiveMapEditor from '@/components/storymap/LiveMapEditor';
+import CesiumMapEditor from '@/components/cesium/CesiumMapEditor';
 import FullScreenImageViewer from '@/components/storymap/FullScreenImageViewer';
 import ToolPalette from '@/components/storymap/ToolPalette';
 import SlideImagePositionModal from '@/components/storymap/SlideImagePositionModal';
@@ -143,6 +144,7 @@ export default function StoryMapView() {
     const [isEditTransitioning, setIsEditTransitioning] = useState(false);
     const [carouselOpened, setCarouselOpened] = useState(false);
     const mapInstanceRef = useRef(null);
+    const cesiumViewerRef = useRef(null); // populated by useCesiumViewer when a 3D story is active
     const [pinnedLayers, setPinnedLayers] = useState([]); // { id, name, visible }[]
     const prevSlideLayerRef = useRef(null);
     const navigate = useNavigate();
@@ -1215,8 +1217,11 @@ export default function StoryMapView() {
             {/* Map Background */}
             <StoryMapRenderer
                 story={story}
+                chapters={chapters}
                 currentChapter={chapters[activeChapter] ?? null}
                 currentSlide={activeSlide}
+                hidden={isEditTransitioning}
+                viewerRef={cesiumViewerRef}
                 center={mapConfig.center}
                 zoom={mapConfig.zoom}
                 bearing={mapConfig.bearing}
@@ -1628,22 +1633,40 @@ export default function StoryMapView() {
                 }}
             />
 
-            {/* Live Map Editor */}
-            <LiveMapEditor
-                isOpen={isLiveEditorOpen}
-                onClose={() => { setIsLiveEditorOpen(false); setShowToolPalette(false); }}
-                activeSlide={activeSlide}
-                mapInstanceRef={mapInstanceRef}
-                onSlideSave={(slideId, values) => {
-                    setChapters(prev => prev.map(chapter => ({
-                        ...chapter,
-                        slides: chapter.slides?.map(slide =>
-                            slide.id === slideId ? { ...slide, ...values } : slide
-                        )
-                    })));
-                    setActiveSlide(prev => prev?.id === slideId ? { ...prev, ...values } : prev);
-                }}
-            />
+            {/* Map Editor — Cesium or Mapbox depending on map style */}
+            {story?.map_style === 'photorealistic-3d' ? (
+                <CesiumMapEditor
+                    isOpen={isLiveEditorOpen}
+                    onClose={() => { setIsLiveEditorOpen(false); setShowToolPalette(false); }}
+                    activeSlide={activeSlide}
+                    viewerRef={cesiumViewerRef}
+                    onSlideSave={(slideId, values) => {
+                        setChapters(prev => prev.map(chapter => ({
+                            ...chapter,
+                            slides: chapter.slides?.map(slide =>
+                                slide.id === slideId ? { ...slide, ...values } : slide
+                            )
+                        })));
+                        setActiveSlide(prev => prev?.id === slideId ? { ...prev, ...values } : prev);
+                    }}
+                />
+            ) : (
+                <LiveMapEditor
+                    isOpen={isLiveEditorOpen}
+                    onClose={() => { setIsLiveEditorOpen(false); setShowToolPalette(false); }}
+                    activeSlide={activeSlide}
+                    mapInstanceRef={mapInstanceRef}
+                    onSlideSave={(slideId, values) => {
+                        setChapters(prev => prev.map(chapter => ({
+                            ...chapter,
+                            slides: chapter.slides?.map(slide =>
+                                slide.id === slideId ? { ...slide, ...values } : slide
+                            )
+                        })));
+                        setActiveSlide(prev => prev?.id === slideId ? { ...prev, ...values } : prev);
+                    }}
+                />
+            )}
 
             {/* Story View Pill — single instance, always above all overlays (z-200020) */}
             <StoryViewPill
@@ -1989,6 +2012,11 @@ export default function StoryMapView() {
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.5, ease: 'easeInOut' }}
                         onAnimationComplete={() => {
+                            // Body is black in index.html. Set it white so that as
+                            // PageTransition fades this overlay out (0.4s exit), the
+                            // background behind it matches the white dissolve rather
+                            // than flashing the raw black body.
+                            document.body.style.background = '#fff';
                             navigate(`/StoryEditor?id=${storyId}`);
                         }}
                     />
