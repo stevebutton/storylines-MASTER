@@ -15,6 +15,7 @@ import * as exifr from 'exifr';
 
 const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import EmbeddedLocationPicker from '@/components/editor/EmbeddedLocationPicker';
+import CesiumLocationPicker from '@/components/editor/CesiumLocationPicker';
 import DocumentPicker from '@/components/editor/DocumentPicker';
 import MediaLibraryDialog from '@/components/editor/MediaLibraryDialog';
 import ImageCropHotspotPicker from '@/components/editor/ImageCropHotspotPicker';
@@ -95,6 +96,11 @@ const MAP_STYLES_CONFIG = {
         description: 'World overview style',
         owner: 'stevebutton',
         id: 'cmmuqyi1p00a501s955v9393b',
+    },
+    'photorealistic-3d': {
+        label: 'Photorealistic 3D',
+        description: 'Google Photorealistic 3D Tiles — immersive aerial view powered by Cesium',
+        cesium: true,
     },
 };
 
@@ -723,7 +729,9 @@ export default function TabbedContentEditor({
                                 const thumbLon = item.coordinates?.[1] ?? 2.3522;
                                 const thumbLat = item.coordinates?.[0] ?? 48.8566;
                                 const thumbZoom = Math.max(4, Math.min(item.zoom || 8, 13));
-                                const thumbUrl = `https://api.mapbox.com/styles/v1/${style.owner}/${style.id}/static/${thumbLon},${thumbLat},${thumbZoom},0,0/600x280@2x?access_token=${MAPBOX_TOKEN}`;
+                                const thumbUrl = style.cesium
+                                    ? null
+                                    : `https://api.mapbox.com/styles/v1/${style.owner}/${style.id}/static/${thumbLon},${thumbLat},${thumbZoom},0,0/600x280@2x?access_token=${MAPBOX_TOKEN}`;
                                 const isSelected = (item.map_style || 'a') === key;
                                 return (
                                     <div
@@ -737,11 +745,17 @@ export default function TabbedContentEditor({
                                     >
                                         {/* Thumbnail — fixed 600px width */}
                                         <div className="relative flex-shrink-0" style={{ width: 600 }}>
+                                            {thumbUrl ? (
                                             <img
                                                 src={thumbUrl}
                                                 alt={style.label}
                                                 className="w-full h-44 object-cover"
                                             />
+                                            ) : (
+                                            <div className="w-full h-44 flex items-center justify-center bg-slate-900 text-slate-400 text-xs tracking-widest uppercase">
+                                                Google Photorealistic 3D Tiles
+                                            </div>
+                                            )}
                                             {isSelected && (
                                                 <div className="absolute top-2 right-2 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-md">
                                                     <Check className="w-4 h-4 text-white" />
@@ -1050,26 +1064,35 @@ export default function TabbedContentEditor({
                         {/* Chapter Location */}
                         <div>
                             <FieldLabel>Chapter Location</FieldLabel>
-                            <p className="text-sm text-slate-900 mb-2">Sets the map view when this chapter's title card is shown</p>
-                            <EmbeddedLocationPicker
-                                location={{
-                                    lat: item.coordinates?.[0] || 0,
-                                    lng: item.coordinates?.[1] || 0,
-                                    zoom: item.zoom || 12,
-                                    bearing: item.bearing || 0,
-                                    pitch: item.pitch || 0,
-                                }}
-                                onLocationChange={(newLocation) => {
-                                    onUpdate({
-                                        ...item,
-                                        coordinates: [newLocation.lat, newLocation.lng],
-                                        zoom: newLocation.zoom,
-                                        bearing: newLocation.bearing,
-                                        pitch: newLocation.pitch,
-                                    });
-                                }}
-                                mapStyle={storyMapStyle || 'a'}
-                            />
+                            {storyMapStyle === 'photorealistic-3d' ? (
+                                <CesiumLocationPicker
+                                    value={item.cesium_camera || null}
+                                    onChange={(cam) => onUpdate({ ...item, cesium_camera: cam })}
+                                />
+                            ) : (
+                                <>
+                                    <p className="text-sm text-slate-900 mb-2">Sets the map view when this chapter's title card is shown</p>
+                                    <EmbeddedLocationPicker
+                                        location={{
+                                            lat: item.coordinates?.[0] || 0,
+                                            lng: item.coordinates?.[1] || 0,
+                                            zoom: item.zoom || 12,
+                                            bearing: item.bearing || 0,
+                                            pitch: item.pitch || 0,
+                                        }}
+                                        onLocationChange={(newLocation) => {
+                                            onUpdate({
+                                                ...item,
+                                                coordinates: [newLocation.lat, newLocation.lng],
+                                                zoom: newLocation.zoom,
+                                                bearing: newLocation.bearing,
+                                                pitch: newLocation.pitch,
+                                            });
+                                        }}
+                                        mapStyle={storyMapStyle || 'a'}
+                                    />
+                                </>
+                            )}
                         </div>
 
                         <div>
@@ -1330,6 +1353,12 @@ export default function TabbedContentEditor({
                 <TabsContent value="location" className="space-y-4 mt-4">
                     <Card>
                         <CardContent className="pt-6 space-y-4">
+                            {storyMapStyle === 'photorealistic-3d' ? (
+                                <CesiumLocationPicker
+                                    value={item.cesium_camera || null}
+                                    onChange={(cam) => onUpdate({ ...item, cesium_camera: cam })}
+                                />
+                            ) : (
                             <EmbeddedLocationPicker
                                 location={{
                                     lat: item.coordinates?.[0] || 0,
@@ -1351,6 +1380,7 @@ export default function TabbedContentEditor({
                                 }}
                                 mapStyle={storyMapStyle || 'a'}
                             />
+                            )}
                             
                             <div className="pt-4 border-t">
                                 <FieldLabel>Fly Duration (seconds)</FieldLabel>

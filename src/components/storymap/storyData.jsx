@@ -1,3 +1,54 @@
+/**
+ * Dev-only test story for the Cesium photorealistic-3D renderer.
+ * Access via /CesiumTest in development.
+ */
+export const CESIUM_TEST_STORY = {
+    id: 'test-cesium-story',
+    title: 'Brittany coast — 3D test',
+    map_style: 'photorealistic-3d',
+    chapters: [
+        {
+            id: 'test-ch-1',
+            name: 'Le Minihic sur Rance',
+            description: 'Testing tile coverage over the Rance valley.',
+            cesiumCamera: {
+                lng: -1.983, lat: 48.547, alt: 1400,
+                heading: 0, pitch: -42, duration: 0,
+            },
+        },
+        {
+            id: 'test-ch-2',
+            name: 'Dinard',
+            description: 'Testing coverage over the waterfront.',
+            cesiumCamera: {
+                lng: -2.057, lat: 48.631, alt: 420,
+                heading: 100, pitch: -20, duration: 4,
+            },
+        },
+        {
+            id: 'test-ch-3',
+            name: 'Saint-Malo — intra-muros',
+            description: 'Testing coverage over the walled city.',
+            cesiumCamera: {
+                path: [
+                    { lng: -1.999, lat: 48.649, alt: 1800, heading:  30, pitch: -42, duration: 0 },
+                    { lng: -2.001, lat: 48.648, alt:  380, heading: 150, pitch: -18, duration: 5 },
+                    { lng: -2.003, lat: 48.646, alt:  180, heading: 200, pitch:  -8, duration: 4 },
+                ],
+            },
+        },
+        {
+            id: 'test-ch-4',
+            name: 'Marseille',
+            description: 'Testing coverage over Vieux-Port.',
+            cesiumCamera: {
+                lng: 5.374, lat: 43.293, alt: 600,
+                heading: 80, pitch: -22, duration: 4,
+            },
+        },
+    ],
+}
+
 export const defaultStory = {
     title: "A Journey Through Time",
     subtitle: "Exploring the world's most iconic landmarks and the stories they hold",

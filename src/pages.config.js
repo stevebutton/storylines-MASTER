@@ -74,6 +74,7 @@ import Login from './pages/Login';
 import LoginEditor from './pages/LoginEditor';
 import Account from './pages/Account';
 import UserManagement from './pages/UserManagement';
+import CesiumTest from './pages/CesiumTest';
 import __Layout from './Layout.jsx';
 
 
@@ -105,6 +106,7 @@ export const PAGES = {
     "LoginEditor": LoginEditor,
     "Account": Account,
     "UserManagement": UserManagement,
+    "CesiumTest": CesiumTest,
 }
 
 export const pagesConfig = {

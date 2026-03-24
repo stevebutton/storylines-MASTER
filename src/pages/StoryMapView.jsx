@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import MapBackground from '@/components/storymap/MapContainer';
+import StoryMapRenderer from '@/components/map/StoryMapRenderer';
 import StoryChapter from '@/components/storymap/StoryChapter';
 import ChapterNavigation from '@/components/storymap/ChapterNavigation';
 import StoryHeader from '@/components/storymap/StoryHeader';
@@ -402,6 +402,7 @@ export default function StoryMapView() {
                         hotspot_body: s.hotspot_body,
                         hotspots: s.hotspots,
                         show_rain_button: s.show_rain_button,
+                        cesium_camera: s.cesium_camera,
                     }))
             }));
 
@@ -1212,7 +1213,10 @@ export default function StoryMapView() {
 
 
             {/* Map Background */}
-            <MapBackground
+            <StoryMapRenderer
+                story={story}
+                currentChapter={chapters[activeChapter] ?? null}
+                currentSlide={activeSlide}
                 center={mapConfig.center}
                 zoom={mapConfig.zoom}
                 bearing={mapConfig.bearing}
