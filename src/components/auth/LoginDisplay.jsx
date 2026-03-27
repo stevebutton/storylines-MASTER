@@ -266,6 +266,7 @@ export default function LoginDisplay({
                     </label>
                     <input
                       type="email" autoComplete="email" required
+                      autoCapitalize="none" autoCorrect="off" spellCheck={false}
                       value={email} onChange={e => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       className="w-full md:w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-left"
@@ -287,6 +288,7 @@ export default function LoginDisplay({
                     </label>
                     <input
                       type="password" autoComplete="current-password" required
+                      autoCapitalize="none" autoCorrect="off" spellCheck={false}
                       value={password} onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
                       className="w-full md:w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-left"
