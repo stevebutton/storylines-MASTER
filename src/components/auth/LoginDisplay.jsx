@@ -112,14 +112,14 @@ export default function LoginDisplay({
         />
       )}
 
-      {/* Left spacer — transparent, shows background */}
-      <div className="flex-1 relative z-10" />
+      {/* Left spacer — hidden on mobile, visible on md+ */}
+      <div className="hidden md:flex flex-1 relative z-10" />
 
       {/* ── Right panel — 50% width, slides in from right ── */}
       {mediaLoaded && (
         <motion.div
-          className="relative z-10 flex flex-col items-center justify-center py-14 bg-black/40 backdrop-blur-xl overflow-y-auto"
-          style={{ width: '50%', paddingLeft: 0, paddingRight: 0, paddingTop: 100 }}
+          className="relative z-10 w-full md:w-1/2 flex flex-col items-center justify-center py-14 bg-black/40 backdrop-blur-xl overflow-y-auto"
+          style={{ paddingLeft: 0, paddingRight: 0, paddingTop: 60 }}
           initial={{ x: '100%', opacity: 0 }}
           animate={{ x: '0%', opacity: 1 }}
           transition={{ duration: panelDuration, ease: [0.25, 0.46, 0.45, 0.94], delay: panelDelay }}
@@ -243,12 +243,12 @@ export default function LoginDisplay({
                       >
                         {label}
                       </p>
-                      <div className="w-3/4 h-10 bg-white/10 border border-white/20 rounded-xl" />
+                      <div className="w-full md:w-3/4 h-10 bg-white/10 border border-white/20 rounded-xl" />
                     </div>
                   ))}
                   <div className="pt-2">
                     <div
-                      className="w-1/2 h-11 flex items-center justify-center bg-amber-600/80 text-white text-xs uppercase tracking-wider rounded-xl"
+                      className="w-full md:w-1/2 h-11 flex items-center justify-center bg-amber-600/80 text-white text-xs uppercase tracking-wider rounded-xl"
                       style={{ fontFamily: 'Raleway, sans-serif' }}
                     >
                       {buttonText}
@@ -268,7 +268,7 @@ export default function LoginDisplay({
                       type="email" autoComplete="email" required
                       value={email} onChange={e => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-left"
+                      className="w-full md:w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-left"
                       style={{
                         fontFamily: 'Raleway, sans-serif',
                         background: 'rgba(255,255,255,0.08)',
@@ -289,7 +289,7 @@ export default function LoginDisplay({
                       type="password" autoComplete="current-password" required
                       value={password} onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-left"
+                      className="w-full md:w-3/4 px-3 py-2.5 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-white/50 transition-colors text-sm text-left"
                       style={{
                         fontFamily: 'Raleway, sans-serif',
                         background: 'rgba(255,255,255,0.08)',
@@ -307,7 +307,7 @@ export default function LoginDisplay({
                   <div className="pt-2">
                     <button
                       type="submit" disabled={isLoading}
-                      className="w-1/2 py-3 px-4 bg-amber-600/80 hover:bg-amber-600 disabled:bg-amber-600/40 text-white font-medium transition-colors flex items-center justify-center gap-2 text-sm uppercase tracking-wider rounded-xl"
+                      className="w-full md:w-1/2 py-3 px-4 bg-amber-600/80 hover:bg-amber-600 disabled:bg-amber-600/40 text-white font-medium transition-colors flex items-center justify-center gap-2 text-sm uppercase tracking-wider rounded-xl"
                       style={{ fontFamily: 'Raleway, sans-serif' }}
                     >
                       {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
