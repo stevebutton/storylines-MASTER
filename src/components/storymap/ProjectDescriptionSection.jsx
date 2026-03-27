@@ -78,17 +78,10 @@ export default function ProjectDescriptionSection({ storyTitle, heading = 'Overv
                 className="w-[500px] max-w-[90vw]"
             >
                 <div
-                    className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto group backdrop-blur-sm"
+                    className="relative rounded-2xl overflow-hidden shadow-2xl pointer-events-auto group backdrop-blur-[6px] border border-white/70"
                     style={{ minHeight: '500px' }}
                 >
-                    {/* Background image */}
-                    {backgroundImage && (
-                        <div
-                            className="absolute inset-0 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${backgroundImage})` }}
-                        />
-                    )}
-                    <div className="absolute inset-0 bg-black/40" />
+                    <div className="absolute inset-0 bg-black/30" />
 
                     <div className="relative z-10 flex flex-col items-center text-center p-6 md:p-8" style={{ minHeight: '500px' }}>
                         <div className="flex-1" />
@@ -103,7 +96,7 @@ export default function ProjectDescriptionSection({ storyTitle, heading = 'Overv
                             {/* Story title — eyebrow, we've already seen this */}
                             {storyTitle && (
                                 <div className="mb-6">
-                                    <span className={`block text-sm font-medium ${titleColorClass} uppercase tracking-widest`}
+                                    <span className={`block text-xl font-medium ${titleColorClass} uppercase tracking-widest`}
                                           style={{ fontFamily: themeFont }}>
                                         {storyTitle}
                                     </span>
