@@ -190,7 +190,7 @@ export default function ScaleBar({
                 className="absolute"
                 style={{
                     left:       bottomMode ? 396 : 358,
-                    right:      48,
+                    right:      100,
                     top:        trackTop + 5,
                     height:     1,
                     background: 'rgba(255,255,255,0.85)',

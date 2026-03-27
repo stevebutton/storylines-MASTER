@@ -25,7 +25,14 @@ const _hideTimers = new Map();
 export function fadeMapLayer(map, layerId, show) {
     if (!map || !layerId) return;
     try {
-        if (!map.getLayer(layerId)) return;
+        if (!map.getLayer(layerId)) {
+            // Only warn when the style is fully loaded — during style transitions
+            // map.getLayer() returns null for all layers, which is expected.
+            if (map.isStyleLoaded()) {
+                console.warn(`[Storylines] Mapbox layer "${layerId}" not found in current style — check the layer ID in the slide editor matches a layer ID in Mapbox Studio`);
+            }
+            return;
+        }
 
         const layerType = map.getLayer(layerId).type;
 

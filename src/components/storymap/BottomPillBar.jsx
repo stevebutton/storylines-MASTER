@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Navigation, MapPin, Plus, Minus, Compass, CloudRain } from 'lucide-react';
+import { MapPin, Plus, Minus, Compass, CloudRain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { pillShell, pillDivider } from './StoryViewPill';
 
@@ -25,10 +25,6 @@ export default function BottomPillBar({
     onZoomIn,
     onZoomOut,
     onResetNorth,
-    showRoute   = true,
-    onToggleRoute,
-    showMarkers = true,
-    onToggleMarkers,
     pinnedLayers = [],
     onToggleLayer,
     showRainButton = false,
@@ -54,15 +50,6 @@ export default function BottomPillBar({
                 </button>
                 <button onClick={onResetNorth} className={ctrl(false)} style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Reset north">
                     <Compass className="w-4 h-4" />
-                </button>
-
-                {pillDivider}
-
-                <button onClick={onToggleRoute}   className={ctrl(showRoute)}   style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Toggle route">
-                    <Navigation className="w-4 h-4" />
-                </button>
-                <button onClick={onToggleMarkers} className={ctrl(showMarkers)} style={{ cursor: 'pointer' }} onMouseEnter={forcePointer} onMouseMove={forcePointer} title="Toggle markers">
-                    <MapPin className="w-4 h-4" />
                 </button>
 
             </div>

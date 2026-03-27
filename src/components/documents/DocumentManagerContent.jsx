@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,11 +10,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FileText, Download, Trash2, Edit, Search, Folder } from 'lucide-react';
+import { Upload, FileText, Download, Trash2, Edit, Search, Folder, Link2, Code2 } from 'lucide-react';
 import PdfViewer from '@/components/pdf/PdfViewer';
 import PdfThumbnail from '@/components/pdf/PdfThumbnail';
 
 const THEME_FONTS = { c: 'Righteous, cursive', f: 'Oswald, sans-serif', k: 'Oswald, sans-serif' };
+
+// Pill style tokens — inlined to avoid cross-module dependency
+const PILL_SHELL = {
+    display: 'flex', alignItems: 'center',
+    width: '100%', height: 44,
+    background: 'rgba(0,0,0,0.30)',
+    backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255,255,255,0.20)',
+    borderRadius: 12,
+    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1)',
+    overflow: 'hidden',
+};
+const PILL_BTN = {
+    flex: 1, height: '100%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: 'rgba(255,255,255,0.70)',
+    background: 'transparent', border: 'none',
+    cursor: 'pointer', transition: 'all 0.2s',
+    fontSize: 12, fontWeight: 500, gap: 6,
+    whiteSpace: 'nowrap',
+};
+const PILL_DIV = { width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,0.20)', flexShrink: 0 };
+
+const generateId = () => crypto.randomUUID().replace(/-/g, '').substring(0, 24);
 
 export default function DocumentManagerContent({ storyId = null, dark = false, triggerUploadKey = 0, mapStyle = 'a' }) {
     const themeFont = THEME_FONTS[mapStyle] || 'Raleway, sans-serif';
@@ -204,8 +227,11 @@ export default function DocumentManagerContent({ storyId = null, dark = false, t
             {/* ── Left column — fixed intro text ── */}
             <div
                 className="flex-shrink-0 border-r border-white/10 overflow-y-auto"
-                style={{ width: 360, padding: '36px 90px 40px 40px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                style={{ width: 360, padding: '86px 90px 40px 40px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
+                <h2 className="text-white text-xl font-light leading-snug text-right mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                    Welcome to the<br />Project Library
+                </h2>
                 <p className="text-white/70 text-sm font-light leading-relaxed text-right">
                     This library serves as a working appendix to Storylines — a curated collection of documents, reports, and reference materials selected to support your projects in the field.<br /><br />Browse online or download and share resources with your team, partners, or stakeholders. Whether you're scoping a new engagement, deepening your analysis, or building an evidence base, everything here is designed to complement your work in Storylines and keep key knowledge within reach.
                 </p>

@@ -392,6 +392,21 @@ export default function StoryEditorSidebar({
                                                                                                 <MapPin className={`w-4 h-4 ${slide.coordinates ? 'text-amber-600' : 'text-slate-400'}`} />
                                                                                             </div>
                                                                                         </button>
+                                                                                        {/* Map Pins indicator — click → mappins tab */}
+                                                                                        {(slide.map_annotations?.length > 0) && (
+                                                                                            <button
+                                                                                                onClick={(e) => { e.stopPropagation(); onSelectSlide(slide, 'mappins'); }}
+                                                                                                className="flex-shrink-0 transition-colors"
+                                                                                                title={`${slide.map_annotations.length} map pin${slide.map_annotations.length !== 1 ? 's' : ''}`}
+                                                                                            >
+                                                                                                <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm bg-blue-100 relative">
+                                                                                                    <Map className="w-4 h-4 text-blue-600" />
+                                                                                                    <span style={{ position: 'absolute', top: -3, right: -3, background: '#2563eb', color: 'white', borderRadius: '50%', width: 14, height: 14, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                                                                                                        {slide.map_annotations.length}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </button>
+                                                                                        )}
                                                                                         {/* PDF indicator */}
                                                                                         {slide.pdf_url && (
                                                                                             <button

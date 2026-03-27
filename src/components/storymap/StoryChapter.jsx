@@ -148,7 +148,7 @@ export default function StoryChapter({
                 !isNaN(s.coordinates[0]) && !isNaN(s.coordinates[1])
             );
             if (firstSlideWithCoords) {
-                onSlideChange({ ...firstSlideWithCoords, _noRoute: true });
+                onSlideChange({ ...firstSlideWithCoords, map_annotations: [], _noRoute: true });
             }
         }
     }, [isActive, chapter.id]);
@@ -223,15 +223,16 @@ export default function StoryChapter({
 
     return (
         <div
-            className="relative w-full py-24 px-4 md:px-8 pointer-events-none"
-            style={{ minHeight: '85vh', paddingTop: '80px' }}
+            className="relative w-full flex items-center pointer-events-none"
+            style={{ minHeight: '100vh' }}
         >
             <motion.div
                 ref={cardRef}
                 initial={{ opacity: 0, y: 50 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                 transition={{ duration: 1, ease: "easeOut", delay: delay / 1000 }}
-                className="absolute w-[calc(40%+90px)] min-w-[300px] max-w-[730px]" style={{ left: 'calc(50% - 40px)' }}
+                className="flex-shrink-0 w-[calc(40%+90px)] min-w-[300px] max-w-[730px]"
+                style={{ marginLeft: 'calc(50% - 40px)' }}
             >
                 <AnimatePresence mode="wait">
 
@@ -274,7 +275,7 @@ export default function StoryChapter({
                                 <div className="flex-1" />
 
                                 {/* 60% max line length, left-aligned */}
-                                <div style={{ maxWidth: '60%' }}>
+                                <div style={{ maxWidth: '60%', paddingBottom: 90 }}>
 
                                 {/* Chapter number + name — staggered build */}
                                 <div className="mb-5">
@@ -319,7 +320,7 @@ export default function StoryChapter({
                                 {chapter.description && (
                                     <motion.div
                                         className="text-white/90 font-light leading-snug"
-                                        style={{ fontFamily: 'Raleway, sans-serif', fontSize: 18, paddingBottom: '90px' }}
+                                        style={{ fontFamily: 'Raleway, sans-serif', fontSize: 18 }}
                                         initial={{ opacity: 0, y: 8 }}
                                         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
                                         transition={{ duration: 0.7, ease: 'easeOut', delay: delay / 1000 + 3.3 }}

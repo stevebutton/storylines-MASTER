@@ -239,6 +239,7 @@ export default function FullScreenImageViewer({
     hideTextPanel     = false,
     hideChapterTitle  = false,
     hideMedia         = false,
+    bgColor           = '#020617', // Story View background colour (behind images)
     inOverlay         = false,  // true when rendered as an overlay inside StoryMapView
     chapterColorIndex = 0,
     addHotspotMode    = false,  // true = enter "place new hotspot" mode immediately
@@ -390,7 +391,7 @@ export default function FullScreenImageViewer({
                     {/* Main Content */}
                     <motion.div
                         initial={inOverlay ? { opacity: 0 } : { y: "100vh", opacity: 0 }}
-                        animate={inOverlay ? { opacity: 1, backgroundColor: hideMedia ? 'rgba(0,0,0,0)' : 'rgb(2,6,23)' } : { y: 0, opacity: 1 }}
+                        animate={inOverlay ? { opacity: 1, backgroundColor: hideMedia ? 'rgba(0,0,0,0)' : bgColor } : { y: 0, opacity: 1 }}
                         exit={inOverlay ? { opacity: 0 } : { y: "100vh", opacity: 0 }}
                         transition={inOverlay ? { opacity: { duration: 0.4, ease: 'easeOut' }, backgroundColor: { duration: 1, ease: 'easeInOut' } } : { duration: 1.5, ease: "easeOut" }}
                         className={`fixed inset-x-0 bottom-0 z-[9998] overflow-y-auto pointer-events-auto ${inOverlay ? 'top-[100px]' : 'bg-white top-0'}`}

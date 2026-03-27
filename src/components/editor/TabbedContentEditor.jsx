@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LanguageSettingsTab from '@/components/editor/LanguageSettingsTab';
+import MapAnnotationEditor from '@/components/editor/MapAnnotationEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -322,9 +323,10 @@ export default function TabbedContentEditor({
         return (<>
             <div className="space-y-4">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <div className="flex flex-wrap gap-[50px] mb-4 pl-[50px]">
+                    <div className="flex flex-wrap gap-3 mb-4 pl-[50px]">
                         {[
-                            { value: 'story',    label: 'Story Settings' },
+                            { value: 'story',    label: 'Story' },
+                            { value: 'settings', label: 'Settings' },
                             { value: 'style',    label: 'Map Style' },
                             { value: 'language', label: 'Language' },
                             { value: 'about',    label: 'About' },
@@ -332,7 +334,7 @@ export default function TabbedContentEditor({
                             <button
                                 key={v}
                                 onClick={() => setActiveTab(v)}
-                                className={`inline-flex items-center px-5 py-2 rounded-full shadow-md text-xl font-bold tracking-tight transition-all ${
+                                className={`inline-flex items-center px-4 py-1.5 rounded-full shadow-md text-base font-bold tracking-tight transition-all ${
                                     activeTab === v ? 'bg-amber-600 text-white' : 'bg-white text-slate-800 hover:brightness-95'
                                 }`}
                             >
@@ -344,53 +346,11 @@ export default function TabbedContentEditor({
                     <TabsContent value="story">
                     <Card>
                     <CardContent className="pt-6 space-y-4">
-                        {/* Project Timeline */}
-                        <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                            <FieldLabel>Project Timeline (optional)</FieldLabel>
-                            <p className="text-sm text-slate-900 mt-0.5 mb-3">
-                                Set a start and end date, they will then be distributed evenly across all slides as a starting point for Timeline view.
-                            </p>
-                            <div className="grid grid-cols-2 gap-3 mb-3">
-                                <div>
-                                    <FieldLabel>Project Start</FieldLabel>
-                                    <Input
-                                        type="date"
-                                        value={item.project_start_date || ''}
-                                        onChange={(e) => onUpdate({ ...item, project_start_date: e.target.value || null })}
-                                        className="h-9"
-                                    />
-                                </div>
-                                <div>
-                                    <FieldLabel>Project End</FieldLabel>
-                                    <Input
-                                        type="date"
-                                        value={item.project_end_date || ''}
-                                        onChange={(e) => onUpdate({ ...item, project_end_date: e.target.value || null })}
-                                        className="h-9"
-                                    />
-                                </div>
-                            </div>
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                disabled={!item.project_start_date || !item.project_end_date}
-                                onClick={onDistributeDates}
-                                className="w-full border-amber-400 text-amber-700 hover:bg-amber-100"
-                            >
-                                Distribute Dates Evenly Across All Slides
+                        <div>
+                            <Button onClick={onAddChapter} className="w-full">
+                                <Plus className="w-4 h-4 mr-2" /> Add Chapter
                             </Button>
                         </div>
-
-                        <div>
-                            <FieldLabel>Location</FieldLabel>
-                            <Input
-                                value={item.location || ''}
-                                onChange={(e) => onUpdate({ ...item, location: e.target.value })}
-                                placeholder="e.g. Central Africa, Democratic Republic of Congo"
-                            />
-                        </div>
-
                         <div>
                             <FieldLabel>Title <span className="text-red-500">*</span></FieldLabel>
                             <Input
@@ -466,32 +426,6 @@ export default function TabbedContentEditor({
                                 placeholder="Provide context, background, and significance of this project..."
                                 rows={5}
                                 className="resize-none"
-                            />
-                        </div>
-
-                        {/* Opening Map View */}
-                        <div>
-                            <FieldLabel>Story Opening Map View</FieldLabel>
-                            <p className="text-sm text-slate-900 mb-2">Set the initial map view when the story opens</p>
-                            <EmbeddedLocationPicker
-                                location={{
-                                    lat: item.coordinates?.[0] || 0,
-                                    lng: item.coordinates?.[1] || 0,
-                                    zoom: item.zoom || 2,
-                                    bearing: item.bearing || 0,
-                                    pitch: item.pitch || 0,
-                                    name: ''
-                                }}
-                                onLocationChange={(newLocation) => {
-                                    onUpdate({
-                                        ...item,
-                                        coordinates: [newLocation.lat, newLocation.lng],
-                                        zoom: newLocation.zoom,
-                                        bearing: newLocation.bearing,
-                                        pitch: newLocation.pitch
-                                    });
-                                }}
-                                mapStyle={item.map_style || storyMapStyle || 'a'}
                             />
                         </div>
 
@@ -650,8 +584,110 @@ export default function TabbedContentEditor({
                             </div>
                         </div>
 
-                        {/* Route Settings */}
+                        {/* Fill missing slide coordinates */}
+                        <div className="border-t pt-4 mt-4 space-y-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleFillMissingCoordinates}
+                                disabled={isFillingCoords || !item.coordinates}
+                                className="w-full"
+                            >
+                                {isFillingCoords
+                                    ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Filling…</>
+                                    : <><MapPin className="w-4 h-4 mr-2" />Fill Missing Slide Coordinates</>
+                                }
+                            </Button>
+                            <p className="text-xs text-slate-500">
+                                Assigns the story's opening map position to any slides that have no coordinates set.
+                                {!item.coordinates && <span className="text-amber-600"> Set the opening map position above first.</span>}
+                            </p>
+                        </div>
+
+                    </CardContent>
+                    </Card>
+                    </TabsContent>
+
+                    <TabsContent value="settings">
+                    <Card>
+                    <CardContent className="pt-6 space-y-4">
+                        {/* Project Timeline */}
+                        <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                            <FieldLabel>Project Timeline (optional)</FieldLabel>
+                            <p className="text-sm text-slate-900 mt-0.5 mb-3">
+                                Set a start and end date, they will then be distributed evenly across all slides as a starting point for Timeline view.
+                            </p>
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <FieldLabel>Project Start</FieldLabel>
+                                    <Input
+                                        type="date"
+                                        value={item.project_start_date || ''}
+                                        onChange={(e) => onUpdate({ ...item, project_start_date: e.target.value || null })}
+                                        className="h-9"
+                                    />
+                                </div>
+                                <div>
+                                    <FieldLabel>Project End</FieldLabel>
+                                    <Input
+                                        type="date"
+                                        value={item.project_end_date || ''}
+                                        onChange={(e) => onUpdate({ ...item, project_end_date: e.target.value || null })}
+                                        className="h-9"
+                                    />
+                                </div>
+                            </div>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                disabled={!item.project_start_date || !item.project_end_date}
+                                onClick={onDistributeDates}
+                                className="w-full border-amber-400 text-amber-700 hover:bg-amber-100"
+                            >
+                                Distribute Dates Evenly Across All Slides
+                            </Button>
+                        </div>
+
+                        {/* Location */}
+                        <div>
+                            <FieldLabel>Location</FieldLabel>
+                            <Input
+                                value={item.location || ''}
+                                onChange={(e) => onUpdate({ ...item, location: e.target.value })}
+                                placeholder="e.g. Central Africa, Democratic Republic of Congo"
+                            />
+                        </div>
+
+                        {/* Opening Map View */}
+                        <div>
+                            <FieldLabel>Story Opening Map View</FieldLabel>
+                            <p className="text-sm text-slate-900 mb-2">Set the initial map view when the story opens</p>
+                            <EmbeddedLocationPicker
+                                location={{
+                                    lat: item.coordinates?.[0] || 0,
+                                    lng: item.coordinates?.[1] || 0,
+                                    zoom: item.zoom || 2,
+                                    bearing: item.bearing || 0,
+                                    pitch: item.pitch || 0,
+                                    name: ''
+                                }}
+                                onLocationChange={(newLocation) => {
+                                    onUpdate({
+                                        ...item,
+                                        coordinates: [newLocation.lat, newLocation.lng],
+                                        zoom: newLocation.zoom,
+                                        bearing: newLocation.bearing,
+                                        pitch: newLocation.pitch
+                                    });
+                                }}
+                                mapStyle={item.map_style || storyMapStyle || 'a'}
+                            />
+                        </div>
+
+                        {/* Route & Marker Settings */}
                         <div className="border-t pt-4 mt-4 space-y-3">
+                            <FieldLabel>Route & Markers</FieldLabel>
                             <div className="flex items-center gap-3">
                                 <Switch
                                     checked={item.show_route !== false}
@@ -659,7 +695,13 @@ export default function TabbedContentEditor({
                                 />
                                 <Label>Show Route Line</Label>
                             </div>
-
+                            <div className="flex items-center gap-3">
+                                <Switch
+                                    checked={item.show_markers !== false}
+                                    onCheckedChange={(checked) => onUpdate({ ...item, show_markers: checked })}
+                                />
+                                <Label>Show Location Markers</Label>
+                            </div>
                             {item.show_route !== false && (
                                 <div className="space-y-2">
                                     <div className="flex gap-2">
@@ -689,30 +731,26 @@ export default function TabbedContentEditor({
                             )}
                         </div>
 
-                        {/* Fill missing slide coordinates */}
+                        {/* Story Background */}
                         <div className="border-t pt-4 mt-4 space-y-2">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleFillMissingCoordinates}
-                                disabled={isFillingCoords || !item.coordinates}
-                                className="w-full"
-                            >
-                                {isFillingCoords
-                                    ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Filling…</>
-                                    : <><MapPin className="w-4 h-4 mr-2" />Fill Missing Slide Coordinates</>
-                                }
-                            </Button>
-                            <p className="text-xs text-slate-500">
-                                Assigns the story's opening map position to any slides that have no coordinates set.
-                                {!item.coordinates && <span className="text-amber-600"> Set the opening map position above first.</span>}
-                            </p>
-                        </div>
-
-                        <div className="pt-4 border-t">
-                            <Button onClick={onAddChapter} className="w-full">
-                                <Plus className="w-4 h-4 mr-2" /> Add Chapter
-                            </Button>
+                            <FieldLabel>Story View Background</FieldLabel>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="color"
+                                    value={item.overlay_bg_color || '#020617'}
+                                    onChange={(e) => onUpdate({ ...item, overlay_bg_color: e.target.value })}
+                                    className="w-9 h-9 rounded cursor-pointer border border-slate-200 p-0.5 bg-white"
+                                />
+                                <span className="text-sm text-slate-500 font-mono">{item.overlay_bg_color || '#020617'}</span>
+                                {item.overlay_bg_color && item.overlay_bg_color !== '#020617' && (
+                                    <button
+                                        onClick={() => onUpdate({ ...item, overlay_bg_color: '#020617' })}
+                                        className="text-xs text-slate-400 hover:text-slate-600 underline"
+                                    >
+                                        Reset
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                     </Card>
@@ -1212,6 +1250,7 @@ export default function TabbedContentEditor({
                         { value: 'content',  label: 'Content' },
                         { value: 'location', label: 'Location' },
                         { value: 'media',    label: 'Media' },
+                        { value: 'mappins',  label: 'Map Pins' },
                     ].map(({ value: v, label }) => (
                         <button
                             key={v}
@@ -1605,6 +1644,18 @@ export default function TabbedContentEditor({
                                 }}
                             />
 
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="mappins" className="space-y-4 mt-4">
+                    <Card>
+                        <CardContent className="pt-6">
+                            <MapAnnotationEditor
+                                annotations={item.map_annotations || []}
+                                onChange={(annotations) => onUpdate({ ...item, map_annotations: annotations })}
+                                storyId={storyId}
+                            />
                         </CardContent>
                     </Card>
                 </TabsContent>

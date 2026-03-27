@@ -117,6 +117,8 @@ export default function StoryMapView() {
     const [showLibraryModal, setShowLibraryModal] = useState(false);
     const [libraryUploadKey, setLibraryUploadKey] = useState(0);
     const libraryPrevViewRef = useRef(null); // 'story' | null — view open beneath library
+    const libraryPanelRef = useRef(null);    // ref to the library panel DOM node for scroll-lock exemption
+    const overlayContainerRef = useRef(null); // ref to story overlay motion.div — used for audio fade-out
     // Capture deep-link params at mount so the effect fires once and doesn't
     // re-trigger on every searchParams change. Opening early (before showBlackOverlay
     // clears) prevents the overlay from colliding with the hero title sequence.
@@ -135,6 +137,8 @@ export default function StoryMapView() {
     const [activeSlide, setActiveSlide] = useState(null);
     const [isLiveEditorOpen, setIsLiveEditorOpen] = useState(false);
     const [showToolPalette, setShowToolPalette]         = useState(false);
+    const [showUserPalette, setShowUserPalette]         = useState(false);
+    const userPaletteTimerRef = useRef(null);
     const [rainActive, setRainActive] = useState(false);
     const [mapReady, setMapReady] = useState(false);
     const [addHotspotMode, setAddHotspotMode]           = useState(false);
@@ -405,6 +409,7 @@ export default function StoryMapView() {
                         hotspots: s.hotspots,
                         show_rain_button: s.show_rain_button,
                         cesium_camera: s.cesium_camera,
+                        map_annotations: s.map_annotations,
                     }))
             }));
 
@@ -507,7 +512,7 @@ export default function StoryMapView() {
                             // Track active chapter for async route callbacks
                             currentActiveChapterRef.current = index;
 
-                            if (story.show_route !== false) {
+                            if (story.show_route !== false && story.show_markers !== false) {
                                 const cacheKey = chapter.id || `ch-${index}`;
                                 // Only reset visited coords when genuinely entering a NEW chapter.
                                 // If the same chapter re-enters the scroll zone (e.g. card height
@@ -535,6 +540,10 @@ export default function StoryMapView() {
                                 chCoords && Array.isArray(chCoords) &&
                                 chCoords.length === 2 &&
                                 !isNaN(chCoords[0]) && !isNaN(chCoords[1])) {
+                                // Suppress the isActive → onSlideChange setMapConfig that fires in
+                                // the next render cycle so it doesn't restart this flyTo mid-flight.
+                                // Same pattern as the hero onExplore/onContinue → Chapter 0 flow.
+                                suppressNextOnSlideChangeMapConfig.current = true;
                                 setMapConfig({
                                     center: chCoords,
                                     offset: [-200, 0],
@@ -603,7 +612,7 @@ export default function StoryMapView() {
     // navigates slides — eliminating the reactive-fetch lag.
     useEffect(() => {
         if (activeChapter < 0 || chapters.length === 0) return;
-        if (story?.show_route === false) return;
+        if (story?.show_route === false || story?.show_markers === false) return;
 
         const chapter = chapters[activeChapter];
         if (!chapter?.slides) return;
@@ -925,11 +934,73 @@ export default function StoryMapView() {
         }));
     }, [overlayMode, overlayCurrentIndex, showStoryOverlay]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Lock body scroll when library is open so background map-view doesn't scroll
+    // Lock all scroll / wheel input when library is open.
+    // React's synthetic onWheel is passive (e.preventDefault() is a no-op), so we
+    // must attach a native capture-phase listener.  We exempt events whose target
+    // is inside the library panel itself so the document list can still scroll.
     useEffect(() => {
-        document.body.style.overflow = showLibraryModal ? 'hidden' : '';
-        return () => { document.body.style.overflow = ''; };
+        if (!showLibraryModal) return;
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        const prevent = (e) => {
+            if (libraryPanelRef.current && libraryPanelRef.current.contains(e.target)) return;
+            e.preventDefault();
+            e.stopPropagation();
+        };
+        document.addEventListener('wheel',     prevent, { capture: true, passive: false });
+        document.addEventListener('touchmove', prevent, { capture: true, passive: false });
+
+        return () => {
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+            document.removeEventListener('wheel',     prevent, { capture: true });
+            document.removeEventListener('touchmove', prevent, { capture: true });
+        };
     }, [showLibraryModal]);
+
+    // Fade out video audio when the story overlay starts closing.
+    // The motion.div exit animation takes 2 s — we ramp volume 1→0 over 600 ms
+    // so the audio dissolves rather than cutting abruptly on unmount.
+    useEffect(() => {
+        if (showStoryOverlay) return; // only act on the false → transition
+        const container = overlayContainerRef.current;
+        if (!container) return;
+        const videos = container.querySelectorAll('video');
+        videos.forEach(video => {
+            if (video.paused || video.muted || video.volume === 0) return;
+            const startVolume = video.volume;
+            const FADE_MS = 600;
+            let startTs = null;
+            const ramp = (ts) => {
+                if (!startTs) startTs = ts;
+                const t = Math.min((ts - startTs) / FADE_MS, 1);
+                // Guard: element may have been unmounted mid-ramp
+                try { video.volume = startVolume * (1 - t); } catch (_) { return; }
+                if (t < 1) requestAnimationFrame(ramp);
+            };
+            requestAnimationFrame(ramp);
+        });
+    }, [showStoryOverlay]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Pause / resume overlay video when Library View opens or closes.
+    // We track which videos were playing so we only resume those the user hadn't
+    // already paused manually.
+    const overlayVideosPlayingRef = useRef([]);
+    useEffect(() => {
+        const container = overlayContainerRef.current;
+        if (!container) return;
+        const videos = Array.from(container.querySelectorAll('video'));
+        if (showLibraryModal) {
+            // Record which were playing, then pause them all.
+            overlayVideosPlayingRef.current = videos.filter(v => !v.paused);
+            overlayVideosPlayingRef.current.forEach(v => v.pause());
+        } else {
+            // Resume only those we paused (not ones the user had already paused).
+            overlayVideosPlayingRef.current.forEach(v => { try { v.play(); } catch (_) {} });
+            overlayVideosPlayingRef.current = [];
+        }
+    }, [showLibraryModal]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const openOverlay = (chapterId, slideId, mode = 'story') => {
         const sourceSlides = mode === 'timeline' ? overlayTimelineSlides : overlaySlides;
@@ -951,12 +1022,41 @@ export default function StoryMapView() {
     const togglePinnedLayer = (layerId) => {
         const map = mapInstanceRef.current;
         if (!map) return;
-        setPinnedLayers(prev => prev.map(l => {
-            if (l.id !== layerId) return l;
-            const next = !l.visible;
-            fadeMapLayer(map, layerId, next);
-            return { ...l, visible: next };
-        }));
+        const layer = pinnedLayers.find(l => l.id === layerId);
+        if (!layer) return;
+        const next = !layer.visible;
+
+        if (next) {
+            // Show: register with activeLayerId so MapContainer fades it in AND will
+            // auto-fade-out when the user navigates to a slide without this layer.
+            setActiveLayerId(layerId);
+        } else {
+            // Hide: direct call because setActiveLayerId(null) is a no-op when
+            // activeLayerId is already null (user is on a non-layer slide).
+            fadeMapLayer(map, layerId, false);
+        }
+        // Keep prevSlideLayerRef in sync so onSlideChange updates pinnedLayers.visible
+        // when the user scrolls away from the manually-shown layer.
+        prevSlideLayerRef.current = next ? layerId : null;
+
+        setPinnedLayers(prev => prev.map(l => l.id === layerId ? { ...l, visible: next } : l));
+        // When re-showing a layer, fly the map directly to where this layer was first introduced.
+        // Bypass React state (setMapConfig) so React batching can't delay or swallow the call.
+        if (next && layer.mapPosition) {
+            const { coordinates, zoom, bearing, pitch } = layer.mapPosition;
+            try {
+                map.flyTo({
+                    center:   [coordinates[1], coordinates[0]], // project stores [lat,lng]; Mapbox wants [lng,lat]
+                    offset:   [-200, 0],
+                    zoom:     zoom     || 12,
+                    bearing:  bearing  || 0,
+                    pitch:    pitch    || 0,
+                    duration: 4000,
+                    essential: true,
+                    easing: t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+                });
+            } catch (_) {}
+        }
     };
 
     const toggleRain = () => setRainActive(v => !v);
@@ -1250,8 +1350,9 @@ export default function StoryMapView() {
                     }
                 }}
                 onMapReady={(mapInstance) => { mapInstanceRef.current = mapInstance; setMapReady(true); }}
-                showRoute={showRoute}
+                showRoute={showRoute && story?.show_markers !== false}
                 showMarkers={showMarkers}
+                annotationMarkers={activeSlide?.map_annotations || []}
             />
             
             {/* Story Content */}
@@ -1416,6 +1517,16 @@ export default function StoryMapView() {
                                                 id: newLayerId,
                                                 name: slide.layer_display_name || newLayerId,
                                                 visible: true,
+                                                // Store the map position so clicking the tab later
+                                                // can fly back to where this layer was introduced.
+                                                mapPosition: isValidCoordinatePair(slide.coordinates) ? {
+                                                    coordinates: slide.coordinates,
+                                                    zoom: slide.zoom !== undefined ? slide.zoom : (chapter.zoom || 12),
+                                                    bearing: slide.bearing !== undefined ? slide.bearing : 0,
+                                                    pitch: slide.pitch !== undefined ? slide.pitch : 0,
+                                                    flyDuration: slide.fly_duration,
+                                                    mapStyle: chapter.map_style || story.map_style || 'a',
+                                                } : null,
                                             }];
                                         }
                                     }
@@ -1505,6 +1616,16 @@ export default function StoryMapView() {
 
                                 // Skip setMapConfig if onContinue/onExplore already fired it for
                                 // this initial chapter activation (avoids restarting the flyTo).
+                                // For chapters with no overview coordinates, the isActive effect fires
+                                // onSlideChange(_noRoute:true) to kick off flyTo #1, then the carousel-
+                                // open showCarousel effect fires handleSlideChange(0) → onSlideChange
+                                // (no _noRoute) which would start flyTo #2 and interrupt the animation.
+                                // After flyTo #1 fires we arm the suppress flag so flyTo #2 is blocked.
+                                const hasChapterCoords = Array.isArray(chapter.coordinates)
+                                    && chapter.coordinates.length === 2
+                                    && !isNaN(chapter.coordinates[0])
+                                    && !isNaN(chapter.coordinates[1]);
+
                                 if (suppressNextOnSlideChangeMapConfig.current) {
                                     suppressNextOnSlideChangeMapConfig.current = false;
                                 } else {
@@ -1518,9 +1639,15 @@ export default function StoryMapView() {
                                         shouldRotate: false,
                                         flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 8)
                                     });
+                                    // Arm for the next call: after a _noRoute flyTo on a chapter
+                                    // with no overview coordinates, suppress the redundant
+                                    // carousel-open flyTo that would interrupt the animation.
+                                    if (slide._noRoute && !hasChapterCoords) {
+                                        suppressNextOnSlideChangeMapConfig.current = true;
+                                    }
                                 }
 
-                                if (!slide._noRoute) {
+                                if (!slide._noRoute && story?.show_markers !== false) {
                                 // Build interactive marker for this slide (unless explicitly hidden)
                                 if (slide.show_on_map !== false) {
                                 const slideIdx = chapter.slides?.findIndex(s =>
@@ -1702,7 +1829,7 @@ export default function StoryMapView() {
                         {/* Background panel — expands from left edge over 2s */}
                         <motion.div
                             className="absolute inset-0"
-                            style={{ background: 'rgba(255,255,255,0.8)', transformOrigin: 'left' }}
+                            style={{ background: 'rgba(255,255,255,1)', transformOrigin: 'left' }}
                             initial={{ scaleX: 0 }}
                             animate={{ scaleX: 1 }}
                             transition={{ delay: 1, duration: 2, ease: [0.4, 0, 0.2, 1] }}
@@ -1748,6 +1875,7 @@ export default function StoryMapView() {
             {isBannerVisible && (
                 <AnimatePresence mode="wait">
                     {showLibraryModal ? (
+                        <React.Fragment key="library-group">
                         <motion.div
                             key="library-pill"
                             initial={{ opacity: 0, y: 6 }}
@@ -1759,6 +1887,62 @@ export default function StoryMapView() {
                         >
                             <LibraryPill onUpload={() => setLibraryUploadKey(k => k + 1)} />
                         </motion.div>
+                        {/* Sharing pill — extends LibraryPill to the right */}
+                        <motion.div
+                            key="sharing-pill"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 6 }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                            className="fixed z-[200020] pointer-events-auto"
+                            style={{ bottom: 0, left: 380, height: 80 }}
+                        >
+                            <div style={{
+                                height: '100%', display: 'flex', alignItems: 'stretch',
+                                background: 'rgba(0,0,0,0.30)',
+                                backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                                border: '1px solid rgba(255,255,255,0.20)',
+                                borderLeft: 'none',
+                                boxShadow: '20px 20px 25px -5px rgba(0,0,0,0.1)',
+                            }}>
+                                {[
+                                    { label: 'Copy link', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> },
+                                    { label: 'Embed',     icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> },
+                                ].map(({ label, icon }, i) => (
+                                    <React.Fragment key={label}>
+                                        {i > 0 && <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,0.20)', flexShrink: 0 }} />}
+                                        <button
+                                            title={label}
+                                            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 20px', height: '100%', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.70)', fontSize: 13, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s', flexShrink: 0 }}
+                                            onMouseEnter={e => { e.currentTarget.style.color = 'white'; e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.70)'; e.currentTarget.style.background = 'transparent'; }}
+                                        >
+                                            {icon}{label}
+                                        </button>
+                                    </React.Fragment>
+                                ))}
+                                <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,0.20)', flexShrink: 0 }} />
+                                {[
+                                    { title: 'Share on X',        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
+                                    { title: 'Share on Facebook',  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> },
+                                    { title: 'Share on LinkedIn',  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> },
+                                    { title: 'Share on WhatsApp',  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg> },
+                                ].map(({ title, icon }, i) => (
+                                    <React.Fragment key={title}>
+                                        {i > 0 && <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,0.20)', flexShrink: 0 }} />}
+                                        <button
+                                            title={title}
+                                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 60, height: '100%', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.70)', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0 }}
+                                            onMouseEnter={e => { e.currentTarget.style.color = 'white'; e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.70)'; e.currentTarget.style.background = 'transparent'; }}
+                                        >
+                                            {icon}
+                                        </button>
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        </motion.div>
+                        </React.Fragment>
                     ) : showStoryOverlay ? (
                         <motion.div
                             key="fullscreen-nav"
@@ -1804,10 +1988,6 @@ export default function StoryMapView() {
                                 onZoomIn={() => mapInstanceRef.current?.zoomIn()}
                                 onZoomOut={() => mapInstanceRef.current?.zoomOut()}
                                 onResetNorth={() => mapInstanceRef.current?.resetNorth({ duration: 1000 })}
-                                showRoute={showRoute}
-                                onToggleRoute={() => setShowRoute(v => !v)}
-                                showMarkers={showMarkers}
-                                onToggleMarkers={() => setShowMarkers(v => !v)}
                                 pinnedLayers={pinnedLayers}
                                 onToggleLayer={togglePinnedLayer}
                                 showRainButton={!!activeSlide?.show_rain_button}
@@ -1824,6 +2004,7 @@ export default function StoryMapView() {
             <AnimatePresence>
                 {showStoryOverlay && (
                     <motion.div
+                        ref={overlayContainerRef}
                         initial={{ opacity: 0, y: 200 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 200, transition: { duration: 2, ease: [0.25, 1, 0.5, 1] } }}
@@ -1845,6 +2026,7 @@ export default function StoryMapView() {
                             hideTextPanel={overlayMode === 'picture'}
                             hideChapterTitle={overlayMode === 'story'}
                             inOverlay={true}
+                            bgColor={story?.overlay_bg_color || '#020617'}
                             chapterColorIndex={activeChapter >= 0 ? activeChapter % 6 : 0}
                             addHotspotMode={addHotspotMode}
                             onAddHotspotModeConsumed={() => setAddHotspotMode(false)}
@@ -2089,6 +2271,7 @@ export default function StoryMapView() {
             <AnimatePresence>
                 {showLibraryModal && (
                     <motion.div
+                        ref={libraryPanelRef}
                         initial={{ opacity: 0, y: 200 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 200, transition: { duration: 2, ease: [0.25, 1, 0.5, 1] } }}
@@ -2115,31 +2298,38 @@ export default function StoryMapView() {
             {/* User control — top-left of banner, before logo */}
             {currentUser && isBannerVisible && (
                 <div
-                    className="fixed top-0 left-0 h-[100px] z-[200002] pointer-events-auto group transition-colors duration-150 group-hover:bg-slate-100/80"
+                    className="fixed top-0 left-0 h-[100px] z-[200002] pointer-events-none"
                     style={{ width: 380 }}
                 >
-                    {/* Username link — centred in the upper 70px above the palette */}
-                    <Link
-                        to={createPageUrl('Stories')}
-                        className="absolute text-slate-300 text-sm font-light group-hover:text-slate-800 transition-colors duration-150 whitespace-nowrap"
-                        style={{ top: 15, height: 70, left: 24, display: 'flex', alignItems: 'center' }}
-                    >
-                        {currentUser.full_name || currentUser.email}
-                    </Link>
-
-                    {/* Hover palette — 380×30, bottom of banner, aligns exactly with pill below */}
+                    {/* Username + logout — hover triggers palette */}
                     <div
-                        className="absolute bottom-0 left-0 flex items-stretch bg-black/50 backdrop-blur-xl border border-white/20 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none group-hover:pointer-events-auto"
-                        style={{ width: 380, height: 30 }}
+                        className="absolute flex items-center gap-2 pointer-events-auto"
+                        style={{ top: 18, left: 24 }}
+                        onMouseEnter={() => { clearTimeout(userPaletteTimerRef.current); setShowUserPalette(true); }}
+                        onMouseLeave={() => { userPaletteTimerRef.current = setTimeout(() => setShowUserPalette(false), 400); }}
                     >
+                        <Link
+                            to={createPageUrl('Stories')}
+                            className="text-slate-300 text-sm font-light hover:text-slate-800 transition-colors duration-150 whitespace-nowrap"
+                        >
+                            {currentUser.full_name || currentUser.email}
+                        </Link>
                         <button
                             onClick={logout}
                             title="Log out"
-                            className="flex-1 h-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/15 transition-colors duration-200 cursor-pointer"
+                            className="text-slate-300 hover:text-slate-800 transition-colors duration-150 cursor-pointer"
                         >
-                            <LogOut className="w-4 h-4" />
+                            <LogOut className="w-3.5 h-3.5" />
                         </button>
-                        <div className="w-px self-stretch bg-white/20 flex-shrink-0" />
+                    </div>
+
+                    {/* Tool palette — matched to pill button width (380÷3 ≈ 127px each) */}
+                    <div
+                        className="absolute bottom-0 left-0 flex items-stretch bg-black/50 backdrop-blur-xl border border-white/20 shadow-xl pointer-events-auto transition-opacity duration-150"
+                        style={{ width: 255, height: 30, opacity: showUserPalette ? 1 : 0, pointerEvents: showUserPalette ? 'auto' : 'none' }}
+                        onMouseEnter={() => { clearTimeout(userPaletteTimerRef.current); setShowUserPalette(true); }}
+                        onMouseLeave={() => setShowUserPalette(false)}
+                    >
                         <button
                             onClick={() => setIsEditTransitioning(true)}
                             title="Edit story"
@@ -2165,7 +2355,7 @@ export default function StoryMapView() {
                 advances the story rather than zooming the map. 50px insets clear the
                 ChapterNavigation circles on the right. z-[5] keeps it above the map
                 canvas but well below all UI elements. Map view only. */}
-            {!showStoryOverlay && (
+            {!showStoryOverlay && !showLibraryModal && (
                 <div
                     className="fixed pointer-events-auto"
                     style={{ left: 'calc(50% + 10px)', right: 50, top: '60vh', bottom: 0, zIndex: 5 }}
@@ -2173,6 +2363,19 @@ export default function StoryMapView() {
                         e.preventDefault();
                         window.scrollBy({ top: e.deltaY });
                     }}
+                />
+            )}
+
+            {/* Map interaction blocker — absorbs all mouse/touch/wheel events when Library is open */}
+            {showLibraryModal && (
+                <div
+                    className="fixed inset-0"
+                    style={{ zIndex: 10, pointerEvents: 'all', touchAction: 'none' }}
+                    onWheel={e => { e.preventDefault(); e.stopPropagation(); }}
+                    onMouseDown={e => e.stopPropagation()}
+                    onMouseMove={e => e.stopPropagation()}
+                    onTouchStart={e => { e.preventDefault(); e.stopPropagation(); }}
+                    onTouchMove={e => { e.preventDefault(); e.stopPropagation(); }}
                 />
             )}
 

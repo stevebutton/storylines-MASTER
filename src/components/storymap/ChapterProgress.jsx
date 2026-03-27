@@ -27,7 +27,7 @@ export default function ChapterProgress({
 
     return (
         <motion.div
-            className="fixed right-4 bottom-20 z-[70] flex flex-col items-center gap-3 drop-shadow-xl"
+            className="fixed right-4 top-1/2 -translate-y-1/2 z-[70] flex flex-col items-center gap-3 drop-shadow-xl"
             initial={{ opacity: 1 }}
             animate={{ opacity: hideForFullscreen ? 0 : 1 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}

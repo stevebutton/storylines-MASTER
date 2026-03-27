@@ -9,7 +9,7 @@ const THEME_FONTS = {
 
 const PANEL_WIDTH       = 345;
 const TRACK_LEFT        = 396;
-const TRACK_RIGHT       = 48;
+const TRACK_RIGHT       = 100;
 const PANEL_TOP         = 345;
 const TRACK_FROM_BOTTOM = 116;
 

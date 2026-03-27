@@ -15,30 +15,38 @@ import { flyToPromise, setViewInstant } from './flyToPromise'
  *              cinematic angle rather than a boring plan view.
  */
 export function mapboxToCesiumCamera(item) {
-    const coords = item?.coordinates
-    if (!coords?.[0] && !coords?.[1]) return null
+    const coords  = item?.coordinates
+    const lookLat = Number(coords?.[0])
+    const lookLng = Number(coords?.[1])
+
+    // Require both coordinates to be finite — partial or missing data (NaN,
+    // Infinity, null) would propagate into Cartesian3 and crash the Cesium
+    // render loop with "Invalid array length".
+    if (!Number.isFinite(lookLat) || !Number.isFinite(lookLng)) return null
 
     // In Mapbox, coordinates = the look-at point (screen centre).
     // In Cesium, flyTo positions the *camera* at lat/lng/alt, so we must
     // offset the camera backwards so the original coordinates end up centred.
-    const lookLat = coords[0]
-    const lookLng = coords[1]
-    const zoom    = item.zoom  || 12
-    const alt     = Math.round(35200000 / Math.pow(2, zoom))
+    const zoom = item.zoom || 12
+    const alt  = Math.round(35200000 / Math.pow(2, zoom))
 
     const mapboxPitch = item.pitch || 0
     const pitch       = mapboxPitch === 0 ? -35 : Math.max(-80, mapboxPitch - 90)
     const heading     = item.bearing || 0
 
     // Horizontal distance from camera to look-at point on the ground
-    const pitchRad    = pitch * Math.PI / 180          // negative
-    const horizDist   = alt / Math.tan(-pitchRad)      // positive metres
-    const headingRad  = heading * Math.PI / 180
+    const pitchRad  = pitch * Math.PI / 180          // negative
+    const horizDist = alt / Math.tan(-pitchRad)      // positive metres
+    const headingRad = heading * Math.PI / 180
 
     // Camera sits *behind* the look-at point (opposite of heading direction)
     const camLat = lookLat - (horizDist * Math.cos(headingRad)) / 111111
     const camLng = lookLng - (horizDist * Math.sin(headingRad))
         / (111111 * Math.cos(lookLat * Math.PI / 180))
+
+    // Final sanity check — bail if the geometry computation produced NaN/Infinity
+    // (e.g. lookLat near ±90° causes cos(lat) → 0 → division by zero)
+    if (!Number.isFinite(camLat) || !Number.isFinite(camLng)) return null
 
     return {
         lat:      camLat,
