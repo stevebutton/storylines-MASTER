@@ -3,7 +3,7 @@ import { supabase } from '@/api/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
-    Camera, ChevronRight, Loader2, Check, Plus, Sparkles, BookOpen, RotateCcw,
+    Camera, ChevronRight, Loader2, Check, Plus, Sparkles, BookOpen, RotateCcw, Mic,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VoiceNarrationRecorder from '@/components/mobile/VoiceNarrationRecorder';
@@ -33,40 +33,45 @@ function VoiceTitleStep({ eyebrow, label, placeholder, onConfirm, saving }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -40 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="p-6 flex flex-col gap-6"
+            className="flex flex-col"
+            style={{ height: 'calc(100vh - 60px)' }}
         >
-            <div>
-                <p className="text-zinc-500 text-xs uppercase tracking-widest mb-1">{eyebrow}</p>
-                <h2 className="text-2xl font-bold">{label}</h2>
+            {/* Heading */}
+            <div className="flex-shrink-0 px-6 pt-6 pb-4 text-center">
+                <p className="text-zinc-400 text-xl font-medium uppercase tracking-widest mb-2">{eyebrow}</p>
+                <h2 className="text-5xl font-bold text-white leading-none">{label}</h2>
             </div>
 
-            <div className="bg-zinc-800 rounded-2xl p-4">
-                <VoiceNarrationRecorder onTranscriptChange={setTitle} initialTranscript="" />
-            </div>
-
-            {title ? (
-                <div className="space-y-1">
-                    <p className="text-zinc-500 text-xs uppercase tracking-widest">Captured title</p>
-                    <input
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-4 text-white text-xl font-semibold focus:outline-none focus:border-amber-500 transition-colors"
-                    />
+            {/* Recorder + input + confirm — centred in remaining space */}
+            <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 overflow-y-auto">
+                <VoiceNarrationRecorder
+                    onTranscriptChange={(t) => setTitle(t.trim())}
+                    initialTranscript={title}
+                />
+                <input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder={placeholder}
+                    autoCapitalize="words"
+                    autoCorrect="off"
+                    className="w-full bg-zinc-800 border-2 border-zinc-700 rounded-2xl px-5 py-6 text-white text-2xl font-semibold placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors text-center"
+                />
+                <div className="flex flex-col items-center gap-6">
+                    <button
+                        onClick={() => onConfirm(title)}
+                        disabled={!title.trim() || saving}
+                        className="w-40 h-40 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-90 disabled:opacity-40 flex items-center justify-center shadow-2xl shadow-amber-900/50 transition-all"
+                    >
+                        {saving
+                            ? <Loader2 className="w-14 h-14 animate-spin" />
+                            : <Check className="w-14 h-14" />
+                        }
+                    </button>
+                    <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md leading-none">
+                        confirm
+                    </span>
                 </div>
-            ) : (
-                <p className="text-zinc-600 text-sm text-center italic">{placeholder}</p>
-            )}
-
-            <button
-                onClick={() => onConfirm(title)}
-                disabled={!title.trim() || saving}
-                className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg font-semibold transition-colors mt-auto"
-            >
-                {saving
-                    ? <><Loader2 className="w-5 h-5 animate-spin" /> Creating…</>
-                    : <>Confirm <ChevronRight className="w-5 h-5" /></>
-                }
-            </button>
+            </div>
         </motion.div>
     );
 }
@@ -154,6 +159,14 @@ export default function Storyboarder() {
     // ── Auto-save slide on photo capture ──────────────────────────────────────
     const handlePhotoCapture = async (file) => {
         if (!file || saving) return;
+
+        // Offer save-to-Photos via share sheet — fire and forget so upload continues in parallel.
+        // The onChange event (triggered by iOS "Use Photo" tap) counts as a user gesture,
+        // so the share API is allowed here. User can tap "Save Image" or dismiss.
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+            navigator.share({ files: [file] }).catch(() => {});
+        }
+
         // Auto-save any pending description before moving to next photo
         if (pendingDescription.trim() && lastSavedSlideId) {
             await supabase.from('slides')
@@ -238,7 +251,7 @@ export default function Storyboarder() {
                 <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0" />
                 <span className="text-lg font-semibold tracking-wide">Storyboarder</span>
                 {storyTitle && step < 4 && (
-                    <span className="ml-auto text-sm text-zinc-400 truncate max-w-[180px]">{storyTitle}</span>
+                    <span className="ml-auto text-base font-semibold text-white truncate max-w-[200px]">{storyTitle}</span>
                 )}
             </header>
 
@@ -249,21 +262,30 @@ export default function Storyboarder() {
                     {step === 0 && (
                         <motion.div key="welcome"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] p-8 text-center"
+                            className="flex flex-col items-center justify-center gap-10 text-center px-8"
+                            style={{ height: 'calc(100vh - 60px)' }}
                         >
-                            <div className="w-20 h-20 rounded-full bg-amber-500/20 flex items-center justify-center mb-8">
-                                <BookOpen className="w-10 h-10 text-amber-400" />
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="w-32 h-32 rounded-full bg-amber-500/20 flex items-center justify-center">
+                                    <BookOpen className="w-16 h-16 text-amber-400" />
+                                </div>
+                                <h2 className="text-5xl font-bold text-white">storyboarder</h2>
+                                <p className="text-zinc-300 text-2xl font-medium leading-snug max-w-xs">
+                                    capture your story on location
+                                </p>
                             </div>
-                            <h2 className="text-4xl font-bold mb-3">Storyboarder</h2>
-                            <p className="text-zinc-400 text-lg leading-relaxed max-w-sm mb-10">
-                                Capture your story on location — voice, photos, and GPS in one go.
-                            </p>
-                            <button
-                                onClick={() => setStep(1)}
-                                className="w-full max-w-xs h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
-                            >
-                                Start a new story <ChevronRight className="w-6 h-6" />
-                            </button>
+
+                            <div className="flex flex-col items-center gap-6">
+                                <button
+                                    onClick={() => setStep(1)}
+                                    className="w-40 h-40 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-90 flex items-center justify-center shadow-2xl shadow-amber-900/50 transition-all"
+                                >
+                                    <ChevronRight className="w-16 h-16" />
+                                </button>
+                                <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md leading-none">
+                                    start a new story
+                                </span>
+                            </div>
                         </motion.div>
                     )}
 
@@ -286,125 +308,110 @@ export default function Storyboarder() {
                         />
                     )}
 
-                    {/* ── 3: Capture loop — true 50/50 split, no scroll ──────── */}
+                    {/* ── 3: Capture loop ────────────────────────────────── */}
                     {step === 3 && (
                         <motion.div key={`capture-${chapterId}`}
                             initial={{ opacity: 0, x: 40 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -40 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="flex flex-col overflow-hidden"
+                            className="flex flex-col"
                             style={{ height: 'calc(100vh - 60px)' }}
                         >
-                            {/* Chapter label row */}
-                            <div className="px-5 pt-4 pb-2 flex items-center gap-2 flex-shrink-0">
-                                <span className="text-amber-400 font-medium text-sm">
-                                    Chapter {String(chapterCountRef.current).padStart(2, '0')}
-                                </span>
-                                {slides.length > 0 && (
-                                    <span className="text-zinc-600 text-xs">
-                                        · {slides.length} photo{slides.length !== 1 ? 's' : ''}
+                            {/* Chapter label + thumbnail strip */}
+                            <div className="px-5 pt-3 pb-2 flex-shrink-0 text-center">
+                                <div className="text-white font-bold text-4xl tracking-tight mb-1">
+                                    {storyTitle}
+                                </div>
+                                <div className="flex items-center justify-center gap-3">
+                                    <span className="text-amber-400 font-bold text-3xl tracking-tight">
+                                        Chapter {String(chapterCountRef.current).padStart(2, '0')}
                                     </span>
+                                    {slides.length > 0 && (
+                                        <span className="text-zinc-300 text-lg font-medium">
+                                            {slides.length} photo{slides.length !== 1 ? 's' : ''}
+                                        </span>
+                                    )}
+                                </div>
+                                {slides.length > 0 && (
+                                    <div className="flex gap-1.5 mt-2 overflow-x-auto">
+                                        {slides.map((slide) => (
+                                            <div key={slide.id} className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-zinc-800 ring-1 ring-zinc-700">
+                                                <img src={slide.image} alt="" className="w-full h-full object-cover" />
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
 
-                            {/* ── TOP HALF: camera ───────────────────────────── */}
-                            <div className="flex-1 flex flex-col items-center justify-center gap-4 min-h-0 px-5">
+                            {/* ── Two-column grid: buttons left, pills right ─────── */}
+                            <div className="flex-1 grid grid-cols-[auto_auto] gap-x-0 gap-y-5 content-center items-center pl-6">
+
                                 <input
                                     ref={cameraRef}
                                     type="file" accept="image/*" capture="environment"
                                     onChange={(e) => handlePhotoCapture(e.target.files?.[0])}
                                     className="hidden"
                                 />
+
+                                {/* Row 1: Take Photo */}
                                 <button
                                     onClick={() => cameraRef.current?.click()}
                                     disabled={saving}
-                                    className="w-40 h-40 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 disabled:opacity-50 flex flex-col items-center justify-center gap-2 shadow-2xl shadow-amber-900/40 transition-all flex-shrink-0"
+                                    className="w-40 h-40 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-90 disabled:opacity-50 flex items-center justify-center shadow-2xl shadow-amber-900/50 transition-all justify-self-center"
                                 >
-                                    {saving
-                                        ? <><Loader2 className="w-12 h-12 animate-spin" /><span className="text-sm font-medium">Saving…</span></>
-                                        : <><Camera className="w-12 h-12" /><span className="text-sm font-semibold">Take Photo</span></>
-                                    }
+                                    {saving ? <Loader2 className="w-14 h-14 animate-spin" /> : <Camera className="w-14 h-14" />}
                                 </button>
-
-                                {/* Saved flash */}
-                                <AnimatePresence>
-                                    {savedFlash && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                                            className="bg-green-600 rounded-xl px-5 py-2 text-sm font-semibold flex items-center gap-2"
-                                        >
-                                            <Check className="w-4 h-4" /> Photo saved!
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-
-                            {/* Thumbnail strip */}
-                            {slides.length > 0 && (
-                                <div className="px-5 pb-3 flex-shrink-0">
-                                    <div className="flex gap-2 overflow-x-auto">
-                                        {slides.map((slide) => (
-                                            <div key={slide.id}
-                                                className="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-zinc-800 ring-1 ring-zinc-700">
-                                                <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* ── DIVIDER ────────────────────────────────────── */}
-                            <div className="border-t border-zinc-800 flex-shrink-0" />
-
-                            {/* ── BOTTOM HALF: description recorder ──────────── */}
-                            <div className="flex-1 flex flex-col min-h-0 px-5 pt-4 pb-3 gap-3">
-                                <p className="text-xs text-zinc-500 uppercase tracking-widest flex-shrink-0">
-                                    {lastSavedSlideId ? 'Add a description' : 'Description — take a photo first'}
-                                </p>
-
-                                {/* Recorder — key resets it for each new photo */}
-                                <div className="flex-1 min-h-0 overflow-hidden">
-                                    <VoiceNarrationRecorder
-                                        key={lastSavedSlideId ?? 'init'}
-                                        onTranscriptChange={setPendingDescription}
-                                        initialTranscript=""
-                                    />
+                                <div className="flex flex-col gap-2 justify-self-start">
+                                    <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md text-left leading-none justify-self-start">
+                                        take photo
+                                    </span>
+                                    <AnimatePresence>
+                                        {savedFlash && (
+                                            <motion.span
+                                                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                                                className="bg-green-500 text-white font-semibold text-base px-4 py-2 rounded-2xl shadow-md text-left leading-none"
+                                            >
+                                                ✓ saved!
+                                            </motion.span>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
-                                {/* Save / Clear — always visible */}
-                                <div className="flex gap-2 flex-shrink-0">
-                                    <button
-                                        onClick={() => setPendingDescription('')}
-                                        disabled={!pendingDescription.trim()}
-                                        className="flex-1 h-11 rounded-xl bg-zinc-800 border border-zinc-700 text-sm text-zinc-400 disabled:opacity-30 hover:bg-zinc-700 hover:text-white transition-colors"
-                                    >
-                                        Clear
-                                    </button>
-                                    <button
-                                        onClick={saveDescription}
-                                        disabled={!pendingDescription.trim() || !lastSavedSlideId}
-                                        className="flex-1 h-11 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-sm font-semibold transition-colors"
-                                    >
-                                        {descSaved ? '✓ Saved!' : 'Save description'}
-                                    </button>
-                                </div>
-                            </div>
+                                {/* Row 2: Mic */}
+                                <button
+                                    onClick={saveDescription}
+                                    disabled={!pendingDescription.trim() || !lastSavedSlideId}
+                                    className="w-36 h-36 rounded-full bg-blue-600 hover:bg-blue-500 active:scale-90 disabled:opacity-30 flex items-center justify-center shadow-xl shadow-blue-900/50 transition-all justify-self-center"
+                                >
+                                    {descSaved ? <Check className="w-14 h-14 text-white" /> : <Mic className="w-14 h-14 text-white" />}
+                                </button>
+                                <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md text-left leading-none justify-self-start">
+                                    record caption
+                                </span>
 
-                            {/* ── FOOTER ─────────────────────────────────────── */}
-                            <div className="px-5 pb-5 pt-2 flex gap-3 flex-shrink-0 border-t border-zinc-800">
+                                {/* Row 3: New Chapter */}
                                 <button
                                     onClick={startNewChapter}
-                                    className="flex-1 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center gap-1.5 text-xs font-medium text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
+                                    className="w-24 h-24 rounded-full bg-teal-500 hover:bg-teal-400 active:scale-90 flex items-center justify-center shadow-xl shadow-teal-900/50 transition-all justify-self-center"
                                 >
-                                    <Plus className="w-3.5 h-3.5" /> New Chapter
+                                    <Plus className="w-10 h-10" />
                                 </button>
+                                <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md text-left leading-none justify-self-start">
+                                    new chapter
+                                </span>
+
+                                {/* Row 4: Finish Story */}
                                 <button
                                     onClick={finishStory}
-                                    className="flex-1 h-10 rounded-xl bg-zinc-700 border border-zinc-600 flex items-center justify-center gap-1.5 text-xs font-medium text-zinc-400 hover:bg-zinc-600 hover:text-white transition-colors"
+                                    className="w-24 h-24 rounded-full bg-rose-600 hover:bg-rose-500 active:scale-90 flex items-center justify-center shadow-xl shadow-rose-900/50 transition-all justify-self-center"
                                 >
-                                    <Check className="w-3.5 h-3.5" /> Finish Story
+                                    <Check className="w-10 h-10" />
                                 </button>
+                                <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md text-left leading-none justify-self-start">
+                                    finish story
+                                </span>
+
                             </div>
 
                         </motion.div>
@@ -415,41 +422,50 @@ export default function Storyboarder() {
                         <motion.div key="finish"
                             initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
                             transition={{ duration: 0.4, ease: 'easeOut' }}
-                            className="flex flex-col items-center justify-center min-h-[calc(100vh-60px)] p-8 text-center"
+                            className="flex flex-col"
+                            style={{ height: 'calc(100vh - 60px)' }}
                         >
-                            <motion.div
-                                initial={{ scale: 0 }} animate={{ scale: 1 }}
-                                transition={{ delay: 0.15, duration: 0.5, type: 'spring', stiffness: 200 }}
-                                className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center mb-8"
-                            >
-                                <Check className="w-12 h-12 text-green-400" strokeWidth={2.5} />
-                            </motion.div>
+                            {/* Story info — centred in top space */}
+                            <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
+                                <motion.div
+                                    initial={{ scale: 0 }} animate={{ scale: 1 }}
+                                    transition={{ delay: 0.15, duration: 0.5, type: 'spring', stiffness: 200 }}
+                                    className="w-32 h-32 rounded-full bg-green-500/20 flex items-center justify-center mb-8"
+                                >
+                                    <Check className="w-16 h-16 text-green-400" strokeWidth={2.5} />
+                                </motion.div>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3, duration: 0.4 }}
-                                className="space-y-3 mb-10"
-                            >
-                                <h2 className="text-3xl font-bold">Story saved!</h2>
-                                <p className="text-xl text-amber-400 font-medium">{storyTitle}</p>
-                                <p className="text-zinc-400 text-base">
-                                    {chapterCountRef.current} chapter{chapterCountRef.current !== 1 ? 's' : ''}
-                                    {' · '}
-                                    {totalPhotosRef.current} photo{totalPhotosRef.current !== 1 ? 's' : ''}
-                                </p>
-                                <p className="text-zinc-500 text-sm max-w-xs mx-auto leading-relaxed">
-                                    Your story is ready to edit in the Storylines desktop editor.
-                                </p>
-                            </motion.div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3, duration: 0.4 }}
+                                    className="space-y-3"
+                                >
+                                    <h2 className="text-5xl font-bold text-white">story saved!</h2>
+                                    <p className="text-3xl text-amber-400 font-semibold">{storyTitle}</p>
+                                    <p className="text-2xl text-zinc-300 font-medium">
+                                        {chapterCountRef.current} chapter{chapterCountRef.current !== 1 ? 's' : ''}
+                                        {' · '}
+                                        {totalPhotosRef.current} photo{totalPhotosRef.current !== 1 ? 's' : ''}
+                                    </p>
+                                </motion.div>
+                            </div>
 
-                            <motion.button
+                            {/* Start over — circle + pill */}
+                            <motion.div
                                 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.5, duration: 0.4 }}
-                                onClick={startOver}
-                                className="w-full max-w-xs h-14 rounded-2xl bg-amber-500 hover:bg-amber-400 flex items-center justify-center gap-2 text-lg font-semibold transition-colors"
+                                className="flex-shrink-0 pb-10 flex items-center pl-6"
                             >
-                                <RotateCcw className="w-5 h-5" /> Capture another story
-                            </motion.button>
+                                <button
+                                    onClick={startOver}
+                                    className="w-40 h-40 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-90 flex items-center justify-center shadow-2xl shadow-amber-900/50 transition-all flex-shrink-0"
+                                >
+                                    <RotateCcw className="w-14 h-14" />
+                                </button>
+                                <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md text-left leading-none">
+                                    capture another story
+                                </span>
+                            </motion.div>
                         </motion.div>
                     )}
 
