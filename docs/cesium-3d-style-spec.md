@@ -343,6 +343,89 @@ if (error) return (
 
 ---
 
+## Route rendering in Cesium
+
+### Overview
+
+The existing Mapbox Directions API integration is fully reusable with Cesium — it is a plain REST call that returns GeoJSON and has no dependency on the Mapbox GL renderer. Only the rendering layer needs replacing.
+
+```
+Mapbox Directions API call  →  GeoJSON LineString coordinates  →  reuse as-is
+                                            ↓
+                Mapbox GL addLayer/addSource  ←  replace with Cesium primitive
+```
+
+### Current Mapbox path (for reference)
+
+The existing system calls the Directions API, receives a `route_geometry` GeoJSON LineString, stores it on the chapter row, and renders it via `map.addSource` / `map.addLayer` with type `line`.
+
+### Cesium path
+
+The same `route_geometry` GeoJSON stored on the chapter is passed directly to Cesium. Three rendering options in order of simplicity:
+
+**Option 1 — GeoJsonDataSource (simplest)**
+```js
+Cesium.GeoJsonDataSource.load(geoJsonObject, {
+  clampToGround: true,
+  stroke: Cesium.Color.fromCssColorString('#f59e0b'),  // amber, matches Mapbox style
+  strokeWidth: 4,
+}).then(ds => viewer.dataSources.add(ds))
+```
+Advantages: one call, handles any GeoJSON geometry, terrain-draped automatically via `clampToGround`.
+
+**Option 2 — Corridor (terrain-hugging width)**
+```js
+viewer.entities.add({
+  corridor: {
+    positions: Cesium.Cartesian3.fromDegreesArray(flatCoordinateArray),
+    width: 40,          // metres
+    material: Cesium.Color.fromCssColorString('#f59e0b').withAlpha(0.85),
+    outline: true,
+    outlineColor: Cesium.Color.WHITE.withAlpha(0.4),
+    classificationType: Cesium.ClassificationType.TERRAIN,
+  }
+})
+```
+Advantages: physical width in metres rather than screen pixels; wraps around hillsides correctly.
+
+**Option 3 — Polyline with clamping**
+```js
+viewer.entities.add({
+  polyline: {
+    positions: Cesium.Cartesian3.fromDegreesArray(flatCoordinateArray),
+    width: 4,
+    material: new Cesium.PolylineOutlineMaterialProperty({
+      color: Cesium.Color.fromCssColorString('#f59e0b'),
+      outlineWidth: 2,
+      outlineColor: Cesium.Color.BLACK.withAlpha(0.4),
+    }),
+    clampToGround: true,
+  }
+})
+```
+
+### Recommended approach
+
+Use **Option 1 (GeoJsonDataSource)** initially — it accepts the stored `route_geometry` directly with no coordinate transformation. Switch to Option 2 (Corridor) for the final implementation; it handles steep terrain far better than a screen-width polyline and is the visually correct choice for mountainous NGO field project contexts.
+
+### Coordinate conversion helper
+
+GeoJSON coordinates are `[lng, lat]` pairs. Cesium's `fromDegreesArray` expects a flat array `[lng, lat, lng, lat, ...]`:
+
+```js
+function geoJsonToCartesian(lineStringCoordinates) {
+  return Cesium.Cartesian3.fromDegreesArray(
+    lineStringCoordinates.flatMap(([lng, lat]) => [lng, lat])
+  )
+}
+```
+
+### Upgrade vs Mapbox
+
+In the Mapbox implementation routes are flat lines on a 2D-projected map. In Cesium, `clampToGround: true` drapes the route over photorealistic 3D terrain — it follows valley floors, climbs ridgelines, and disappears correctly behind hills. This is a meaningful visual improvement for field stories in mountainous or complex terrain.
+
+---
+
 ## Reference implementation
 
 `/docs/reference/cesium-scene-test.html` is a validated standalone
