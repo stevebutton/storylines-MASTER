@@ -91,6 +91,7 @@ export default function Storyboarder() {
     const [lastSavedSlideId, setLastSavedSlideId] = useState(null);
     const [pendingDescription, setPendingDescription] = useState('');
     const [descSaved, setDescSaved]               = useState(false);
+    const [showDescriptionPanel, setShowDescriptionPanel] = useState(false);
     const totalPhotosRef                          = useRef(0);
 
     const [saving, setSaving]       = useState(false);
@@ -152,6 +153,7 @@ export default function Storyboarder() {
             .update({ description: pendingDescription.trim() })
             .eq('id', lastSavedSlideId);
         setPendingDescription('');
+        setShowDescriptionPanel(false);
         setDescSaved(true);
         setTimeout(() => setDescSaved(false), 1500);
     };
@@ -174,6 +176,7 @@ export default function Storyboarder() {
                 .eq('id', lastSavedSlideId);
         }
         setPendingDescription('');
+        setShowDescriptionPanel(false);
         setSaving(true);
         setSavedFlash(false);
         try {
@@ -212,6 +215,7 @@ export default function Storyboarder() {
             totalPhotosRef.current += 1;
             setSlides((prev) => [...prev, { id: slideId, title, image: publicUrl }]);
             setLastSavedSlideId(slideId);
+            setShowDescriptionPanel(true);
             setSavedFlash(true);
             setTimeout(() => setSavedFlash(false), 2000);
         } catch (e) {
@@ -225,6 +229,7 @@ export default function Storyboarder() {
 
     const startNewChapter = () => {
         setPendingDescription('');
+        setShowDescriptionPanel(false);
         setStep(2);
     };
 
@@ -239,6 +244,7 @@ export default function Storyboarder() {
         setSlides([]);
         setLastSavedSlideId(null);
         setPendingDescription('');
+        setShowDescriptionPanel(false);
         totalPhotosRef.current = 0;
     };
 
@@ -380,14 +386,16 @@ export default function Storyboarder() {
 
                                 {/* Row 2: Mic */}
                                 <button
-                                    onClick={saveDescription}
-                                    disabled={!pendingDescription.trim() || !lastSavedSlideId}
-                                    className="w-36 h-36 rounded-full bg-blue-600 hover:bg-blue-500 active:scale-90 disabled:opacity-30 flex items-center justify-center shadow-xl shadow-blue-900/50 transition-all justify-self-center"
+                                    onClick={() => showDescriptionPanel ? saveDescription() : setShowDescriptionPanel(true)}
+                                    disabled={!lastSavedSlideId}
+                                    className={`w-36 h-36 rounded-full active:scale-90 disabled:opacity-30 flex items-center justify-center shadow-xl transition-all justify-self-center ${
+                                        showDescriptionPanel ? 'bg-blue-400 hover:bg-blue-300 shadow-blue-900/50' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/50'
+                                    }`}
                                 >
                                     {descSaved ? <Check className="w-14 h-14 text-white" /> : <Mic className="w-14 h-14 text-white" />}
                                 </button>
                                 <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md text-left leading-none justify-self-start">
-                                    record caption
+                                    {showDescriptionPanel && pendingDescription.trim() ? 'save caption' : 'record caption'}
                                 </span>
 
                                 {/* Row 3: New Chapter */}
@@ -413,6 +421,40 @@ export default function Storyboarder() {
                                 </span>
 
                             </div>
+
+                            {/* Description recorder — slides in after photo is taken */}
+                            <AnimatePresence>
+                                {showDescriptionPanel && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 16 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 8 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="mx-4 mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl p-4 space-y-3"
+                                    >
+                                        <p className="text-sm font-medium text-zinc-300">Record a description for this photo</p>
+                                        <VoiceNarrationRecorder
+                                            onTranscriptChange={setPendingDescription}
+                                            initialTranscript=""
+                                        />
+                                        <div className="flex gap-2 pt-1">
+                                            <button
+                                                onClick={() => { setShowDescriptionPanel(false); setPendingDescription(''); }}
+                                                className="flex-1 h-10 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-sm text-zinc-300 hover:text-white transition-colors"
+                                            >
+                                                Skip
+                                            </button>
+                                            <button
+                                                onClick={saveDescription}
+                                                disabled={!pendingDescription.trim()}
+                                                className="flex-1 h-10 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-sm font-semibold transition-colors"
+                                            >
+                                                Save description
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                         </motion.div>
                     )}
