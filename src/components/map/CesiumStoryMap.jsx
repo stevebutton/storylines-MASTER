@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useCesiumViewer } from '../cesium/useCesiumViewer'
 import { useCesiumChapter } from '../cesium/useCesiumChapter'
+// import { useCesiumRoute } from '../cesium/useCesiumRoute'  // disabled — see docs/cesium-route-debug.md
 
 /**
  * CesiumStoryMap — persistent Cesium viewer for photorealistic-3d stories.
@@ -18,6 +19,8 @@ export default function CesiumStoryMap({ story, chapters, currentChapter, curren
     useCesiumChapter(viewer, currentChapter)
     // Slide-level camera — fires after chapter, overrides it when slide has cesium_camera
     useCesiumChapter(viewer, currentSlide)
+    // Route — disabled; see docs/cesium-route-debug.md
+    // useCesiumRoute(viewer, currentChapter)
 
     if (error) {
         return (

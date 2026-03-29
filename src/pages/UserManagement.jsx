@@ -3,7 +3,7 @@ import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Loader2, ArrowLeft, UserPlus, Users } from 'lucide-react';
+import { Loader2, ArrowLeft, UserPlus, Users, KeyRound } from 'lucide-react';
 
 const ROLES = ['viewer', 'user', 'admin'];
 
@@ -19,6 +19,13 @@ export default function UserManagement() {
   const [inviteRole, setInviteRole] = useState('viewer');
   const [isInviting, setIsInviting] = useState(false);
   const [inviteMessage, setInviteMessage] = useState(null);
+
+  // Password change
+  const [pwDialog, setPwDialog] = useState(null);   // profile object | null
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [pwMessage, setPwMessage] = useState(null);
 
   useEffect(() => {
     loadProfiles();
@@ -86,6 +93,48 @@ export default function UserManagement() {
       setInviteMessage({ type: 'error', text: err.message });
     } finally {
       setIsInviting(false);
+    }
+  };
+
+  const openPwDialog = (profile) => {
+    setPwDialog(profile);
+    setNewPassword('');
+    setConfirmPassword('');
+    setPwMessage(null);
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setPwMessage({ type: 'error', text: 'Passwords do not match' });
+      return;
+    }
+    setIsUpdatingPassword(true);
+    setPwMessage(null);
+    try {
+      if (pwDialog.id === currentUser?.id) {
+        // Own account — use client-side auth
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+      } else {
+        // Another user — admin function
+        const res = await fetch('/.netlify/functions/reset-user-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: pwDialog.id, password: newPassword })
+        });
+        let json = {};
+        try { json = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(json.error || `Server error ${res.status}`);
+      }
+      setPwMessage({ type: 'success', text: 'Password updated' });
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPwDialog(null), 1500);
+    } catch (err) {
+      setPwMessage({ type: 'error', text: err.message });
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -196,6 +245,7 @@ export default function UserManagement() {
                   <th className="px-6 py-3 text-left">Role</th>
                   <th className="px-6 py-3 text-left">Joined</th>
                   <th className="px-6 py-3 text-left">Change Role</th>
+                  <th className="px-6 py-3 text-left">Password</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -232,11 +282,20 @@ export default function UserManagement() {
                         </div>
                       )}
                     </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => openPwDialog(p)}
+                        title="Change password"
+                        className="p-1.5 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {profiles.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
+                    <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
                       No users yet
                     </td>
                   </tr>
@@ -246,6 +305,73 @@ export default function UserManagement() {
           )}
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      {pwDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setPwDialog(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-slate-800 mb-0.5">Change Password</h3>
+            <p className="text-xs text-slate-500 mb-5">{pwDialog.full_name || pwDialog.email}</p>
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">New Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="Min 8 characters"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Confirm Password</label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              {pwMessage && (
+                <p className={`text-sm px-3 py-2 rounded-lg ${
+                  pwMessage.type === 'success'
+                    ? 'bg-green-50 text-green-700'
+                    : 'bg-red-50 text-red-700'
+                }`}>
+                  {pwMessage.text}
+                </p>
+              )}
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={isUpdatingPassword}
+                  className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {isUpdatingPassword && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Update Password
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPwDialog(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

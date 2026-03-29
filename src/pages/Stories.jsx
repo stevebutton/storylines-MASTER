@@ -504,57 +504,58 @@ export default function Stories() {
                         )}
                         <div className="grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {filteredAndSortedStories.map((story) =>
-          <Card key={story.id} className="group hover:shadow-lg transition-shadow overflow-hidden">
-                                <CardContent className="p-0">
-                                    {/* Thumbnail — uses dedicated thumbnail field, falls back to hero image */}
+          <Card key={story.id} className="group hover:shadow-lg transition-shadow overflow-hidden flex flex-col">
+                                <CardContent className="p-0 flex flex-col h-full">
+
+                                    {/* 16:9 Thumbnail */}
                                     {(story.thumbnail || story.hero_image) ? (
-                                        <div className="h-20 md:h-32 w-full overflow-hidden">
+                                        <div className="aspect-video w-full overflow-hidden bg-slate-100">
                                             <img
                                                 src={story.thumbnail || story.hero_image}
                                                 alt={story.title}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             />
                                         </div>
                                     ) : (
-                                        <div className="h-20 md:h-32 w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                                            <Map className="w-5 h-5 md:w-8 md:h-8 text-slate-300" />
+                                        <div className="aspect-video w-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                                            <Map className="w-8 h-8 text-slate-300" />
                                         </div>
                                     )}
 
-                                    {/* Status bar */}
-                                    <div className={`px-2 py-1.5 md:px-4 md:py-2 flex items-center justify-between ${
-                                      story.is_idea        ? 'bg-teal-50'   :
-                                      story.is_main_story  ? 'bg-purple-50' :
-                                      story.is_published   ? 'bg-green-50'  : 'bg-amber-50'
+                                    {/* Status strip — indicators left, metadata toggles right */}
+                                    <div className={`px-3 py-1.5 flex items-center justify-between ${
+                                        story.is_idea        ? 'bg-teal-50'   :
+                                        story.is_main_story  ? 'bg-purple-50' :
+                                        story.is_published   ? 'bg-green-50'  : 'bg-amber-50'
                                     }`}>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1.5">
                                             {story.is_idea && <>
-                                                <Lightbulb className="w-3 h-3 md:w-3.5 md:h-3.5 text-teal-600" />
-                                                <span className="text-[10px] md:text-xs font-medium text-teal-700">Idea</span>
+                                                <Lightbulb className="w-3.5 h-3.5 text-teal-600" />
+                                                <span className="text-xs font-medium text-teal-700">Idea</span>
                                             </>}
                                             {!story.is_idea && story.is_main_story && <>
-                                                <Star className="w-3 h-3 md:w-3.5 md:h-3.5 text-purple-600 fill-purple-600" />
-                                                <span className="text-[10px] md:text-xs font-medium text-purple-700">Main Story</span>
+                                                <Star className="w-3.5 h-3.5 text-purple-600 fill-purple-600" />
+                                                <span className="text-xs font-medium text-purple-700">Main Story</span>
                                             </>}
                                             {!story.is_idea && !story.is_main_story && story.is_published && <>
-                                                <Globe className="w-3 h-3 md:w-3.5 md:h-3.5 text-green-600" />
-                                                <span className="text-[10px] md:text-xs font-medium text-green-700">Published</span>
+                                                <Globe className="w-3.5 h-3.5 text-green-600" />
+                                                <span className="text-xs font-medium text-green-700">Published</span>
                                             </>}
                                             {!story.is_idea && !story.is_main_story && !story.is_published && <>
-                                                <FileEdit className="w-3 h-3 md:w-3.5 md:h-3.5 text-amber-600" />
-                                                <span className="text-[10px] md:text-xs font-medium text-amber-700">Draft</span>
+                                                <FileEdit className="w-3.5 h-3.5 text-amber-600" />
+                                                <span className="text-xs font-medium text-amber-700">Draft</span>
                                             </>}
                                             {story.category === 'featured' && <>
-                                                <Star className="w-3 h-3 md:w-3.5 md:h-3.5 text-amber-500 fill-amber-500 ml-1" />
-                                                <span className="text-[10px] md:text-xs font-medium text-amber-600">Featured</span>
+                                                <Star className="w-3 h-3 text-amber-500 fill-amber-500 ml-1.5" />
+                                                <span className="text-xs font-medium text-amber-600">Featured</span>
                                             </>}
                                         </div>
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex items-center gap-0.5">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => toggleFeatured(story)}
-                                                className={`h-6 w-6 p-0 ${story.category === 'featured' ? 'text-amber-500' : 'text-slate-400'}`}
+                                                className={`h-6 w-6 p-0 ${story.category === 'featured' ? 'text-amber-500' : 'text-slate-400 hover:text-amber-500'}`}
                                                 title={story.category === 'featured' ? 'Remove from Featured' : 'Add to Featured'}
                                             >
                                                 {story.category === 'featured'
@@ -563,137 +564,123 @@ export default function Stories() {
                                                 }
                                             </Button>
                                             {!story.is_main_story &&
-                                                <Button variant="ghost" size="sm" onClick={() => setAsMainStory(story)} className="h-6 w-6 p-0 text-slate-400" title="Set as Main Story">
+                                                <Button variant="ghost" size="sm" onClick={() => setAsMainStory(story)} className="h-6 w-6 p-0 text-slate-400 hover:text-purple-600" title="Set as Main Story">
                                                     <Home className="w-3.5 h-3.5" />
                                                 </Button>
                                             }
-                                            {/* Idea → Move to Draft only */}
-                                            {story.is_idea && (
-                                              <Button variant="ghost" size="sm" onClick={() => moveToDraft(story)} className="h-6 text-xs">
-                                                <FileEdit className="w-3 h-3 mr-1" /> Move to Draft
-                                              </Button>
-                                            )}
-
-                                            {/* Draft → Mark as Idea OR Publish */}
-                                            {!story.is_idea && !story.is_published && (
-                                              <>
-                                                <Button variant="ghost" size="sm" onClick={() => setAsIdea(story)} className="h-6 text-xs">
-                                                  <Lightbulb className="w-3 h-3 mr-1" /> Mark as Idea
-                                                </Button>
-                                                <Button variant="ghost" size="sm" onClick={() => publishStory(story)} className="h-6 text-xs">
-                                                  <Globe className="w-3 h-3 mr-1" /> Publish
-                                                </Button>
-                                              </>
-                                            )}
-
-                                            {/* Published → Unpublish (returns to Draft, not Idea) */}
-                                            {story.is_published && !story.is_idea && (
-                                              <Button variant="ghost" size="sm" onClick={() => unpublishStory(story)} className="h-6 text-xs">
-                                                <Lock className="w-3 h-3 mr-1" /> Unpublish
-                                              </Button>
-                                            )}
                                         </div>
                                     </div>
 
-                                    <div className="p-2.5 md:p-5">
-                                        <div className="flex items-start justify-between mb-1.5 md:mb-2">
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-slate-800 text-base md:text-xl font-semibold truncate">
-                                                    {story.title || 'Untitled Story'}
-                                                </h3>
-                                                {story.author &&
-                    <p className="text-xs md:text-sm text-slate-500">by {story.author}</p>
-                    }
-                                            </div>
-                                        </div>
+                                    {/* Content */}
+                                    <div className="p-4 flex flex-col flex-1">
+                                        <h3 className="text-slate-800 text-lg font-semibold leading-snug mb-0.5 line-clamp-2">
+                                            {story.title || 'Untitled Story'}
+                                        </h3>
+                                        {story.author &&
+                                            <p className="text-xs text-slate-500 mb-2">by {story.author}</p>
+                                        }
 
-                                        <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
-                                            {story.category &&
-                <Badge className={getCategoryColor(story.category)}>
-                                                    {story.category}
-                                                </Badge>
-                }
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setEditingStory(story);
-                                                            setNewCategory(story.category || '');
-                                                        }}
-                                                        className="h-6 px-2"
-                                                    >
-                                                        <Tag className="w-3 h-3" />
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>Edit Category</DialogTitle>
-                                                    </DialogHeader>
-                                                    <div className="space-y-4 pt-4">
-                                                        <div>
-                                                            <Label htmlFor="category">Select Category</Label>
-                                                            <Select value={newCategory} onValueChange={setNewCategory}>
-                                                                <SelectTrigger id="category">
-                                                                    <SelectValue placeholder="Choose a category" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {categories.map(cat => (
-                                                                        <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-                                                        <div>
-                                                            <Label htmlFor="custom-category">Or Enter Custom Category</Label>
-                                                            <Input
-                                                                id="custom-category"
-                                                                placeholder="e.g., food, art, sports"
-                                                                value={newCategory}
-                                                                onChange={(e) => setNewCategory(e.target.value)}
-                                                            />
-                                                        </div>
-                                                        <Button onClick={updateStoryCategory} className="w-full bg-amber-600 hover:bg-amber-700">
-                                                            Update Category
-                                                        </Button>
-                                                    </div>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </div>
-                                        
                                         {story.subtitle &&
-                <p className="text-[11px] md:text-sm text-slate-600 line-clamp-2 mb-2 md:mb-4">
-                                                {story.subtitle}
-                                            </p>
-                }
+                                            <p className="text-sm text-slate-600 line-clamp-2 mb-2">{story.subtitle.replace(/<[^>]*>/g, '')}</p>
+                                        }
 
-                                        <p className="text-[10px] md:text-xs text-slate-400 mb-2 md:mb-4">
+                                        <p className="text-xs text-slate-400 mt-auto pt-3">
                                             Created {new Date(story.created_date).toLocaleDateString()}
                                         </p>
-
-                                        <div className="flex items-stretch gap-0 pt-2 md:pt-3 border-t overflow-hidden rounded-lg">
-                                            <Link to={`${createPageUrl('StoryEditor')}?id=${story.id}`} className="flex-1">
-                                                <button className="w-full h-[50px] bg-blue-50 hover:bg-blue-100 transition-colors flex flex-col items-center justify-center">
-                                                    <Edit2 className="w-4 h-4 text-blue-600 mb-0.5" />
-                                                    <span className="text-xs text-blue-700 font-semibold">Edit</span>
-                                                </button>
-                                            </Link>
-                                            <Link to={`${createPageUrl('StoryMapView')}?id=${story.id}`} className="flex-1">
-                                                <button className="w-full h-[50px] bg-green-50 hover:bg-green-100 transition-colors flex flex-col items-center justify-center border-l border-r border-white">
-                                                    <Eye className="w-4 h-4 text-green-600 mb-0.5" />
-                                                    <span className="text-xs text-green-700 font-semibold">View</span>
-                                                </button>
-                                            </Link>
-                                            <button
-                                                onClick={() => deleteStory(story.id)}
-                                                className="flex-1 h-[50px] bg-red-50 hover:bg-red-100 transition-colors flex flex-col items-center justify-center"
-                                            >
-                                                <Trash2 className="w-4 h-4 text-red-600 mb-0.5" />
-                                                <span className="text-xs text-red-700 font-semibold">Trash</span>
-                                            </button>
-                                        </div>
                                     </div>
+
+                                    {/* Action footer — all tools consolidated here */}
+                                    <div className="flex items-stretch border-t border-slate-100">
+                                        {/* Category tag — first slot */}
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <button
+                                                    onClick={() => { setEditingStory(story); setNewCategory(story.category || ''); }}
+                                                    className="flex-1 h-11 bg-violet-50 hover:bg-violet-100 transition-colors flex flex-col items-center justify-center gap-0.5 min-w-0"
+                                                >
+                                                    <Tag className="w-4 h-4 text-violet-600 shrink-0" />
+                                                    <span className="text-[10px] text-violet-700 font-semibold truncate w-full text-center px-1">
+                                                        {story.category || 'Tag'}
+                                                    </span>
+                                                </button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Edit Category</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="space-y-4 pt-4">
+                                                    <div>
+                                                        <Label htmlFor="category">Select Category</Label>
+                                                        <Select value={newCategory} onValueChange={setNewCategory}>
+                                                            <SelectTrigger id="category">
+                                                                <SelectValue placeholder="Choose a category" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {categories.map(cat => (
+                                                                    <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div>
+                                                        <Label htmlFor="custom-category">Or Enter Custom Category</Label>
+                                                        <Input
+                                                            id="custom-category"
+                                                            placeholder="e.g., food, art, sports"
+                                                            value={newCategory}
+                                                            onChange={(e) => setNewCategory(e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <Button onClick={updateStoryCategory} className="w-full bg-amber-600 hover:bg-amber-700">
+                                                        Update Category
+                                                    </Button>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                        <Link to={`${createPageUrl('StoryEditor')}?id=${story.id}`} className="flex-1 border-l border-slate-100">
+                                            <button className="w-full h-11 bg-blue-50 hover:bg-blue-100 transition-colors flex flex-col items-center justify-center gap-0.5">
+                                                <Edit2 className="w-4 h-4 text-blue-600" />
+                                                <span className="text-[10px] text-blue-700 font-semibold">Edit</span>
+                                            </button>
+                                        </Link>
+                                        <Link to={`${createPageUrl('StoryMapView')}?id=${story.id}`} className="flex-1 border-l border-slate-100">
+                                            <button className="w-full h-11 bg-green-50 hover:bg-green-100 transition-colors flex flex-col items-center justify-center gap-0.5">
+                                                <Eye className="w-4 h-4 text-green-600" />
+                                                <span className="text-[10px] text-green-700 font-semibold">View</span>
+                                            </button>
+                                        </Link>
+                                        {/* Status-change actions — contextual */}
+                                        {story.is_idea && (
+                                            <button onClick={() => moveToDraft(story)} className="flex-1 h-11 bg-teal-50 hover:bg-teal-100 transition-colors flex flex-col items-center justify-center gap-0.5 border-l border-slate-100">
+                                                <FileEdit className="w-4 h-4 text-teal-600" />
+                                                <span className="text-[10px] text-teal-700 font-semibold">→ Draft</span>
+                                            </button>
+                                        )}
+                                        {!story.is_idea && !story.is_published && (<>
+                                            <button onClick={() => setAsIdea(story)} className="flex-1 h-11 bg-teal-50 hover:bg-teal-100 transition-colors flex flex-col items-center justify-center gap-0.5 border-l border-slate-100">
+                                                <Lightbulb className="w-4 h-4 text-teal-600" />
+                                                <span className="text-[10px] text-teal-700 font-semibold">→ Idea</span>
+                                            </button>
+                                            <button onClick={() => publishStory(story)} className="flex-1 h-11 bg-amber-50 hover:bg-amber-100 transition-colors flex flex-col items-center justify-center gap-0.5 border-l border-slate-100">
+                                                <Globe className="w-4 h-4 text-amber-600" />
+                                                <span className="text-[10px] text-amber-700 font-semibold">Publish</span>
+                                            </button>
+                                        </>)}
+                                        {story.is_published && !story.is_idea && (
+                                            <button onClick={() => unpublishStory(story)} className="flex-1 h-11 bg-slate-50 hover:bg-slate-100 transition-colors flex flex-col items-center justify-center gap-0.5 border-l border-slate-100">
+                                                <Lock className="w-4 h-4 text-slate-500" />
+                                                <span className="text-[10px] text-slate-600 font-semibold">Unpublish</span>
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => deleteStory(story.id)}
+                                            className="flex-1 h-11 bg-red-50 hover:bg-red-100 transition-colors flex flex-col items-center justify-center gap-0.5 border-l border-slate-100"
+                                        >
+                                            <Trash2 className="w-4 h-4 text-red-600" />
+                                            <span className="text-[10px] text-red-700 font-semibold">Trash</span>
+                                        </button>
+                                    </div>
+
                                 </CardContent>
                             </Card>
           )}
