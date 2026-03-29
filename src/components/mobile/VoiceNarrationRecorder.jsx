@@ -225,7 +225,7 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
       <div className="flex flex-col items-center py-4">
         <button
           onClick={toggleRecording}
-          disabled={!isSupported} className="bg-lime-500 text-white text-4xl rounded-full w-32 h-32 flex items-center justify-center transition-all duration-300 shadow-lg hover:bg-amber-700 cursor-pointer">
+          disabled={!isSupported} className="bg-lime-500 text-white text-2xl rounded-full w-20 h-20 flex items-center justify-center transition-all duration-300 shadow-lg hover:bg-amber-700 cursor-pointer">
 
 
 
@@ -275,7 +275,7 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
       {transcript &&
       <div className="w-full bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-xs font-semibold text-green-700 mb-2">TRANSCRIPT:</p>
-          <p className="text-gray-800 text-lg">{transcript}</p>
+          <p className="text-gray-800 text-sm">{transcript}</p>
         </div>
       }
       

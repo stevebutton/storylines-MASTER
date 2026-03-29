@@ -3,7 +3,7 @@ import { supabase } from '@/api/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
-    Camera, ChevronRight, Loader2, Check, Plus, Sparkles, BookOpen, RotateCcw, Mic,
+    Camera, ChevronRight, Loader2, Check, Plus, Sparkles, BookOpen, RotateCcw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VoiceNarrationRecorder from '@/components/mobile/VoiceNarrationRecorder';
@@ -37,13 +37,13 @@ function VoiceTitleStep({ eyebrow, label, placeholder, onConfirm, saving }) {
             style={{ height: 'calc(100vh - 60px)' }}
         >
             {/* Heading */}
-            <div className="flex-shrink-0 px-6 pt-6 pb-4 text-center">
-                <p className="text-zinc-400 text-xl font-medium uppercase tracking-widest mb-2">{eyebrow}</p>
-                <h2 className="text-5xl font-bold text-white leading-none">{label}</h2>
+            <div className="flex-shrink-0 px-6 pt-5 pb-3 text-center">
+                <p className="text-zinc-400 text-xs font-medium uppercase tracking-widest mb-1">{eyebrow}</p>
+                <h2 className="text-2xl font-bold text-white leading-none">{label}</h2>
             </div>
 
             {/* Recorder + input + confirm — centred in remaining space */}
-            <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4 overflow-y-auto">
                 <VoiceNarrationRecorder
                     onTranscriptChange={(t) => setTitle(t.trim())}
                     initialTranscript={title}
@@ -54,9 +54,9 @@ function VoiceTitleStep({ eyebrow, label, placeholder, onConfirm, saving }) {
                     placeholder={placeholder}
                     autoCapitalize="words"
                     autoCorrect="off"
-                    className="w-full bg-zinc-800 border-2 border-zinc-700 rounded-2xl px-5 py-6 text-white text-2xl font-semibold placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors text-center"
+                    className="w-full bg-zinc-800 border-2 border-zinc-700 rounded-2xl px-4 py-3 text-white text-base font-semibold placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors text-center"
                 />
-                <div className="flex flex-col items-center gap-6">
+                <div className="flex flex-col items-center gap-4">
                     <button
                         onClick={() => onConfirm(title)}
                         disabled={!title.trim() || saving}
@@ -67,7 +67,7 @@ function VoiceTitleStep({ eyebrow, label, placeholder, onConfirm, saving }) {
                             : <Check className="w-14 h-14" />
                         }
                     </button>
-                    <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md leading-none">
+                    <span className="bg-white text-black font-semibold text-sm px-4 py-2 rounded-2xl shadow-md leading-none">
                         confirm
                     </span>
                 </div>
@@ -91,7 +91,6 @@ export default function Storyboarder() {
     const [lastSavedSlideId, setLastSavedSlideId] = useState(null);
     const [pendingDescription, setPendingDescription] = useState('');
     const [descSaved, setDescSaved]               = useState(false);
-    const [showDescriptionPanel, setShowDescriptionPanel] = useState(false);
     const totalPhotosRef                          = useRef(0);
 
     const [saving, setSaving]       = useState(false);
@@ -153,7 +152,6 @@ export default function Storyboarder() {
             .update({ description: pendingDescription.trim() })
             .eq('id', lastSavedSlideId);
         setPendingDescription('');
-        setShowDescriptionPanel(false);
         setDescSaved(true);
         setTimeout(() => setDescSaved(false), 1500);
     };
@@ -176,7 +174,6 @@ export default function Storyboarder() {
                 .eq('id', lastSavedSlideId);
         }
         setPendingDescription('');
-        setShowDescriptionPanel(false);
         setSaving(true);
         setSavedFlash(false);
         try {
@@ -215,7 +212,6 @@ export default function Storyboarder() {
             totalPhotosRef.current += 1;
             setSlides((prev) => [...prev, { id: slideId, title, image: publicUrl }]);
             setLastSavedSlideId(slideId);
-            setShowDescriptionPanel(true);
             setSavedFlash(true);
             setTimeout(() => setSavedFlash(false), 2000);
         } catch (e) {
@@ -229,7 +225,6 @@ export default function Storyboarder() {
 
     const startNewChapter = () => {
         setPendingDescription('');
-        setShowDescriptionPanel(false);
         setStep(2);
     };
 
@@ -244,7 +239,6 @@ export default function Storyboarder() {
         setSlides([]);
         setLastSavedSlideId(null);
         setPendingDescription('');
-        setShowDescriptionPanel(false);
         totalPhotosRef.current = 0;
     };
 
@@ -321,8 +315,8 @@ export default function Storyboarder() {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -40 }}
                             transition={{ duration: 0.25, ease: 'easeOut' }}
-                            className="flex flex-col"
-                            style={{ height: 'calc(100vh - 60px)' }}
+                            className="flex flex-col overflow-y-auto"
+                            style={{ minHeight: 'calc(100vh - 60px)' }}
                         >
                             {/* Chapter label + thumbnail strip */}
                             <div className="px-5 pt-3 pb-2 flex-shrink-0 text-center">
@@ -351,7 +345,7 @@ export default function Storyboarder() {
                             </div>
 
                             {/* ── Two-column grid: buttons left, pills right ─────── */}
-                            <div className="flex-1 grid grid-cols-[auto_auto] gap-x-0 gap-y-5 content-center items-center pl-6">
+                            <div className="flex-shrink-0 grid grid-cols-[auto_auto] gap-x-0 gap-y-5 content-center items-center pl-6 py-5">
 
                                 <input
                                     ref={cameraRef}
@@ -384,21 +378,7 @@ export default function Storyboarder() {
                                     </AnimatePresence>
                                 </div>
 
-                                {/* Row 2: Mic */}
-                                <button
-                                    onClick={() => showDescriptionPanel ? saveDescription() : setShowDescriptionPanel(true)}
-                                    disabled={!lastSavedSlideId}
-                                    className={`w-36 h-36 rounded-full active:scale-90 disabled:opacity-30 flex items-center justify-center shadow-xl transition-all justify-self-center ${
-                                        showDescriptionPanel ? 'bg-blue-400 hover:bg-blue-300 shadow-blue-900/50' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/50'
-                                    }`}
-                                >
-                                    {descSaved ? <Check className="w-14 h-14 text-white" /> : <Mic className="w-14 h-14 text-white" />}
-                                </button>
-                                <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md text-left leading-none justify-self-start">
-                                    {showDescriptionPanel && pendingDescription.trim() ? 'save caption' : 'record caption'}
-                                </span>
-
-                                {/* Row 3: New Chapter */}
+                                {/* Row 2: New Chapter */}
                                 <button
                                     onClick={startNewChapter}
                                     className="w-24 h-24 rounded-full bg-teal-500 hover:bg-teal-400 active:scale-90 flex items-center justify-center shadow-xl shadow-teal-900/50 transition-all justify-self-center"
@@ -422,6 +402,25 @@ export default function Storyboarder() {
 
                             </div>
 
+                            {/* Inline description recorder — visible once a photo has been taken */}
+                            {lastSavedSlideId && (
+                                <div className="px-5 pb-5">
+                                    <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-4 space-y-3">
+                                        <p className="text-xs font-semibold text-zinc-400 text-center uppercase tracking-wider">describe this photo</p>
+                                        <VoiceNarrationRecorder
+                                            onTranscriptChange={setPendingDescription}
+                                            initialTranscript=""
+                                        />
+                                        <button
+                                            onClick={saveDescription}
+                                            disabled={!pendingDescription.trim()}
+                                            className="w-full h-11 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-sm font-semibold transition-colors"
+                                        >
+                                            {descSaved ? '✓ Description saved' : 'Save description'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                         </motion.div>
                     )}
@@ -481,39 +480,6 @@ export default function Storyboarder() {
                 </AnimatePresence>
             </div>
 
-            {/* Description recorder — fixed bottom sheet, always above the grid */}
-            <AnimatePresence>
-                {showDescriptionPanel && (
-                    <motion.div
-                        initial={{ y: '100%' }}
-                        animate={{ y: 0 }}
-                        exit={{ y: '100%' }}
-                        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 border-t border-zinc-700 rounded-t-2xl p-5 space-y-4 shadow-2xl"
-                    >
-                        <p className="text-sm font-semibold text-zinc-300 text-center">Record a description for this photo</p>
-                        <VoiceNarrationRecorder
-                            onTranscriptChange={setPendingDescription}
-                            initialTranscript=""
-                        />
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => { setShowDescriptionPanel(false); setPendingDescription(''); }}
-                                className="flex-1 h-12 rounded-2xl bg-zinc-700 hover:bg-zinc-600 text-sm text-zinc-300 hover:text-white font-semibold transition-colors"
-                            >
-                                Skip
-                            </button>
-                            <button
-                                onClick={saveDescription}
-                                disabled={!pendingDescription.trim()}
-                                className="flex-1 h-12 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-sm font-semibold transition-colors"
-                            >
-                                Save description
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }
