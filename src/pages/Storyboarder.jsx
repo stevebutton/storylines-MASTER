@@ -422,39 +422,6 @@ export default function Storyboarder() {
 
                             </div>
 
-                            {/* Description recorder — slides in after photo is taken */}
-                            <AnimatePresence>
-                                {showDescriptionPanel && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 16 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 8 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="mx-4 mb-4 bg-zinc-800 border border-zinc-700 rounded-2xl p-4 space-y-3"
-                                    >
-                                        <p className="text-sm font-medium text-zinc-300">Record a description for this photo</p>
-                                        <VoiceNarrationRecorder
-                                            onTranscriptChange={setPendingDescription}
-                                            initialTranscript=""
-                                        />
-                                        <div className="flex gap-2 pt-1">
-                                            <button
-                                                onClick={() => { setShowDescriptionPanel(false); setPendingDescription(''); }}
-                                                className="flex-1 h-10 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-sm text-zinc-300 hover:text-white transition-colors"
-                                            >
-                                                Skip
-                                            </button>
-                                            <button
-                                                onClick={saveDescription}
-                                                disabled={!pendingDescription.trim()}
-                                                className="flex-1 h-10 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-sm font-semibold transition-colors"
-                                            >
-                                                Save description
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
 
                         </motion.div>
                     )}
@@ -513,6 +480,40 @@ export default function Storyboarder() {
 
                 </AnimatePresence>
             </div>
+
+            {/* Description recorder — fixed bottom sheet, always above the grid */}
+            <AnimatePresence>
+                {showDescriptionPanel && (
+                    <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                        className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 border-t border-zinc-700 rounded-t-2xl p-5 space-y-4 shadow-2xl"
+                    >
+                        <p className="text-sm font-semibold text-zinc-300 text-center">Record a description for this photo</p>
+                        <VoiceNarrationRecorder
+                            onTranscriptChange={setPendingDescription}
+                            initialTranscript=""
+                        />
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => { setShowDescriptionPanel(false); setPendingDescription(''); }}
+                                className="flex-1 h-12 rounded-2xl bg-zinc-700 hover:bg-zinc-600 text-sm text-zinc-300 hover:text-white font-semibold transition-colors"
+                            >
+                                Skip
+                            </button>
+                            <button
+                                onClick={saveDescription}
+                                disabled={!pendingDescription.trim()}
+                                className="flex-1 h-12 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-sm font-semibold transition-colors"
+                            >
+                                Save description
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
