@@ -91,6 +91,7 @@ export default function Storyboarder() {
     const [lastSavedSlideId, setLastSavedSlideId] = useState(null);
     const [pendingDescription, setPendingDescription] = useState('');
     const [descSaved, setDescSaved]               = useState(false);
+    const [showRecordingModal, setShowRecordingModal] = useState(false);
     const totalPhotosRef                          = useRef(0);
 
     const [saving, setSaving]       = useState(false);
@@ -378,7 +379,27 @@ export default function Storyboarder() {
                                     </AnimatePresence>
                                 </div>
 
-                                {/* Row 2: New Chapter */}
+                                {/* Row 2: Record caption */}
+                                <button
+                                    onClick={() => setShowRecordingModal(true)}
+                                    className={`w-32 h-32 rounded-full text-4xl flex items-center justify-center shadow-lg transition-all justify-self-center ${
+                                        pendingDescription ? 'bg-lime-600' : 'bg-lime-500 hover:bg-lime-400 active:scale-90'
+                                    }`}
+                                >
+                                    {pendingDescription ? '✅' : '🎤'}
+                                </button>
+                                <div className="flex flex-col gap-2 justify-self-start">
+                                    <span className="bg-white text-black font-semibold text-lg px-4 py-2 rounded-2xl shadow-md text-left leading-none">
+                                        record caption
+                                    </span>
+                                    {pendingDescription && (
+                                        <span className="text-xs text-zinc-400 bg-zinc-800 rounded-xl px-3 py-1.5 max-w-[160px] truncate">
+                                            {pendingDescription}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Row 3: New Chapter */}
                                 <button
                                     onClick={startNewChapter}
                                     className="w-24 h-24 rounded-full bg-teal-500 hover:bg-teal-400 active:scale-90 flex items-center justify-center shadow-xl shadow-teal-900/50 transition-all justify-self-center"
@@ -402,20 +423,6 @@ export default function Storyboarder() {
 
                             </div>
 
-                            {/* Description recorder — always visible, no animation */}
-                            <div className="px-6 pb-6 space-y-2">
-                                <VoiceNarrationRecorder
-                                    onTranscriptChange={setPendingDescription}
-                                    initialTranscript=""
-                                />
-                                <button
-                                    onClick={saveDescription}
-                                    disabled={!pendingDescription.trim()}
-                                    className="w-full h-11 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-30 text-sm font-semibold transition-colors"
-                                >
-                                    {descSaved ? '✓ Description saved' : 'Save description'}
-                                </button>
-                            </div>
 
                         </motion.div>
                     )}
@@ -474,6 +481,48 @@ export default function Storyboarder() {
 
                 </AnimatePresence>
             </div>
+
+            {/* ── Recording modal ─────────────────────────────────────────────── */}
+            {showRecordingModal && (
+                <div
+                    className="fixed inset-0 z-[200] flex items-end justify-center bg-black/70"
+                    onClick={() => setShowRecordingModal(false)}
+                >
+                    <div
+                        className="w-full max-w-sm bg-zinc-900 border-t border-zinc-700 rounded-t-3xl px-6 pt-5 pb-10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-5" />
+                        <h3 className="text-white font-bold text-lg text-center mb-4">Record Caption</h3>
+
+                        <VoiceNarrationRecorder
+                            onTranscriptChange={setPendingDescription}
+                            initialTranscript={pendingDescription}
+                        />
+
+                        <div className="flex gap-3 mt-5">
+                            <button
+                                onClick={() => { setPendingDescription(''); setShowRecordingModal(false); }}
+                                className="flex-1 h-12 rounded-2xl bg-zinc-700 hover:bg-zinc-600 active:scale-95 text-zinc-300 text-sm font-semibold transition-all"
+                            >
+                                Skip
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    if (pendingDescription.trim() && lastSavedSlideId) {
+                                        await saveDescription();
+                                    }
+                                    setShowRecordingModal(false);
+                                }}
+                                disabled={!pendingDescription.trim()}
+                                className="flex-1 h-12 rounded-2xl bg-blue-600 hover:bg-blue-500 active:scale-95 disabled:opacity-30 text-white text-sm font-semibold transition-all"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );
