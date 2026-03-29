@@ -90,11 +90,13 @@ const AuthenticatedApp = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={
-          <PageTransition>
-            <LayoutWrapper currentPageName={mainPageKey}>
-              <MainPage />
-            </LayoutWrapper>
-          </PageTransition>
+          <ProtectedRoute>
+            <PageTransition>
+              <LayoutWrapper currentPageName={mainPageKey}>
+                <MainPage />
+              </LayoutWrapper>
+            </PageTransition>
+          </ProtectedRoute>
         } />
         {Object.entries(Pages).map(([path, Page]) => {
           const pageEl = (
