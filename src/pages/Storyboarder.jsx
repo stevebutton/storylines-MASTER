@@ -378,7 +378,22 @@ export default function Storyboarder() {
                                     </AnimatePresence>
                                 </div>
 
-                                {/* Row 2: New Chapter */}
+                                {/* Row 2: Description recorder — inline, always visible */}
+                                <div className="col-span-2 pr-6 space-y-2">
+                                    <VoiceNarrationRecorder
+                                        onTranscriptChange={setPendingDescription}
+                                        initialTranscript=""
+                                    />
+                                    <button
+                                        onClick={saveDescription}
+                                        disabled={!pendingDescription.trim()}
+                                        className="w-full h-11 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-30 text-sm font-semibold transition-colors"
+                                    >
+                                        {descSaved ? '✓ Description saved' : 'Save description'}
+                                    </button>
+                                </div>
+
+                                {/* Row 3: New Chapter */}
                                 <button
                                     onClick={startNewChapter}
                                     className="w-24 h-24 rounded-full bg-teal-500 hover:bg-teal-400 active:scale-90 flex items-center justify-center shadow-xl shadow-teal-900/50 transition-all justify-self-center"
@@ -401,26 +416,6 @@ export default function Storyboarder() {
                                 </span>
 
                             </div>
-
-                            {/* Inline description recorder — visible once a photo has been taken */}
-                            {lastSavedSlideId && (
-                                <div className="px-5 pb-5">
-                                    <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-4 space-y-3">
-                                        <p className="text-xs font-semibold text-zinc-400 text-center uppercase tracking-wider">describe this photo</p>
-                                        <VoiceNarrationRecorder
-                                            onTranscriptChange={setPendingDescription}
-                                            initialTranscript=""
-                                        />
-                                        <button
-                                            onClick={saveDescription}
-                                            disabled={!pendingDescription.trim()}
-                                            className="w-full h-11 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-sm font-semibold transition-colors"
-                                        >
-                                            {descSaved ? '✓ Description saved' : 'Save description'}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
 
                         </motion.div>
                     )}
