@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useCesiumViewer } from '../cesium/useCesiumViewer'
 import { useCesiumChapter } from '../cesium/useCesiumChapter'
+import { useCesiumAnnotations } from '../cesium/useCesiumAnnotations'
 // import { useCesiumRoute } from '../cesium/useCesiumRoute'  // disabled — see docs/cesium-route-debug.md
 
 /**
@@ -11,7 +12,7 @@ import { useCesiumChapter } from '../cesium/useCesiumChapter'
  *
  * NOTE: Do not import mapbox-gl or any Mapbox utility in this file.
  */
-export default function CesiumStoryMap({ story, chapters, currentChapter, currentSlide, hidden, viewerRef }) {
+export default function CesiumStoryMap({ story, chapters, currentChapter, currentSlide, hidden, viewerRef, annotationMarkers = [] }) {
     const containerRef = useRef(null)
     const [error, setError] = useState(null)
 
@@ -21,6 +22,7 @@ export default function CesiumStoryMap({ story, chapters, currentChapter, curren
     useCesiumChapter(viewer, currentSlide)
     // Route — disabled; see docs/cesium-route-debug.md
     // useCesiumRoute(viewer, currentChapter)
+    useCesiumAnnotations(viewer, containerRef, annotationMarkers)
 
     if (error) {
         return (
