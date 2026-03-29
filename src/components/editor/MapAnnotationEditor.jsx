@@ -38,6 +38,7 @@ export default function MapAnnotationEditor({ annotations = [], onChange, storyI
     const [pickerShowResults, setPickerShowResults] = useState(false);
     const [pickerLat, setPickerLat]                 = useState('');
     const [pickerLng, setPickerLng]                 = useState('');
+    const [pickerView, setPickerView]               = useState(null); // { zoom, bearing, pitch }
     const pickerMapContainerRef = useRef(null);
     const pickerMapRef          = useRef(null);
     const pickerMarkerRef       = useRef(null);
@@ -70,19 +71,24 @@ export default function MapAnnotationEditor({ annotations = [], onChange, storyI
             if (!pickerMapContainerRef.current) return;
 
             const ann    = annotations.find(a => a.id === mapPickerAnnotationId);
-            const hasPos = ann?.lat != null && ann?.lng != null;
-            const center = hasPos ? [ann.lng, ann.lat] : [20, 5];
-            const zoom   = hasPos ? 8 : 2;
+            const hasPos  = ann?.lat != null && ann?.lng != null;
+            const center  = hasPos ? [ann.lng, ann.lat] : [20, 5];
+            const initZoom    = ann?.zoom    ?? (hasPos ? 8 : 2);
+            const initBearing = ann?.bearing ?? 0;
+            const initPitch   = ann?.pitch   ?? 0;
 
-            // Seed lat/lng inputs from existing annotation values
+            // Seed lat/lng inputs and view from existing annotation values
             setPickerLat(hasPos ? String(ann.lat) : '');
             setPickerLng(hasPos ? String(ann.lng) : '');
+            setPickerView(ann?.zoom != null ? { zoom: ann.zoom, bearing: initBearing, pitch: initPitch } : null);
 
             pickerMapRef.current = new mapboxgl.Map({
                 container: pickerMapContainerRef.current,
                 style: 'mapbox://styles/stevebutton/clummsfw1002701mpbiw3exg7',
                 center,
-                zoom,
+                zoom:    initZoom,
+                bearing: initBearing,
+                pitch:   initPitch,
                 interactive: true,
             });
 
@@ -128,21 +134,48 @@ export default function MapAnnotationEditor({ annotations = [], onChange, storyI
         setPickerShowResults(false);
         setPickerLat('');
         setPickerLng('');
+        setPickerView(null);
     };
 
     const confirmPickerLocation = () => {
         if (!mapPickerAnnotationId) { closePicker(); return; }
+        let lat, lng;
         if (pickerMarkerRef.current) {
-            const { lat, lng } = pickerMarkerRef.current.getLngLat();
-            update(mapPickerAnnotationId, { lat, lng });
+            ({ lat, lng } = pickerMarkerRef.current.getLngLat());
         } else {
-            const lat = parseFloat(pickerLat);
-            const lng = parseFloat(pickerLng);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                update(mapPickerAnnotationId, { lat, lng });
+            lat = parseFloat(pickerLat);
+            lng = parseFloat(pickerLng);
+        }
+        if (!isNaN(lat) && !isNaN(lng)) {
+            const patch = { lat, lng };
+            if (pickerView) {
+                patch.zoom    = parseFloat(pickerView.zoom.toFixed(2));
+                patch.bearing = Math.round(pickerView.bearing);
+                patch.pitch   = Math.round(pickerView.pitch);
             }
+            update(mapPickerAnnotationId, patch);
         }
         closePicker();
+    };
+
+    const capturePickerView = () => {
+        if (!pickerMapRef.current) return;
+        const center  = pickerMapRef.current.getCenter();
+        const zoom    = pickerMapRef.current.getZoom();
+        const bearing = pickerMapRef.current.getBearing();
+        const pitch   = pickerMapRef.current.getPitch();
+        // Move pin to current map centre so the view matches the pin location
+        setPickerLat(center.lat.toFixed(6));
+        setPickerLng(center.lng.toFixed(6));
+        if (pickerMarkerRef.current) {
+            pickerMarkerRef.current.setLngLat([center.lng, center.lat]);
+        } else {
+            const ann = annotations.find(a => a.id === mapPickerAnnotationId);
+            pickerMarkerRef.current = new mapboxgl.Marker({ color: ann?.color || '#d97706' })
+                .setLngLat([center.lng, center.lat])
+                .addTo(pickerMapRef.current);
+        }
+        setPickerView({ zoom, bearing, pitch });
     };
 
     // Geocode search inside picker
@@ -345,10 +378,17 @@ export default function MapAnnotationEditor({ annotations = [], onChange, storyI
                                 {hasLocation ? 'Edit Location on Map' : 'Pick Location on Map'}
                             </button>
                             {hasLocation && (
-                                <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {ann.lat.toFixed(5)}, {ann.lng.toFixed(5)}
-                                </p>
+                                <div className="mt-2 space-y-0.5">
+                                    <p className="text-xs text-green-600 flex items-center gap-1">
+                                        <MapPin className="w-3 h-3" />
+                                        {ann.lat.toFixed(5)}, {ann.lng.toFixed(5)}
+                                    </p>
+                                    {ann.zoom != null && (
+                                        <p className="text-xs text-slate-400">
+                                            Click flies to: Zoom {ann.zoom.toFixed(1)} · Bearing {Math.round(ann.bearing || 0)}° · Pitch {Math.round(ann.pitch || 0)}°
+                                        </p>
+                                    )}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -494,13 +534,30 @@ export default function MapAnnotationEditor({ annotations = [], onChange, storyI
 
                     {/* Map */}
                     <div ref={pickerMapContainerRef} style={{ flex: 1, position: 'relative' }}>
+                        {/* Capture View button — top-left of map */}
+                        <button
+                            type="button"
+                            onClick={capturePickerView}
+                            style={{
+                                position: 'absolute', top: 10, left: 10, zIndex: 10,
+                                background: pickerView ? '#059669' : '#d97706',
+                                color: 'white', border: 'none', borderRadius: 8,
+                                padding: '7px 14px', fontSize: 12, fontWeight: 600,
+                                cursor: 'pointer', whiteSpace: 'nowrap',
+                                transition: 'background 0.15s ease',
+                            }}
+                        >
+                            {pickerView
+                                ? `✓ View · Zoom ${pickerView.zoom.toFixed(1)} · ${Math.round(pickerView.bearing)}° · Pitch ${Math.round(pickerView.pitch)}°`
+                                : 'Capture View'}
+                        </button>
                         <div style={{
                             position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)',
                             background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(8px)',
                             color: 'white', fontSize: 12, padding: '6px 14px', borderRadius: 20,
                             pointerEvents: 'none', zIndex: 10, whiteSpace: 'nowrap',
                         }}>
-                            Click anywhere on the map to place the pin
+                            Click to place pin · Capture View to set fly-to camera
                         </div>
                     </div>
                 </div>

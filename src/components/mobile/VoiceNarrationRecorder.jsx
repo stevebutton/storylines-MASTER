@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, Square, Check } from 'lucide-react';
 
-export default function VoiceNarrationRecorder({ onTranscriptChange, initialTranscript = '', showDebug = false }) {
+export default function VoiceNarrationRecorder({ onTranscriptChange, initialTranscript = '', showDebug = false, compact = false }) {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState(initialTranscript);
   const [interimTranscript, setInterimTranscript] = useState('');
@@ -213,6 +213,21 @@ export default function VoiceNarrationRecorder({ onTranscriptChange, initialTran
       }
     }
   };
+
+  // Compact mode: just the button, for embedding in a grid row
+  if (compact) {
+    return (
+      <button
+        onClick={toggleRecording}
+        disabled={!isSupported}
+        className={`text-white text-4xl rounded-full w-32 h-32 flex items-center justify-center transition-all duration-300 shadow-lg cursor-pointer justify-self-center ${
+          isRecording ? 'bg-lime-600 scale-95' : 'bg-lime-500 hover:bg-lime-400'
+        }`}
+      >
+        {isRecording ? '⏹️' : '🎤'}
+      </button>
+    );
+  }
 
   return (
     <div className="space-y-4">

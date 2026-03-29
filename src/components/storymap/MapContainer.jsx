@@ -817,6 +817,18 @@ export default function MapBackground({
                 closeAnnotationPopup();
             });
 
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!map.current) return;
+                map.current.flyTo({
+                    center:  [ann.lng, ann.lat],
+                    ...(ann.zoom    != null && { zoom:    ann.zoom }),
+                    bearing: ann.bearing ?? 0,
+                    pitch:   ann.pitch   ?? 0,
+                    duration: 4000,
+                });
+            });
+
             const marker = new mapboxgl.Marker(el)
                 .setLngLat([ann.lng, ann.lat])
                 .addTo(map.current);

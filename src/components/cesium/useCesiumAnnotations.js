@@ -70,71 +70,111 @@ export function useCesiumAnnotations(viewer, containerRef, annotations) {
             const el = document.createElement('div')
             el.style.cssText = [
                 'position:absolute',
-                'width:36px', 'height:36px',
                 'cursor:pointer', 'z-index:15',
                 'pointer-events:auto',
                 'transform:translate(-50%,-50%)',
                 'display:none',
+                'opacity:0',
+                'transition:opacity 0.45s ease',
             ].join(';')
 
-            el.innerHTML = `<div style="
-                width:36px;height:36px;border-radius:50%;
-                background:${isCustom ? 'white' : color};
-                border:2px solid ${isCustom ? color : 'white'};
-                box-shadow:0 2px 8px rgba(0,0,0,0.5);
-                display:flex;align-items:center;justify-content:center;
-                transition:transform 0.15s ease;
-            ">${isCustom
-                ? `<img src="${ann.icon}" style="width:22px;height:22px;object-fit:contain;border-radius:2px;">`
-                : getIconSvg(ann.icon)
-            }</div>`
+            let scaleTarget
 
-            const inner = el.firstElementChild
+            if (isCustom) {
+                // Transparent PNG: render at natural size directly — no circle wrapper
+                const img = document.createElement('img')
+                img.src = ann.icon
+                img.style.cssText = 'display:block;transition:transform 0.15s ease;'
+                el.appendChild(img)
+                scaleTarget = img
+            } else {
+                // Built-in icon: 36px coloured circle with white SVG icon
+                el.style.width  = '36px'
+                el.style.height = '36px'
+                const inner = document.createElement('div')
+                inner.style.cssText = [
+                    'width:36px', 'height:36px', 'border-radius:50%',
+                    `background:${color}`,
+                    'border:2px solid white',
+                    'box-shadow:0 2px 8px rgba(0,0,0,0.5)',
+                    'display:flex', 'align-items:center', 'justify-content:center',
+                    'transition:transform 0.15s ease',
+                ].join(';')
+                inner.innerHTML = getIconSvg(ann.icon)
+                el.appendChild(inner)
+                scaleTarget = inner
+            }
 
-            el.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.1)' })
-            el.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)' })
+            el.addEventListener('mouseenter', () => {
+                scaleTarget.style.transform = 'scale(1.05)'
+
+                if (!ann.title?.trim() && !ann.body?.trim()) return
+                closePopup()
+
+                const rect    = el.getBoundingClientRect()
+                const popup   = document.createElement('div')
+                popup.setAttribute('data-annotation-popup', '1')
+                popup.style.cssText = [
+                    'position:fixed',
+                    `left:${rect.left + rect.width / 2}px`,
+                    `top:${rect.bottom + 18}px`,
+                    'transform:translateX(-50%) translateY(-4px)',
+                    'z-index:20000',
+                    'min-width:160px', 'max-width:260px',
+                    'background:rgba(0,0,0,0.30)',
+                    'backdrop-filter:blur(6px)',
+                    '-webkit-backdrop-filter:blur(6px)',
+                    'border:1px solid rgba(255,255,255,0.70)',
+                    'border-radius:12px',
+                    'padding:14px 20px 16px',
+                    'pointer-events:none',
+                    'opacity:0',
+                    'transition:opacity 180ms ease, transform 180ms ease',
+                ].join(';')
+
+                const hasTitle = ann.title?.trim()
+                const hasBody  = ann.body?.trim()
+                popup.innerHTML = [
+                    '<div style="position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:5px solid rgba(255,255,255,0.70);"></div>',
+                    hasTitle ? `<div style="font-size:15px;font-weight:600;color:white;line-height:1.4;${hasBody ? 'margin-bottom:6px;' : ''}">${hasTitle}</div>` : '',
+                    hasBody  ? `<div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.55;">${hasBody}</div>` : '',
+                ].join('')
+
+                document.body.appendChild(popup)
+                activePopupRef.current = popup
+
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    if (popup.isConnected) {
+                        popup.style.opacity = '1'
+                        popup.style.transform = 'translateX(-50%) translateY(0)'
+                    }
+                }))
+            })
+
+            el.addEventListener('mouseleave', () => {
+                scaleTarget.style.transform = 'scale(1)'
+                closePopup()
+            })
 
             el.addEventListener('click', (e) => {
                 e.stopPropagation()
-                closePopup()
-
-                if (!ann.title && !ann.body) return
-
-                // Position popup relative to marker's current screen position
-                const cx = parseFloat(el.style.left)
-                const cy = parseFloat(el.style.top)
-
-                const popup = document.createElement('div')
-                popup.setAttribute('data-annotation-popup', '1')
-                popup.style.cssText = [
-                    'position:absolute',
-                    `left:${cx}px`,
-                    `top:${cy}px`,
-                    'background:rgba(2,6,23,0.92)',
-                    'backdrop-filter:blur(12px)',
-                    'border:1px solid rgba(255,255,255,0.15)',
-                    'border-radius:12px',
-                    'padding:10px 14px',
-                    'min-width:140px', 'max-width:200px',
-                    'pointer-events:none', 'z-index:100',
-                    'transform:translateX(-50%) translateY(calc(-100% - 10px))',
-                    'opacity:0', 'transition:opacity 0.15s ease',
-                ].join(';')
-
-                popup.innerHTML = [
-                    ann.title ? `<div style="font-size:13px;font-weight:600;color:white;margin-bottom:${ann.body ? '4px' : '0'}">${ann.title}</div>` : '',
-                    ann.body  ? `<div style="font-size:12px;color:rgba(255,255,255,0.7)">${ann.body}</div>`  : '',
-                    '<div style="position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid rgba(2,6,23,0.92)"></div>',
-                ].join('')
-
-                container.appendChild(popup)
-                activePopupRef.current = popup
-
-                // Fade in via double-rAF (forces a paint cycle before opacity change)
-                requestAnimationFrame(() => requestAnimationFrame(() => { popup.style.opacity = '1' }))
-
-                // Close on next click anywhere
-                setTimeout(() => document.addEventListener('click', closePopup, { once: true }), 0)
+                if (!viewer || viewer.isDestroyed()) return
+                // Convert Mapbox zoom → approximate altitude; Mapbox pitch → Cesium pitch
+                const alt = ann.zoom != null
+                    ? Math.max(100, Math.round(35000000 / Math.pow(2, ann.zoom)))
+                    : 1500
+                const cesiumPitch = ann.pitch != null
+                    ? Cesium.Math.toRadians(ann.pitch - 90)
+                    : Cesium.Math.toRadians(-30)
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(ann.lng, ann.lat, alt),
+                    orientation: {
+                        heading: Cesium.Math.toRadians(ann.bearing ?? 0),
+                        pitch:   cesiumPitch,
+                        roll:    0,
+                    },
+                    duration: 4,
+                })
             })
 
             container.appendChild(el)
@@ -148,11 +188,15 @@ export function useCesiumAnnotations(viewer, containerRef, annotations) {
             markersRef.current.forEach(({ el, position }) => {
                 const screenPos = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.scene, position)
                 if (screenPos) {
-                    el.style.left    = `${screenPos.x}px`
-                    el.style.top     = `${screenPos.y}px`
-                    el.style.display = 'block'
+                    el.style.left = `${screenPos.x}px`
+                    el.style.top  = `${screenPos.y}px`
+                    if (el.style.display === 'none') {
+                        el.style.display = 'block'
+                        requestAnimationFrame(() => { el.style.opacity = '1' })
+                    }
                 } else {
                     el.style.display = 'none'
+                    el.style.opacity = '0'
                 }
             })
 
@@ -161,13 +205,17 @@ export function useCesiumAnnotations(viewer, containerRef, annotations) {
         rafRef.current = requestAnimationFrame(tick)
 
         return () => {
-            markersRef.current.forEach(m => m.el.remove())
+            const toFade = markersRef.current.slice()
             markersRef.current = []
             if (rafRef.current) cancelAnimationFrame(rafRef.current)
+            rafRef.current = null
             if (activePopupRef.current) {
                 activePopupRef.current.remove()
                 activePopupRef.current = null
             }
+            // Fade out then remove
+            toFade.forEach(({ el }) => { el.style.opacity = '0' })
+            setTimeout(() => { toFade.forEach(({ el }) => el.remove()) }, 480)
         }
     }, [viewer, annotations]) // eslint-disable-line react-hooks/exhaustive-deps
 }
