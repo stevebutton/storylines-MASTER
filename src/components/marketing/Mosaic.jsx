@@ -31,13 +31,13 @@ function getEmbedUrl(url, type) {
 // ─── Prose styles ─────────────────────────────────────────────────────────────
 
 const PROSE_CSS = `
-  .mosaic-content p { margin: 0 0 12px; font-size: 14px; line-height: 1.65; color: rgba(0,0,0,0.8); }
+  .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 14px; line-height: 1.65; color: rgba(0,0,0,0.8); }
   .mosaic-content p:last-child { margin-bottom: 0; }
   .mosaic-content h2, .mosaic-content h3 { font-family: 'Instrument Serif', serif; font-style: italic; color: #000; margin: 0 0 8px; line-height: 1.2; }
   .mosaic-content h2 { font-size: 20px; }
   .mosaic-content h3 { font-size: 16px; }
   .mosaic-content ul, .mosaic-content ol { margin: 0 0 12px; padding-left: 18px; }
-  .mosaic-content li { font-size: 14px; line-height: 1.65; color: rgba(0,0,0,0.8); margin-bottom: 4px; }
+  .mosaic-content li { font-family: 'Montserrat', sans-serif; font-size: 14px; line-height: 1.65; color: rgba(0,0,0,0.8); margin-bottom: 4px; }
   .mosaic-content strong { color: #000; font-weight: 600; }
   .mosaic-content a { color: #2C97BE; text-decoration: underline; }
 `
@@ -170,6 +170,7 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
               left: 0,
               right: 0,
               margin: 0,
+              fontFamily: "'Montserrat', sans-serif",
               fontSize: '14px',
               lineHeight: 1.5,
               opacity: isExpanded ? 1 : 0,
