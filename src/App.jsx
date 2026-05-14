@@ -14,6 +14,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import EmbedCarousel from '@/pages/EmbedCarousel';
 import { useEffect } from 'react';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -133,7 +134,12 @@ function App() {
         <TooltipProvider delayDuration={300}>
         <Router>
           <NavigationTracker />
-          <AuthenticatedApp />
+          <Routes>
+            {/* Embed routes — fully public, no auth, no layout */}
+            <Route path="/embed/carousel" element={<EmbedCarousel />} />
+            {/* All other routes */}
+            <Route path="*" element={<AuthenticatedApp />} />
+          </Routes>
         </Router>
         <Toaster />
         <SonnerToaster
