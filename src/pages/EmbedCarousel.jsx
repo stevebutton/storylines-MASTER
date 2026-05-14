@@ -15,12 +15,15 @@ export default function EmbedCarousel() {
   const { panels, isLoading, error } = useCarouselPanels()
 
   useEffect(() => {
+    // Remove the pre-React black loader overlay
+    const loader = document.getElementById('page-loader')
+    if (loader) loader.remove()
+    // Clear black backgrounds set on html/body/root for the main app
+    document.documentElement.style.background = 'transparent'
     document.body.style.background = 'transparent'
     document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.background = ''
-      document.body.style.overflow = ''
-    }
+    const root = document.getElementById('root')
+    if (root) root.style.background = 'transparent'
   }, [])
 
   if (isLoading) return (
