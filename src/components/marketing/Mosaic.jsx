@@ -4,7 +4,7 @@ import { Play, X } from 'lucide-react'
 const CARD_H = 380
 const GAP = 24
 const SHRUNK_W = 200
-const CONTENT_PANEL_W = 350
+const CONTENT_PANEL_W = '50%'
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
 
@@ -31,14 +31,14 @@ function getEmbedUrl(url, type) {
 // ─── Prose styles ─────────────────────────────────────────────────────────────
 
 const PROSE_CSS = `
-  .mosaic-content p { margin: 0 0 12px; font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); }
+  .mosaic-content p { margin: 0 0 12px; font-size: 14px; line-height: 1.65; color: rgba(0,0,0,0.8); }
   .mosaic-content p:last-child { margin-bottom: 0; }
-  .mosaic-content h2, .mosaic-content h3 { font-family: 'Instrument Serif', serif; font-style: italic; color: #fff; margin: 0 0 8px; line-height: 1.2; }
+  .mosaic-content h2, .mosaic-content h3 { font-family: 'Instrument Serif', serif; font-style: italic; color: #000; margin: 0 0 8px; line-height: 1.2; }
   .mosaic-content h2 { font-size: 20px; }
   .mosaic-content h3 { font-size: 16px; }
   .mosaic-content ul, .mosaic-content ol { margin: 0 0 12px; padding-left: 18px; }
-  .mosaic-content li { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); margin-bottom: 4px; }
-  .mosaic-content strong { color: #fff; font-weight: 600; }
+  .mosaic-content li { font-size: 14px; line-height: 1.65; color: rgba(0,0,0,0.8); margin-bottom: 4px; }
+  .mosaic-content strong { color: #000; font-weight: 600; }
   .mosaic-content a { color: #2C97BE; text-decoration: underline; }
 `
 
@@ -100,7 +100,7 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
 
       {/* YouTube / Vimeo iframe */}
       {isEmbeddable && playing && (
-        <div style={{ position: 'absolute', inset: 0, right: isExpanded ? CONTENT_PANEL_W : 0, zIndex: 5 }}>
+        <div style={{ position: 'absolute', inset: 0, right: isExpanded ? '50%' : 0, zIndex: 5 }}>
           <iframe
             src={getEmbedUrl(panel.videoUrl, videoType)}
             style={{ width: '100%', height: '100%', border: 'none' }}
@@ -144,22 +144,17 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
           style={{
             position: 'absolute',
             left: '20px',
-            right: isExpanded ? `${CONTENT_PANEL_W + 20}px` : '20px',
-            ...(isExpanded
-              ? { top: '50%', transform: 'translateY(-50%)' }
-              : {
-                  bottom: '40px',
-                  transform: isHovered ? 'translateY(-60px)' : 'translateY(0)',
-                }
-            ),
+            right: isExpanded ? 'calc(50% + 20px)' : '20px',
+            bottom: isExpanded ? '50%' : '40px',
+            transform: isExpanded ? 'translateY(50%)' : 'translateY(0)',
             zIndex: 2,
-            transition: 'transform 0.4s ease, right 0.45s cubic-bezier(0.4, 0, 0.2, 1), top 0.4s ease',
+            transition: 'bottom 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), right 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           <h2 style={{
             fontFamily: "'Instrument Serif', serif",
             fontStyle: 'italic',
-            fontSize: isExpanded ? '38px' : '30px',
+            fontSize: isExpanded ? '60px' : '42px',
             lineHeight: 1.1,
             margin: 0,
             color: hasMedia ? '#ffffff' : '#2C97BE',
@@ -175,9 +170,9 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
               left: 0,
               right: 0,
               margin: 0,
-              fontSize: '12px',
+              fontSize: '14px',
               lineHeight: 1.5,
-              opacity: isHovered && !isExpanded ? 1 : 0,
+              opacity: isExpanded ? 1 : 0,
               transition: 'opacity 0.3s ease 0.15s',
               color: hasMedia ? 'rgba(255,255,255,0.9)' : '#475569',
             }}>
@@ -194,15 +189,15 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
         right: 0,
         width: CONTENT_PANEL_W,
         height: '100%',
-        background: 'rgba(10, 15, 25, 0.88)',
+        background: 'rgba(255, 255, 255, 0.45)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         zIndex: 4,
         display: 'flex',
         flexDirection: 'column',
-        opacity: isExpanded ? 1 : 0,
+        transform: isExpanded ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
         pointerEvents: isExpanded ? 'auto' : 'none',
-        transition: 'opacity 0.3s ease 0.2s',
       }}>
         {/* Close button */}
         <button
@@ -214,8 +209,8 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
             width: 28,
             height: 28,
             borderRadius: '50%',
-            background: 'rgba(255,255,255,0.12)',
-            border: '1px solid rgba(255,255,255,0.2)',
+            background: 'rgba(0,0,0,0.08)',
+            border: '1px solid rgba(0,0,0,0.15)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -223,7 +218,7 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
             flexShrink: 0,
           }}
         >
-          <X style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.8)' }} />
+          <X style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.6)' }} />
         </button>
 
         {/* Find Out More button */}
@@ -243,9 +238,9 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
               textAlign: 'center',
               padding: '10px 20px',
               borderRadius: '8px',
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              color: '#ffffff',
+              background: 'rgba(0,0,0,0.08)',
+              border: '1px solid rgba(0,0,0,0.2)',
+              color: '#000000',
               fontSize: '13px',
               fontWeight: 500,
               letterSpacing: '0.04em',
@@ -254,12 +249,12 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
               transition: 'background 0.2s ease, border-color 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.22)'
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'
+              e.currentTarget.style.background = 'rgba(0,0,0,0.15)'
+              e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'
+              e.currentTarget.style.background = 'rgba(0,0,0,0.08)'
+              e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'
             }}
           >
             Find Out More
@@ -276,9 +271,13 @@ function MosaicPanel({ panel, isHovered, isExpanded, onExpand, onClose }) {
             right: 0,
             maxHeight: panel.link ? 'calc(100% - 130px)' : 'calc(100% - 50px)',
             overflowY: 'auto',
-            padding: '24px 24px 16px',
+            padding: '24px 40px 16px',
             scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(255,255,255,0.15) transparent',
+            scrollbarColor: 'rgba(0,0,0,0.15) transparent',
+            opacity: isExpanded ? 1 : 0,
+            transform: isExpanded ? 'translateY(0)' : 'translateY(12px)',
+            transition: 'opacity 0.4s ease, transform 0.4s ease',
+            transitionDelay: isExpanded ? '0.85s' : '0s',
           }}
           dangerouslySetInnerHTML={{ __html: panel.content }}
         />
