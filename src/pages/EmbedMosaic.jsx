@@ -20,6 +20,8 @@ export default function EmbedMosaic() {
     document.documentElement.style.background = 'transparent'
     document.body.style.background = 'transparent'
     document.body.style.overflow = 'hidden'
+    document.body.style.webkitFontSmoothing = 'antialiased'
+    document.body.style.mozOsxFontSmoothing = 'grayscale'
     const root = document.getElementById('root')
     if (root) root.style.background = 'transparent'
   }, [])
