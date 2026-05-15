@@ -27,20 +27,20 @@ export default function EmbedMosaic() {
   }, [])
 
   if (isLoading) return (
-    <div style={{ width: '100%', height: '860px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: '100%', height: '900px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       <div style={spinnerStyle} />
     </div>
   )
 
   if (error) return (
-    <div style={{ width: '100%', height: '860px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 14 }}>
+    <div style={{ width: '100%', height: '900px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 14 }}>
       Unable to load content
     </div>
   )
 
   return (
-    <div style={{ width: '100%', minHeight: '860px' }}>
+    <div style={{ width: '100%', minHeight: '900px' }}>
       <Mosaic panels={panels} />
     </div>
   )
