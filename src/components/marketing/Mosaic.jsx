@@ -35,9 +35,22 @@ const PROSE_CSS = `
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
 function MosaicCard({ panel, isHovered, isExpanded }) {
+  const videoRef = useRef(null)
   const videoType = getVideoType(panel.videoUrl)
   const hasMedia = !!(panel.image || panel.videoUrl)
   const isMp4 = videoType === 'mp4'
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (isExpanded) {
+      video.currentTime = 0
+      video.play().catch(() => {})
+    } else {
+      video.pause()
+      video.currentTime = 0
+    }
+  }, [isExpanded])
 
   return (
     <div
@@ -59,20 +72,41 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
           : 'rgba(255,255,255,0.1)',
         backdropFilter: hasMedia ? 'none' : 'blur(12px)',
         WebkitBackdropFilter: hasMedia ? 'none' : 'blur(12px)',
-        ...(panel.image && !isMp4 && {
+        ...(panel.image && {
           backgroundImage: `url(${panel.image})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }),
       }}
     >
+      {/* mp4 — dissolves in over the image on expand, resets on collapse */}
       {isMp4 && (
         <video
-          autoPlay muted loop playsInline
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          ref={videoRef}
+          muted loop playsInline
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            opacity: isExpanded ? 1 : 0,
+            transition: 'opacity 0.7s ease',
+          }}
         >
           <source src={panel.videoUrl} type="video/mp4" />
         </video>
+      )}
+
+      {/* YouTube / Vimeo — mounts on expand so autoplay triggers, unmounts on collapse */}
+      {(videoType === 'youtube' || videoType === 'vimeo') && isExpanded && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 2,
+          animation: 'mosaicFadeDown 0.7s ease',
+        }}>
+          <iframe
+            src={getEmbedUrl(panel.videoUrl, videoType)}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            allow="autoplay; fullscreen"
+            allowFullScreen
+          />
+        </div>
       )}
 
       {hasMedia && (
