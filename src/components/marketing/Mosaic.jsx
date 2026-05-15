@@ -21,7 +21,7 @@ const PROSE_CSS = `
     from { opacity: 0; transform: translateY(-10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   .mosaic-content p:last-child { margin-bottom: 0; }
   .mosaic-content h2, .mosaic-content h3 { font-family: 'Instrument Serif', serif; font-style: italic; color: #000; margin: 0 0 8px; line-height: 1.2; }
   .mosaic-content h2 { font-size: 20px; }
@@ -115,6 +115,8 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
           inset: 0,
           background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.65) 100%)',
           zIndex: 1,
+          opacity: isMp4 && isExpanded ? 0 : 1,
+          transition: 'opacity 0.7s ease',
         }} />
       )}
 
