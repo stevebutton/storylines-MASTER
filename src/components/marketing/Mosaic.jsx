@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 
 const CARD_H = 380
-const EXPANDED_H = 518
+const VIDEO_RATIO = 1440 / 900   // source video aspect ratio
 const GAP = 24
 const SHRUNK_W = 200
 
@@ -266,6 +266,7 @@ export default function Mosaic({ panels }) {
   const cards = panels.slice(0, 3)
   const normalW = Math.floor((containerW - GAP * 2) / 3)
   const expandedW = containerW - SHRUNK_W * 2 - GAP * 2
+  const expandedH = Math.round(expandedW / VIDEO_RATIO)
 
   const getCardW = (idx) => {
     if (expandedIdx === null) return normalW
@@ -279,7 +280,7 @@ export default function Mosaic({ panels }) {
     : 0
 
   return (
-    <div style={{ width: '100%', maxWidth: 1340, margin: '0 auto', padding: `${24 + (EXPANDED_H - CARD_H) / 2}px 32px 24px`, boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', maxWidth: 1340, margin: '0 auto', padding: `${24 + (expandedH - CARD_H) / 2}px 32px 24px`, boxSizing: 'border-box' }}>
       <style>{PROSE_CSS}</style>
 
       <div
@@ -293,11 +294,11 @@ export default function Mosaic({ panels }) {
               key={panel.id ?? idx}
               style={{
                 width: getCardW(idx),
-                height: expandedIdx === idx ? EXPANDED_H : CARD_H,
+                height: expandedIdx === idx ? expandedH : CARD_H,
                 flexShrink: 0,
                 position: 'relative',
                 zIndex: expandedIdx === idx ? 2 : 1,
-                transform: expandedIdx === idx ? `translateY(${(CARD_H - EXPANDED_H) / 2}px)` : 'translateY(0)',
+                transform: expandedIdx === idx ? `translateY(${(CARD_H - expandedH) / 2}px)` : 'translateY(0)',
                 transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), height 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
               onMouseEnter={() => { cancelCollapse(); setHoveredIdx(idx); setExpandedIdx(idx) }}
@@ -318,7 +319,7 @@ export default function Mosaic({ panels }) {
             style={{
               position: 'relative',
               zIndex: 10,
-              marginTop: -((EXPANDED_H - CARD_H) / 2 + 60),
+              marginTop: -((expandedH - CARD_H) / 2 + 60),
               marginLeft: contentPanelLeft,
               width: contentPanelW,
             }}
