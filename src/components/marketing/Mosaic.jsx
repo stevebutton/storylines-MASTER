@@ -186,7 +186,7 @@ function MosaicContentPanel({ panel }) {
         fontStyle: 'italic',
         fontSize: '56px',
         lineHeight: 1.1,
-        margin: '20px 0 16px',
+        margin: '-10px 0 16px',
         color: '#000',
         textAlign: 'center',
         animation: 'mosaicFadeDown 0.4s ease both',
@@ -240,9 +240,19 @@ function MosaicContentPanel({ panel }) {
 
 export default function Mosaic({ panels }) {
   const containerRef = useRef(null)
+  const collapseTimer = useRef(null)
   const [containerW, setContainerW] = useState(1276)
   const [hoveredIdx, setHoveredIdx] = useState(null)
   const [expandedIdx, setExpandedIdx] = useState(null)
+
+  const scheduleCollapse = () => {
+    collapseTimer.current = setTimeout(() => {
+      setHoveredIdx(null)
+      setExpandedIdx(null)
+    }, 80)
+  }
+
+  const cancelCollapse = () => clearTimeout(collapseTimer.current)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -263,7 +273,6 @@ export default function Mosaic({ panels }) {
     return SHRUNK_W
   }
 
-  // Center content panel under the expanded card
   const contentPanelW = normalW + 100
   const contentPanelLeft = expandedIdx !== null
     ? expandedIdx * (SHRUNK_W + GAP) + (expandedW - contentPanelW) / 2
@@ -275,7 +284,7 @@ export default function Mosaic({ panels }) {
 
       <div
         ref={containerRef}
-        onMouseLeave={() => { setExpandedIdx(null); setHoveredIdx(null) }}
+        onMouseLeave={() => { cancelCollapse(); setExpandedIdx(null); setHoveredIdx(null) }}
       >
         {/* Card row */}
         <div style={{ display: 'flex', gap: GAP }}>
@@ -291,8 +300,8 @@ export default function Mosaic({ panels }) {
                 transform: expandedIdx === idx ? `translateY(${(CARD_H - EXPANDED_H) / 2}px)` : 'translateY(0)',
                 transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), height 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
-              onMouseEnter={() => { setHoveredIdx(idx); setExpandedIdx(idx) }}
-              onMouseLeave={() => { setHoveredIdx(null); setExpandedIdx(null) }}
+              onMouseEnter={() => { cancelCollapse(); setHoveredIdx(idx); setExpandedIdx(idx) }}
+              onMouseLeave={scheduleCollapse}
             >
               <MosaicCard
                 panel={panel}
@@ -303,13 +312,19 @@ export default function Mosaic({ panels }) {
           ))}
         </div>
 
-        {/* Title + content panel below the card row */}
+        {/* Content panel — overlaps card bottom by 80px */}
         {expandedIdx !== null && panels[expandedIdx] && (
-          <div style={{
-            marginTop: GAP - (EXPANDED_H - CARD_H) / 2 - 50,
-            marginLeft: contentPanelLeft,
-            width: contentPanelW,
-          }}>
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 10,
+              marginTop: -((EXPANDED_H - CARD_H) / 2 + 60),
+              marginLeft: contentPanelLeft,
+              width: contentPanelW,
+            }}
+            onMouseEnter={cancelCollapse}
+            onMouseLeave={scheduleCollapse}
+          >
             <MosaicContentPanel
               key={expandedIdx}
               panel={panels[expandedIdx]}
