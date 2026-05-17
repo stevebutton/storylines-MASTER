@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 
 const CARD_H = 380
+const EXPANDED_H = 518
 const GAP = 24
 const SHRUNK_W = 200
 
@@ -18,7 +19,7 @@ function getVideoType(url) {
 
 const PROSE_CSS = `
   @keyframes mosaicFadeDown {
-    from { opacity: 0; transform: translateY(-10px); }
+    from { opacity: 0; transform: translateY(-12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
   .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -123,21 +124,20 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
       {/* Title + description */}
       <div style={{
         position: 'absolute',
-        left: isExpanded ? 0 : '20px',
-        right: isExpanded ? 0 : '20px',
+        left: '20px',
+        right: '20px',
         bottom: '40px',
         zIndex: 2,
-        textAlign: isExpanded ? 'center' : 'left',
-        transition: 'left 0.45s cubic-bezier(0.4, 0, 0.2, 1), right 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
+        opacity: isExpanded ? 0 : 1,
+        transition: 'opacity 0.3s ease',
       }}>
         <h2 style={{
           fontFamily: "'Instrument Serif', serif",
           fontStyle: 'italic',
-          fontSize: isExpanded ? '60px' : '42px',
+          fontSize: '42px',
           lineHeight: 1.1,
           margin: 0,
           color: hasMedia ? '#ffffff' : '#2C97BE',
-          transition: 'font-size 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
         }}>
           {panel.category}
         </h2>
@@ -180,11 +180,23 @@ function MosaicContentPanel({ panel }) {
       boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
       padding: '28px 40px 32px',
       position: 'relative',
-      animation: 'mosaicFadeDown 0.35s ease',
     }}>
+      <h2 style={{
+        fontFamily: "'Instrument Serif', serif",
+        fontStyle: 'italic',
+        fontSize: '56px',
+        lineHeight: 1.1,
+        margin: '20px 0 16px',
+        color: '#000',
+        textAlign: 'center',
+        animation: 'mosaicFadeDown 0.4s ease both',
+      }}>
+        {panel.category}
+      </h2>
 
       <div
         className="mosaic-content"
+        style={{ animation: 'mosaicFadeDown 0.4s ease 0.35s both' }}
         dangerouslySetInnerHTML={{ __html: panel.content }}
       />
 
@@ -258,7 +270,7 @@ export default function Mosaic({ panels }) {
     : 0
 
   return (
-    <div style={{ width: '100%', maxWidth: 1340, margin: '0 auto', padding: '24px 32px', boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', maxWidth: 1340, margin: '0 auto', padding: `${24 + (EXPANDED_H - CARD_H) / 2}px 32px 24px`, boxSizing: 'border-box' }}>
       <style>{PROSE_CSS}</style>
 
       <div
@@ -272,14 +284,15 @@ export default function Mosaic({ panels }) {
               key={panel.id ?? idx}
               style={{
                 width: getCardW(idx),
-                height: CARD_H,
+                height: expandedIdx === idx ? EXPANDED_H : CARD_H,
                 flexShrink: 0,
                 position: 'relative',
                 zIndex: expandedIdx === idx ? 2 : 1,
-                transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
+                transform: expandedIdx === idx ? `translateY(${(CARD_H - EXPANDED_H) / 2}px)` : 'translateY(0)',
+                transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), height 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
               onMouseEnter={() => { setHoveredIdx(idx); setExpandedIdx(idx) }}
-              onMouseLeave={() => setHoveredIdx(null)}
+              onMouseLeave={() => { setHoveredIdx(null); setExpandedIdx(null) }}
             >
               <MosaicCard
                 panel={panel}
@@ -290,10 +303,10 @@ export default function Mosaic({ panels }) {
           ))}
         </div>
 
-        {/* Content panel below — width matches original card, aligned to card's left edge */}
+        {/* Title + content panel below the card row */}
         {expandedIdx !== null && panels[expandedIdx] && (
           <div style={{
-            marginTop: GAP,
+            marginTop: GAP - (EXPANDED_H - CARD_H) / 2 - 50,
             marginLeft: contentPanelLeft,
             width: contentPanelW,
           }}>
