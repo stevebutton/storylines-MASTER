@@ -21,7 +21,7 @@ export default function EmbedCarousel() {
     // Clear black backgrounds set on html/body/root for the main app
     document.documentElement.style.background = 'transparent'
     document.body.style.background = 'transparent'
-    document.body.style.overflow = 'hidden'
+    document.body.style.overflow = 'visible'
     const root = document.getElementById('root')
     if (root) root.style.background = 'transparent'
   }, [])
@@ -40,7 +40,7 @@ export default function EmbedCarousel() {
   )
 
   return (
-    <div style={{ width: '100%', height: '500px' }}>
+    <div style={{ width: '100%', minHeight: '500px', paddingLeft: '500px', boxSizing: 'border-box', paddingBottom: '24px' }}>
       <Carousel panels={panels} />
     </div>
   )

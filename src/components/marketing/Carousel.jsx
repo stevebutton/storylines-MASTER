@@ -3,9 +3,9 @@ import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
 
 const PANEL_W = 300
 const EXPANDED_W = 700
-const HALF_W = EXPANDED_W / 2  // 350px per side when expanded
 const GAP = 12
 const STEP = PANEL_W + GAP
+const TRACK_H = 500
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
 
@@ -29,9 +29,17 @@ function getEmbedUrl(url, type) {
   return url
 }
 
-// ─── Content prose styles injected once ──────────────────────────────────────
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const PROSE_CSS = `
+  @keyframes carouselFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes mosaicFadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
   .panel-content p { margin: 0 0 12px; font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); }
   .panel-content p:last-child { margin-bottom: 0; }
   .panel-content h2, .panel-content h3 { font-family: 'Instrument Serif', serif; font-style: italic; color: #fff; margin: 0 0 8px; line-height: 1.2; }
@@ -41,11 +49,20 @@ const PROSE_CSS = `
   .panel-content li { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); margin-bottom: 4px; }
   .panel-content strong { color: #fff; font-weight: 600; }
   .panel-content a { color: #2C97BE; text-decoration: underline; }
+  .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  .mosaic-content p:last-child { margin-bottom: 0; }
+  .mosaic-content h2, .mosaic-content h3 { font-family: 'Instrument Serif', serif; font-style: italic; color: #000; margin: 0 0 8px; line-height: 1.2; }
+  .mosaic-content h2 { font-size: 20px; }
+  .mosaic-content h3 { font-size: 16px; }
+  .mosaic-content ul, .mosaic-content ol { margin: 0 0 12px; padding-left: 18px; }
+  .mosaic-content li { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); margin-bottom: 4px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  .mosaic-content strong { color: #000; font-weight: 600; }
+  .mosaic-content a { color: #2C97BE; text-decoration: underline; }
 `
 
 // ─── Individual panel ─────────────────────────────────────────────────────────
 
-function Panel({ panel, isHovered, isExpanded, onExpand, onClose }) {
+function Panel({ panel, isHovered, isExpanded }) {
   const [playing, setPlaying] = useState(false)
   const videoType = getVideoType(panel.videoUrl)
   const hasMedia = !!(panel.image || panel.videoUrl)
@@ -66,25 +83,36 @@ function Panel({ panel, isHovered, isExpanded, onExpand, onClose }) {
         position: 'relative',
         overflow: 'hidden',
         cursor: isExpanded ? 'default' : 'pointer',
-        scale: isHovered && !isExpanded ? '1.05' : '1',
-        transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), scale 0.3s ease, box-shadow 0.3s ease',
+        transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease',
         backgroundColor: isHovered && !isExpanded
           ? 'rgba(255,255,255,0.2)'
           : 'rgba(255,255,255,0.1)',
         backdropFilter: hasMedia ? 'none' : 'blur(12px)',
         WebkitBackdropFilter: hasMedia ? 'none' : 'blur(12px)',
-        ...(panel.image && !isMp4 && {
+      }}
+    >
+      {/* Background image — separate layer so only the image zooms, not border/shadow */}
+      {panel.image && !isMp4 && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
           backgroundImage: `url(${panel.image})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-        }),
-      }}
-    >
+          transform: isHovered && !isExpanded ? 'scale(1.10)' : 'scale(1)',
+          transition: 'transform 0.5s ease',
+        }} />
+      )}
+
       {/* mp4 autoplay background */}
       {isMp4 && (
         <video
           autoPlay muted loop playsInline
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            transform: isHovered && !isExpanded ? 'scale(1.10)' : 'scale(1)',
+            transition: 'transform 0.5s ease',
+          }}
         >
           <source src={panel.videoUrl} type="video/mp4" />
         </video>
@@ -140,14 +168,15 @@ function Panel({ panel, isHovered, isExpanded, onExpand, onClose }) {
         </button>
       )}
 
-      {/* Title + description — left half */}
+      {/* Title + description */}
       {!playing && (
         <div
           style={{
             position: 'absolute',
             left: '20px',
-            right: isExpanded ? `${HALF_W + 20}px` : '20px',
-            // When expanded: center vertically. When not: bottom anchored.
+            right: '20px',
+            zIndex: 2,
+            transition: 'transform 0.4s ease, top 0.4s ease, bottom 0.4s ease',
             ...(isExpanded
               ? { top: '50%', transform: 'translateY(-50%)' }
               : {
@@ -155,17 +184,16 @@ function Panel({ panel, isHovered, isExpanded, onExpand, onClose }) {
                   transform: isHovered ? 'translateY(-60px)' : 'translateY(0)',
                 }
             ),
-            zIndex: 2,
-            transition: 'transform 0.4s ease, right 0.45s cubic-bezier(0.4, 0, 0.2, 1), top 0.4s ease, bottom 0.4s ease',
           }}
         >
           <h2 style={{
             fontFamily: "'Instrument Serif', serif",
             fontStyle: 'italic',
-            fontSize: isExpanded ? '38px' : '30px',
+            fontSize: isExpanded ? '42px' : '30px',
             lineHeight: 1.1,
             color: hasMedia ? '#ffffff' : '#2C97BE',
             transition: 'font-size 0.4s ease',
+            margin: 0,
           }}>
             {panel.category}
           </h2>
@@ -178,6 +206,7 @@ function Panel({ panel, isHovered, isExpanded, onExpand, onClose }) {
               right: 0,
               fontSize: '12px',
               lineHeight: 1.5,
+              margin: 0,
               opacity: isHovered && !isExpanded ? 1 : 0,
               transition: 'opacity 0.3s ease 0.15s',
               color: hasMedia ? 'rgba(255,255,255,0.9)' : '#475569',
@@ -187,103 +216,6 @@ function Panel({ panel, isHovered, isExpanded, onExpand, onClose }) {
           )}
         </div>
       )}
-
-      {/* Expanded content — right half */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: `${HALF_W}px`,
-        width: `${HALF_W}px`,
-        height: '100%',
-        background: 'rgba(10, 15, 25, 0.88)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        zIndex: 4,
-        display: 'flex',
-        flexDirection: 'column',
-        opacity: isExpanded ? 1 : 0,
-        pointerEvents: isExpanded ? 'auto' : 'none',
-        transition: 'opacity 0.3s ease 0.2s',
-      }}>
-        {/* Close button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onClose() }}
-          style={{
-            position: 'absolute',
-            top: '14px',
-            right: '14px',
-            width: 28,
-            height: 28,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.12)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
-        >
-          <X style={{ width: 14, height: 14, color: 'rgba(255,255,255,0.8)' }} />
-        </button>
-
-        {/* Find out more button */}
-        {panel.link && (
-          <a
-            href={panel.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              position: 'absolute',
-              bottom: '28px',
-              left: '24px',
-              right: '24px',
-              zIndex: 6,
-              display: 'block',
-              textAlign: 'center',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 500,
-              letterSpacing: '0.04em',
-              textDecoration: 'none',
-              backdropFilter: 'blur(8px)',
-              transition: 'background 0.2s ease, border-color 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.22)'
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'
-            }}
-          >
-            Find Out More
-          </a>
-        )}
-
-        {/* Scrollable content — bottom aligned */}
-        <div
-          className="panel-content"
-          style={{
-            position: 'absolute',
-            bottom: panel.link ? '80px' : '0px',
-            left: 0,
-            right: 0,
-            maxHeight: panel.link ? 'calc(100% - 130px)' : 'calc(100% - 50px)',
-            overflowY: 'auto',
-            padding: '24px 24px 16px',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(255,255,255,0.15) transparent',
-          }}
-          dangerouslySetInnerHTML={{ __html: panel.content }}
-        />
-      </div>
     </div>
   )
 }
@@ -298,7 +230,6 @@ export default function Carousel({ panels }) {
   const dragRef = useRef({ active: false, startX: 0, startOffset: 0, moved: false })
   const clickTargetRef = useRef(null)
 
-  const isExpanded = expandedIdx !== null
   const maxOffset = Math.max(0, (panels.length - 1) * STEP)
   const currentIndex = Math.round(offset / STEP)
   const canPrev = offset > 0
@@ -313,16 +244,13 @@ export default function Carousel({ panels }) {
     setExpandedIdx(idx)
   }
 
-  const handleClose = () => {
-    setExpandedIdx(null)
-  }
+  const handleClose = () => setExpandedIdx(null)
 
   const handlePointerDown = (e) => {
     if (e.button !== 0) return
     e.currentTarget.setPointerCapture(e.pointerId)
     dragRef.current = { active: true, startX: e.clientX, startOffset: offset, moved: false }
     setIsDragging(true)
-    // Record which panel index is under the pointer for click detection
     const trackRect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - trackRect.left - 48 + offset
     const idx = Math.floor(x / STEP)
@@ -345,9 +273,12 @@ export default function Carousel({ panels }) {
     dragRef.current.active = false
     setIsDragging(false)
     snapTo(Math.round(offset / STEP))
-    // If pointer didn't move it's a click — expand the panel that was tapped
-    if (!wasMoved && clickTargetRef.current !== null && expandedIdx === null) {
-      handleExpand(clickTargetRef.current)
+    if (!wasMoved && clickTargetRef.current !== null) {
+      if (expandedIdx === clickTargetRef.current) {
+        handleClose()
+      } else {
+        handleExpand(clickTargetRef.current)
+      }
     }
   }
 
@@ -375,65 +306,157 @@ export default function Carousel({ panels }) {
     cursor: 'pointer',
   })
 
+  const activePanel = expandedIdx !== null ? panels[expandedIdx] : null
+
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div style={{ width: '100%' }}>
       <style>{PROSE_CSS}</style>
 
-      <button onClick={() => { handleClose(); snapTo(currentIndex - 1) }} style={arrowStyle(canPrev, 'left')}>
-        <ChevronLeft style={{ width: '18px', height: '18px', color: '#334155' }} />
-      </button>
+      {/* Carousel track */}
+      <div style={{ position: 'relative', height: `${TRACK_H}px` }}>
+        <button onClick={() => { handleClose(); snapTo(currentIndex - 1) }} style={arrowStyle(canPrev, 'left')}>
+          <ChevronLeft style={{ width: '18px', height: '18px', color: '#334155' }} />
+        </button>
 
-      {/* Draggable track */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          cursor: isExpanded ? 'default' : isDragging ? 'grabbing' : 'grab',
-          overflow: 'hidden',
-        }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-      >
         <div
           style={{
-            display: 'flex',
-            gap: `${GAP}px`,
-            height: '100%',
-            paddingTop: '16px',
-            paddingBottom: '16px',
-            transform: `translateX(calc(48px - ${offset}px))`,
-            transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            userSelect: 'none',
+            position: 'absolute',
+            inset: 0,
+            cursor: isDragging ? 'grabbing' : 'grab',
+            overflow: 'hidden',
           }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         >
-          {panels.map((panel, idx) => (
-            <div
-              key={panel.id ?? idx}
-              style={{ flexShrink: 0, height: '100%' }}
-              onMouseEnter={() => {
-                if (dragRef.current.active) return
-                if (expandedIdx !== null && expandedIdx !== idx) handleClose()
-                setHoveredIdx(idx)
-              }}
-              onMouseLeave={() => setHoveredIdx(null)}
-            >
-              <Panel
-                panel={panel}
-                isHovered={hoveredIdx === idx}
-                isExpanded={expandedIdx === idx}
-                onExpand={() => handleExpand(idx)}
-                onClose={handleClose}
-              />
-            </div>
-          ))}
+          <div
+            style={{
+              display: 'flex',
+              gap: `${GAP}px`,
+              height: '100%',
+              paddingTop: '16px',
+              paddingBottom: '16px',
+              transform: `translateX(calc(48px - ${offset}px))`,
+              transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              userSelect: 'none',
+            }}
+          >
+            {panels.map((panel, idx) => (
+              <div
+                key={panel.id ?? idx}
+                style={{ flexShrink: 0, height: '100%' }}
+                onMouseEnter={() => { if (!dragRef.current.active) setHoveredIdx(idx) }}
+                onMouseLeave={() => setHoveredIdx(null)}
+              >
+                <Panel
+                  panel={panel}
+                  isHovered={hoveredIdx === idx}
+                  isExpanded={expandedIdx === idx}
+                />
+              </div>
+            ))}
+          </div>
         </div>
+
+        <button onClick={() => { handleClose(); snapTo(currentIndex + 1) }} style={arrowStyle(canNext, 'right')}>
+          <ChevronRight style={{ width: '18px', height: '18px', color: '#334155' }} />
+        </button>
       </div>
 
-      <button onClick={() => { handleClose(); snapTo(currentIndex + 1) }} style={arrowStyle(canNext, 'right')}>
-        <ChevronRight style={{ width: '18px', height: '18px', color: '#334155' }} />
-      </button>
+      {/* Content panel below — Mosaic styling */}
+      {activePanel && (
+        <div
+          key={expandedIdx}
+          style={{
+            marginTop: '-60px',
+            marginLeft: '78px',
+            width: `${EXPANDED_W - 60}px`,
+            borderRadius: '16px',
+            background: 'rgba(255,255,255,0.45)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+            padding: '28px 40px 32px',
+            position: 'relative',
+            zIndex: 10,
+            animation: 'carouselFadeIn 0.4s ease both',
+          }}
+        >
+          <button
+            onClick={handleClose}
+            style={{
+              position: 'absolute',
+              top: '14px',
+              right: '14px',
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(0,0,0,0.06)',
+              border: '1px solid rgba(0,0,0,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <X style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.5)' }} />
+          </button>
+
+          <h2 style={{
+            fontFamily: "'Instrument Serif', serif",
+            fontStyle: 'italic',
+            fontSize: '56px',
+            lineHeight: 1.1,
+            margin: '-10px 0 16px',
+            color: '#000',
+            textAlign: 'center',
+            animation: 'mosaicFadeDown 0.4s ease both',
+          }}>
+            {activePanel.category}
+          </h2>
+
+          <div
+            className="mosaic-content"
+            style={{ animation: 'mosaicFadeDown 0.4s ease 0.15s both' }}
+            dangerouslySetInnerHTML={{ __html: activePanel.content }}
+          />
+
+          {activePanel.link && (
+            <a
+              href={activePanel.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-block',
+                marginTop: '20px',
+                padding: '10px 24px',
+                borderRadius: '8px',
+                background: 'rgba(0,0,0,0.08)',
+                border: '1px solid rgba(0,0,0,0.2)',
+                color: '#000',
+                fontFamily: "'Montserrat', sans-serif",
+                fontSize: '13px',
+                fontWeight: 500,
+                letterSpacing: '0.04em',
+                textDecoration: 'none',
+                transition: 'background 0.2s ease, border-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(0,0,0,0.15)'
+                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(0,0,0,0.08)'
+                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'
+              }}
+            >
+              Find Out More
+            </a>
+          )}
+        </div>
+      )}
     </div>
   )
 }
