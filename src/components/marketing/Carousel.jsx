@@ -42,7 +42,7 @@ const PROSE_CSS = `
   }
   .panel-content p { margin: 0 0 12px; font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); }
   .panel-content p:last-child { margin-bottom: 0; }
-  .panel-content h2, .panel-content h3 { font-family: 'Instrument Serif', serif; font-style: italic; color: #fff; margin: 0 0 8px; line-height: 1.2; }
+  .panel-content h2, .panel-content h3 { font-family: 'Oswald', sans-serif; color: #fff; margin: 0 0 8px; line-height: 1.2; }
   .panel-content h2 { font-size: 20px; }
   .panel-content h3 { font-size: 16px; }
   .panel-content ul, .panel-content ol { margin: 0 0 12px; padding-left: 18px; }
@@ -51,7 +51,7 @@ const PROSE_CSS = `
   .panel-content a { color: #2C97BE; text-decoration: underline; }
   .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   .mosaic-content p:last-child { margin-bottom: 0; }
-  .mosaic-content h2, .mosaic-content h3 { font-family: 'Instrument Serif', serif; font-style: italic; color: #000; margin: 0 0 8px; line-height: 1.2; }
+  .mosaic-content h2, .mosaic-content h3 { font-family: 'Oswald', sans-serif; color: #000; margin: 0 0 8px; line-height: 1.2; }
   .mosaic-content h2 { font-size: 20px; }
   .mosaic-content h3 { font-size: 16px; }
   .mosaic-content ul, .mosaic-content ol { margin: 0 0 12px; padding-left: 18px; }
@@ -123,8 +123,10 @@ function Panel({ panel, isHovered, isExpanded }) {
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.65) 100%)',
+          background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.65) 100%)',
           zIndex: 1,
+          opacity: isExpanded ? 0 : 1,
+          transition: 'opacity 0.45s ease',
         }} />
       )}
 
@@ -176,7 +178,8 @@ function Panel({ panel, isHovered, isExpanded }) {
             left: '20px',
             right: '20px',
             zIndex: 2,
-            transition: 'transform 0.4s ease, top 0.4s ease, bottom 0.4s ease',
+            opacity: isExpanded ? 0 : 1,
+            transition: 'transform 0.4s ease, top 0.4s ease, bottom 0.4s ease, opacity 0.3s ease',
             ...(isExpanded
               ? { top: '50%', transform: 'translateY(-50%)' }
               : {
@@ -187,9 +190,8 @@ function Panel({ panel, isHovered, isExpanded }) {
           }}
         >
           <h2 style={{
-            fontFamily: "'Instrument Serif', serif",
-            fontStyle: 'italic',
-            fontSize: isExpanded ? '42px' : '30px',
+            fontFamily: "'Oswald', sans-serif",
+            fontSize: '30px',
             lineHeight: 1.1,
             color: hasMedia ? '#ffffff' : '#2C97BE',
             transition: 'font-size 0.4s ease',
@@ -405,9 +407,8 @@ export default function Carousel({ panels }) {
           </button>
 
           <h2 style={{
-            fontFamily: "'Instrument Serif', serif",
-            fontStyle: 'italic',
-            fontSize: '56px',
+            fontFamily: "'Oswald', sans-serif",
+            fontSize: '30px',
             lineHeight: 1.1,
             margin: '-10px 0 16px',
             color: '#000',

@@ -40,7 +40,7 @@ export default function EmbedCarousel() {
   )
 
   return (
-    <div style={{ width: '100%', minHeight: '500px', paddingLeft: '500px', boxSizing: 'border-box', paddingBottom: '24px' }}>
+    <div style={{ width: '100%', minHeight: '500px', paddingBottom: '24px' }}>
       <Carousel panels={panels} />
     </div>
   )
