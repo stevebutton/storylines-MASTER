@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
 
 const PANEL_W = 300
@@ -64,10 +64,25 @@ const PROSE_CSS = `
 
 function Panel({ panel, isHovered, isExpanded }) {
   const [playing, setPlaying] = useState(false)
+  const videoRef = useRef(null)
   const videoType = getVideoType(panel.videoUrl)
-  const hasMedia = !!(panel.image || panel.videoUrl)
+  const expandedVideoType = getVideoType(panel.expandedVideoUrl)
+  const hasMedia = !!(panel.image || panel.expandedImage || panel.expandedVideoUrl || panel.videoUrl)
   const isMp4 = videoType === 'mp4'
+  const isExpandedMp4 = expandedVideoType === 'mp4'
   const isEmbeddable = videoType === 'youtube' || videoType === 'vimeo'
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    if (isExpanded) {
+      video.currentTime = 0
+      video.play().catch(() => {})
+    } else {
+      video.pause()
+      video.currentTime = 0
+    }
+  }, [isExpanded])
 
   return (
     <div
@@ -91,8 +106,8 @@ function Panel({ panel, isHovered, isExpanded }) {
         WebkitBackdropFilter: hasMedia ? 'none' : 'blur(12px)',
       }}
     >
-      {/* Background image — separate layer so only the image zooms, not border/shadow */}
-      {panel.image && !isMp4 && (
+      {/* Collapsed image — always shown, zooms on hover */}
+      {panel.image && (
         <div style={{
           position: 'absolute',
           inset: 0,
@@ -104,7 +119,35 @@ function Panel({ panel, isHovered, isExpanded }) {
         }} />
       )}
 
-      {/* mp4 autoplay background */}
+      {/* Expanded image — crossfades in over collapsed image on expand */}
+      {panel.expandedImage && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url(${panel.expandedImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: isExpanded ? 1 : 0,
+          transition: 'opacity 0.7s ease',
+        }} />
+      )}
+
+      {/* Expanded video — dissolves in over collapsed image on expand */}
+      {isExpandedMp4 && (
+        <video
+          ref={videoRef}
+          muted loop playsInline
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            opacity: isExpanded ? 1 : 0,
+            transition: 'opacity 0.7s ease',
+          }}
+        >
+          <source src={panel.expandedVideoUrl} type="video/mp4" />
+        </video>
+      )}
+
+      {/* mp4 autoplay background — standalone, always playing */}
       {isMp4 && (
         <video
           autoPlay muted loop playsInline
