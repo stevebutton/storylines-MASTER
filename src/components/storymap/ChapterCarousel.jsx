@@ -187,7 +187,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                             style={{ objectPosition: slides[0].image_position || '50% 50%' }}
                         />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-1/5 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                 </div>
                 <AnimatePresence>
                     {onNextChapter && (
@@ -226,7 +226,7 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
             </div>
 
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none rounded-t-2xl" />
+            <div className="absolute bottom-0 left-0 right-0 h-1/5 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-t-2xl" />
 
             {/* Prev arrow — dims at first slide */}
             <button

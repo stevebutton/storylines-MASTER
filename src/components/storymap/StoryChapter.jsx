@@ -391,7 +391,7 @@ export default function StoryChapter({
                                     {/* Location overlaid on image */}
                                     {currentSlide?.location && (
                                         <>
-                                            <div className="absolute bottom-0 left-0 right-0 h-[70px] bg-gradient-to-t from-black/40 to-transparent pointer-events-none rounded-b-none" />
+                                            <div className="absolute bottom-0 left-0 right-0 h-[70px] bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-b-none" />
                                             <AnimatePresence mode="wait">
                                                 <motion.div
                                                     key={currentSlide.location}
