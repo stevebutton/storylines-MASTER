@@ -274,7 +274,7 @@ export default function Mosaic({ panels }) {
     return Math.max(0, Math.min(containerW - expandedW, desired))
   }
 
-  const contentPanelW = normalW + 100
+  const contentPanelW = Math.round(expandedW * 0.7)
   const contentPanelLeft = expandedIdx !== null
     ? getExpandedCardLeft(expandedIdx) + (expandedW - contentPanelW) / 2
     : 0
