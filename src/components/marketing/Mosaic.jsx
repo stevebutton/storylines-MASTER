@@ -261,20 +261,22 @@ export default function Mosaic({ panels }) {
 
   if (!panels.length) return null
 
-  const cards = panels.slice(0, 3)
-  const normalW = Math.floor((containerW - GAP * 2) / 3)
-  const expandedW = containerW - SHRUNK_W * 2 - GAP * 2
+  const cards = panels.slice(0, 4)
+  const normalW = Math.floor((containerW - GAP * 3) / 4)
+  // expanded card overlaps its neighbours; other slots keep normalW
+  const expandedW = Math.round(normalW * 2.5)
   const expandedH = Math.round(expandedW / VIDEO_RATIO)
 
-  const getCardW = (idx) => {
-    if (expandedIdx === null) return normalW
-    if (idx === expandedIdx) return expandedW
-    return SHRUNK_W
+  // left position of the expanded card in container coords, clamped to container edges
+  const getExpandedCardLeft = (idx) => {
+    const slotLeft = idx * (normalW + GAP)
+    const desired = slotLeft + (normalW - expandedW) / 2
+    return Math.max(0, Math.min(containerW - expandedW, desired))
   }
 
   const contentPanelW = normalW + 100
   const contentPanelLeft = expandedIdx !== null
-    ? expandedIdx * (SHRUNK_W + GAP) + (expandedW - contentPanelW) / 2
+    ? getExpandedCardLeft(expandedIdx) + (expandedW - contentPanelW) / 2
     : 0
 
   return (
@@ -291,22 +293,30 @@ export default function Mosaic({ panels }) {
             <div
               key={panel.id ?? idx}
               style={{
-                width: getCardW(idx),
-                height: expandedIdx === idx ? expandedH : CARD_H,
+                width: normalW,
+                height: CARD_H,
                 flexShrink: 0,
                 position: 'relative',
-                zIndex: expandedIdx === idx ? 2 : 1,
-                transform: expandedIdx === idx ? `translateY(${(CARD_H - expandedH) / 2}px)` : 'translateY(0)',
-                transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), height 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
+                zIndex: expandedIdx === idx ? 10 : 1,
               }}
               onMouseEnter={() => { cancelCollapse(); setHoveredIdx(idx); setExpandedIdx(idx) }}
               onMouseLeave={scheduleCollapse}
             >
-              <MosaicCard
-                panel={panel}
-                isHovered={hoveredIdx === idx}
-                isExpanded={expandedIdx === idx}
-              />
+              {/* inner div expands and overlaps neighbours */}
+              <div style={{
+                position: 'absolute',
+                width: expandedIdx === idx ? expandedW : normalW,
+                height: expandedIdx === idx ? expandedH : CARD_H,
+                left: expandedIdx === idx ? getExpandedCardLeft(idx) - idx * (normalW + GAP) : 0,
+                top: expandedIdx === idx ? (CARD_H - expandedH) / 2 : 0,
+                transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), height 0.45s cubic-bezier(0.4, 0, 0.2, 1), left 0.45s cubic-bezier(0.4, 0, 0.2, 1), top 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}>
+                <MosaicCard
+                  panel={panel}
+                  isHovered={hoveredIdx === idx}
+                  isExpanded={expandedIdx === idx}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -317,7 +327,7 @@ export default function Mosaic({ panels }) {
             style={{
               position: 'relative',
               zIndex: 10,
-              marginTop: -((expandedH - CARD_H) / 2 + 60),
+              marginTop: (expandedH - CARD_H) / 2 - 60,
               marginLeft: contentPanelLeft,
               width: contentPanelW,
             }}
