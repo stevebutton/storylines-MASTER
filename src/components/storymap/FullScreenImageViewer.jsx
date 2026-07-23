@@ -160,19 +160,35 @@ const VideoPlayer = ({ url, loop = false, onVideoEnded }) => {
         embedUrl = videoId ? `https://player.vimeo.com/video/${videoId}?autoplay=1&controls=1` : '';
     } else {
         return (
-            <motion.video
-                src={url}
-                controls
-                autoPlay
-                loop={loop}
-                playsInline
-                onEnded={loop ? undefined : onVideoEnded}
+            <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className="w-full h-full object-contain"
-            />
+                className="relative w-full h-full"
+            >
+                {/* Blurred background fill — same source, covers letterbox areas */}
+                <video
+                    src={url}
+                    autoPlay
+                    loop
+                    playsInline
+                    muted
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ filter: 'blur(24px)', transform: 'scale(1.05)', opacity: 0.8 }}
+                />
+                {/* Foreground video — maintains aspect ratio */}
+                <video
+                    src={url}
+                    controls
+                    autoPlay
+                    loop={loop}
+                    playsInline
+                    onEnded={loop ? undefined : onVideoEnded}
+                    className="relative w-full h-full object-contain z-10"
+                />
+            </motion.div>
         );
     }
 
