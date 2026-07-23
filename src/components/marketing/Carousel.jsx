@@ -6,7 +6,7 @@ const EXPANDED_W = 700
 const GAP = 12
 const STEP = PANEL_W + GAP
 const TRACK_H = 500
-const INTRO_W = 48 + 2 * STEP  // panels start here; intro text fills the space to the left
+const INTRO_W = 400  // panels start here; intro text fills the space to the left
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
 
@@ -382,7 +382,7 @@ export default function Carousel({ panels, intro }) {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
-            padding: '24px 48px 24px 32px',
+            padding: '24px 48px 24px 50px',
             boxSizing: 'border-box',
             zIndex: 0,
             pointerEvents: 'none',
@@ -394,13 +394,14 @@ export default function Carousel({ panels, intro }) {
                 lineHeight: 1.1,
                 color: '#1e293b',
                 margin: '0 0 12px',
+                textAlign: 'right',
               }}>
                 {intro.category}
               </h2>
             )}
             {intro.content && (
               <div
-                className="panel-content"
+                className="mosaic-content"
                 style={{ fontSize: '14px', lineHeight: 1.65, color: '#475569' }}
                 dangerouslySetInnerHTML={{ __html: intro.content }}
               />
@@ -461,7 +462,7 @@ export default function Carousel({ panels, intro }) {
           key={expandedIdx}
           style={{
             marginTop: '-60px',
-            marginLeft: '78px',
+            marginLeft: `${INTRO_W + 30}px`,
             width: `${EXPANDED_W - 60}px`,
             borderRadius: '16px',
             background: 'rgba(255,255,255,0.45)',
