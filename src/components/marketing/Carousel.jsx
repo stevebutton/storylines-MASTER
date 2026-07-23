@@ -6,6 +6,7 @@ const EXPANDED_W = 700
 const GAP = 12
 const STEP = PANEL_W + GAP
 const TRACK_H = 500
+const INTRO_W = 48 + 2 * STEP  // panels start here; intro text fills the space to the left
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
 
@@ -267,7 +268,7 @@ function Panel({ panel, isHovered, isExpanded }) {
 
 // ─── Carousel ─────────────────────────────────────────────────────────────────
 
-export default function Carousel({ panels }) {
+export default function Carousel({ panels, intro }) {
   const [hoveredIdx, setHoveredIdx] = useState(null)
   const [offset, setOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -297,9 +298,16 @@ export default function Carousel({ panels }) {
     dragRef.current = { active: true, startX: e.clientX, startOffset: offset, moved: false }
     setIsDragging(true)
     const trackRect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - trackRect.left - 48 + offset
-    const idx = Math.floor(x / STEP)
-    clickTargetRef.current = (idx >= 0 && idx < panels.length) ? idx : null
+    const x = e.clientX - trackRect.left - INTRO_W + offset
+    // Walk actual panel widths — Math.floor(x/STEP) breaks when a panel is expanded
+    let panelStart = 0
+    let clickIdx = null
+    for (let i = 0; i < panels.length; i++) {
+      const w = expandedIdx === i ? EXPANDED_W : PANEL_W
+      if (x >= panelStart && x < panelStart + w) { clickIdx = i; break }
+      panelStart += w + GAP
+    }
+    clickTargetRef.current = clickIdx
   }
 
   const handlePointerMove = (e) => {
@@ -363,12 +371,50 @@ export default function Carousel({ panels }) {
           <ChevronLeft style={{ width: '18px', height: '18px', color: '#334155' }} />
         </button>
 
+        {/* Intro text — stationary in the background, covered by panels as they scroll left */}
+        {intro && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: INTRO_W,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '24px 48px 24px 32px',
+            boxSizing: 'border-box',
+            zIndex: 0,
+            pointerEvents: 'none',
+          }}>
+            {intro.category && (
+              <h2 style={{
+                fontFamily: "'Oswald', sans-serif",
+                fontSize: '28px',
+                lineHeight: 1.1,
+                color: '#1e293b',
+                margin: '0 0 12px',
+              }}>
+                {intro.category}
+              </h2>
+            )}
+            {intro.content && (
+              <div
+                className="panel-content"
+                style={{ fontSize: '14px', lineHeight: 1.65, color: '#475569' }}
+                dangerouslySetInnerHTML={{ __html: intro.content }}
+              />
+            )}
+          </div>
+        )}
+
         <div
           style={{
             position: 'absolute',
             inset: 0,
             cursor: isDragging ? 'grabbing' : 'grab',
             overflow: 'hidden',
+            zIndex: 1,
           }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -382,7 +428,7 @@ export default function Carousel({ panels }) {
               height: '100%',
               paddingTop: '16px',
               paddingBottom: '16px',
-              transform: `translateX(calc(48px - ${offset}px))`,
+              transform: `translateX(calc(${INTRO_W}px - ${offset}px))`,
               transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               userSelect: 'none',
             }}
