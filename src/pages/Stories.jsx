@@ -48,7 +48,56 @@ export default function Stories() {
         .from('stories')
         .select('*');
       if (error) throw error;
-      setStories(data || []);
+
+      // Priority: thumbnail → hero_image (skip if video hero) → first slide image
+      const storiesWithStatic = (data || []).map(s => ({
+        ...s,
+        display_image: s.thumbnail || (s.hero_type !== 'video' ? s.hero_image : null) || null,
+      }));
+
+      const needsFallback = storiesWithStatic.filter(s => !s.display_image);
+      const fallbackByStory = {};
+
+      if (needsFallback.length > 0) {
+        const ids = needsFallback.map(s => s.id);
+
+        // Step 1: first chapter per story
+        const { data: chapters } = await supabase
+          .from('chapters')
+          .select('id, story_id, order')
+          .in('story_id', ids)
+          .order('order');
+
+        const firstChapterByStory = {};
+        for (const ch of chapters || []) {
+          if (!firstChapterByStory[ch.story_id]) firstChapterByStory[ch.story_id] = ch.id;
+        }
+
+        // Step 2: first slide with an image per chapter
+        const chapterIds = Object.values(firstChapterByStory);
+        if (chapterIds.length > 0) {
+          const { data: slides } = await supabase
+            .from('slides')
+            .select('chapter_id, image, order')
+            .in('chapter_id', chapterIds)
+            .not('image', 'is', null)
+            .order('order');
+
+          const firstSlideByChapter = {};
+          for (const sl of slides || []) {
+            if (!firstSlideByChapter[sl.chapter_id]) firstSlideByChapter[sl.chapter_id] = sl.image;
+          }
+
+          for (const [storyId, chapterId] of Object.entries(firstChapterByStory)) {
+            fallbackByStory[storyId] = firstSlideByChapter[chapterId] || null;
+          }
+        }
+      }
+
+      setStories(storiesWithStatic.map(s => ({
+        ...s,
+        display_image: s.display_image || fallbackByStory[s.id] || null,
+      })));
     } catch (error) {
       console.error('Failed to load stories:', error);
     } finally {
@@ -508,10 +557,10 @@ export default function Stories() {
                                 <CardContent className="p-0 flex flex-col h-full">
 
                                     {/* 16:9 Thumbnail */}
-                                    {(story.thumbnail || story.hero_image) ? (
+                                    {story.display_image ? (
                                         <div className="aspect-video w-full overflow-hidden bg-slate-100">
                                             <img
-                                                src={story.thumbnail || story.hero_image}
+                                                src={story.display_image}
                                                 alt={story.title}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             />
