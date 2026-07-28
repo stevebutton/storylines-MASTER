@@ -19,7 +19,7 @@ export function useCesiumViewer(containerRef, onError, externalRef) {
     useEffect(() => {
         if (!containerRef.current) return
 
-        Cesium.GoogleMaps.defaultApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+        Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_ION_TOKEN
 
         const viewer = new Cesium.Viewer(containerRef.current, {
             animation:            false,
@@ -34,18 +34,14 @@ export function useCesiumViewer(containerRef, onError, externalRef) {
             navigationHelpButton: false,
             skyBox:               false,
             skyAtmosphere:        new Cesium.SkyAtmosphere(),
-            showCreditsOnScreen:  true,   // required by Google ToS
-            // Google 3D Tiles supplies its own terrain; use a flat ellipsoid
-            // to prevent Cesium from requesting Ion World Terrain (asset 2)
-            // which requires a Cesium Ion token and would 401 without one.
-            terrainProvider:      new Cesium.EllipsoidTerrainProvider(),
+            showCreditsOnScreen:  true,
         })
 
         // cancelFlight() is called via canvas listeners once the tileset loads.
         // Start as a no-op so the cleanup function can always call it safely.
         let removeInteractListeners = () => {}
 
-        Cesium.createGooglePhotorealistic3DTileset()
+        Cesium.Cesium3DTileset.fromIonAssetId(2275207)
             .then(tileset => {
                 viewer.scene.primitives.add(tileset)
                 viewerRef.current = viewer
@@ -65,7 +61,7 @@ export function useCesiumViewer(containerRef, onError, externalRef) {
             })
             .catch(err => {
                 console.error('Failed to load Google 3D tileset:', err)
-                if (onError) onError('Unable to load 3D tiles. Check your Google Maps API key.')
+                if (onError) onError('Unable to load 3D tiles. Check your Cesium Ion token and ensure asset 2275207 is in your Ion account.')
             })
 
         return () => {
