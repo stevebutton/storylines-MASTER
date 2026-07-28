@@ -1316,6 +1316,7 @@ export default function StoryMapView() {
 
             {/* Map Background */}
             <StoryMapRenderer
+                key={story?.id}
                 story={story}
                 chapters={chapters}
                 currentChapter={chapters[activeChapter] ?? null}
