@@ -35,6 +35,10 @@ export function useCesiumViewer(containerRef, onError, externalRef) {
             skyBox:               false,
             skyAtmosphere:        new Cesium.SkyAtmosphere(),
             showCreditsOnScreen:  true,   // required by Google ToS
+            // Google 3D Tiles supplies its own terrain; use a flat ellipsoid
+            // to prevent Cesium from requesting Ion World Terrain (asset 2)
+            // which requires a Cesium Ion token and would 401 without one.
+            terrainProvider:      new Cesium.EllipsoidTerrainProvider(),
         })
 
         // cancelFlight() is called via canvas listeners once the tileset loads.
