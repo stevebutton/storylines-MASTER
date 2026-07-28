@@ -208,6 +208,7 @@ export default function StoryMapView() {
                 overlayTimeoutRef.current = null;
             }
             setShowBlackOverlay(true);
+            setMapReady(false);
             setActiveChapter(-1);
             setHasExplored(false);
             setPillsInitialized(false);
@@ -260,6 +261,16 @@ export default function StoryMapView() {
         const id = setTimeout(() => setShowBlackOverlay(false), 5000);
         return () => clearTimeout(id);
     }, [story?.id, isLoading]);
+
+    // For 3D Cesium stories, clear the black overlay once the Ion tileset has
+    // actually loaded (mapReady fires via onMapReady → useCesiumViewer onReady).
+    // onHeroLoaded fires immediately for no-hero 3D stories and is suppressed there,
+    // so this is the only overlay-clearing path for photorealistic-3d.
+    useEffect(() => {
+        if (!mapReady || story?.map_style !== 'photorealistic-3d') return;
+        if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
+        overlayTimeoutRef.current = setTimeout(() => setShowBlackOverlay(false), 500);
+    }, [mapReady, story?.map_style]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Set initial map config from story opening view — jump instantly (no animation)
     // because the black overlay is covering the map at this point.
@@ -1409,6 +1420,9 @@ export default function StoryMapView() {
                     }}
                     onHeroLoaded={() => {
                         setHeroMediaLoaded(true);
+                        // 3D stories have no hero media — the overlay waits for the
+                        // Cesium tileset instead (see mapReady effect below).
+                        if (story?.map_style === 'photorealistic-3d') return;
                         if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
                         overlayTimeoutRef.current = setTimeout(() => setShowBlackOverlay(false), 1000);
                     }}

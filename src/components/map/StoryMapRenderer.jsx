@@ -11,7 +11,7 @@ import CesiumStoryMap from './CesiumStoryMap'
  * Cesium modules are never imported alongside mapbox-gl (bundler tree-shaking
  * keeps the two large libs independent).
  */
-export default function StoryMapRenderer({ story, chapters, currentChapter, currentSlide, hidden, viewerRef, annotationMarkers = [], ...rest }) {
+export default function StoryMapRenderer({ story, chapters, currentChapter, currentSlide, hidden, viewerRef, onMapReady, annotationMarkers = [], ...rest }) {
     if (story?.map_style === 'photorealistic-3d') {
         return (
             <CesiumStoryMap
@@ -21,10 +21,11 @@ export default function StoryMapRenderer({ story, chapters, currentChapter, curr
                 currentSlide={currentSlide}
                 hidden={hidden}
                 viewerRef={viewerRef}
+                onMapReady={onMapReady}
                 annotationMarkers={annotationMarkers}
             />
         )
     }
 
-    return <MapBackground annotationMarkers={annotationMarkers} {...rest} />
+    return <MapBackground annotationMarkers={annotationMarkers} onMapReady={onMapReady} {...rest} />
 }

@@ -12,11 +12,11 @@ import { useCesiumAnnotations } from '../cesium/useCesiumAnnotations'
  *
  * NOTE: Do not import mapbox-gl or any Mapbox utility in this file.
  */
-export default function CesiumStoryMap({ story, chapters, currentChapter, currentSlide, hidden, viewerRef, annotationMarkers = [] }) {
+export default function CesiumStoryMap({ story, chapters, currentChapter, currentSlide, hidden, viewerRef, onMapReady, annotationMarkers = [] }) {
     const containerRef = useRef(null)
     const [error, setError] = useState(null)
 
-    const viewer = useCesiumViewer(containerRef, setError, viewerRef)
+    const viewer = useCesiumViewer(containerRef, setError, viewerRef, onMapReady)
     useCesiumChapter(viewer, currentChapter)
     // Slide-level camera — fires after chapter, overrides it when slide has cesium_camera
     useCesiumChapter(viewer, currentSlide)

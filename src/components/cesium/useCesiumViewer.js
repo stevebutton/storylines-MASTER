@@ -12,7 +12,7 @@ import 'cesium/Build/Cesium/Widgets/widgets.css'
  *   - showCreditsOnScreen: true is set (Google ToS requirement)
  *   - Ion token is read from VITE_CESIUM_ION_TOKEN — never hardcoded
  */
-export function useCesiumViewer(containerRef, onError, externalRef) {
+export function useCesiumViewer(containerRef, onError, externalRef, onReady) {
     const viewerRef = useRef(null)
     const [ready, setReady] = useState(false)
 
@@ -47,6 +47,7 @@ export function useCesiumViewer(containerRef, onError, externalRef) {
                 viewerRef.current = viewer
                 if (externalRef) externalRef.current = viewer
                 setReady(true)
+                if (onReady) onReady(viewer)
 
                 // Cancel any programmatic camera flight when the user interacts,
                 // matching Mapbox GL's behaviour where a click or scroll stops a flyTo.
