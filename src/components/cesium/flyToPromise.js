@@ -20,6 +20,9 @@ const cinematicEase = t =>
  * Resolves on complete OR cancel (safe for cleanup).
  */
 export function flyToPromise(viewer, step) {
+    // Guard: viewer may have been destroyed (e.g. during SPA navigation) before
+    // this async call is reached. Cesium's camera getter throws on a destroyed viewer.
+    if (viewer.isDestroyed()) return Promise.resolve()
     // Guard: never pass NaN/Infinity to Cesium — it propagates into WebGL
     // buffers and crashes the render loop with "Invalid array length".
     if (!Number.isFinite(step.lat) || !Number.isFinite(step.lng) || !Number.isFinite(step.alt)) {
@@ -50,6 +53,7 @@ export function flyToPromise(viewer, step) {
  * Use for the first step of a sequence or hard chapter cuts.
  */
 export function setViewInstant(viewer, step) {
+    if (viewer.isDestroyed()) return
     if (!Number.isFinite(step.lat) || !Number.isFinite(step.lng) || !Number.isFinite(step.alt)) return
     viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(

@@ -1327,18 +1327,19 @@ export default function StoryMapView() {
 
             {/* Map Background */}
             <StoryMapRenderer
-                key={story?.id}
+                key={storyIdParam ?? 'main'}
                 story={story}
+                storyIdParam={storyIdParam}
                 chapters={chapters}
                 currentChapter={chapters[activeChapter] ?? null}
                 currentSlide={activeSlide}
-                hidden={isEditTransitioning || showBlackOverlay}
+                hidden={isEditTransitioning}
                 viewerRef={cesiumViewerRef}
                 center={mapConfig.center}
                 zoom={mapConfig.zoom}
                 bearing={mapConfig.bearing}
                 pitch={mapConfig.pitch}
-                mapStyle={mapConfig.mapStyle}
+                mapStyle={story?.map_style || 'a'}
                 shouldRotate={mapConfig.shouldRotate}
                 flyDuration={mapConfig.flyDuration}
                 instant={mapConfig.instant}

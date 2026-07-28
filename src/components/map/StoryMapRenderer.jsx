@@ -11,7 +11,15 @@ import CesiumStoryMap from './CesiumStoryMap'
  * Cesium modules are never imported alongside mapbox-gl (bundler tree-shaking
  * keeps the two large libs independent).
  */
-export default function StoryMapRenderer({ story, chapters, currentChapter, currentSlide, hidden, viewerRef, onMapReady, annotationMarkers = [], ...rest }) {
+export default function StoryMapRenderer({ story, storyIdParam, chapters, currentChapter, currentSlide, hidden, viewerRef, onMapReady, annotationMarkers = [], ...rest }) {
+    // Don't render any map backend while a story transition is in progress.
+    // storyIdParam changed (URL updated) but the story state hasn't been fetched
+    // yet for the new URL — the stale story from the previous page is in state.
+    // The black overlay covers this gap; returning null here is what actually
+    // destroys the Cesium viewer the moment navigation starts rather than waiting
+    // for the next story's data to arrive.
+    if (!story || (storyIdParam && storyIdParam !== String(story?.id))) return null
+
     if (story?.map_style === 'photorealistic-3d') {
         return (
             <CesiumStoryMap

@@ -109,7 +109,7 @@ export function useCesiumChapter(viewer, chapter) {
 
         return () => {
             cancelRef.current = true
-            viewer.camera.cancelFlight()
+            if (!viewer.isDestroyed()) viewer.camera.cancelFlight()
         }
     }, [viewer, chapter?.id]) // chapter.id as dep — fires on chapter change, not object identity
 }
