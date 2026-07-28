@@ -1332,7 +1332,7 @@ export default function StoryMapView() {
                 chapters={chapters}
                 currentChapter={chapters[activeChapter] ?? null}
                 currentSlide={activeSlide}
-                hidden={isEditTransitioning}
+                hidden={isEditTransitioning || showBlackOverlay}
                 viewerRef={cesiumViewerRef}
                 center={mapConfig.center}
                 zoom={mapConfig.zoom}
@@ -1420,9 +1420,6 @@ export default function StoryMapView() {
                     }}
                     onHeroLoaded={() => {
                         setHeroMediaLoaded(true);
-                        // 3D stories have no hero media — the overlay waits for the
-                        // Cesium tileset instead (see mapReady effect below).
-                        if (story?.map_style === 'photorealistic-3d') return;
                         if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
                         overlayTimeoutRef.current = setTimeout(() => setShowBlackOverlay(false), 1000);
                     }}
