@@ -10,7 +10,7 @@ import 'cesium/Build/Cesium/Widgets/widgets.css'
  * Guarantees:
  *   - viewer.destroy() is always called in cleanup
  *   - showCreditsOnScreen: true is set (Google ToS requirement)
- *   - API key is read from VITE_GOOGLE_MAPS_API_KEY — never hardcoded
+ *   - Ion token is read from VITE_CESIUM_ION_TOKEN — never hardcoded
  */
 export function useCesiumViewer(containerRef, onError, externalRef) {
     const viewerRef = useRef(null)
@@ -41,7 +41,7 @@ export function useCesiumViewer(containerRef, onError, externalRef) {
         // Start as a no-op so the cleanup function can always call it safely.
         let removeInteractListeners = () => {}
 
-        Cesium.Cesium3DTileset.fromIonAssetId(2275207)
+        Cesium.Cesium3DTileset.fromIonAssetId(2275207, { onlyUsingWithGoogleGeocoder: true })
             .then(tileset => {
                 viewer.scene.primitives.add(tileset)
                 viewerRef.current = viewer
