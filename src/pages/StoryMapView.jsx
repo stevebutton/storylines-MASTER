@@ -262,12 +262,14 @@ export default function StoryMapView() {
         return () => clearTimeout(id);
     }, [story?.id, isLoading]);
 
-    // For 3D Cesium stories, clear the black overlay once the Ion tileset has
-    // actually loaded (mapReady fires via onMapReady → useCesiumViewer onReady).
-    // onHeroLoaded fires immediately for no-hero 3D stories and is suppressed there,
-    // so this is the only overlay-clearing path for photorealistic-3d.
+    // For 3D Cesium stories with no hero, clear the black overlay once the Ion
+    // tileset has loaded (mapReady fires via onMapReady → useCesiumViewer onReady).
+    // When a Cesium story has a hero image/video, onHeroLoaded drives the overlay
+    // exactly as it does for Mapbox stories — the globe loads in the background
+    // while the hero is visible.
     useEffect(() => {
         if (!mapReady || story?.map_style !== 'photorealistic-3d') return;
+        if (story?.hero_image || story?.hero_video) return;
         if (overlayTimeoutRef.current) clearTimeout(overlayTimeoutRef.current);
         overlayTimeoutRef.current = setTimeout(() => setShowBlackOverlay(false), 500);
     }, [mapReady, story?.map_style]); // eslint-disable-line react-hooks/exhaustive-deps

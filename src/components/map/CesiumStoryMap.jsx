@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useCesiumViewer } from '../cesium/useCesiumViewer'
-import { useCesiumChapter } from '../cesium/useCesiumChapter'
+import { useCesiumChapter, mapboxToCesiumCamera } from '../cesium/useCesiumChapter'
 import { useCesiumAnnotations } from '../cesium/useCesiumAnnotations'
+import { setViewInstant } from '../cesium/flyToPromise'
 // import { useCesiumRoute } from '../cesium/useCesiumRoute'  // disabled — see docs/cesium-route-debug.md
 
 /**
@@ -23,6 +24,15 @@ export default function CesiumStoryMap({ story, chapters, currentChapter, curren
     // Route — disabled; see docs/cesium-route-debug.md
     // useCesiumRoute(viewer, currentChapter)
     useCesiumAnnotations(viewer, containerRef, annotationMarkers)
+
+    // When the viewer first becomes ready and no chapter is active (hero phase),
+    // instantly position the globe at the story's opening view so it shows the
+    // correct location when the hero scrolls away rather than the default globe view.
+    useEffect(() => {
+        if (!viewer || currentChapter) return
+        const cam = story?.cesium_camera ?? story?.cesiumCamera ?? mapboxToCesiumCamera(story)
+        if (cam) setViewInstant(viewer, cam)
+    }, [viewer]) // eslint-disable-line react-hooks/exhaustive-deps
 
     if (error) {
         return (
