@@ -84,6 +84,8 @@ export default function StoryHeader({ title, subtitle, tagline, titleImage, subt
 
       {/* Subtle overlay for contrast */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/10 z-[1]" />
+      {/* Radial vignette — darkens edges, keeps centre bright */}
+      <div className="absolute inset-0 z-[1]" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.50) 100%)' }} />
 
       {mediaLoaded && (
         <motion.div

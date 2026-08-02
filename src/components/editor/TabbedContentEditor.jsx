@@ -703,6 +703,21 @@ export default function TabbedContentEditor({
                                 <Label>Show Location Markers</Label>
                             </div>
                             {item.show_route !== false && (
+                                <div className="flex items-center gap-3">
+                                    <Label className="w-28 shrink-0">Route Line Width</Label>
+                                    <input
+                                        type="range"
+                                        min={1}
+                                        max={10}
+                                        step={1}
+                                        value={item.route_line_width ?? 4}
+                                        onChange={(e) => onUpdate({ ...item, route_line_width: Number(e.target.value) })}
+                                        className="flex-1"
+                                    />
+                                    <span className="w-8 text-right text-sm tabular-nums">{item.route_line_width ?? 4}px</span>
+                                </div>
+                            )}
+                            {item.show_route !== false && (
                                 <div className="space-y-2">
                                     <div className="flex gap-2">
                                         <Button

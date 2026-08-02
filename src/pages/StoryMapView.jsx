@@ -1367,6 +1367,7 @@ export default function StoryMapView() {
                 onMapReady={(mapInstance) => { mapInstanceRef.current = mapInstance; setMapReady(true); }}
                 showRoute={showRoute && story?.show_markers !== false}
                 showMarkers={showMarkers}
+                routeLineWidth={story?.route_line_width ?? 4}
                 annotationMarkers={activeSlide?.map_annotations || []}
             />
             

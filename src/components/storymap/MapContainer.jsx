@@ -84,6 +84,7 @@ export default function MapBackground({
     onMapReady = null,
     showRoute = true,
     showMarkers = true,
+    routeLineWidth = 4,
     annotationMarkers = [],
 }) {
     const THEME_FONTS = { c: 'Righteous, cursive', f: 'Oswald, sans-serif', k: 'Oswald, sans-serif' };
@@ -383,7 +384,7 @@ export default function MapBackground({
                     source: 'route',
                     layout: { 'line-join': 'round', 'line-cap': 'round' },
                     paint: {
-                        'line-width': 4,
+                        'line-width': routeLineWidth,
                         'line-gradient': [
                             'interpolate', ['linear'], ['line-progress'],
                             0,   `rgba(${color.rgb}, 0.15)`,

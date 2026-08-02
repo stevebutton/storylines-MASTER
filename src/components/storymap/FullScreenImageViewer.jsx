@@ -215,31 +215,34 @@ const VideoPlayer = ({ url, loop = false, onVideoEnded }) => {
 };
 
 // Slide transition variants ─────────────────────────────────────────────────
-// picture: 2s cross-dissolve, no scale
+// picture: 2s cross-dissolve + 5s subtle zoom-out
 const pictureVariants = {
-    enter:  { opacity: 0 },
-    center: { opacity: 1 },
-    exit:   { opacity: 0 },
-};
-// story: subtle scale-fade
-const storyVariants = {
-    enter:  { opacity: 0, scale: 0.97 },
+    enter:  { opacity: 0, scale: 1.1 },
     center: { opacity: 1, scale: 1 },
-    exit:   { opacity: 0, scale: 0.97 },
+    exit:   { opacity: 0, transition: { duration: 2, ease: 'easeInOut' } },
+};
+// story: fade + 5s subtle zoom-out
+const storyVariants = {
+    enter:  { opacity: 0, scale: 1.1 },
+    center: { opacity: 1, scale: 1 },
+    exit:   { opacity: 0, scale: 0.97, transition: { duration: 0.4, ease: 'easeOut' } },
 };
 // timeline: simultaneous horizontal push — dir 1 = forward, -1 = backward
 // Requires mode="sync" on AnimatePresence + overflow:hidden on the container
 const timelineVariants = {
-    enter:  (dir) => ({ x: dir >= 0 ? '100%' : '-100%' }),
-    center: { x: '0%' },
-    exit:   (dir) => ({ x: dir >= 0 ? '-100%' : '100%' }),
+    enter:  (dir) => ({ x: dir >= 0 ? '100%' : '-100%', scale: 1.1 }),
+    center: { x: '0%', scale: 1 },
+    exit:   (dir) => ({ x: dir >= 0 ? '-100%' : '100%', transition: { duration: 1, ease: [0.4, 0, 0.2, 1] } }),
 };
 
 const VARIANTS = { picture: pictureVariants, story: storyVariants, timeline: timelineVariants };
+// Per-property transitions: opacity uses the original timing; scale always uses 5s for the
+// zoom-out effect. Exit transitions are defined inline on each variant above so they don't
+// inherit the 5s scale duration.
 const TRANSITIONS = {
-    picture:  { duration: 2,    ease: 'easeInOut' },
-    story:    { duration: 0.4,  ease: 'easeOut' },
-    timeline: { duration: 1,    ease: [0.4, 0, 0.2, 1] },
+    picture:  { opacity: { duration: 2,   ease: 'easeInOut' },        scale: { duration: 5, ease: 'easeOut' } },
+    story:    { opacity: { duration: 0.4, ease: 'easeOut' },           scale: { duration: 5, ease: 'easeOut' } },
+    timeline: { x:       { duration: 1,   ease: [0.4, 0, 0.2, 1] },   scale: { duration: 5, ease: 'easeOut' } },
 };
 
 export default function FullScreenImageViewer({
