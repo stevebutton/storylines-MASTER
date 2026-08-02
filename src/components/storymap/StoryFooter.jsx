@@ -84,9 +84,7 @@ export default function StoryFooter({
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
                             {seriesEpisodes.map((ep) => {
-                                const thumb = ep.thumbnail
-                                    || (ep.hero_type !== 'video' ? ep.hero_image : null)
-                                    || null;
+                                const thumb = ep.thumbnail || ep.hero_image || null;
                                 const isCurrent = ep.episode_number === currentEpisodeNumber;
                                 return (
                                     <div

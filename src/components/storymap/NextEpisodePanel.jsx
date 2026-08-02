@@ -61,9 +61,7 @@ export default function NextEpisodePanel({
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
                             {episodes.map((ep) => {
                                 const isCurrent = ep.episode_number === currentEpisodeNumber;
-                                const thumb = ep.thumbnail
-                                    || (ep.hero_type !== 'video' ? ep.hero_image : null)
-                                    || null;
+                                const thumb = ep.thumbnail || ep.hero_image || null;
                                 return (
                                     <div
                                         key={ep.id}

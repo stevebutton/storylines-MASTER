@@ -194,9 +194,7 @@ export default function SeriesView() {
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
                         {episodes.map((ep, index) => {
-                            const thumb = ep.thumbnail
-                                || (ep.hero_type !== 'video' ? ep.hero_image : null)
-                                || null;
+                            const thumb = ep.thumbnail || ep.hero_image || null;
                             return (
                                 <motion.div
                                     key={ep.id}
