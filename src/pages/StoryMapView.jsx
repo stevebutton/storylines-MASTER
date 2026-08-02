@@ -187,7 +187,7 @@ export default function StoryMapView() {
     const currentActiveChapterRef = useRef(-1);
     // Prevents the onSlideChange isActive-effect call from restarting a flyTo
     // that onContinue/onExplore already started for the initial chapter activation.
-    const suppressNextOnSlideChangeMapConfig = useRef(false);
+    const suppressNextOnSlideChangeMapConfig = useRef(0);
     // Tracks the previous storyId so we can detect a story switch.
     const prevStoryIdRef = useRef(null);
     // Holds the pending setShowBlackOverlay(false) timeout so we can cancel it on story switch.
@@ -234,7 +234,7 @@ export default function StoryMapView() {
             currentActiveChapterRef.current = -1;
             visitedSlideCoordsRef.current = {};
             segmentCacheRef.current = {};
-            suppressNextOnSlideChangeMapConfig.current = false;
+            suppressNextOnSlideChangeMapConfig.current = 0;
             chapterRefs.current = [];
             // If returning from StoryTimeline, restore scroll; otherwise reset to top
             const savedScrollKey = `return_scroll_${storyIdParam}`;
@@ -556,7 +556,7 @@ export default function StoryMapView() {
                                 // Suppress the isActive → onSlideChange setMapConfig that fires in
                                 // the next render cycle so it doesn't restart this flyTo mid-flight.
                                 // Same pattern as the hero onExplore/onContinue → Chapter 0 flow.
-                                suppressNextOnSlideChangeMapConfig.current = true;
+                                suppressNextOnSlideChangeMapConfig.current = Date.now() + 500;
                                 setMapConfig({
                                     center: chCoords,
                                     offset: [-200, 0],
@@ -1157,12 +1157,34 @@ export default function StoryMapView() {
 
     const handleOverlayClose = () => {
         const savedScroll = overlayScrollRef.current;
+        const sl      = overlayActiveSlides[overlayCurrentIndex];
+        const chIdx   = sl?._chapter_index ?? -1;
+        const chapter = chIdx >= 0 ? chapters[chIdx] : null;
         setShowStoryOverlay(false);
         setSearchParams(prev => {
             const next = new URLSearchParams(prev);
             next.delete('view');
             return next;
         }, { replace: true });
+        // Drive the map camera to the exact slide last viewed in Story view.
+        // Open a suppress window so all onSlideChange → setMapConfig calls that fire
+        // during chapter re-activation (isActive effect + carousel-open effect) are
+        // blocked and don't override the position we're intentionally flying to.
+        if (sl && isValidCoordinatePair(sl.coordinates) && chapter) {
+            setActiveChapter(chIdx);
+            setActiveSlide(sl);
+            setMapConfig({
+                center:       sl.coordinates,
+                offset:       [-200, 0],
+                zoom:         sl.zoom        !== undefined ? sl.zoom        : (chapter.zoom        || 12),
+                bearing:      sl.bearing     !== undefined ? sl.bearing     : 0,
+                pitch:        sl.pitch       !== undefined ? sl.pitch       : 0,
+                mapStyle:     chapter.map_style || story?.map_style || 'a',
+                shouldRotate: false,
+                flyDuration:  sl.fly_duration !== undefined ? sl.fly_duration : (chapter.fly_duration || 8),
+            });
+            suppressNextOnSlideChangeMapConfig.current = Date.now() + 1000;
+        }
         setTimeout(() => window.scrollTo(0, savedScroll), 50);
     };
 
@@ -1240,13 +1262,35 @@ export default function StoryMapView() {
             setShowLibraryModal(false);
             libraryPrevViewRef.current = null;
         }
-        if (showStoryOverlay) setShowStoryOverlay(false);
+        const wasInOverlay = showStoryOverlay;
+        const sl      = wasInOverlay ? overlayActiveSlides[overlayCurrentIndex] : null;
+        const chIdx   = sl?._chapter_index ?? -1;
+        const chapter = chIdx >= 0 ? chapters[chIdx] : null;
+        if (wasInOverlay) setShowStoryOverlay(false);
         setSearchParams(prev => {
             const next = new URLSearchParams(prev);
             next.delete('view');
             return next;
         }, { replace: true });
-        if (showStoryOverlay) {
+        if (wasInOverlay) {
+            if (sl && isValidCoordinatePair(sl.coordinates) && chapter) {
+                setActiveChapter(chIdx);
+                setActiveSlide(sl);
+                setMapConfig({
+                    center:       sl.coordinates,
+                    offset:       [-200, 0],
+                    zoom:         sl.zoom        !== undefined ? sl.zoom        : (chapter.zoom        || 12),
+                    bearing:      sl.bearing     !== undefined ? sl.bearing     : 0,
+                    pitch:        sl.pitch       !== undefined ? sl.pitch       : 0,
+                    mapStyle:     chapter.map_style || story?.map_style || 'a',
+                    shouldRotate: false,
+                    flyDuration:  sl.fly_duration !== undefined ? sl.fly_duration : (chapter.fly_duration || 8),
+                });
+                // Open a 1-second suppress window so all onSlideChange → setMapConfig calls
+                // that fire during chapter re-activation are blocked and don't override
+                // the position we're intentionally flying to.
+                suppressNextOnSlideChangeMapConfig.current = Date.now() + 1000;
+            }
             setTimeout(() => window.scrollTo(0, overlayScrollRef.current), 50);
         }
     };
@@ -1405,9 +1449,7 @@ export default function StoryMapView() {
                                 if (ch0Coords && Array.isArray(ch0Coords) &&
                                     ch0Coords.length === 2 &&
                                     !isNaN(ch0Coords[0]) && !isNaN(ch0Coords[1])) {
-                                    // Suppress the redundant setMapConfig that fires via
-                                    // the isActive effect → onSlideChange when chapter 0 activates
-                                    suppressNextOnSlideChangeMapConfig.current = true;
+                                    suppressNextOnSlideChangeMapConfig.current = Date.now() + 500;
                                     setMapConfig({
                                         center: ch0Coords,
                                         offset: [-200, 0],
@@ -1453,9 +1495,7 @@ export default function StoryMapView() {
                                     if (ch0Coords && Array.isArray(ch0Coords) &&
                                         ch0Coords.length === 2 &&
                                         !isNaN(ch0Coords[0]) && !isNaN(ch0Coords[1])) {
-                                        // Suppress the redundant setMapConfig that fires via
-                                        // the isActive effect → onSlideChange when chapter 0 activates
-                                        suppressNextOnSlideChangeMapConfig.current = true;
+                                        suppressNextOnSlideChangeMapConfig.current = Date.now() + 500;
                                         setMapConfig({
                                             center: ch0Coords,
                                             offset: [-200, 0],
@@ -1642,8 +1682,8 @@ export default function StoryMapView() {
                                     && !isNaN(chapter.coordinates[0])
                                     && !isNaN(chapter.coordinates[1]);
 
-                                if (suppressNextOnSlideChangeMapConfig.current) {
-                                    suppressNextOnSlideChangeMapConfig.current = false;
+                                if (Date.now() < suppressNextOnSlideChangeMapConfig.current) {
+                                    // within suppress window — skip setMapConfig
                                 } else {
                                     setMapConfig({
                                         center: slide.coordinates,
@@ -1655,11 +1695,11 @@ export default function StoryMapView() {
                                         shouldRotate: false,
                                         flyDuration: slide.fly_duration !== undefined ? slide.fly_duration : (chapter.fly_duration || 8)
                                     });
-                                    // Arm for the next call: after a _noRoute flyTo on a chapter
-                                    // with no overview coordinates, suppress the redundant
-                                    // carousel-open flyTo that would interrupt the animation.
+                                    // After a _noRoute flyTo on a chapter with no overview coordinates,
+                                    // open a brief suppress window to block the redundant carousel-open
+                                    // flyTo that would interrupt the animation.
                                     if (slide._noRoute && !hasChapterCoords) {
-                                        suppressNextOnSlideChangeMapConfig.current = true;
+                                        suppressNextOnSlideChangeMapConfig.current = Date.now() + 500;
                                     }
                                 }
 
