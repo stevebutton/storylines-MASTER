@@ -185,9 +185,20 @@ export default function StoryMapView() {
     // Tracks the currently active chapter index so async route callbacks can
     // check whether the chapter is still active before applying the result
     const currentActiveChapterRef = useRef(-1);
+    // Always-current mirror of activeChapter state — used in the scroll handler
+    // to avoid stale-closure reads when the useEffect deps haven't re-run yet.
+    const activeChapterStateRef = useRef(-1);
     // Prevents the onSlideChange isActive-effect call from restarting a flyTo
     // that onContinue/onExplore already started for the initial chapter activation.
     const suppressNextOnSlideChangeMapConfig = useRef(0);
+    // Suppresses the scroll handler's chapter-change logic (setActiveChapter + setMapConfig)
+    // for a brief window after returning from Story view, so the scroll-position restore
+    // doesn't immediately override the camera we just set.
+    const suppressScrollHandlerUntil = useRef(0);
+    // When returning from Story view to a DIFFERENT chapter, the useEffect([activeChapter])
+    // would normally reset carouselOpened(false), which prevents the banner from showing.
+    // Set this flag before calling setActiveChapter() so the effect opens the carousel instead.
+    const openCarouselOnChapterChangeRef = useRef(false);
     // Tracks the previous storyId so we can detect a story switch.
     const prevStoryIdRef = useRef(null);
     // Holds the pending setShowBlackOverlay(false) timeout so we can cancel it on story switch.
@@ -235,6 +246,7 @@ export default function StoryMapView() {
             visitedSlideCoordsRef.current = {};
             segmentCacheRef.current = {};
             suppressNextOnSlideChangeMapConfig.current = 0;
+            suppressScrollHandlerUntil.current = 0;
             chapterRefs.current = [];
             // If returning from StoryTimeline, restore scroll; otherwise reset to top
             const savedScrollKey = `return_scroll_${storyIdParam}`;
@@ -248,6 +260,10 @@ export default function StoryMapView() {
         }
         prevStoryIdRef.current = storyIdParam;
     }, [storyIdParam]);
+
+    // Keep activeChapterStateRef in sync with activeChapter on every render so
+    // the scroll handler can read the current value without stale-closure risk.
+    activeChapterStateRef.current = activeChapter;
 
     useEffect(() => {
         loadStory();
@@ -496,7 +512,14 @@ export default function StoryMapView() {
                     const elementBottom = elementTop + rect.height;
                     
                     if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
-                        if (activeChapter !== index) {
+                        if (activeChapterStateRef.current !== index) {
+                            // Skip chapter-change logic during the window immediately after
+                            // returning from Story view — the scroll-position restore would
+                            // otherwise overwrite the camera we just set for the last story slide.
+                            if (Date.now() < suppressScrollHandlerUntil.current) {
+                                return;
+                            }
+
                             // Save BEFORE overwriting so we can check if this is the initial activation
                             const prevChapterIdx = previousChapterRef.current;
 
@@ -576,17 +599,24 @@ export default function StoryMapView() {
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [activeChapter, chapters]);
+    }, [chapters]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Banner and footer animate in once the user scrolls into the first chapter.
     // Uses a one-way latch — once visible it stays visible for the session.
     // Also reset carouselOpened so the chapter title banner re-arms for each chapter.
+    // Exception: when openCarouselOnChapterChangeRef is set (Story-view return to a
+    // different chapter), open the carousel immediately so the banner fires.
     useEffect(() => {
         if (activeChapter >= 0) {
             setIsBannerVisible(true);
             setHasExplored(true);
         }
-        setCarouselOpened(false);
+        if (openCarouselOnChapterChangeRef.current) {
+            openCarouselOnChapterChangeRef.current = false;
+            setCarouselOpened(true);
+        } else {
+            setCarouselOpened(false);
+        }
     }, [activeChapter]);
 
     // Mark pills as initialized after their entrance delays have elapsed so that
@@ -1016,6 +1046,9 @@ export default function StoryMapView() {
     }, [showLibraryModal]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const openOverlay = (chapterId, slideId, mode = 'story') => {
+        // Clear targetSlide so that returning from Story view always re-triggers
+        // the carousel effect — even if the user lands on the same slide.
+        setTargetSlide(null);
         const sourceSlides = mode === 'timeline' ? overlayTimelineSlides : overlaySlides;
         const idx = sourceSlides.findIndex(sl =>
             (chapterId ? sl._chapter_id === chapterId : true) &&
@@ -1171,6 +1204,11 @@ export default function StoryMapView() {
         // during chapter re-activation (isActive effect + carousel-open effect) are
         // blocked and don't override the position we're intentionally flying to.
         if (sl && isValidCoordinatePair(sl.coordinates) && chapter) {
+            // Cross-chapter return: flag the activeChapter effect to open the carousel
+            // immediately so the chapter title banner fires for the new chapter.
+            if (chIdx !== activeChapter) {
+                openCarouselOnChapterChangeRef.current = true;
+            }
             setActiveChapter(chIdx);
             setActiveSlide(sl);
             setMapConfig({
@@ -1184,8 +1222,25 @@ export default function StoryMapView() {
                 flyDuration:  sl.fly_duration !== undefined ? sl.fly_duration : (chapter.fly_duration || 8),
             });
             suppressNextOnSlideChangeMapConfig.current = Date.now() + 1000;
+            suppressScrollHandlerUntil.current = Date.now() + 1000;
+            // Sync the chapter carousel to the story-view slide.
+            const slideIdx = chapters[chIdx]?.slides?.findIndex(s => s.id === sl.id) ?? -1;
+            if (slideIdx >= 0) setTargetSlide({ chapter: chIdx, slide: slideIdx });
         }
-        setTimeout(() => window.scrollTo(0, savedScroll), 50);
+        // Scroll to the story-view chapter card (not departure) so the viewport
+        // chapter matches activeChapter — preventing scroll-handler camera override.
+        const targetEl = chIdx >= 0 ? chapterRefs.current[chIdx] : null;
+        if (targetEl) {
+            setTimeout(() => {
+                const rect = targetEl.getBoundingClientRect();
+                const targetScroll = Math.max(0,
+                    window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2)
+                );
+                window.scrollTo(0, targetScroll);
+            }, 50);
+        } else {
+            setTimeout(() => window.scrollTo(0, savedScroll), 50);
+        }
     };
 
     const handleOverlayModeChange = (newMode) => {
@@ -1274,6 +1329,11 @@ export default function StoryMapView() {
         }, { replace: true });
         if (wasInOverlay) {
             if (sl && isValidCoordinatePair(sl.coordinates) && chapter) {
+                // Cross-chapter return: flag the activeChapter effect to open the carousel
+                // immediately so the chapter title banner fires for the new chapter.
+                if (chIdx !== activeChapter) {
+                    openCarouselOnChapterChangeRef.current = true;
+                }
                 setActiveChapter(chIdx);
                 setActiveSlide(sl);
                 setMapConfig({
@@ -1286,12 +1346,30 @@ export default function StoryMapView() {
                     shouldRotate: false,
                     flyDuration:  sl.fly_duration !== undefined ? sl.fly_duration : (chapter.fly_duration || 8),
                 });
-                // Open a 1-second suppress window so all onSlideChange → setMapConfig calls
-                // that fire during chapter re-activation are blocked and don't override
-                // the position we're intentionally flying to.
                 suppressNextOnSlideChangeMapConfig.current = Date.now() + 1000;
+                suppressScrollHandlerUntil.current = Date.now() + 1000;
+                // Sync the chapter carousel to the story-view slide so the card
+                // displays the same slide the user was on, not the departure slide.
+                const slideIdx = chapters[chIdx]?.slides?.findIndex(s => s.id === sl.id) ?? -1;
+                if (slideIdx >= 0) setTargetSlide({ chapter: chIdx, slide: slideIdx });
             }
-            setTimeout(() => window.scrollTo(0, overlayScrollRef.current), 50);
+
+            // Scroll to the story-view chapter card so that chapter is in the
+            // viewport after returning. This ensures the scroll handler's
+            // activeChapterStateRef.current === index condition stays false
+            // (viewport chapter matches activeChapter) — no camera override.
+            const targetEl = chIdx >= 0 ? chapterRefs.current[chIdx] : null;
+            if (targetEl) {
+                setTimeout(() => {
+                    const rect = targetEl.getBoundingClientRect();
+                    const targetScroll = Math.max(0,
+                        window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2)
+                    );
+                    window.scrollTo(0, targetScroll);
+                }, 50);
+            } else {
+                setTimeout(() => window.scrollTo(0, overlayScrollRef.current), 50);
+            }
         }
     };
 

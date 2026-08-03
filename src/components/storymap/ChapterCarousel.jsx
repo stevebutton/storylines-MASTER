@@ -136,16 +136,19 @@ function NextChapterTab({ onNextChapter, nextChapterName, nextChapterColor, onRe
     );
 }
 
-export default function ChapterCarousel({ slides, onSlideChange, onImageClick, scrollToRef, onNextChapter = null, nextChapterName = null, nextChapterColor = null }) {
+export default function ChapterCarousel({ slides, onSlideChange, onImageClick, scrollToRef, initialIndex = 0, onNextChapter = null, nextChapterName = null, nextChapterColor = null }) {
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
     const [selectedIndex, setSelectedIndex] = React.useState(0);
 
-    // Expose scrollTo for external navigation
+    // Expose scrollTo for external navigation; also jump to initialIndex on first init
+    // so that returning from Story view shows the correct slide even when the carousel
+    // was not previously mounted (initialIndex is intentionally excluded from deps).
     React.useEffect(() => {
         if (scrollToRef && emblaApi) {
             scrollToRef.current = (idx) => emblaApi.scrollTo(idx);
+            if (initialIndex > 0) emblaApi.scrollTo(initialIndex, true);
         }
-    }, [emblaApi, scrollToRef]);
+    }, [emblaApi, scrollToRef]); // eslint-disable-line react-hooks/exhaustive-deps
 
     React.useEffect(() => {
         if (!emblaApi) return;

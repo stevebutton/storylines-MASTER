@@ -62,6 +62,8 @@ export default function StoryChapter({
     const [editingChapterName, setEditingChapterName] = useState(false);
     const [chapterNameDraft, setChapterNameDraft]     = useState('');
     const [showCarousel, setShowCarousel] = useState(false);
+    // Tracks which slide the carousel should jump to on next open (e.g. returning from Story view)
+    const [carouselInitialIndex, setCarouselInitialIndex] = useState(0);
 
     const handleOpenCarousel = (e) => {
         e?.currentTarget?.blur();
@@ -92,6 +94,7 @@ export default function StoryChapter({
         if (!isActive) {
             setShowCarousel(false);
             setActiveSlideIndex(0);
+            setCarouselInitialIndex(0);
             setEditingField(null);
             setEditingChapterName(false);
         }
@@ -109,10 +112,15 @@ export default function StoryChapter({
         return () => clearTimeout(t);
     }, [isActive, index, delay]);
 
-    // Open carousel and navigate when a marker click targets a specific slide
+    // Open carousel and navigate when a marker click or return-from-story targets a specific slide.
+    // carouselInitialIndex ensures ChapterCarousel jumps to the right slide even when the
+    // carousel was not yet mounted (cross-chapter navigation from Story view).
     useEffect(() => {
         if (targetSlideIndex !== undefined && targetSlideIndex !== null) {
+            setCarouselInitialIndex(targetSlideIndex);
             handleOpenCarousel();
+            // If the carousel is already mounted, scroll immediately; otherwise the
+            // initialIndex prop handles it when Embla initialises.
             if (carouselScrollToRef.current) carouselScrollToRef.current(targetSlideIndex);
         }
     }, [targetSlideIndex]);
@@ -383,6 +391,7 @@ export default function StoryChapter({
                                         slides={chapter.slides}
                                         onSlideChange={handleSlideChange}
                                         scrollToRef={carouselScrollToRef}
+                                        initialIndex={carouselInitialIndex}
                                         onImageClick={handleImageClick}
                                         onNextChapter={!isLastChapter ? onNextChapter : null}
                                         nextChapterName={nextChapterName}
