@@ -187,7 +187,7 @@ export default function EmbeddedLocationPicker({ location, onLocationChange, map
                 <div ref={mapContainerRef} className="absolute inset-0" />
                 
                 {/* Capture View Button */}
-                <div className="absolute top-2 left-2 z-10">
+                <div className="absolute top-2 right-2 z-10">
                     <Button onClick={captureCurrentView} size="sm" className="bg-amber-600 hover:bg-amber-700 shadow-lg">
                         <MapPin className="w-4 h-4 mr-2" />
                         Capture Current View

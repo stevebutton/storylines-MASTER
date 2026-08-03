@@ -160,7 +160,7 @@ export default function CesiumLocationPicker({ value, onChange }) {
 
                 {/* Capture button */}
                 {viewer && (
-                    <div className="absolute top-2 left-2" style={{ zIndex: 9999 }}>
+                    <div className="absolute top-2 right-2" style={{ zIndex: 9999 }}>
                         <Button
                             onClick={captureView}
                             size="sm"

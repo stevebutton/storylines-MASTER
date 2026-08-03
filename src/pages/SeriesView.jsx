@@ -161,7 +161,8 @@ export default function SeriesView() {
                     tagline={`a <strong>Storylines</strong> series`}
                     subtitle={series.subtitle || ''}
                     heroImage={series.cover_image}
-                    heroType="image"
+                    heroVideo={series.cover_video || ''}
+                    heroType={series.cover_video ? 'video' : 'image'}
                     mapStyle={series.map_style || 'a'}
                     onHeroLoaded={() => {
                         setMapReady(true);

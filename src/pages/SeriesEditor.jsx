@@ -47,9 +47,11 @@ export default function SeriesEditor() {
     const [showAddStories,      setShowAddStories]      = useState(false);
     const [isSaving,            setIsSaving]            = useState(false);
     const [isLoading,           setIsLoading]           = useState(true);
-    const [isUploadingCover,    setIsUploadingCover]    = useState(false);
-    const [activeTab,           setActiveTab]           = useState('content');
-    const coverFileRef = useRef(null);
+    const [isUploadingCover,      setIsUploadingCover]      = useState(false);
+    const [isUploadingCoverVideo, setIsUploadingCoverVideo] = useState(false);
+    const [activeTab,             setActiveTab]             = useState('content');
+    const coverFileRef      = useRef(null);
+    const coverVideoFileRef = useRef(null);
 
     useEffect(() => { loadAllSeries(); }, []);
 
@@ -146,6 +148,28 @@ export default function SeriesEditor() {
         }
     };
 
+    // ── Cover video upload ────────────────────────────────────────────────────
+
+    const uploadCoverVideo = async (file) => {
+        setIsUploadingCoverVideo(true);
+        try {
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const path = `${Date.now()}-series-video-${safeName}`;
+            const { data, error } = await supabase.storage.from('media').upload(path, file, { contentType: file.type, upsert: false });
+            if (error) throw error;
+            const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(data.path);
+            if (selected.id) {
+                await supabase.from('series').update({ cover_video: publicUrl }).eq('id', selected.id);
+            }
+            setSelected(prev => ({ ...prev, cover_video: publicUrl }));
+            toast.success('Hero video uploaded');
+        } catch (e) {
+            toast.error('Upload failed');
+        } finally {
+            setIsUploadingCoverVideo(false);
+        }
+    };
+
     // ── Save ─────────────────────────────────────────────────────────────────
 
     const save = async () => {
@@ -160,6 +184,7 @@ export default function SeriesEditor() {
                 subtitle:     rest.subtitle     || '',
                 description:  rest.description  || '',
                 cover_image:  rest.cover_image  || null,
+                cover_video:  rest.cover_video  || null,
                 category:     rest.category     || null,
                 is_published: rest.is_published || false,
                 map_style:    rest.map_style  || 'a',
@@ -477,6 +502,41 @@ export default function SeriesEditor() {
                                                     {selected.cover_image && (
                                                         <button
                                                             onClick={() => setSelected(p => ({ ...p, cover_image: null }))}
+                                                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {/* Hero Video */}
+                                            <div>
+                                                <FieldLabel>Hero Video <span className="font-normal text-slate-400">(replaces cover image in series view)</span></FieldLabel>
+                                                {selected.cover_video && (
+                                                    <div className="mb-3 rounded-xl overflow-hidden border border-slate-200" style={{ height: 220 }}>
+                                                        <video src={selected.cover_video} className="w-full h-full object-cover" muted autoPlay loop playsInline />
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-3">
+                                                    <input
+                                                        ref={coverVideoFileRef}
+                                                        type="file"
+                                                        accept="video/*"
+                                                        className="hidden"
+                                                        onChange={e => e.target.files[0] && uploadCoverVideo(e.target.files[0])}
+                                                    />
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => coverVideoFileRef.current?.click()}
+                                                        disabled={isUploadingCoverVideo}
+                                                        className="gap-2"
+                                                    >
+                                                        {isUploadingCoverVideo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                                        {selected.cover_video ? 'Replace Hero Video' : 'Upload Hero Video'}
+                                                    </Button>
+                                                    {selected.cover_video && (
+                                                        <button
+                                                            onClick={() => setSelected(p => ({ ...p, cover_video: null }))}
                                                             className="text-slate-400 hover:text-slate-600 transition-colors"
                                                         >
                                                             <X className="w-4 h-4" />
