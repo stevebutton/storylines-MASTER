@@ -266,6 +266,46 @@ const LoopingDirectVideo = ({ url }) => {
     );
 };
 
+// Cycles through an array of images with a crossfade dissolve between each.
+// 7 seconds display per image, 2-second opacity dissolve + scale 110%→100%.
+// Resets to image 0 whenever the component is remounted (key change on slide navigation).
+const SLIDESHOW_DISPLAY_MS = 7000;
+const SLIDESHOW_DISSOLVE_S = 2;
+
+const SlideshowPlayer = ({ images, imagePosition }) => {
+    const [currentIdx, setCurrentIdx] = React.useState(0);
+
+    React.useEffect(() => {
+        if (images.length <= 1) return;
+        const timer = setTimeout(() => {
+            setCurrentIdx(prev => (prev + 1) % images.length);
+        }, SLIDESHOW_DISPLAY_MS);
+        return () => clearTimeout(timer);
+    }, [currentIdx, images.length]);
+
+    return (
+        <div className="absolute inset-0">
+            <AnimatePresence mode="sync" initial={false}>
+                <motion.img
+                    key={currentIdx}
+                    src={images[currentIdx].url}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ objectPosition: imagePosition || '50% 50%' }}
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                        opacity: { duration: SLIDESHOW_DISSOLVE_S, ease: 'easeInOut' },
+                        scale:   { duration: SLIDESHOW_DISSOLVE_S, ease: 'easeOut' },
+                    }}
+                    draggable={false}
+                    alt=""
+                />
+            </AnimatePresence>
+        </div>
+    );
+};
+
 const VideoPlayer = ({ url, loop = false, onVideoEnded }) => {
     if (!url) return null;
 
@@ -546,6 +586,12 @@ export default function FullScreenImageViewer({
                     >
                         {currentSlide.video_url ? (
                             <VideoPlayer url={currentSlide.video_url} loop={currentSlide.video_loop === true} key={currentSlide.id} onVideoEnded={handleNext} />
+                        ) : currentSlide.slideshow_images?.length > 1 ? (
+                            <SlideshowPlayer
+                                key={currentSlide.id}
+                                images={currentSlide.slideshow_images}
+                                imagePosition={currentSlide.image_position}
+                            />
                         ) : (
                             <motion.img
                                 key={currentSlide.id}

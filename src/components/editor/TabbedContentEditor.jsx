@@ -139,6 +139,7 @@ export default function TabbedContentEditor({
     }, [defaultTab, itemType]);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+    const [isUploadingSlideshowImage, setIsUploadingSlideshowImage] = useState(false);
     const [isUploadingHeroImage, setIsUploadingHeroImage] = useState(false);
     const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
     const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
@@ -1256,6 +1257,33 @@ export default function TabbedContentEditor({
             }
         };
 
+        const handleSlideshowImageUpload = async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const current = item.slideshow_images || [];
+            if (current.length >= 5) return;
+            setIsUploadingSlideshowImage(true);
+            try {
+                const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                const filePath = `${generateId()}-${safeName}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(filePath, file, { contentType: file.type, upsert: false });
+                if (uploadError) throw uploadError;
+                const { data: { publicUrl: file_url } } = supabase.storage.from('media').getPublicUrl(filePath);
+                await saveToMediaLibrary(file_url, file);
+                onUpdate({ ...item, slideshow_images: [...current, { url: file_url }] });
+            } finally {
+                setIsUploadingSlideshowImage(false);
+                e.target.value = '';
+            }
+        };
+
+        const handleRemoveSlideshowImage = (index) => {
+            const updated = (item.slideshow_images || []).filter((_, i) => i !== index);
+            onUpdate({ ...item, slideshow_images: updated });
+        };
+
 
 
         return (<>
@@ -1606,6 +1634,53 @@ export default function TabbedContentEditor({
                                 </div>
                             </div>
 
+                            {/* Slideshow Images */}
+                            <div>
+                                <FieldLabel>Slideshow Images <span className="font-normal text-slate-400">(up to 5 · Story view only)</span></FieldLabel>
+                                {(item.slideshow_images || []).length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {(item.slideshow_images || []).map((img, idx) => (
+                                            <div key={idx} className="relative w-16 h-16 rounded overflow-hidden border border-slate-200 group">
+                                                <img src={img.url} className="w-full h-full object-cover" alt={`Slideshow ${idx + 1}`} />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveSlideshowImage(idx)}
+                                                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                                                >
+                                                    <X className="w-4 h-4 text-white" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {(item.slideshow_images || []).length < 5 && (
+                                    <div className="flex gap-2 mt-2">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleSlideshowImageUpload}
+                                            className="hidden"
+                                            id="slide-slideshow-image"
+                                        />
+                                        <label htmlFor="slide-slideshow-image" className="flex-1">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                disabled={isUploadingSlideshowImage}
+                                                onClick={() => document.getElementById('slide-slideshow-image').click()}
+                                                className="w-full"
+                                            >
+                                                {isUploadingSlideshowImage ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ImageIcon className="w-4 h-4 mr-2" />}
+                                                Add Image
+                                            </Button>
+                                        </label>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => setMediaPickerTarget('slideshow_image')}>
+                                            <Images className="w-4 h-4 mr-1" /> Library
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* PDF */}
                             <div>
                                 <FieldLabel>PDF Document</FieldLabel>
@@ -1682,11 +1757,18 @@ export default function TabbedContentEditor({
                 mode="picker"
                 accept={mediaPickerTarget === 'slide_video' ? 'video' : 'image'}
                 onSelect={(url) => {
-                    const updates = {
-                        slide_image: { image: url },
-                        slide_video: { video_url: url },
-                    };
-                    onUpdate({ ...item, ...(updates[mediaPickerTarget] || {}) });
+                    if (mediaPickerTarget === 'slideshow_image') {
+                        const current = item.slideshow_images || [];
+                        if (current.length < 5) {
+                            onUpdate({ ...item, slideshow_images: [...current, { url }] });
+                        }
+                    } else {
+                        const updates = {
+                            slide_image: { image: url },
+                            slide_video: { video_url: url },
+                        };
+                        onUpdate({ ...item, ...(updates[mediaPickerTarget] || {}) });
+                    }
                     setMediaPickerTarget(null);
                 }}
             />

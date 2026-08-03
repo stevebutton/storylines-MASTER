@@ -439,6 +439,7 @@ export default function StoryMapView() {
                         show_rain_button: s.show_rain_button,
                         cesium_camera: s.cesium_camera,
                         map_annotations: s.map_annotations,
+                        slideshow_images: s.slideshow_images,
                     }))
             }));
 
