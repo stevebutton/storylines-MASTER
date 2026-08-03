@@ -5,6 +5,21 @@ import { supabase } from '@/api/supabaseClient';
 
 const PANEL_WIDTH = 380;
 
+// Strips inline colour declarations injected by ReactQuill (e.g. style="color: rgb(0,0,0)")
+// so that the panel's white text colour applies uniformly to all child elements.
+// Inline styles have higher CSS specificity than class rules and override prose-invert /
+// the parent colour, causing the intermittent black-text issue.
+const stripInlineColors = (html) => {
+    if (!html || typeof document === 'undefined') return html;
+    const el = document.createElement('div');
+    el.innerHTML = html;
+    el.querySelectorAll('[style]').forEach(node => {
+        node.style.removeProperty('color');
+        if (!node.getAttribute('style').trim()) node.removeAttribute('style');
+    });
+    return el.innerHTML;
+};
+
 // Split content into pages at paragraph (HTML) or sentence (plain text) boundaries.
 const splitHtmlIntoPages = (content, maxChars = 500) => {
     if (!content) return [];
@@ -434,7 +449,7 @@ const TextPanelCarousel = ({
                                                 canEdit ? 'cursor-text hover:bg-white/10 rounded-lg px-2 -mx-2 transition-colors' : '',
                                             ].join(' ')}
                                             style={{ color: 'white' }}
-                                            dangerouslySetInnerHTML={{ __html: page.content }}
+                                            dangerouslySetInnerHTML={{ __html: stripInlineColors(page.content) }}
                                             onClick={canEdit ? () => setEditingBody(true) : undefined}
                                             title={canEdit ? 'Click to edit' : undefined}
                                         />
