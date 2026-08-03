@@ -148,6 +148,124 @@ function ImageHotspots({ hotspots, mapStyle, chapterColorIndex, onAnyCardOpen, c
     );
 }
 
+// Looping direct-video player with a 1-second opacity crossfade at the loop point,
+// eliminating the hard-cut jump that the native `loop` attribute produces.
+// Two <video> elements share the same source; they alternate as primary/secondary.
+// When the active video enters its final second, the inactive video starts from t=0
+// and fades in while the active one fades out.  Works only for self-hosted files
+// (YouTube / Vimeo iframes are cross-origin and cannot be observed this way).
+const CROSSFADE_DURATION = 1; // seconds
+
+const LoopingDirectVideo = ({ url }) => {
+    const videoARef = useRef(null);
+    const videoBRef = useRef(null);
+    const activeRef      = useRef('a');   // which video is currently primary
+    const crossfadingRef = useRef(false);
+    const [opacityA, setOpacityA] = useState(1);
+    const [opacityB, setOpacityB] = useState(0);
+    const [activeControls, setActiveControls] = useState('a');
+
+    useEffect(() => {
+        const vA = videoARef.current;
+        const vB = videoBRef.current;
+        if (!vA || !vB) return;
+
+        const startCrossfade = (from, to, setFromOpacity, setToOpacity, nextActive) => {
+            if (crossfadingRef.current) return;
+            crossfadingRef.current = true;
+            to.currentTime = 0;
+            to.play().catch(() => {});
+            setFromOpacity(0);
+            setToOpacity(1);
+        };
+
+        const handleTimeUpdateA = () => {
+            if (activeRef.current !== 'a' || crossfadingRef.current) return;
+            if (!vA.duration || !isFinite(vA.duration) || vA.duration <= CROSSFADE_DURATION * 2) return;
+            if (vA.duration - vA.currentTime <= CROSSFADE_DURATION) {
+                startCrossfade(vA, vB, setOpacityA, setOpacityB);
+            }
+        };
+
+        const handleTimeUpdateB = () => {
+            if (activeRef.current !== 'b' || crossfadingRef.current) return;
+            if (!vB.duration || !isFinite(vB.duration) || vB.duration <= CROSSFADE_DURATION * 2) return;
+            if (vB.duration - vB.currentTime <= CROSSFADE_DURATION) {
+                startCrossfade(vB, vA, setOpacityB, setOpacityA);
+            }
+        };
+
+        const handleEndedA = () => {
+            vA.pause();
+            vA.currentTime = 0;
+            activeRef.current = 'b';
+            crossfadingRef.current = false;
+            setActiveControls('b');
+        };
+
+        const handleEndedB = () => {
+            vB.pause();
+            vB.currentTime = 0;
+            activeRef.current = 'a';
+            crossfadingRef.current = false;
+            setActiveControls('a');
+        };
+
+        vA.addEventListener('timeupdate', handleTimeUpdateA);
+        vA.addEventListener('ended',      handleEndedA);
+        vB.addEventListener('timeupdate', handleTimeUpdateB);
+        vB.addEventListener('ended',      handleEndedB);
+
+        return () => {
+            vA.removeEventListener('timeupdate', handleTimeUpdateA);
+            vA.removeEventListener('ended',      handleEndedA);
+            vB.removeEventListener('timeupdate', handleTimeUpdateB);
+            vB.removeEventListener('ended',      handleEndedB);
+        };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="relative w-full h-full"
+        >
+            {/* Blurred background fill */}
+            <video
+                src={url}
+                autoPlay
+                loop
+                playsInline
+                muted
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ filter: 'blur(24px)', transform: 'scale(1.05)', opacity: 0.8 }}
+            />
+            {/* Video A — starts as primary */}
+            <video
+                ref={videoARef}
+                src={url}
+                autoPlay
+                playsInline
+                controls={activeControls === 'a'}
+                className="absolute inset-0 w-full h-full object-contain z-10"
+                style={{ opacity: opacityA, transition: `opacity ${CROSSFADE_DURATION}s ease-in-out` }}
+            />
+            {/* Video B — starts hidden, becomes primary on first loop */}
+            <video
+                ref={videoBRef}
+                src={url}
+                playsInline
+                controls={activeControls === 'b'}
+                className="absolute inset-0 w-full h-full object-contain z-10"
+                style={{ opacity: opacityB, transition: `opacity ${CROSSFADE_DURATION}s ease-in-out` }}
+            />
+        </motion.div>
+    );
+};
+
 const VideoPlayer = ({ url, loop = false, onVideoEnded }) => {
     if (!url) return null;
 
@@ -159,6 +277,8 @@ const VideoPlayer = ({ url, loop = false, onVideoEnded }) => {
         const videoId = url.split('vimeo.com/')[1]?.split('?')[0];
         embedUrl = videoId ? `https://player.vimeo.com/video/${videoId}?autoplay=1&controls=1` : '';
     } else {
+        // Self-hosted file: looping gets a smooth crossfade; non-looping advances on end
+        if (loop) return <LoopingDirectVideo url={url} />;
         return (
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -178,14 +298,13 @@ const VideoPlayer = ({ url, loop = false, onVideoEnded }) => {
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{ filter: 'blur(24px)', transform: 'scale(1.05)', opacity: 0.8 }}
                 />
-                {/* Foreground video — maintains aspect ratio */}
+                {/* Foreground video — maintains aspect ratio, advances to next slide on end */}
                 <video
                     src={url}
                     controls
                     autoPlay
-                    loop={loop}
                     playsInline
-                    onEnded={loop ? undefined : onVideoEnded}
+                    onEnded={onVideoEnded}
                     className="relative w-full h-full object-contain z-10"
                 />
             </motion.div>

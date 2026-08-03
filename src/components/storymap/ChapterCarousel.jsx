@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 const VideoEmbed = ({ url }) => {
     if (!url) return null;
@@ -180,16 +180,25 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                     style={{ cursor: FULLSCREEN_CURSOR }}
                     onClick={() => onImageClick?.(0)}
                 >
-                    {slides[0].video_url ? (
+                    {slides[0].image ? (
+                        <>
+                            <img
+                                src={slides[0].image}
+                                alt={slides[0].title}
+                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                style={{ objectPosition: slides[0].image_position || '50% 50%' }}
+                            />
+                            {slides[0].video_url && (
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                                        <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    ) : slides[0].video_url ? (
                         <VideoEmbed url={slides[0].video_url} />
-                    ) : (
-                        <img
-                            src={slides[0].image}
-                            alt={slides[0].title}
-                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                            style={{ objectPosition: slides[0].image_position || '50% 50%' }}
-                        />
-                    )}
+                    ) : null}
                     <div className="absolute bottom-0 left-0 right-0 h-1/5 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                 </div>
                 <AnimatePresence>
@@ -213,16 +222,25 @@ export default function ChapterCarousel({ slides, onSlideChange, onImageClick, s
                             style={{ cursor: FULLSCREEN_CURSOR }}
                             onClick={() => onImageClick?.(index)}
                         >
-                            {slide.video_url ? (
+                            {slide.image ? (
+                                <>
+                                    <img
+                                        src={slide.image}
+                                        alt={slide.title}
+                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                        style={{ objectPosition: slide.image_position || '50% 50%' }}
+                                    />
+                                    {slide.video_url && (
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                                                <Play className="w-6 h-6 text-white fill-white ml-0.5" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            ) : slide.video_url ? (
                                 <VideoEmbed url={slide.video_url} />
-                            ) : (
-                                <img
-                                    src={slide.image}
-                                    alt={slide.title}
-                                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                                    style={{ objectPosition: slide.image_position || '50% 50%' }}
-                                />
-                            )}
+                            ) : null}
                         </div>
                     ))}
                 </div>
