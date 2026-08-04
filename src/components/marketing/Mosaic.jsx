@@ -37,8 +37,9 @@ const PROSE_CSS = `
 
 function MosaicCard({ panel, isHovered, isExpanded }) {
   const videoRef = useRef(null)
+  const previewVideoRef = useRef(null)
   const videoType = getVideoType(panel.videoUrl)
-  const hasMedia = !!(panel.image || panel.videoUrl)
+  const hasMedia = !!(panel.image || panel.videoUrl || panel.previewVideoUrl)
   const isMp4 = videoType === 'mp4'
 
   useEffect(() => {
@@ -50,6 +51,16 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
     } else {
       video.pause()
       video.currentTime = 0
+    }
+  }, [isExpanded])
+
+  useEffect(() => {
+    const preview = previewVideoRef.current
+    if (!preview) return
+    if (isExpanded) {
+      preview.pause()
+    } else {
+      preview.play().catch(() => {})
     }
   }, [isExpanded])
 
@@ -80,6 +91,21 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         }),
       }}
     >
+      {/* Idle / preview video — plays in closed state, fades out on expand */}
+      {panel.previewVideoUrl && (
+        <video
+          ref={previewVideoRef}
+          autoPlay muted loop playsInline
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            opacity: isExpanded ? 0 : 1,
+            transition: 'opacity 0.7s ease',
+          }}
+        >
+          <source src={panel.previewVideoUrl} type="video/mp4" />
+        </video>
+      )}
+
       {/* mp4 — dissolves in over the image on expand, resets on collapse */}
       {isMp4 && (
         <video

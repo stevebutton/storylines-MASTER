@@ -11,6 +11,7 @@ function normalizePanel(post) {
     image: typeof acf.panel_image === 'string' ? acf.panel_image : null,
     _imageId: typeof acf.panel_image === 'number' ? acf.panel_image : null,
     videoUrl: acf.panel_video_url || null,
+    previewVideoUrl: acf.preview_video_url || null,
     content: acf.panel_content || '',
     link: acf.panel_link || null,
     order: post.menu_order ?? 0,
