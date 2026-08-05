@@ -187,7 +187,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
 
 // ─── Content panel ────────────────────────────────────────────────────────────
 
-function MosaicContentPanel({ panel }) {
+function MosaicContentPanel({ panel, index }) {
   return (
     <div style={{
       borderRadius: '16px',
@@ -196,6 +196,9 @@ function MosaicContentPanel({ panel }) {
       boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
       padding: '28px 40px 32px',
       position: 'relative',
+      height: '100%',
+      boxSizing: 'border-box',
+      overflowY: 'auto',
     }}>
       <h2 style={{
         fontFamily: "'Oswald', sans-serif",
@@ -203,7 +206,7 @@ function MosaicContentPanel({ panel }) {
         lineHeight: 1.1,
         margin: '-10px 0 16px',
         color: '#000',
-        textAlign: 'center',
+        textAlign: index < 2 ? 'left' : 'right',
         animation: 'mosaicFadeDown 0.4s ease both',
       }}>
         {panel.category}
@@ -306,19 +309,25 @@ export default function Mosaic({ panels }) {
     return Math.max(0, Math.min(containerW - expandedW, desired))
   }
 
-  const contentPanelW = Math.round(expandedW * 0.7)
-  const contentPanelLeft = expandedIdx !== null
-    ? getExpandedCardLeft(expandedIdx) + (expandedW - contentPanelW) / 2
+  // Content panel sits beside the expanded card — not below it.
+  // Cards 0 & 1 (left half): panel to the right. Cards 2 & 3 (right half): panel to the left.
+  // Width is 50% of the available space beside the expanded card.
+  // For cards 2 & 3 the panel is right-aligned (flush against the expanded card).
+  const sidePanelW = 300
+  const sidePanelLeft = expandedIdx !== null
+    ? expandedIdx < 2
+      ? getExpandedCardLeft(expandedIdx) + expandedW + GAP          // right of card
+      : getExpandedCardLeft(expandedIdx) - GAP - sidePanelW         // flush left of card
     : 0
 
   return (
-    <div style={{ width: '100%', maxWidth: 1340, margin: '0 auto', padding: `${24 + (expandedH - CARD_H) / 2}px 32px 24px`, boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', maxWidth: 1340, margin: '0 auto', padding: `${24 + (expandedH - CARD_H) / 2}px 32px`, boxSizing: 'border-box' }}>
       <style>{PROSE_CSS}</style>
 
       <div
         ref={containerRef}
         onMouseLeave={() => { cancelCollapse(); setExpandedIdx(null); setHoveredIdx(null) }}
-        style={{ minHeight: inView ? undefined : CARD_H }}
+        style={{ minHeight: inView ? undefined : CARD_H, position: 'relative' }}
       >
         {/* Card row — deferred until component enters the viewport */}
         {inView && <div style={{ display: 'flex', gap: GAP }}>
@@ -354,15 +363,16 @@ export default function Mosaic({ panels }) {
           ))}
         </div>}
 
-        {/* Content panel — overlaps card bottom by 80px */}
+        {/* Content panel — beside the expanded card, vertically centred */}
         {inView && expandedIdx !== null && panels[expandedIdx] && (
           <div
             style={{
-              position: 'relative',
+              position: 'absolute',
+              top: (CARD_H - expandedH) / 2,
+              height: expandedH,
+              left: sidePanelLeft,
+              width: sidePanelW,
               zIndex: 10,
-              marginTop: (expandedH - CARD_H) / 2 - 60,
-              marginLeft: contentPanelLeft,
-              width: contentPanelW,
             }}
             onMouseEnter={cancelCollapse}
             onMouseLeave={scheduleCollapse}
@@ -370,6 +380,7 @@ export default function Mosaic({ panels }) {
             <MosaicContentPanel
               key={expandedIdx}
               panel={panels[expandedIdx]}
+              index={expandedIdx}
             />
           </div>
         )}
