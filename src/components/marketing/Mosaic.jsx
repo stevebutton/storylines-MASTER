@@ -70,7 +70,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         width: '100%',
         height: '100%',
         borderRadius: '16px',
-        border: '1px solid rgba(255,255,255,0.2)',
+        border: '1px solid rgba(255,255,255,0.6)',
         boxShadow: isExpanded || isHovered
           ? '0 8px 40px rgba(0,0,0,0.3)'
           : '0 4px 24px rgba(0,0,0,0.15)',
@@ -191,10 +191,8 @@ function MosaicContentPanel({ panel }) {
   return (
     <div style={{
       borderRadius: '16px',
-      background: 'rgba(255,255,255,0.45)',
-      backdropFilter: 'blur(16px)',
-      WebkitBackdropFilter: 'blur(16px)',
-      border: '1px solid rgba(255,255,255,0.2)',
+      background: '#ffffff',
+      border: '1px solid rgba(255,255,255,0.6)',
       boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
       padding: '28px 40px 32px',
       position: 'relative',
