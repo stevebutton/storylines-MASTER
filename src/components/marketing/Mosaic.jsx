@@ -373,6 +373,7 @@ export default function Mosaic({ panels }) {
               left: sidePanelLeft,
               width: sidePanelW,
               zIndex: 10,
+              animation: 'mosaicFadeDown 0.6s ease 2s both',
             }}
             onMouseEnter={cancelCollapse}
             onMouseLeave={scheduleCollapse}
