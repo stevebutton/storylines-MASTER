@@ -95,7 +95,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
       {panel.previewVideoUrl && (
         <video
           ref={previewVideoRef}
-          autoPlay muted loop playsInline
+          autoPlay muted playsInline
           style={{
             position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
             opacity: isExpanded ? 0 : 1,
@@ -157,15 +157,17 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         opacity: isExpanded ? 0 : 1,
         transition: 'opacity 0.3s ease',
       }}>
-        <h2 style={{
-          fontFamily: "'Oswald', sans-serif",
-          fontSize: '42px',
-          lineHeight: 1.1,
-          margin: 0,
-          color: hasMedia ? '#ffffff' : '#2C97BE',
-        }}>
-          {panel.category}
-        </h2>
+        {!panel.previewVideoUrl && (
+          <h2 style={{
+            fontFamily: "'Oswald', sans-serif",
+            fontSize: '42px',
+            lineHeight: 1.1,
+            margin: 0,
+            color: hasMedia ? '#ffffff' : '#2C97BE',
+          }}>
+            {panel.category}
+          </h2>
+        )}
 
         {panel.description && (
           <p style={{
