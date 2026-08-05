@@ -110,6 +110,13 @@ export default function MapBackground({
     const annotationPopupRef = useRef(null);
     const annotationCloseListenerRef = useRef(null);
 
+    // Stable primitive values for center — using numbers instead of the array reference
+    // prevents the camera effect from re-firing when setMapConfig creates a new array
+    // with the same coordinate values (e.g. ch0Coords and slide0.coordinates both
+    // pointing to the same location but as different JS objects).
+    const centerLat = Array.isArray(center) && center.length === 2 ? center[0] : null;
+    const centerLng = Array.isArray(center) && center.length === 2 ? center[1] : null;
+
     // Initialize map
     useEffect(() => {
         if (map.current || !mapContainer.current) return;
@@ -158,10 +165,10 @@ export default function MapBackground({
     useEffect(() => {
         if (!map.current || !mapContainer.current) return;
 
-        // Validate center coordinates
-        if (!center || !Array.isArray(center) || center.length !== 2 ||
-            isNaN(center[0]) || isNaN(center[1]) ||
-            !isFinite(center[0]) || !isFinite(center[1])) {
+        // Validate center coordinates (using the stable primitive lat/lng values)
+        if (centerLat === null || centerLng === null ||
+            isNaN(centerLat) || isNaN(centerLng) ||
+            !isFinite(centerLat) || !isFinite(centerLng)) {
             return;
         }
 
@@ -185,7 +192,7 @@ export default function MapBackground({
                 if (!map.current) return;
                 try {
                     map.current.jumpTo({
-                        center: [center[1], center[0]],
+                        center: [centerLng, centerLat],
                         zoom: zoom || 12,
                         bearing: bearing || 0,
                         pitch: validPitch
@@ -204,7 +211,7 @@ export default function MapBackground({
         if (instant) {
             try {
                 map.current.easeTo({
-                    center: [center[1], center[0]],
+                    center: [centerLng, centerLat],
                     zoom: zoom || 12,
                     bearing: bearing || 0,
                     pitch: validPitch,
@@ -215,10 +222,11 @@ export default function MapBackground({
             return;
         }
 
-        // Animated flyTo for all user-triggered navigation
+        // Animated navigation — easeTo avoids the flyTo arc zoom-out that
+        // appeared as a visible "jump" at the start of each transition.
         try {
-            map.current.flyTo({
-                center: [center[1], center[0]],
+            map.current.easeTo({
+                center: [centerLng, centerLat],
                 offset: offset,
                 zoom: zoom || 12,
                 bearing: bearing || 0,
@@ -237,7 +245,12 @@ export default function MapBackground({
                 rotationRef.current = null;
             }
         };
-    }, [center, zoom, bearing, pitch, shouldRotate, flyDuration, instant]);
+    // centerLat/centerLng: primitive number comparison prevents spurious re-fires when
+    // setMapConfig creates a new array with unchanged coordinate values.
+    // shouldRotate is intentionally excluded — it is not used in this effect body,
+    // so including it caused the camera to restart mid-animation whenever
+    // shouldRotate toggled between true/false (e.g. chapter overview → slide 0).
+    }, [centerLat, centerLng, zoom, bearing, pitch, flyDuration, instant]);
 
     // Switch map style when the mapStyle prop changes.
     // On style.load, reset routeSourceAdded and increment styleLoadCount so the

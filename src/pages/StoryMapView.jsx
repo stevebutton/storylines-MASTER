@@ -1528,7 +1528,11 @@ export default function StoryMapView() {
                                 if (ch0Coords && Array.isArray(ch0Coords) &&
                                     ch0Coords.length === 2 &&
                                     !isNaN(ch0Coords[0]) && !isNaN(ch0Coords[1])) {
-                                    suppressNextOnSlideChangeMapConfig.current = Date.now() + 500;
+                                    // The scroll animation to chapter 0 takes ~2 s.
+                                    // StoryChapter's isActive effect fires onSlideChange during
+                                    // that scroll, which would start a second flyTo and stutter
+                                    // the first. Suppress for 2500 ms to outlast the scroll.
+                                    suppressNextOnSlideChangeMapConfig.current = Date.now() + 2500;
                                     setMapConfig({
                                         center: ch0Coords,
                                         offset: [-200, 0],
@@ -1574,7 +1578,8 @@ export default function StoryMapView() {
                                     if (ch0Coords && Array.isArray(ch0Coords) &&
                                         ch0Coords.length === 2 &&
                                         !isNaN(ch0Coords[0]) && !isNaN(ch0Coords[1])) {
-                                        suppressNextOnSlideChangeMapConfig.current = Date.now() + 500;
+                                        // Same 2500 ms suppress as onExplore — see comment there.
+                                        suppressNextOnSlideChangeMapConfig.current = Date.now() + 2500;
                                         setMapConfig({
                                             center: ch0Coords,
                                             offset: [-200, 0],
