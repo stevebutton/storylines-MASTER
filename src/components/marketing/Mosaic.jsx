@@ -136,16 +136,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         </div>
       )}
 
-      {hasMedia && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.65) 100%)',
-          zIndex: 1,
-          opacity: isMp4 && isExpanded ? 0 : 1,
-          transition: 'opacity 0.7s ease',
-        }} />
-      )}
+      {/* gradient removed — title is embedded in video */}
 
       {/* Title + description */}
       <div style={{
@@ -270,6 +261,7 @@ export default function Mosaic({ panels }) {
   const [containerW, setContainerW] = useState(1276)
   const [hoveredIdx, setHoveredIdx] = useState(null)
   const [expandedIdx, setExpandedIdx] = useState(null)
+  const [inView, setInView] = useState(false)
 
   const scheduleCollapse = () => {
     collapseTimer.current = setTimeout(() => {
@@ -279,6 +271,20 @@ export default function Mosaic({ panels }) {
   }
 
   const cancelCollapse = () => clearTimeout(collapseTimer.current)
+
+  // Only render cards once the component scrolls into the viewport
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setInView(true)
+        io.disconnect()
+      }
+    }, { threshold: 0.1 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -314,9 +320,10 @@ export default function Mosaic({ panels }) {
       <div
         ref={containerRef}
         onMouseLeave={() => { cancelCollapse(); setExpandedIdx(null); setHoveredIdx(null) }}
+        style={{ minHeight: inView ? undefined : CARD_H }}
       >
-        {/* Card row */}
-        <div style={{ display: 'flex', gap: GAP }}>
+        {/* Card row — deferred until component enters the viewport */}
+        {inView && <div style={{ display: 'flex', gap: GAP }}>
           {cards.map((panel, idx) => (
             <div
               key={panel.id ?? idx}
@@ -347,10 +354,10 @@ export default function Mosaic({ panels }) {
               </div>
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* Content panel — overlaps card bottom by 80px */}
-        {expandedIdx !== null && panels[expandedIdx] && (
+        {inView && expandedIdx !== null && panels[expandedIdx] && (
           <div
             style={{
               position: 'relative',
