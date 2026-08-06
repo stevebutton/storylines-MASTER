@@ -37,6 +37,10 @@ const PROSE_CSS = `
     from { opacity: 0; transform: translateY(-10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes carouselSlideFromRight {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
   @keyframes mosaicFadeDown {
     from { opacity: 0; transform: translateY(-12px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -275,6 +279,12 @@ export default function Carousel({ panels, intro }) {
   const [expandedIdx, setExpandedIdx] = useState(null)
   const dragRef = useRef({ active: false, startX: 0, startOffset: 0, moved: false })
   const clickTargetRef = useRef(null)
+  const collapseTimer = useRef(null)
+
+  const scheduleCollapse = () => {
+    collapseTimer.current = setTimeout(() => setExpandedIdx(null), 80)
+  }
+  const cancelCollapse = () => clearTimeout(collapseTimer.current)
 
   const maxOffset = Math.max(0, (panels.length - 1) * STEP)
   const currentIndex = Math.round(offset / STEP)
@@ -366,7 +376,7 @@ export default function Carousel({ panels, intro }) {
       <style>{PROSE_CSS}</style>
 
       {/* Carousel track */}
-      <div style={{ position: 'relative', height: `${TRACK_H}px` }}>
+      <div style={{ position: 'relative', height: `${TRACK_H}px` }} onMouseLeave={scheduleCollapse}>
         <button onClick={() => { handleClose(); snapTo(currentIndex - 1) }} style={arrowStyle(canPrev, 'left')}>
           <ChevronLeft style={{ width: '18px', height: '18px', color: '#334155' }} />
         </button>
@@ -454,100 +464,102 @@ export default function Carousel({ panels, intro }) {
         <button onClick={() => { handleClose(); snapTo(currentIndex + 1) }} style={arrowStyle(canNext, 'right')}>
           <ChevronRight style={{ width: '18px', height: '18px', color: '#334155' }} />
         </button>
-      </div>
 
-      {/* Content panel below — Mosaic styling */}
-      {activePanel && (
-        <div
-          key={expandedIdx}
-          style={{
-            marginTop: '-60px',
-            marginLeft: `${INTRO_W + 30}px`,
-            width: `${EXPANDED_W - 60}px`,
-            borderRadius: '16px',
-            background: 'rgba(255,255,255,0.45)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-            padding: '28px 40px 32px',
-            position: 'relative',
-            zIndex: 10,
-            animation: 'carouselFadeIn 0.4s ease both',
-          }}
-        >
-          <button
-            onClick={handleClose}
+        {/* Content panel — right edge of track, slides in over expanded card */}
+        {activePanel && (
+          <div
+            key={expandedIdx}
+            onMouseEnter={cancelCollapse}
+            onMouseLeave={scheduleCollapse}
             style={{
               position: 'absolute',
-              top: '14px',
-              right: '14px',
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              background: 'rgba(0,0,0,0.06)',
-              border: '1px solid rgba(0,0,0,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
+              top: -4,
+              right: 80,
+              width: 300,
+              height: TRACK_H + 8,
+              zIndex: 15,
+              borderRadius: '16px',
+              background: '#ffffff',
+              border: '1px solid rgba(255,255,255,0.6)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+              padding: '28px 40px 32px',
+              boxSizing: 'border-box',
+              overflowY: 'auto',
+              animation: 'carouselSlideFromRight 0.6s ease 1s both',
             }}
           >
-            <X style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.5)' }} />
-          </button>
-
-          <h2 style={{
-            fontFamily: "'Oswald', sans-serif",
-            fontSize: '30px',
-            lineHeight: 1.1,
-            margin: '-10px 0 16px',
-            color: '#000',
-            textAlign: 'center',
-            animation: 'mosaicFadeDown 0.4s ease both',
-          }}>
-            {activePanel.category}
-          </h2>
-
-          <div
-            className="mosaic-content"
-            style={{ animation: 'mosaicFadeDown 0.4s ease 0.15s both' }}
-            dangerouslySetInnerHTML={{ __html: activePanel.content }}
-          />
-
-          {activePanel.link && (
-            <a
-              href={activePanel.link}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={handleClose}
               style={{
-                display: 'inline-block',
-                marginTop: '20px',
-                padding: '10px 24px',
-                borderRadius: '8px',
-                background: 'rgba(0,0,0,0.08)',
-                border: '1px solid rgba(0,0,0,0.2)',
-                color: '#000',
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: '13px',
-                fontWeight: 500,
-                letterSpacing: '0.04em',
-                textDecoration: 'none',
-                transition: 'background 0.2s ease, border-color 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(0,0,0,0.15)'
-                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(0,0,0,0.08)'
-                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'
+                position: 'absolute',
+                top: '14px',
+                right: '14px',
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                background: 'rgba(0,0,0,0.06)',
+                border: '1px solid rgba(0,0,0,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
               }}
             >
-              Find Out More
-            </a>
-          )}
-        </div>
-      )}
+              <X style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.5)' }} />
+            </button>
+
+            <h2 style={{
+              fontFamily: "'Oswald', sans-serif",
+              fontSize: '30px',
+              lineHeight: 1.1,
+              margin: '-10px 0 16px',
+              color: '#000',
+              animation: 'mosaicFadeDown 0.4s ease 1s both',
+            }}>
+              {activePanel.category}
+            </h2>
+
+            <div
+              className="mosaic-content"
+              style={{ animation: 'mosaicFadeDown 0.4s ease 1.15s both' }}
+              dangerouslySetInnerHTML={{ __html: activePanel.content }}
+            />
+
+            {activePanel.link && (
+              <a
+                href={activePanel.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  marginTop: '20px',
+                  padding: '10px 24px',
+                  borderRadius: '8px',
+                  background: 'rgba(0,0,0,0.08)',
+                  border: '1px solid rgba(0,0,0,0.2)',
+                  color: '#000',
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  letterSpacing: '0.04em',
+                  textDecoration: 'none',
+                  transition: 'background 0.2s ease, border-color 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(0,0,0,0.15)'
+                  e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(0,0,0,0.08)'
+                  e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'
+                }}
+              >
+                Find Out More
+              </a>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
