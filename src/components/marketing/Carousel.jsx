@@ -5,7 +5,7 @@ const PANEL_W = 300
 const EXPANDED_W = 700
 const GAP = 12
 const STEP = PANEL_W + GAP
-const TRACK_H = 500
+const TRACK_H = 590
 const INTRO_W = 400  // panels start here; intro text fills the space to the left
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ const PROSE_CSS = `
 
 // ─── Individual panel ─────────────────────────────────────────────────────────
 
-function Panel({ panel, isHovered, isExpanded }) {
+function Panel({ panel, isHovered, isExpanded, onClose }) {
   const [playing, setPlaying] = useState(false)
   const videoRef = useRef(null)
   const videoType = getVideoType(panel.videoUrl)
@@ -101,7 +101,6 @@ function Panel({ panel, isHovered, isExpanded }) {
           ? '0 8px 40px rgba(0,0,0,0.35)'
           : '0 4px 24px rgba(0,0,0,0.15)',
         position: 'relative',
-        overflow: 'hidden',
         cursor: isExpanded ? 'default' : 'pointer',
         transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease',
         backgroundColor: isHovered && !isExpanded
@@ -111,84 +110,89 @@ function Panel({ panel, isHovered, isExpanded }) {
         WebkitBackdropFilter: hasMedia ? 'none' : 'blur(12px)',
       }}
     >
-      {/* Collapsed image — always shown, zooms on hover */}
-      {panel.image && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `url(${panel.image})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          transform: isHovered && !isExpanded ? 'scale(1.10)' : 'scale(1)',
-          transition: 'transform 0.5s ease',
-        }} />
-      )}
+      {/* Inner clip wrapper — keeps media and overlays clipped to card shape */}
+      <div style={{ position: 'absolute', inset: 0, borderRadius: '16px', overflow: 'hidden' }}>
 
-      {/* Expanded image — crossfades in over collapsed image on expand */}
-      {panel.expandedImage && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `url(${panel.expandedImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: isExpanded ? 1 : 0,
-          transition: 'opacity 0.7s ease',
-        }} />
-      )}
-
-      {/* Expanded video — dissolves in over collapsed image on expand */}
-      {isExpandedMp4 && (
-        <video
-          ref={videoRef}
-          muted loop playsInline
-          style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
-            opacity: isExpanded ? 1 : 0,
-            transition: 'opacity 0.7s ease',
-          }}
-        >
-          <source src={panel.expandedVideoUrl} type="video/mp4" />
-        </video>
-      )}
-
-      {/* mp4 autoplay background — standalone, always playing */}
-      {isMp4 && (
-        <video
-          autoPlay muted loop playsInline
-          style={{
-            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+        {/* Collapsed image — always shown, zooms on hover */}
+        {panel.image && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${panel.image})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             transform: isHovered && !isExpanded ? 'scale(1.10)' : 'scale(1)',
             transition: 'transform 0.5s ease',
-          }}
-        >
-          <source src={panel.videoUrl} type="video/mp4" />
-        </video>
-      )}
+          }} />
+        )}
 
-      {/* Gradient overlay */}
-      {hasMedia && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.65) 100%)',
-          zIndex: 1,
-          opacity: isExpanded ? 0 : 1,
-          transition: 'opacity 0.45s ease',
-        }} />
-      )}
+        {/* Expanded image — crossfades in over collapsed image on expand */}
+        {panel.expandedImage && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${panel.expandedImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: isExpanded ? 1 : 0,
+            transition: 'opacity 0.7s ease',
+          }} />
+        )}
 
-      {/* YouTube / Vimeo iframe */}
-      {isEmbeddable && playing && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
-          <iframe
-            src={getEmbedUrl(panel.videoUrl, videoType)}
-            style={{ width: '100%', height: '100%', border: 'none' }}
-            allow="autoplay; fullscreen"
-            allowFullScreen
-          />
-        </div>
-      )}
+        {/* Expanded video — dissolves in over collapsed image on expand */}
+        {isExpandedMp4 && (
+          <video
+            ref={videoRef}
+            muted loop playsInline
+            style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+              opacity: isExpanded ? 1 : 0,
+              transition: 'opacity 0.7s ease',
+            }}
+          >
+            <source src={panel.expandedVideoUrl} type="video/mp4" />
+          </video>
+        )}
+
+        {/* mp4 autoplay background — standalone, always playing */}
+        {isMp4 && (
+          <video
+            autoPlay muted loop playsInline
+            style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+              transform: isHovered && !isExpanded ? 'scale(1.10)' : 'scale(1)',
+              transition: 'transform 0.5s ease',
+            }}
+          >
+            <source src={panel.videoUrl} type="video/mp4" />
+          </video>
+        )}
+
+        {/* Gradient overlay */}
+        {hasMedia && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.65) 100%)',
+            zIndex: 1,
+            opacity: isExpanded ? 0 : 1,
+            transition: 'opacity 0.45s ease',
+          }} />
+        )}
+
+        {/* YouTube / Vimeo iframe */}
+        {isEmbeddable && playing && (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
+            <iframe
+              src={getEmbedUrl(panel.videoUrl, videoType)}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              allow="autoplay; fullscreen"
+              allowFullScreen
+            />
+          </div>
+        )}
+
+      </div>{/* end inner clip wrapper */}
 
       {/* Play button */}
       {isEmbeddable && !playing && (
@@ -263,6 +267,95 @@ function Panel({ panel, isHovered, isExpanded }) {
             }}>
               {panel.description}
             </p>
+          )}
+        </div>
+      )}
+
+      {/* Content panel — extends beyond card's right edge and top/bottom */}
+      {isExpanded && (
+        <div style={{
+          position: 'absolute',
+          top: -20,
+          right: -80,
+          width: 300,
+          height: 'calc(100% + 40px)',
+          zIndex: 6,
+          background: '#ffffff',
+          borderRadius: '16px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          padding: '28px 24px',
+          boxSizing: 'border-box',
+          overflowY: 'auto',
+          animation: 'carouselSlideFromRight 0.6s ease 1s both',
+        }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onClose && onClose() }}
+            style={{
+              position: 'absolute',
+              top: '14px',
+              right: '14px',
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(0,0,0,0.06)',
+              border: '1px solid rgba(0,0,0,0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <X style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.5)' }} />
+          </button>
+
+          <h2 style={{
+            fontFamily: "'Oswald', sans-serif",
+            fontSize: '26px',
+            lineHeight: 1.1,
+            margin: '-10px 0 16px',
+            color: '#000',
+            animation: 'mosaicFadeDown 0.4s ease 1s both',
+          }}>
+            {panel.category}
+          </h2>
+
+          <div
+            className="mosaic-content"
+            style={{ animation: 'mosaicFadeDown 0.4s ease 1.15s both' }}
+            dangerouslySetInnerHTML={{ __html: panel.content }}
+          />
+
+          {panel.link && (
+            <a
+              href={panel.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-block',
+                marginTop: '16px',
+                padding: '8px 20px',
+                borderRadius: '8px',
+                background: 'rgba(0,0,0,0.08)',
+                border: '1px solid rgba(0,0,0,0.2)',
+                color: '#000',
+                fontFamily: "'Montserrat', sans-serif",
+                fontSize: '13px',
+                fontWeight: 500,
+                letterSpacing: '0.04em',
+                textDecoration: 'none',
+                transition: 'background 0.2s ease, border-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(0,0,0,0.15)'
+                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(0,0,0,0.08)'
+                e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'
+              }}
+            >
+              Find Out More
+            </a>
           )}
         </div>
       )}
@@ -369,8 +462,6 @@ export default function Carousel({ panels, intro }) {
     cursor: 'pointer',
   })
 
-  const activePanel = expandedIdx !== null ? panels[expandedIdx] : null
-
   return (
     <div style={{ width: '100%' }}>
       <style>{PROSE_CSS}</style>
@@ -437,8 +528,8 @@ export default function Carousel({ panels, intro }) {
               display: 'flex',
               gap: `${GAP}px`,
               height: '100%',
-              paddingTop: '16px',
-              paddingBottom: '16px',
+              paddingTop: '36px',
+              paddingBottom: '86px',
               transform: `translateX(calc(${INTRO_W}px - ${offset}px))`,
               transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               userSelect: 'none',
@@ -455,6 +546,7 @@ export default function Carousel({ panels, intro }) {
                   panel={panel}
                   isHovered={hoveredIdx === idx}
                   isExpanded={expandedIdx === idx}
+                  onClose={handleClose}
                 />
               </div>
             ))}
@@ -465,100 +557,6 @@ export default function Carousel({ panels, intro }) {
           <ChevronRight style={{ width: '18px', height: '18px', color: '#334155' }} />
         </button>
 
-        {/* Content panel — right edge of track, slides in over expanded card */}
-        {activePanel && (
-          <div
-            key={expandedIdx}
-            onMouseEnter={cancelCollapse}
-            onMouseLeave={scheduleCollapse}
-            style={{
-              position: 'absolute',
-              top: -4,
-              right: 80,
-              width: 300,
-              height: TRACK_H + 8,
-              zIndex: 15,
-              borderRadius: '16px',
-              background: '#ffffff',
-              border: '1px solid rgba(255,255,255,0.6)',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-              padding: '28px 40px 32px',
-              boxSizing: 'border-box',
-              overflowY: 'auto',
-              animation: 'carouselSlideFromRight 0.6s ease 1s both',
-            }}
-          >
-            <button
-              onClick={handleClose}
-              style={{
-                position: 'absolute',
-                top: '14px',
-                right: '14px',
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                background: 'rgba(0,0,0,0.06)',
-                border: '1px solid rgba(0,0,0,0.15)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
-            >
-              <X style={{ width: 14, height: 14, color: 'rgba(0,0,0,0.5)' }} />
-            </button>
-
-            <h2 style={{
-              fontFamily: "'Oswald', sans-serif",
-              fontSize: '30px',
-              lineHeight: 1.1,
-              margin: '-10px 0 16px',
-              color: '#000',
-              animation: 'mosaicFadeDown 0.4s ease 1s both',
-            }}>
-              {activePanel.category}
-            </h2>
-
-            <div
-              className="mosaic-content"
-              style={{ animation: 'mosaicFadeDown 0.4s ease 1.15s both' }}
-              dangerouslySetInnerHTML={{ __html: activePanel.content }}
-            />
-
-            {activePanel.link && (
-              <a
-                href={activePanel.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-block',
-                  marginTop: '20px',
-                  padding: '10px 24px',
-                  borderRadius: '8px',
-                  background: 'rgba(0,0,0,0.08)',
-                  border: '1px solid rgba(0,0,0,0.2)',
-                  color: '#000',
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  letterSpacing: '0.04em',
-                  textDecoration: 'none',
-                  transition: 'background 0.2s ease, border-color 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(0,0,0,0.15)'
-                  e.currentTarget.style.borderColor = 'rgba(0,0,0,0.3)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(0,0,0,0.08)'
-                  e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'
-                }}
-              >
-                Find Out More
-              </a>
-            )}
-          </div>
-        )}
       </div>
     </div>
   )
