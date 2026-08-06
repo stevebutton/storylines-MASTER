@@ -37,6 +37,10 @@ const PROSE_CSS = `
     from { opacity: 0; transform: translateY(-10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes carouselCardFadeIn {
+    from { opacity: 0; transform: translateY(25px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
   @keyframes carouselSlideFromRight {
     from { opacity: 0; transform: translateX(24px); }
     to   { opacity: 1; transform: translateX(0); }
@@ -271,9 +275,8 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
         </div>
       )}
 
-      {/* Content panel — extends beyond card's right edge and top/bottom */}
-      {isExpanded && (
-        <div style={{
+      {/* Content panel — always rendered; opacity/transform transition handles enter and exit */}
+      <div style={{
           position: 'absolute',
           top: -20,
           right: -80,
@@ -286,7 +289,12 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
           padding: '28px 24px',
           boxSizing: 'border-box',
           overflowY: 'auto',
-          animation: 'carouselSlideFromRight 0.6s ease 1s both',
+          opacity: isExpanded ? 1 : 0,
+          transform: isExpanded ? 'translateX(0)' : 'translateX(24px)',
+          pointerEvents: isExpanded ? 'auto' : 'none',
+          transition: isExpanded
+            ? 'opacity 0.6s ease 1s, transform 0.6s ease 1s'
+            : 'opacity 0.3s ease, transform 0.3s ease',
         }}>
           <button
             onClick={(e) => { e.stopPropagation(); onClose && onClose() }}
@@ -314,14 +322,12 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             lineHeight: 1.1,
             margin: '-10px 0 16px',
             color: '#000',
-            animation: 'mosaicFadeDown 0.4s ease 1s both',
           }}>
             {panel.category}
           </h2>
 
           <div
             className="mosaic-content"
-            style={{ animation: 'mosaicFadeDown 0.4s ease 1.15s both' }}
             dangerouslySetInnerHTML={{ __html: panel.content }}
           />
 
@@ -358,7 +364,6 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             </a>
           )}
         </div>
-      )}
     </div>
   )
 }
@@ -487,6 +492,7 @@ export default function Carousel({ panels, intro }) {
             boxSizing: 'border-box',
             zIndex: 0,
             pointerEvents: 'none',
+            animation: 'carouselCardFadeIn 1s ease 0.5s both',
           }}>
             {intro.category && (
               <h2 style={{
@@ -538,7 +544,7 @@ export default function Carousel({ panels, intro }) {
             {panels.map((panel, idx) => (
               <div
                 key={panel.id ?? idx}
-                style={{ flexShrink: 0, height: '100%' }}
+                style={{ flexShrink: 0, height: '100%', animation: `carouselCardFadeIn 1s ease ${idx + 1}s both`, position: 'relative', zIndex: expandedIdx === idx ? 10 : 1 }}
                 onMouseEnter={() => { if (!dragRef.current.active) setHoveredIdx(idx) }}
                 onMouseLeave={() => setHoveredIdx(null)}
               >
