@@ -22,6 +22,14 @@ const PROSE_CSS = `
     from { opacity: 0; transform: translateY(-12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes mosaicSlideFromRight {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes mosaicSlideFromLeft {
+    from { opacity: 0; transform: translateX(-24px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
   .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   .mosaic-content p:last-child { margin-bottom: 0; }
   .mosaic-content h2, .mosaic-content h3 { font-family: 'Oswald', sans-serif; color: #000; margin: 0 0 8px; line-height: 1.2; }
@@ -351,7 +359,7 @@ export default function Mosaic({ panels }) {
                 height: expandedIdx === idx ? expandedH : CARD_H,
                 left: expandedIdx === idx ? getExpandedCardLeft(idx) - idx * (normalW + GAP) : 0,
                 top: expandedIdx === idx ? (CARD_H - expandedH) / 2 : 0,
-                transition: 'width 0.45s cubic-bezier(0.4, 0, 0.2, 1), height 0.45s cubic-bezier(0.4, 0, 0.2, 1), left 0.45s cubic-bezier(0.4, 0, 0.2, 1), top 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1), height 1s cubic-bezier(0.4, 0, 0.2, 1), left 1s cubic-bezier(0.4, 0, 0.2, 1), top 1s cubic-bezier(0.4, 0, 0.2, 1)',
               }}>
                 <MosaicCard
                   panel={panel}
@@ -373,7 +381,7 @@ export default function Mosaic({ panels }) {
               left: sidePanelLeft,
               width: sidePanelW,
               zIndex: 10,
-              animation: 'mosaicFadeDown 0.6s ease 2s both',
+              animation: `${expandedIdx < 2 ? 'mosaicSlideFromRight' : 'mosaicSlideFromLeft'} 0.6s ease 1s both`,
             }}
             onMouseEnter={cancelCollapse}
             onMouseLeave={scheduleCollapse}
