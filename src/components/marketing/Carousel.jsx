@@ -161,7 +161,7 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
         {/* mp4 autoplay background — standalone, always playing */}
         {isMp4 && (
           <video
-            autoPlay muted loop playsInline
+            autoPlay muted playsInline
             style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
               transform: isHovered && !isExpanded ? 'scale(1.10)' : 'scale(1)',
@@ -279,7 +279,7 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
       <div style={{
           position: 'absolute',
           top: -20,
-          right: -80,
+          right: -270,
           width: 300,
           height: 'calc(100% + 40px)',
           zIndex: 6,
