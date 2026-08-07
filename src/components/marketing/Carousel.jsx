@@ -172,16 +172,14 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
         )}
 
         {/* Gradient overlay */}
-        {hasMedia && (
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.65) 100%)',
-            zIndex: 1,
-            opacity: isExpanded ? 0 : 1,
-            transition: 'opacity 0.45s ease',
-          }} />
-        )}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,1) 100%)',
+          zIndex: 1,
+          opacity: isExpanded ? 0 : isHovered ? 0.5 : 0.325,
+          transition: 'opacity 0.45s ease',
+        }} />
 
         {/* YouTube / Vimeo iframe */}
         {isEmbeddable && playing && (
@@ -238,7 +236,7 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             ...(isExpanded
               ? { top: '50%', transform: 'translateY(-50%)' }
               : {
-                  bottom: '120px',
+                  bottom: '90px',
                   transform: isHovered ? 'translateY(-60px)' : 'translateY(0)',
                 }
             ),
@@ -261,12 +259,12 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
               top: 'calc(100% + 12px)',
               left: 0,
               right: 0,
-              fontSize: '12px',
+              fontSize: '14px',
               lineHeight: 1.5,
               margin: 0,
               opacity: isHovered && !isExpanded ? 1 : 0,
               transition: 'opacity 0.3s ease 0.15s',
-              color: hasMedia ? 'rgba(255,255,255,0.9)' : '#475569',
+              color: 'rgba(255,255,255,0.9)',
             }}>
               {panel.description}
             </p>
@@ -578,7 +576,7 @@ export default function Carousel({ panels, intro }) {
               alt=""
               style={{
                 position: 'absolute',
-                left: 0,
+                left: -30,
                 width: '1352px',
                 height: '107px',
                 top: '50%',
