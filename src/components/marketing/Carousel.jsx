@@ -7,6 +7,7 @@ const GAP = 12
 const STEP = PANEL_W + GAP
 const TRACK_H = 590
 const INTRO_W = 400  // panels start here; intro text fills the space to the left
+const CAROUSEL_BG = 'http://storylines.flywheelsites.com/wp-content/uploads/2026/08/serene-african-savanna-landscape-with-distant-tree-2026-01-05-04-45-16-utc-1-1.jpg'
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
 
@@ -38,8 +39,8 @@ const PROSE_CSS = `
     to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes carouselCardFadeIn {
-    from { opacity: 0; transform: translateY(25px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
   @keyframes carouselSlideFromRight {
     from { opacity: 0; transform: translateX(24px); }
@@ -110,8 +111,6 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
         backgroundColor: isHovered && !isExpanded
           ? 'rgba(255,255,255,0.2)'
           : 'rgba(255,255,255,0.1)',
-        backdropFilter: hasMedia ? 'none' : 'blur(12px)',
-        WebkitBackdropFilter: hasMedia ? 'none' : 'blur(12px)',
       }}
     >
       {/* Inner clip wrapper — keeps media and overlays clipped to card shape */}
@@ -239,7 +238,7 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             ...(isExpanded
               ? { top: '50%', transform: 'translateY(-50%)' }
               : {
-                  bottom: '40px',
+                  bottom: '120px',
                   transform: isHovered ? 'translateY(-60px)' : 'translateY(0)',
                 }
             ),
@@ -249,7 +248,7 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             fontFamily: "'Oswald', sans-serif",
             fontSize: '30px',
             lineHeight: 1.1,
-            color: hasMedia ? '#ffffff' : '#2C97BE',
+            color: '#ffffff',
             transition: 'font-size 0.4s ease',
             margin: 0,
           }}>
@@ -468,7 +467,12 @@ export default function Carousel({ panels, intro }) {
   })
 
   return (
-    <div style={{ width: '100%' }}>
+    <div style={{
+      width: '100%',
+      backgroundImage: `url(${CAROUSEL_BG})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }}>
       <style>{PROSE_CSS}</style>
 
       {/* Carousel track */}
@@ -529,8 +533,35 @@ export default function Carousel({ panels, intro }) {
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
         >
+          {/* Background image inside this stacking context so backdrop-filter on cards can sample it */}
+          {/* Pre-blurred background — clipped to hovered card's area */}
+          {(() => {
+            const INS = 40
+            const clipPath = hoveredIdx !== null ? (() => {
+              const cardL = INTRO_W - offset + hoveredIdx * (PANEL_W + GAP) + INS
+              const cardT = 36 + INS
+              const cardB = TRACK_H + INS * 2 - cardT - (TRACK_H - 36 - 86)
+              return `inset(${cardT}px calc(100% - ${cardL + PANEL_W}px) ${cardB}px ${cardL}px round 16px)`
+            })() : 'inset(50% 50% 50% 50%)'
+            return (
+              <div style={{
+                position: 'absolute',
+                inset: `-${INS}px`,
+                backgroundImage: `url(${CAROUSEL_BG})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'blur(20px)',
+                opacity: hoveredIdx !== null ? 1 : 0,
+                clipPath,
+                transition: 'opacity 0.4s ease, clip-path 0.2s ease',
+                zIndex: 0,
+              }} />
+            )
+          })()}
+
           <div
             style={{
+              position: 'relative',
               display: 'flex',
               gap: `${GAP}px`,
               height: '100%',
@@ -541,21 +572,46 @@ export default function Carousel({ panels, intro }) {
               userSelect: 'none',
             }}
           >
-            {panels.map((panel, idx) => (
-              <div
-                key={panel.id ?? idx}
-                style={{ flexShrink: 0, height: '100%', animation: `carouselCardFadeIn 1s ease ${idx + 1}s both`, position: 'relative', zIndex: expandedIdx === idx ? 10 : 1 }}
-                onMouseEnter={() => { if (!dragRef.current.active) setHoveredIdx(idx) }}
-                onMouseLeave={() => setHoveredIdx(null)}
-              >
-                <Panel
-                  panel={panel}
-                  isHovered={hoveredIdx === idx}
-                  isExpanded={expandedIdx === idx}
-                  onClose={handleClose}
-                />
-              </div>
-            ))}
+            {/* Route line — inside flex container so zIndex is compared directly with card wrappers */}
+            <img
+              src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/route.png"
+              alt=""
+              style={{
+                position: 'absolute',
+                left: 0,
+                width: '1352px',
+                height: '107px',
+                top: '50%',
+                transform: 'translateY(calc(-50% - 80px))',
+                pointerEvents: 'none',
+                zIndex: 5,
+              }}
+            />
+
+            {panels.map((panel, idx) => {
+              const isHov = hoveredIdx === idx
+              return (
+                <div
+                  key={panel.id ?? idx}
+                  style={{
+                    flexShrink: 0,
+                    height: '100%',
+                    animation: `carouselCardFadeIn 1s ease ${idx + 1}s both`,
+                    position: 'relative',
+                    zIndex: expandedIdx === idx ? 10 : 1,
+                  }}
+                  onMouseEnter={() => { if (!dragRef.current.active) setHoveredIdx(idx) }}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                >
+                  <Panel
+                    panel={panel}
+                    isHovered={isHov}
+                    isExpanded={expandedIdx === idx}
+                    onClose={handleClose}
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
 
