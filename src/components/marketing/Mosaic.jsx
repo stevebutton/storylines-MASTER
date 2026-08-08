@@ -4,6 +4,7 @@ const CARD_H = 380
 const VIDEO_RATIO = 1440 / 900   // source video aspect ratio
 const GAP = 24
 const SHRUNK_W = 200
+const MOSAIC_BG_VIDEO = 'http://storylines.flywheelsites.com/wp-content/uploads/2026/08/enthusiastic-children-running-toward-camera-at-sch-2025-12-17-11-34-08-utc_1.mp4'
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
 
@@ -89,17 +90,15 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        scale: isHovered ? '1.03' : '1',
-        transition: 'scale 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease',
+        transition: 'box-shadow 0.3s ease, background-color 0.3s ease',
         backgroundColor: isHovered
           ? 'rgba(255,255,255,0.2)'
           : 'rgba(255,255,255,0.1)',
-        backdropFilter: hasMedia ? 'none' : 'blur(12px)',
-        WebkitBackdropFilter: hasMedia ? 'none' : 'blur(12px)',
         ...(panel.image && {
           backgroundImage: `url(${panel.image})`,
-          backgroundSize: 'cover',
+          backgroundSize: /\.png$/i.test(panel.image) ? 'auto' : 'cover',
           backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
         }),
       }}
     >
@@ -110,6 +109,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
           autoPlay muted playsInline
           style={{
             position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            zIndex: 1,
             opacity: isExpanded ? 0 : 1,
             transition: 'opacity 0.7s ease',
           }}
@@ -125,6 +125,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
           muted loop playsInline
           style={{
             position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            zIndex: 1,
             opacity: isExpanded ? 1 : 0,
             transition: 'opacity 0.7s ease',
           }}
@@ -136,7 +137,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
       {/* YouTube / Vimeo — mounts on expand so autoplay triggers, unmounts on collapse */}
       {(videoType === 'youtube' || videoType === 'vimeo') && isExpanded && (
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 2,
+          position: 'absolute', inset: 0, zIndex: 3,
           animation: 'mosaicFadeDown 0.7s ease',
         }}>
           <iframe
@@ -148,7 +149,15 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         </div>
       )}
 
-      {/* gradient removed — title is embedded in video */}
+      {/* Gradient overlay — always on, boosts on hover */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,1) 100%)',
+        zIndex: 2,
+        opacity: isExpanded ? 0 : isHovered ? 0.5 : 0.325,
+        transition: 'opacity 0.45s ease',
+      }} />
 
       {/* Title + description */}
       <div style={{
@@ -156,9 +165,10 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         left: '20px',
         right: '20px',
         bottom: '40px',
-        zIndex: 2,
+        zIndex: 3,
         opacity: isExpanded ? 0 : 1,
-        transition: 'opacity 0.3s ease',
+        transition: 'opacity 0.3s ease, transform 0.4s ease',
+        transform: isHovered && !isExpanded ? 'translateY(-60px)' : 'translateY(0)',
       }}>
         {!panel.previewVideoUrl && (
           <h2 style={{
@@ -166,7 +176,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
             fontSize: '42px',
             lineHeight: 1.1,
             margin: 0,
-            color: hasMedia ? '#ffffff' : '#2C97BE',
+            color: '#ffffff',
           }}>
             {panel.category}
           </h2>
@@ -175,19 +185,19 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         {panel.description && (
           <p style={{
             position: 'absolute',
-            top: 'calc(100% - 8px)',
+            top: 'calc(100% + 12px)',
             left: 0,
             right: 0,
             margin: 0,
             fontFamily: "'Montserrat', sans-serif",
-            fontSize: '15px',
+            fontSize: '14px',
             fontWeight: 300,
             lineHeight: '1.5em',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
-            opacity: isExpanded ? 1 : 0,
-            transition: 'opacity 0.3s ease 0.1s',
-            color: hasMedia ? 'rgba(255,255,255,0.9)' : '#475569',
+            opacity: isHovered && !isExpanded ? 1 : 0,
+            transition: 'opacity 0.3s ease 0.15s',
+            color: 'rgba(255,255,255,0.9)',
           }}>
             {panel.description}
           </p>
@@ -270,8 +280,12 @@ function MosaicContentPanel({ panel, index }) {
 
 export default function Mosaic({ panels }) {
   const containerRef = useRef(null)
+  const outerRef = useRef(null)
   const collapseTimer = useRef(null)
   const [containerW, setContainerW] = useState(1276)
+  const [outerW, setOuterW] = useState(1440)
+  const [containerRelLeft, setContainerRelLeft] = useState(82)
+  const [containerRelTop, setContainerRelTop] = useState(185)
   const [hoveredIdx, setHoveredIdx] = useState(null)
   const [expandedIdx, setExpandedIdx] = useState(null)
   const [inView, setInView] = useState(false)
@@ -300,9 +314,26 @@ export default function Mosaic({ panels }) {
   }, [])
 
   useEffect(() => {
-    if (!containerRef.current) return
-    const ro = new ResizeObserver(([entry]) => setContainerW(entry.contentRect.width))
+    if (!containerRef.current || !outerRef.current) return
+    const measure = () => {
+      if (!outerRef.current || !containerRef.current) return
+      const outerRect = outerRef.current.getBoundingClientRect()
+      const containerRect = containerRef.current.getBoundingClientRect()
+      setOuterW(outerRect.width)
+      setContainerRelLeft(containerRect.left - outerRect.left)
+      setContainerRelTop(containerRect.top - outerRect.top)
+    }
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === containerRef.current) {
+          setContainerW(entry.contentRect.width)
+        }
+      }
+      measure()
+    })
     ro.observe(containerRef.current)
+    ro.observe(outerRef.current)
+    measure()
     return () => ro.disconnect()
   }, [])
 
@@ -333,13 +364,55 @@ export default function Mosaic({ panels }) {
     : 0
 
   return (
-    <div style={{ width: '100%', maxWidth: 1340, margin: '0 auto', padding: `${24 + (expandedH - CARD_H) / 2}px 32px`, boxSizing: 'border-box' }}>
+    <div ref={outerRef} style={{ width: '100%', height: '750px', position: 'relative', overflow: 'hidden' }}>
+      <video
+        autoPlay muted loop playsInline
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+      >
+        <source src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/enthusiastic-children-running-toward-camera-at-sch-2025-12-17-11-34-08-utc_1.mp4" type="video/mp4" />
+      </video>
       <style>{PROSE_CSS}</style>
 
+      {/* Blurred hover overlay — identical source & sizing to background video,
+          guaranteeing perfect registration. clip-path restricts to hovered card
+          using outer-wrapper coordinates so no edge-fade issue. */}
+      {inView && (() => {
+        const clipPath = hoveredIdx !== null
+          ? (() => {
+              const cardLeft   = containerRelLeft + hoveredIdx * (normalW + GAP)
+              const cardTop    = containerRelTop
+              const cardRight  = outerW - cardLeft - normalW
+              const cardBottom = 750 - cardTop - CARD_H
+              return `inset(${cardTop}px ${cardRight}px ${cardBottom}px ${cardLeft}px round 16px)`
+            })()
+          : 'inset(50% 50% 50% 50%)'
+        return (
+          <video
+            autoPlay muted loop playsInline
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              filter: 'blur(10px)',
+              clipPath,
+              opacity: hoveredIdx !== null ? 1 : 0,
+              transition: 'opacity 0.4s ease, clip-path 0.2s ease',
+              zIndex: 1,
+              pointerEvents: 'none',
+            }}
+          >
+            <source src={MOSAIC_BG_VIDEO} type="video/mp4" />
+          </video>
+        )
+      })()}
+
+      <div style={{ maxWidth: 1340, margin: '0 auto', height: '100%', display: 'flex', alignItems: 'center', padding: '0 32px', boxSizing: 'border-box', position: 'relative', zIndex: 2 }}>
       <div
         ref={containerRef}
         onMouseLeave={() => { cancelCollapse(); setExpandedIdx(null); setHoveredIdx(null) }}
-        style={{ minHeight: inView ? undefined : CARD_H, position: 'relative' }}
+        style={{ width: '100%', minHeight: inView ? undefined : CARD_H, position: 'relative' }}
       >
         {/* Card row — deferred until component enters the viewport */}
         {inView && <div style={{ display: 'flex', gap: GAP }}>
@@ -354,8 +427,9 @@ export default function Mosaic({ panels }) {
                 zIndex: expandedIdx === idx ? 10 : 1,
                 animation: `mosaicFadeIn 1s ease ${idx + 1}s both`,
               }}
-              onMouseEnter={() => { cancelCollapse(); setHoveredIdx(idx); setExpandedIdx(idx) }}
+              onMouseEnter={() => { cancelCollapse(); setHoveredIdx(idx) }}
               onMouseLeave={scheduleCollapse}
+              onClick={() => { cancelCollapse(); setExpandedIdx(prev => prev === idx ? null : idx) }}
             >
               {/* inner div expands and overlaps neighbours */}
               <div style={{
@@ -398,6 +472,7 @@ export default function Mosaic({ panels }) {
             />
           </div>
         )}
+      </div>
       </div>
     </div>
   )
