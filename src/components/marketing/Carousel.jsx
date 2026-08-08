@@ -581,13 +581,13 @@ export default function Carousel({ panels, intro }) {
           >
             {/* Route line — inside flex container so zIndex is compared directly with card wrappers */}
             <img
-              src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/Group-2.png"
+              src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMap-2.png"
               alt=""
               style={{
                 position: 'absolute',
                 left: -30,
-                width: '1352px',
-                height: '107px',
+                width: '2337px',
+                height: 'auto',
                 top: '50%',
                 transform: 'translateY(calc(-50% - 80px))',
                 pointerEvents: 'none',
