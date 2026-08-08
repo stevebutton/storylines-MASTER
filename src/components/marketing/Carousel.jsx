@@ -372,9 +372,17 @@ export default function Carousel({ panels, intro }) {
   const [offset, setOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [expandedIdx, setExpandedIdx] = useState(null)
+  const [introMounted, setIntroMounted] = useState(false)
   const dragRef = useRef({ active: false, startX: 0, startOffset: 0, moved: false })
   const clickTargetRef = useRef(null)
   const collapseTimer = useRef(null)
+
+  useEffect(() => {
+    const t = setTimeout(() => setIntroMounted(true), 500)
+    return () => clearTimeout(t)
+  }, [])
+
+  const introOpacity = introMounted ? Math.max(0, 1 - offset / (PANEL_W * 0.5)) : 0
 
   const scheduleCollapse = () => {
     collapseTimer.current = setTimeout(() => setExpandedIdx(null), 80)
@@ -494,7 +502,8 @@ export default function Carousel({ panels, intro }) {
             boxSizing: 'border-box',
             zIndex: 0,
             pointerEvents: 'none',
-            animation: 'carouselCardFadeIn 1s ease 0.5s both',
+            opacity: introOpacity,
+            transition: 'opacity 1s ease',
           }}>
             {intro.category && (
               <h2 style={{
