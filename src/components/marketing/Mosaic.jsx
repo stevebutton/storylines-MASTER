@@ -83,21 +83,21 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         width: '100%',
         height: '100%',
         borderRadius: '16px',
-        border: '1px solid rgba(255,255,255,0.6)',
+        border: isHovered ? '3px solid rgba(255,255,255,0.6)' : '1px solid rgba(255,255,255,0.6)',
         boxShadow: isExpanded || isHovered
           ? '0 8px 40px rgba(0,0,0,0.3)'
           : '0 4px 24px rgba(0,0,0,0.15)',
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        transition: 'box-shadow 0.3s ease, background-color 0.3s ease',
+        transition: 'box-shadow 0.3s ease, background-color 0.3s ease, background-position 0.4s ease, border 0.3s ease',
         backgroundColor: isHovered
           ? 'rgba(255,255,255,0.2)'
           : 'rgba(255,255,255,0.1)',
         ...(panel.image && {
           backgroundImage: `url(${panel.image})`,
           backgroundSize: /\.png$/i.test(panel.image) ? 'auto' : 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: isHovered && !isExpanded ? '50% calc(50% - 50px)' : '50% 50%',
           backgroundRepeat: 'no-repeat',
         }),
       }}
@@ -149,13 +149,18 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         </div>
       )}
 
-      {/* Gradient overlay — always on, boosts on hover */}
+      {/* Gradient base — tight band at bottom, always present */}
       <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,1) 100%)',
-        zIndex: 2,
-        opacity: isExpanded ? 0 : isHovered ? 0.5 : 0.325,
+        position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+        background: 'linear-gradient(to bottom, transparent 55%, rgba(0,0,0,1) 100%)',
+        opacity: isExpanded ? 0 : 0.5,
+        transition: 'opacity 0.45s ease',
+      }} />
+      {/* Gradient hover boost — broader reach, fades in on hover */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+        background: 'linear-gradient(to bottom, transparent 15%, rgba(0,0,0,0.85) 100%)',
+        opacity: isExpanded ? 0 : isHovered ? 0.75 : 0,
         transition: 'opacity 0.45s ease',
       }} />
 
@@ -164,8 +169,9 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         position: 'absolute',
         left: '20px',
         right: '20px',
-        bottom: '40px',
+        bottom: '80px',
         zIndex: 3,
+        textAlign: 'center',
         opacity: isExpanded ? 0 : 1,
         transition: 'opacity 0.3s ease, transform 0.4s ease',
         transform: isHovered && !isExpanded ? 'translateY(-60px)' : 'translateY(0)',
@@ -190,9 +196,9 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
             right: 0,
             margin: 0,
             fontFamily: "'Montserrat', sans-serif",
-            fontSize: '14px',
+            fontSize: '17px',
             fontWeight: 300,
-            lineHeight: '1.5em',
+            lineHeight: '1.3em',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
             opacity: isHovered && !isExpanded ? 1 : 0,
