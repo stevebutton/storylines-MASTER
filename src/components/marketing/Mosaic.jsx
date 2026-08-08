@@ -90,18 +90,27 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
-        transition: 'box-shadow 0.3s ease, background-color 0.3s ease, background-position 0.4s ease, border 0.3s ease',
+        transition: 'box-shadow 0.3s ease, background-color 0.3s ease, border 0.3s ease',
         backgroundColor: isHovered
           ? 'rgba(255,255,255,0.2)'
           : 'rgba(255,255,255,0.1)',
-        ...(panel.image && {
+      }}
+    >
+      {/* Background image — PNG icons sit above the gradient; cover photos sit below */}
+      {panel.image && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
           backgroundImage: `url(${panel.image})`,
           backgroundSize: /\.png$/i.test(panel.image) ? 'auto' : 'cover',
           backgroundPosition: isHovered && !isExpanded ? '50% calc(50% - 50px)' : '50% 50%',
           backgroundRepeat: 'no-repeat',
-        }),
-      }}
-    >
+          zIndex: /\.png$/i.test(panel.image) ? 3 : 0,
+          opacity: /\.png$/i.test(panel.image) && isExpanded ? 0 : 1,
+          transition: 'background-position 0.4s ease, opacity 0.3s ease',
+        }} />
+      )}
+
       {/* Idle / preview video — plays in closed state, fades out on expand */}
       {panel.previewVideoUrl && (
         <video
@@ -170,7 +179,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         left: '20px',
         right: '20px',
         bottom: '80px',
-        zIndex: 3,
+        zIndex: 4,
         textAlign: 'center',
         opacity: isExpanded ? 0 : 1,
         transition: 'opacity 0.3s ease, transform 0.4s ease',
