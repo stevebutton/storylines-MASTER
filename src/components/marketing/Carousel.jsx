@@ -232,11 +232,11 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             right: '20px',
             zIndex: 2,
             opacity: isExpanded ? 0 : 1,
-            transition: 'transform 0.4s ease, top 0.4s ease, bottom 0.4s ease, opacity 0.3s ease',
+            transition: 'transform 0.4s ease, top 0.4s ease, opacity 0.3s ease',
             ...(isExpanded
               ? { top: '50%', transform: 'translateY(-50%)' }
               : {
-                  bottom: '90px',
+                  top: '320px',
                   transform: isHovered ? 'translateY(-60px)' : 'translateY(0)',
                 }
             ),
@@ -247,7 +247,10 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             fontSize: '30px',
             lineHeight: 1.1,
             color: '#ffffff',
-            transition: 'font-size 0.4s ease',
+            transition: 'font-size 0.4s ease, text-shadow 0.4s ease',
+            textShadow: isHovered && !isExpanded
+              ? '0 2px 16px rgba(0,0,0,0.8)'
+              : '0 2px 16px rgba(0,0,0,0)',
             margin: 0,
           }}>
             {panel.category}
@@ -581,7 +584,7 @@ export default function Carousel({ panels, intro }) {
           >
             {/* Route line — inside flex container so zIndex is compared directly with card wrappers */}
             <img
-              src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMap-2.png"
+              src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMap-3.png"
               alt=""
               style={{
                 position: 'absolute',
