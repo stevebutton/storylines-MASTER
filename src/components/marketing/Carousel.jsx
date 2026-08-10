@@ -51,6 +51,10 @@ const PROSE_CSS = `
     from { opacity: 0; transform: translateY(-12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes routeSlideIn {
+    from { opacity: 0; transform: translateY(calc(-50% - 80px)) translateX(300px); }
+    to   { opacity: 1; transform: translateY(calc(-50% - 80px)) translateX(0); }
+  }
   .panel-content p { margin: 0 0 12px; font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); }
   .panel-content p:last-child { margin-bottom: 0; }
   .panel-content h2, .panel-content h3 { font-family: 'Oswald', sans-serif; color: #fff; margin: 0 0 8px; line-height: 1.2; }
@@ -636,9 +640,9 @@ export default function Carousel({ panels, intro, outro }) {
                 width: '2337px',
                 height: 'auto',
                 top: '50%',
-                transform: 'translateY(calc(-50% - 80px))',
                 pointerEvents: 'none',
                 zIndex: 5,
+                animation: 'routeSlideIn 4s ease forwards',
               }}
             />
 
