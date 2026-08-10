@@ -537,47 +537,6 @@ export default function Carousel({ panels, intro, outro }) {
           </div>
         )}
 
-        {/* Outro text — stationary at right, revealed when cards scroll away */}
-        {outro && (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 'calc(50% + 100px)',
-            transform: 'translateX(-50%) translateY(-80px)',
-            width: OUTRO_W,
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            padding: '24px 50px 24px 48px',
-            boxSizing: 'border-box',
-            zIndex: 0,
-            pointerEvents: 'none',
-            opacity: outroOpacity,
-            transition: 'opacity 1s ease',
-          }}>
-            {outro.category && (
-              <h2 style={{
-                fontFamily: "'Oswald', sans-serif",
-                fontSize: '28px',
-                lineHeight: 1.1,
-                color: '#1e293b',
-                margin: '0 0 12px',
-                textAlign: 'left',
-              }}>
-                {outro.category}
-              </h2>
-            )}
-            {outro.content && (
-              <div
-                className="mosaic-content"
-                style={{ fontSize: '14px', lineHeight: 1.65, color: '#475569' }}
-                dangerouslySetInnerHTML={{ __html: outro.content }}
-              />
-            )}
-          </div>
-        )}
-
         <div
           style={{
             position: 'absolute',
@@ -670,6 +629,44 @@ export default function Carousel({ panels, intro, outro }) {
                 </div>
               )
             })}
+
+            {/* Outro — natural flex item after last card, dissolves in at scroll end */}
+            {outro && (
+              <div style={{
+                flexShrink: 0,
+                width: OUTRO_W,
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                padding: '24px 48px',
+                boxSizing: 'border-box',
+                pointerEvents: 'none',
+                opacity: outroOpacity,
+                transition: 'opacity 1s ease',
+                transform: 'translateY(-50px)',
+              }}>
+                {outro.category && (
+                  <h2 style={{
+                    fontFamily: "'Oswald', sans-serif",
+                    fontSize: '28px',
+                    lineHeight: 1.1,
+                    color: '#1e293b',
+                    margin: '0 0 12px',
+                    textAlign: 'left',
+                  }}>
+                    {outro.category}
+                  </h2>
+                )}
+                {outro.content && (
+                  <div
+                    className="mosaic-content"
+                    style={{ fontSize: '14px', lineHeight: 1.65, color: '#475569' }}
+                    dangerouslySetInnerHTML={{ __html: outro.content }}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </div>
 
