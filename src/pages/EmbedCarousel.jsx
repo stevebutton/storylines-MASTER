@@ -39,13 +39,14 @@ export default function EmbedCarousel() {
     </div>
   )
 
-  // First panel (lowest menu_order) is the text-only intro; the rest are carousel cards
-  const intro = panels[0] ?? null
-  const carouselPanels = panels.slice(1)
+  // First panel = intro, last panel = outro, middle panels = carousel cards
+  const intro        = panels.length > 0 ? panels[0] : null
+  const outro        = panels.length > 2 ? panels[panels.length - 1] : null
+  const carouselPanels = panels.length > 2 ? panels.slice(1, -1) : panels.slice(1)
 
   return (
     <div style={{ width: '100%', minHeight: '500px', paddingBottom: '24px' }}>
-      <Carousel panels={carouselPanels} intro={intro} />
+      <Carousel panels={carouselPanels} intro={intro} outro={outro} />
     </div>
   )
 }

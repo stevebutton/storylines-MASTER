@@ -7,6 +7,7 @@ const GAP = 12
 const STEP = PANEL_W + GAP
 const TRACK_H = 590
 const INTRO_W = 400  // panels start here; intro text fills the space to the left
+const OUTRO_W = 400  // outro text fills the space to the right when fully scrolled
 const CAROUSEL_BG = 'http://storylines.flywheelsites.com/wp-content/uploads/2026/08/serene-african-savanna-landscape-with-distant-tree-2026-01-05-04-45-16-utc-1-1.jpg'
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
@@ -370,7 +371,7 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
 
 // ─── Carousel ─────────────────────────────────────────────────────────────────
 
-export default function Carousel({ panels, intro }) {
+export default function Carousel({ panels, intro, outro }) {
   const [hoveredIdx, setHoveredIdx] = useState(null)
   const [offset, setOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -385,14 +386,16 @@ export default function Carousel({ panels, intro }) {
     return () => clearTimeout(t)
   }, [])
 
-  const introOpacity = introMounted ? Math.max(0, 1 - offset / (PANEL_W * 0.5)) : 0
-
   const scheduleCollapse = () => {
     collapseTimer.current = setTimeout(() => setExpandedIdx(null), 80)
   }
   const cancelCollapse = () => clearTimeout(collapseTimer.current)
 
   const maxOffset = Math.max(0, (panels.length - 1) * STEP)
+  const introOpacity = introMounted ? Math.max(0, 1 - offset / (PANEL_W * 0.5)) : 0
+  const outroOpacity = introMounted && maxOffset > 0
+    ? Math.max(0, 1 - (maxOffset - offset) / (PANEL_W * 0.5))
+    : 0
   const currentIndex = Math.round(offset / STEP)
   const canPrev = offset > 0
   const canNext = offset < maxOffset
@@ -525,6 +528,47 @@ export default function Carousel({ panels, intro }) {
                 className="mosaic-content"
                 style={{ fontSize: '14px', lineHeight: 1.65, color: '#475569' }}
                 dangerouslySetInnerHTML={{ __html: intro.content }}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Outro text — stationary at right, revealed when cards scroll away */}
+        {outro && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 'calc(50% + 100px)',
+            transform: 'translateX(-50%) translateY(-80px)',
+            width: OUTRO_W,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '24px 50px 24px 48px',
+            boxSizing: 'border-box',
+            zIndex: 0,
+            pointerEvents: 'none',
+            opacity: outroOpacity,
+            transition: 'opacity 1s ease',
+          }}>
+            {outro.category && (
+              <h2 style={{
+                fontFamily: "'Oswald', sans-serif",
+                fontSize: '28px',
+                lineHeight: 1.1,
+                color: '#1e293b',
+                margin: '0 0 12px',
+                textAlign: 'left',
+              }}>
+                {outro.category}
+              </h2>
+            )}
+            {outro.content && (
+              <div
+                className="mosaic-content"
+                style={{ fontSize: '14px', lineHeight: 1.65, color: '#475569' }}
+                dangerouslySetInnerHTML={{ __html: outro.content }}
               />
             )}
           </div>
