@@ -163,8 +163,8 @@ export default function LoginDisplay({
             {/* ── Overview (rich text) ── */}
             {welcomeOverview && (
               <motion.div
-                className="text-white/75 leading-relaxed mb-8 text-sm login-overview-content"
-                style={{ fontFamily: 'Raleway, sans-serif' }}
+                className="text-white/75 leading-relaxed mb-8 login-overview-content"
+                style={{ fontFamily: 'Raleway, sans-serif', fontSize: '16px' }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: 'easeOut', delay: bodyDelay + 0.45 }}
