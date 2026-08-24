@@ -67,7 +67,7 @@ export default function LoginDisplay({
   const formDelay    = 4.5;
 
   return (
-    <div className={`${className} flex overflow-hidden bg-slate-900`}>
+    <div className={`${className} flex justify-center overflow-hidden bg-slate-900`}>
 
       {/* ── Background ── */}
       {heroType === 'video' && heroVideo ? (
@@ -112,19 +112,17 @@ export default function LoginDisplay({
         />
       )}
 
-      {/* Left spacer — hidden on mobile, visible on md+ */}
-      <div className="hidden md:flex flex-1 relative z-10" />
 
       {/* ── Right panel — 50% width, slides in from right ── */}
       {mediaLoaded && (
         <motion.div
-          className="relative z-10 w-full md:w-1/2 flex flex-col items-center justify-center py-14 bg-black/40 backdrop-blur-xl overflow-y-auto"
+          className="relative z-10 w-full md:w-4/5 flex flex-col items-center justify-center py-14 bg-black/40 backdrop-blur-xl overflow-y-auto"
           style={{ paddingLeft: 0, paddingRight: 0, paddingTop: 60 }}
           initial={{ x: '100%', opacity: 0 }}
           animate={{ x: '0%', opacity: 1 }}
           transition={{ duration: panelDuration, ease: [0.25, 0.46, 0.45, 0.94], delay: panelDelay }}
         >
-          <div className="w-full max-w-[500px] flex flex-col items-start text-left">
+          <div className="w-full max-w-[500px] flex flex-col items-center text-center">
           {panelLanded && (<>
 
             {/* ── Welcome content ── */}
@@ -209,7 +207,7 @@ export default function LoginDisplay({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: headingDelay }}
             >
-              <div className="flex items-center gap-0" style={{ marginBottom: 2 }}>
+              <div className="flex items-center justify-center gap-0" style={{ marginBottom: 2 }}>
                 <img
                   src="https://uevxdwzgkodbkzludrni.supabase.co/storage/v1/object/public/media/755f1936001f45de86c469cc-LogoCenteredWhite.png"
                   alt="Storylines"
@@ -236,7 +234,7 @@ export default function LoginDisplay({
               {isPreview ? (
                 <div className="space-y-5">
                   {['Email', 'Password'].map(label => (
-                    <div key={label} className="w-full flex flex-col items-start">
+                    <div key={label} className="w-full flex flex-col items-center">
                       <p
                         className="text-white/55 text-xs mb-1.5 uppercase tracking-wider"
                         style={{ fontFamily: 'Raleway, sans-serif' }}
@@ -257,7 +255,7 @@ export default function LoginDisplay({
                 </div>
               ) : (
                 <form onSubmit={onSubmit} className="space-y-5 w-full">
-                  <div className="flex flex-col items-start">
+                  <div className="flex flex-col items-center">
                     <label
                       className="text-xs font-medium text-white/55 mb-1.5 uppercase tracking-wider"
                       style={{ fontFamily: 'Raleway, sans-serif' }}
@@ -279,7 +277,7 @@ export default function LoginDisplay({
                       }}
                     />
                   </div>
-                  <div className="flex flex-col items-start">
+                  <div className="flex flex-col items-center">
                     <label
                       className="text-xs font-medium text-white/55 mb-1.5 uppercase tracking-wider"
                       style={{ fontFamily: 'Raleway, sans-serif' }}
@@ -306,7 +304,7 @@ export default function LoginDisplay({
                       {error}
                     </p>
                   )}
-                  <div className="pt-2">
+                  <div className="pt-2 flex justify-center">
                     <button
                       type="submit" disabled={isLoading}
                       className="w-full md:w-1/2 py-3 px-4 bg-amber-600/80 hover:bg-amber-600 disabled:bg-amber-600/40 text-white font-medium transition-colors flex items-center justify-center gap-2 text-sm uppercase tracking-wider rounded-xl"
