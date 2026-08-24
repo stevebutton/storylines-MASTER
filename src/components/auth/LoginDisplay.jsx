@@ -122,8 +122,24 @@ export default function LoginDisplay({
           animate={{ y: '0%', opacity: 1 }}
           transition={{ duration: panelDuration, ease: [0.25, 0.46, 0.45, 0.94], delay: panelDelay }}
         >
-          <div className="w-full max-w-[500px] flex flex-col items-center text-center">
+          <div className="w-full max-w-[650px] flex flex-col items-center text-center">
           {panelLanded && (<>
+
+            {/* ── Logo ── */}
+            <motion.div
+              className="flex justify-center mb-0"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: taglineDelay }}
+            >
+              <img
+                src="https://uevxdwzgkodbkzludrni.supabase.co/storage/v1/object/public/media/755f1936001f45de86c469cc-LogoCenteredWhite.png"
+                alt="Storylines"
+                width={250}
+                height={100}
+                className="object-contain opacity-90"
+              />
+            </motion.div>
 
             {/* ── Welcome content ── */}
             {welcomeTagline && (
@@ -200,28 +216,19 @@ export default function LoginDisplay({
               transition={{ duration: 0.8, ease: 'easeOut', delay: dividerDelay }}
             />
 
-            {/* ── Sign-in heading + logo inline ── */}
+            {/* ── Sign-in heading ── */}
             <motion.div
               className="mb-1 w-full"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: headingDelay }}
             >
-              <div className="flex items-center justify-center gap-0" style={{ marginBottom: 2 }}>
-                <img
-                  src="https://uevxdwzgkodbkzludrni.supabase.co/storage/v1/object/public/media/755f1936001f45de86c469cc-LogoCenteredWhite.png"
-                  alt="Storylines"
-                  width={250}
-                  height={100}
-                  className="object-contain opacity-90 flex-shrink-0"
-                />
-                <h1
-                  className="text-white text-2xl font-light"
-                  style={{ fontFamily: 'Oswald, sans-serif', letterSpacing: '0.04em' }}
-                >
-                  {heading}
-                </h1>
-              </div>
+              <h1
+                className="text-white text-2xl font-light"
+                style={{ fontFamily: 'Oswald, sans-serif', letterSpacing: '0.04em' }}
+              >
+                {heading}
+              </h1>
             </motion.div>
 
             {/* ── Form ── */}
