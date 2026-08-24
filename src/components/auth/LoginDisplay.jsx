@@ -118,8 +118,8 @@ export default function LoginDisplay({
         <motion.div
           className="relative z-10 w-full md:w-4/5 flex flex-col items-center justify-center py-14 bg-black/40 backdrop-blur-xl overflow-y-auto"
           style={{ paddingLeft: 0, paddingRight: 0, paddingTop: 60 }}
-          initial={{ x: '100%', opacity: 0 }}
-          animate={{ x: '0%', opacity: 1 }}
+          initial={{ y: '100%', opacity: 0 }}
+          animate={{ y: '0%', opacity: 1 }}
           transition={{ duration: panelDuration, ease: [0.25, 0.46, 0.45, 0.94], delay: panelDelay }}
         >
           <div className="w-full max-w-[500px] flex flex-col items-center text-center">
