@@ -379,7 +379,9 @@ export default function Mosaic({ panels }) {
     : 0
 
   return (
-    <div ref={outerRef} style={{ width: '100%', height: '750px', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ backgroundColor: 'white', paddingTop: 30, paddingBottom: 30, position: 'relative' }}>
+
+    <div ref={outerRef} style={{ width: '100%', height: '750px', position: 'relative', overflow: 'visible' }}>
       <video
         autoPlay muted loop playsInline
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
@@ -388,15 +390,15 @@ export default function Mosaic({ panels }) {
       </video>
       <style>{PROSE_CSS}</style>
 
-      {/* PNG overlay — above background video, behind mosaic panels */}
+      {/* PNG overlay — overflow:visible lets it bleed into white areas above and below */}
       <img
-        src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/4paths2.png"
+        src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/4paths3.png"
         alt=""
         style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
-          transform: 'translate(-50%, -50%)',
+          transform: 'translate(calc(-50% - 20px), -50%)',
           zIndex: 1,
           pointerEvents: 'none',
         }}
@@ -503,6 +505,7 @@ export default function Mosaic({ panels }) {
         )}
       </div>
       </div>
+    </div>
     </div>
   )
 }
