@@ -390,7 +390,7 @@ export default function Mosaic({ panels }) {
 
       {/* PNG overlay — above background video, behind mosaic panels */}
       <img
-        src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/4paths.png"
+        src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/4paths2.png"
         alt=""
         style={{
           position: 'absolute',
