@@ -388,6 +388,20 @@ export default function Mosaic({ panels }) {
       </video>
       <style>{PROSE_CSS}</style>
 
+      {/* PNG overlay — above background video, behind mosaic panels */}
+      <img
+        src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/4paths.png"
+        alt=""
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 1,
+          pointerEvents: 'none',
+        }}
+      />
+
       {/* Blurred hover overlay — identical source & sizing to background video,
           guaranteeing perfect registration. clip-path restricts to hovered card
           using outer-wrapper coordinates so no edge-fade issue. */}
