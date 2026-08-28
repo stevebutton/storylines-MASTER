@@ -392,13 +392,13 @@ export default function Mosaic({ panels }) {
 
       {/* PNG overlay — overflow:visible lets it bleed into white areas above and below */}
       <img
-        src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/4paths3.png"
+        src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/4paths-2.png"
         alt=""
         style={{
           position: 'absolute',
           top: '50%',
           left: '50%',
-          transform: 'translate(calc(-50% - 20px), -50%)',
+          transform: 'translate(calc(-50% - 20px), calc(-50% + 5px))',
           zIndex: 1,
           pointerEvents: 'none',
         }}
