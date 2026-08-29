@@ -258,6 +258,7 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
               ? '0 2px 16px rgba(0,0,0,0.8)'
               : '0 2px 16px rgba(0,0,0,0)',
             margin: 0,
+            textAlign: 'center',
           }}>
             {panel.category}
           </h2>
@@ -328,6 +329,7 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             lineHeight: 1.1,
             margin: '-10px 0 16px',
             color: '#000',
+            textAlign: 'center',
           }}>
             {panel.category}
           </h2>
@@ -498,12 +500,12 @@ export default function Carousel({ panels, intro, outro }) {
 
         {/* Route map — outside overflow:hidden so it bleeds into white areas */}
         <img
-          src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMapV2-3.png"
+          src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMapV2-4.png"
           alt=""
           style={{
             position: 'absolute',
             left: 220,
-            width: '942px',
+            width: '834px',
             height: 'auto',
             top: '50%',
             pointerEvents: 'none',
