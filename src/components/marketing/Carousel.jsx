@@ -52,8 +52,8 @@ const PROSE_CSS = `
     to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes routeSlideIn {
-    from { opacity: 0; transform: translateY(calc(-50% - 80px)) translateX(300px); }
-    to   { opacity: 1; transform: translateY(calc(-50% - 80px)) translateX(0); }
+    from { opacity: 0; transform: translateY(calc(-50% - 5px)) translateX(300px); }
+    to   { opacity: 1; transform: translateY(calc(-50% - 5px)) translateX(0); }
   }
   .panel-content p { margin: 0 0 12px; font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); }
   .panel-content p:last-child { margin-bottom: 0; }
@@ -127,9 +127,10 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
             position: 'absolute',
             inset: 0,
             backgroundImage: `url(${panel.image})`,
-            backgroundSize: 'cover',
+            backgroundSize: 'auto',
             backgroundPosition: 'center',
-            transform: isHovered && !isExpanded ? 'scale(1.10)' : 'scale(1)',
+            backgroundRepeat: 'no-repeat',
+            transform: isHovered && !isExpanded ? 'translateY(-50px)' : 'translateY(0)',
             transition: 'transform 0.5s ease',
           }} />
         )}
@@ -483,6 +484,7 @@ export default function Carousel({ panels, intro, outro }) {
   })
 
   return (
+    <div style={{ backgroundColor: 'white', paddingTop: 50, paddingBottom: 50 }}>
     <div style={{
       width: '100%',
       backgroundImage: `url(${CAROUSEL_BG})`,
@@ -493,6 +495,22 @@ export default function Carousel({ panels, intro, outro }) {
 
       {/* Carousel track */}
       <div style={{ position: 'relative', height: `${TRACK_H}px` }} onMouseLeave={scheduleCollapse}>
+
+        {/* Route map — outside overflow:hidden so it bleeds into white areas */}
+        <img
+          src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMapV2-3.png"
+          alt=""
+          style={{
+            position: 'absolute',
+            left: 220,
+            width: '942px',
+            height: 'auto',
+            top: '50%',
+            pointerEvents: 'none',
+            zIndex: 0,
+            animation: 'routeSlideIn 4s ease forwards',
+          }}
+        />
         <button onClick={() => { handleClose(); snapTo(currentIndex - 1) }} style={arrowStyle(canPrev, 'left')}>
           <ChevronLeft style={{ width: '18px', height: '18px', color: '#334155' }} />
         </button>
@@ -589,21 +607,6 @@ export default function Carousel({ panels, intro, outro }) {
               userSelect: 'none',
             }}
           >
-            {/* Route line — inside flex container so zIndex is compared directly with card wrappers */}
-            <img
-              src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMapV2.png"
-              alt=""
-              style={{
-                position: 'absolute',
-                left: -30,
-                width: '2337px',
-                height: 'auto',
-                top: '50%',
-                pointerEvents: 'none',
-                zIndex: 5,
-                animation: 'routeSlideIn 4s ease forwards',
-              }}
-            />
 
             {panels.map((panel, idx) => {
               const isHov = hoveredIdx === idx
@@ -675,6 +678,7 @@ export default function Carousel({ panels, intro, outro }) {
         </button>
 
       </div>
+    </div>
     </div>
   )
 }
