@@ -500,7 +500,7 @@ export default function Carousel({ panels, intro, outro }) {
 
         {/* Route map — outside overflow:hidden so it bleeds into white areas */}
         <img
-          src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMapV2-6.png"
+          src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMapV2-7.png"
           alt=""
           style={{
             position: 'absolute',
