@@ -527,14 +527,13 @@ export default function Carousel({ panels, intro, outro }) {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
-            padding: '24px 48px 24px 50px',
+            justifyContent: 'flex-start',
+            padding: '70px 48px 24px 50px',
             boxSizing: 'border-box',
             zIndex: 0,
             pointerEvents: 'none',
             opacity: introOpacity,
             transition: 'opacity 1s ease',
-            transform: 'translateY(-75px)',
           }}>
             {intro.category && (
               <h2 style={{
