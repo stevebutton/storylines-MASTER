@@ -39,8 +39,6 @@ exports.handler = async (event) => {
   }
 
   // Send email notification via Resend (only if API key is configured)
-  console.log('RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
-  console.log('RESEND_FROM_EMAIL:', process.env.RESEND_FROM_EMAIL || '(not set)');
   if (process.env.RESEND_API_KEY) {
     try {
       // Fetch notification email from login_settings
