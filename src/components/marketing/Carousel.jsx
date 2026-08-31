@@ -73,6 +73,19 @@ const PROSE_CSS = `
   .mosaic-content li { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); margin-bottom: 4px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   .mosaic-content strong { color: #000; font-weight: 600; }
   .mosaic-content a { color: #2C97BE; text-decoration: underline; }
+  .description-content p { margin: 0 0 10px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; line-height: 1.5; color: rgba(255,255,255,0.9); }
+  .description-content p:last-child { margin-bottom: 0; }
+  .description-content h1, .description-content h2, .description-content h3, .description-content h4, .description-content h5 { font-family: 'Oswald', sans-serif; color: #fff; margin: 0 0 8px; line-height: 1.2; font-weight: 500; }
+  .description-content h1 { font-size: 22px; }
+  .description-content h2 { font-size: 18px; }
+  .description-content h3 { font-size: 16px; }
+  .description-content h4 { font-size: 14px; }
+  .description-content h5 { font-size: 13px; }
+  .description-content ul, .description-content ol { margin: 0 0 10px; padding-left: 18px; }
+  .description-content li { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; line-height: 1.5; color: rgba(255,255,255,0.9); margin-bottom: 4px; }
+  .description-content strong { color: #fff; font-weight: 600; }
+  .description-content em { font-style: italic; }
+  .description-content a { color: #fbbf24; text-decoration: underline; }
 `
 
 // ─── Individual panel ─────────────────────────────────────────────────────────
@@ -264,20 +277,19 @@ function Panel({ panel, isHovered, isExpanded, onClose }) {
           </h2>
 
           {panel.description && (
-            <p style={{
-              position: 'absolute',
-              top: 'calc(100% + 12px)',
-              left: 0,
-              right: 0,
-              fontSize: '14px',
-              lineHeight: 1.5,
-              margin: 0,
-              opacity: isHovered && !isExpanded ? 1 : 0,
-              transition: 'opacity 0.3s ease 0.15s',
-              color: 'rgba(255,255,255,0.9)',
-            }}>
-              {panel.description}
-            </p>
+            <div
+              className="description-content"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 12px)',
+                left: 0,
+                right: 0,
+                margin: 0,
+                opacity: isHovered && !isExpanded ? 1 : 0,
+                transition: 'opacity 0.3s ease 0.15s',
+              }}
+              dangerouslySetInnerHTML={{ __html: panel.description }}
+            />
           )}
         </div>
       )}
