@@ -117,7 +117,7 @@ export default function LoginDisplay({
       {mediaLoaded && (
         <motion.div
           className="relative z-10 w-full flex flex-col items-center justify-center py-14 bg-black/40 backdrop-blur-xl overflow-y-auto"
-          style={{ paddingLeft: 0, paddingRight: 0, paddingTop: 60 }}
+          style={{ paddingLeft: 0, paddingRight: 0, paddingTop: 60, paddingBottom: 150 }}
           initial={{ y: '100%', opacity: 0 }}
           animate={{ y: '0%', opacity: 1 }}
           transition={{ duration: panelDuration, ease: [0.25, 0.46, 0.45, 0.94], delay: panelDelay }}
@@ -140,7 +140,7 @@ export default function LoginDisplay({
 
             <motion.h2
               className="text-white font-light leading-tight mb-0"
-              style={{ fontFamily: 'Oswald, sans-serif', fontSize: 'clamp(2rem, 3.5vw, 3rem)' }}
+              style={{ fontFamily: 'Oswald, sans-serif', fontSize: 'clamp(2rem, 3.5vw, 3rem)', width: '90vw', maxWidth: '90vw' }}
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, ease: 'easeOut', delay: titleDelay }}
