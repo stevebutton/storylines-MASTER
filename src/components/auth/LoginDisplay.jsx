@@ -125,22 +125,6 @@ export default function LoginDisplay({
           <div className="w-full max-w-[650px] flex flex-col items-center text-center">
           {panelLanded && (<>
 
-            {/* ── Logo ── */}
-            <motion.div
-              className="flex justify-center mb-0"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: 'easeOut', delay: taglineDelay }}
-            >
-              <img
-                src="https://uevxdwzgkodbkzludrni.supabase.co/storage/v1/object/public/media/755f1936001f45de86c469cc-LogoCenteredWhite.png"
-                alt="Storylines"
-                width={250}
-                height={100}
-                className="object-contain opacity-90"
-              />
-            </motion.div>
-
             {/* ── Welcome content ── */}
             {welcomeTagline && (
               <motion.p
@@ -206,6 +190,22 @@ export default function LoginDisplay({
                 </button>
               </motion.div>
             )}
+
+            {/* ── Logo ── */}
+            <motion.div
+              className="flex justify-center mb-0"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: dividerDelay }}
+            >
+              <img
+                src="https://uevxdwzgkodbkzludrni.supabase.co/storage/v1/object/public/media/755f1936001f45de86c469cc-LogoCenteredWhite.png"
+                alt="Storylines"
+                width={250}
+                height={100}
+                className="object-contain opacity-90"
+              />
+            </motion.div>
 
             {/* Divider */}
             <motion.div
