@@ -70,24 +70,31 @@ export default function CesiumLocationPicker({ value, onChange }) {
         onChange(next)
     }
 
+    const handleSearch = async () => {
+        const q = searchQuery.trim()
+        if (q.length < 2) return
+        setIsSearching(true)
+        try {
+            const res  = await fetch(
+                `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(q)}&key=${GOOGLE_KEY}`
+            )
+            const data = await res.json()
+            if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+                console.error('Geocoding error:', data.status, data.error_message || '')
+            }
+            setSearchResults(data.results?.slice(0, 6) || [])
+        } catch (e) {
+            console.error('Geocode failed:', e)
+        } finally {
+            setIsSearching(false)
+        }
+    }
+
     // Debounced live search — fires 450ms after the user stops typing
     useEffect(() => {
         const q = searchQuery.trim()
         if (q.length < 2) { setSearchResults([]); return }
-        const timer = setTimeout(async () => {
-            setIsSearching(true)
-            try {
-                const res  = await fetch(
-                    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(q)}&key=${GOOGLE_KEY}`
-                )
-                const data = await res.json()
-                setSearchResults(data.results?.slice(0, 6) || [])
-            } catch (e) {
-                console.error('Geocode failed:', e)
-            } finally {
-                setIsSearching(false)
-            }
-        }, 450)
+        const timer = setTimeout(handleSearch, 450)
         return () => clearTimeout(timer)
     }, [searchQuery])
 
@@ -118,7 +125,10 @@ export default function CesiumLocationPicker({ value, onChange }) {
                         placeholder="Search for a location…"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        onKeyDown={e => e.key === 'Escape' && setSearchResults([])}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter') handleSearch()
+                            if (e.key === 'Escape') setSearchResults([])
+                        }}
                         className="pl-10"
                     />
                 </div>
