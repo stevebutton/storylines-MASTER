@@ -198,7 +198,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         )}
 
         {panel.description && (
-          <p style={{
+          <div style={{
             position: 'absolute',
             top: 'calc(100% + 12px)',
             left: 0,
@@ -213,9 +213,9 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
             opacity: isHovered && !isExpanded ? 1 : 0,
             transition: 'opacity 0.3s ease 0.15s',
             color: 'rgba(255,255,255,0.9)',
-          }}>
-            {panel.description}
-          </p>
+          }}
+            dangerouslySetInnerHTML={{ __html: panel.description }}
+          />
         )}
       </div>
     </div>
