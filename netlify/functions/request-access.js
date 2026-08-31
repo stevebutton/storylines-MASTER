@@ -53,7 +53,7 @@ exports.handler = async (event) => {
       if (notifyEmail) {
         const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
-        await fetch('https://api.resend.com/emails', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
@@ -76,6 +76,12 @@ exports.handler = async (event) => {
             `,
           }),
         });
+        if (!resendRes.ok) {
+          const resendError = await resendRes.json().catch(() => ({}));
+          console.error('Resend error:', resendRes.status, JSON.stringify(resendError));
+        } else {
+          console.log('Resend email sent successfully to', notifyEmail);
+        }
       }
     } catch (emailErr) {
       // Log but don't fail — the DB insert already succeeded
