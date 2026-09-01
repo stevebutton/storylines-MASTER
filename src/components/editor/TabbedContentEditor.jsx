@@ -124,6 +124,7 @@ export default function TabbedContentEditor({
     defaultTab,
     onGenerateCaptions = null,
     previousCesiumCamera = null,
+    previousMapboxLocation = null,
 }) {
     const [activeTab, setActiveTab] = useState(defaultTab || 'content');
 
@@ -1146,6 +1147,7 @@ export default function TabbedContentEditor({
                                             });
                                         }}
                                         mapStyle={storyMapStyle || 'a'}
+                                        previousLocation={previousMapboxLocation}
                                     />
                                 </>
                             )}
@@ -1464,6 +1466,7 @@ export default function TabbedContentEditor({
                                     });
                                 }}
                                 mapStyle={storyMapStyle || 'a'}
+                                previousLocation={previousMapboxLocation}
                             />
                             )}
                             

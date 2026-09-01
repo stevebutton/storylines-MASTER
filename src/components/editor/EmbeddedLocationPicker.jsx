@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, MapPin, Loader2 } from 'lucide-react';
+import { Search, MapPin, Loader2, Copy } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -20,7 +20,7 @@ const MAP_STYLES = {
     i: 'mapbox://styles/stevebutton/cllw84jo600f401r7afyy7ef4',
 };
 
-export default function EmbeddedLocationPicker({ location, onLocationChange, mapStyle = 'a' }) {
+export default function EmbeddedLocationPicker({ location, onLocationChange, mapStyle = 'a', previousLocation = null }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -127,6 +127,25 @@ export default function EmbeddedLocationPicker({ location, onLocationChange, map
         setSearchQuery(result.place_name);
     };
 
+    const copyPreviousLocation = () => {
+        if (!previousLocation || !mapRef.current) return;
+        mapRef.current.flyTo({
+            center: [previousLocation.lng, previousLocation.lat],
+            zoom: previousLocation.zoom || 12,
+            bearing: previousLocation.bearing || 0,
+            pitch: previousLocation.pitch || 0,
+            duration: 1500,
+        });
+        if (markerRef.current) {
+            markerRef.current.setLngLat([previousLocation.lng, previousLocation.lat]);
+        } else {
+            markerRef.current = new mapboxgl.Marker({ color: '#d97706' })
+                .setLngLat([previousLocation.lng, previousLocation.lat])
+                .addTo(mapRef.current);
+        }
+        onLocationChange({ ...previousLocation, name: location.name });
+    };
+
     const captureCurrentView = () => {
         if (!mapRef.current) return;
         
@@ -147,6 +166,20 @@ export default function EmbeddedLocationPicker({ location, onLocationChange, map
 
     return (
         <div className="space-y-3">
+            {/* Copy previous location */}
+            {previousLocation && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={copyPreviousLocation}
+                    className="w-full flex items-center gap-2 text-slate-600"
+                >
+                    <Copy className="w-4 h-4" />
+                    Copy Previous Location
+                </Button>
+            )}
+
             {/* Search bar */}
             <div className="relative">
                 <div className="flex gap-2">

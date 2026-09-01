@@ -656,6 +656,25 @@ export default function StoryEditor() {
                                 }
                                 return null;
                             })()}
+                            previousMapboxLocation={(() => {
+                                const toLoc = (obj) => obj?.coordinates?.[0] != null ? {
+                                    lat: obj.coordinates[0], lng: obj.coordinates[1],
+                                    zoom: obj.zoom || 12, bearing: obj.bearing || 0, pitch: obj.pitch || 0,
+                                } : null;
+                                if (selectedItem.type === 'chapter') {
+                                    const idx = chapters.findIndex(c => c.id === selectedItem.id);
+                                    return idx > 0 ? toLoc(chapters[idx - 1]) : null;
+                                }
+                                if (selectedItem.type === 'slide') {
+                                    const slide = slides.find(s => s.id === selectedItem.id);
+                                    if (!slide) return null;
+                                    const chapterSlides = slides.filter(s => s.chapter_id === slide.chapter_id);
+                                    const idx = chapterSlides.findIndex(s => s.id === slide.id);
+                                    if (idx > 0) return toLoc(chapterSlides[idx - 1]);
+                                    return toLoc(chapters.find(c => c.id === slide.chapter_id));
+                                }
+                                return null;
+                            })()}
                             onUpdate={
                                 selectedItem.type === 'story' ? updateStory :
                                 selectedItem.type === 'chapter' ? updateChapter :
