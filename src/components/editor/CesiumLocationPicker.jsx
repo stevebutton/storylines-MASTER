@@ -3,7 +3,7 @@ import * as Cesium from 'cesium'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Search, MapPin, Loader2 } from 'lucide-react'
+import { Search, MapPin, Loader2, Copy } from 'lucide-react'
 import { useCesiumViewer } from '@/components/cesium/useCesiumViewer'
 import { setViewInstant } from '@/components/cesium/flyToPromise'
 
@@ -29,7 +29,7 @@ function altitudeFromViewport(viewport, lat) {
  *   value    — cesium_camera object { lat, lng, alt, heading, pitch, duration } or null
  *   onChange — called with the updated cesium_camera object on capture
  */
-export default function CesiumLocationPicker({ value, onChange }) {
+export default function CesiumLocationPicker({ value, onChange, previousCamera = null }) {
     const containerRef = useRef(null)
     const [error, setError]               = useState(null)
     const [searchQuery, setSearchQuery]   = useState('')
@@ -66,6 +66,22 @@ export default function CesiumLocationPicker({ value, onChange }) {
 
     const setDuration = (val) => {
         const next = { ...(captured || {}), duration: val === '' ? undefined : Number(val) }
+        setCaptured(next)
+        onChange(next)
+    }
+
+    const copyPreviousLocation = () => {
+        if (!previousCamera || !viewer) return
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(previousCamera.lng, previousCamera.lat, previousCamera.alt),
+            orientation: {
+                heading: Cesium.Math.toRadians(previousCamera.heading ?? 0),
+                pitch:   Cesium.Math.toRadians(previousCamera.pitch   ?? -35),
+                roll:    0,
+            },
+            duration: 1.5,
+        })
+        const next = { ...previousCamera, duration: captured?.duration ?? previousCamera.duration ?? 3 }
         setCaptured(next)
         onChange(next)
     }
@@ -114,6 +130,20 @@ export default function CesiumLocationPicker({ value, onChange }) {
 
     return (
         <div className="space-y-3">
+            {/* Copy previous location */}
+            {previousCamera && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={copyPreviousLocation}
+                    className="w-full flex items-center gap-2 text-slate-600"
+                >
+                    <Copy className="w-4 h-4" />
+                    Copy Previous Location
+                </Button>
+            )}
+
             {/* Search bar */}
             <div className="relative">
                 <div className="relative">

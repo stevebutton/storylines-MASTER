@@ -123,6 +123,7 @@ export default function TabbedContentEditor({
     storyMapStyle,
     defaultTab,
     onGenerateCaptions = null,
+    previousCesiumCamera = null,
 }) {
     const [activeTab, setActiveTab] = useState(defaultTab || 'content');
 
@@ -1122,6 +1123,7 @@ export default function TabbedContentEditor({
                                 <CesiumLocationPicker
                                     value={item.cesium_camera || null}
                                     onChange={(cam) => onUpdate({ ...item, cesium_camera: cam })}
+                                    previousCamera={previousCesiumCamera}
                                 />
                             ) : (
                                 <>
@@ -1439,6 +1441,7 @@ export default function TabbedContentEditor({
                                 <CesiumLocationPicker
                                     value={item.cesium_camera || null}
                                     onChange={(cam) => onUpdate({ ...item, cesium_camera: cam })}
+                                    previousCamera={previousCesiumCamera}
                                 />
                             ) : (
                             <EmbeddedLocationPicker
