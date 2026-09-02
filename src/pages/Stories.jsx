@@ -10,10 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb, LogOut, Users, LogIn, UserCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Map, Loader2, Search, Filter, ArrowUpDown, CheckCircle, FileEdit, Globe, Lock, Star, StarOff, Tag, Home, Layers, Lightbulb, LogOut, Users, LogIn, UserCircle, HelpCircle, BookOpen, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import StoryCreationOptionsPanel from '@/components/editor/StoryCreationOptionsPanel';
+import HelpPanel from '@/components/editor/HelpPanel';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Stories() {
   const { profile: currentUser, logout } = useAuth();
@@ -33,6 +35,8 @@ export default function Stories() {
   const [categoryName, setCategoryName] = useState('');
   const [categoryColor, setCategoryColor] = useState('bg-slate-100 text-slate-800');
   const [isStoryCreationPanelOpen, setIsStoryCreationPanelOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isHowToOpen, setIsHowToOpen] = useState(false);
   const [seriesCount, setSeriesCount] = useState(0);
 
   useEffect(() => {
@@ -398,7 +402,7 @@ export default function Stories() {
                     <h2 className="text-3xl font-bold text-slate-800 mb-6 pb-3 border-b border-slate-200">Stories</h2>
 
                     {/* Stats & Actions */}
-                    <div className="flex flex-wrap items-stretch gap-4 mb-6">
+                    <div className="flex flex-nowrap items-stretch gap-4 mb-6 overflow-x-auto">
                         <button onClick={() => setStatusFilter('all')} className={`rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer ${statusFilter === 'all' ? 'bg-blue-200 ring-2 ring-blue-400' : 'bg-blue-50 hover:bg-blue-100'}`}>
                             <p className="text-sm text-blue-600">Total Stories</p>
                             <p className="text-2xl font-bold text-blue-700">{stories.length}</p>
@@ -421,12 +425,14 @@ export default function Stories() {
                                 {stories.filter((s) => s.is_idea).length}
                             </p>
                         </button>
+                        {/* Hidden: categories stat button — restore by removing 'hidden'
                         <button onClick={() => setIsCategoryManagerOpen(true)} className="bg-purple-50 hover:bg-purple-100 rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer">
                             <p className="text-sm text-purple-600">Categories</p>
                             <p className="text-2xl font-bold text-purple-700">
                                 {new Set(stories.map((s) => s.category).filter(Boolean)).size}
                             </p>
                         </button>
+                        */}
                         <Link to={createPageUrl('SeriesEditor')} className="bg-indigo-50 hover:bg-indigo-100 rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors cursor-pointer">
                             <p className="text-sm text-indigo-600">Series</p>
                             <p className="text-2xl font-bold text-indigo-700">{seriesCount}</p>
@@ -436,7 +442,7 @@ export default function Stories() {
                             onClick={() => setIsCategoryManagerOpen(true)}
                         >
                             <Tag className="w-6 h-6 mb-1" />
-                            <span className="text-sm font-semibold">Manage Categories</span>
+                            <span className="text-sm font-semibold">Manage<br/>Categories</span>
                         </button>
                         <button
                             className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
@@ -450,8 +456,22 @@ export default function Stories() {
                             className="bg-slate-700 hover:bg-slate-800 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
                         >
                             <Home className="w-6 h-6 mb-1" />
-                            <span className="text-sm font-semibold">Edit Home Page</span>
+                            <span className="text-sm font-semibold">Edit Home<br/>Page</span>
                         </Link>
+                        <button
+                            className="bg-black hover:bg-gray-900 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
+                            onClick={() => setIsHelpOpen(true)}
+                        >
+                            <HelpCircle className="w-6 h-6 mb-1" />
+                            <span className="text-sm font-semibold">Help</span>
+                        </button>
+                        <button
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-3 flex flex-col items-start justify-center transition-colors"
+                            onClick={() => setIsHowToOpen(true)}
+                        >
+                            <BookOpen className="w-6 h-6 mb-1" />
+                            <span className="text-sm font-semibold">How To</span>
+                        </button>
                     </div>
 
                     {/* Filters */}
@@ -743,6 +763,61 @@ export default function Stories() {
                 isOpen={isStoryCreationPanelOpen}
                 onClose={() => setIsStoryCreationPanelOpen(false)}
             />
+
+            {/* Help Panel */}
+            <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
+            {/* How To Panel */}
+            <AnimatePresence>
+                {isHowToOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsHowToOpen(false)}
+                            className="fixed inset-0 bg-black/20 z-[60]"
+                        />
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+                            className="fixed right-0 top-0 w-[750px] h-full bg-white shadow-2xl z-[70] flex flex-col"
+                        >
+                            <div className="bg-white border-b shadow-sm">
+                                <div className="px-4 py-3">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <button
+                                            onClick={() => setIsHowToOpen(false)}
+                                            className="p-2 text-slate-500 hover:text-slate-700 transition-colors flex-shrink-0"
+                                        >
+                                            <X className="w-8 h-8" />
+                                        </button>
+                                        <img
+                                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693030a5e25aa73dea8d72c2/91ab42d74_logoadjustedpng.png"
+                                            alt="Storylines"
+                                            width="250"
+                                            height="100"
+                                            className="hover:opacity-80 transition-opacity"
+                                        />
+                                        <h1 className="text-[42px] font-bold text-slate-900 flex-1 leading-tight">
+                                            How To Guides
+                                        </h1>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex-1 overflow-y-auto flex items-center justify-center py-8 px-0">
+                                <img
+                                    src="http://storylines.flywheelsites.com/wp-content/uploads/2026/09/howto.jpg"
+                                    alt="How To"
+                                    className="rounded-lg shadow-md w-full"
+                                />
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
 
             {/* Category Manager Dialog */}
             <Dialog open={isCategoryManagerOpen} onOpenChange={setIsCategoryManagerOpen}>
