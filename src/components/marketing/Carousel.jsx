@@ -55,22 +55,22 @@ const PROSE_CSS = `
     from { opacity: 0; transform: translateY(calc(-50% - 5px)) translateX(300px); }
     to   { opacity: 1; transform: translateY(calc(-50% - 5px)) translateX(0); }
   }
-  .panel-content p { margin: 0 0 12px; font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); }
+  .panel-content p { margin: 0 0 12px; font-size: 14px !important; line-height: 1.3em !important; color: rgba(255,255,255,0.85); }
   .panel-content p:last-child { margin-bottom: 0; }
   .panel-content h2, .panel-content h3 { font-family: 'Oswald', sans-serif; color: #fff; margin: 0 0 8px; line-height: 1.2; }
   .panel-content h2 { font-size: 20px; }
   .panel-content h3 { font-size: 16px; }
   .panel-content ul, .panel-content ol { margin: 0 0 12px; padding-left: 18px; }
-  .panel-content li { font-size: 13px; line-height: 1.65; color: rgba(255,255,255,0.85); margin-bottom: 4px; }
+  .panel-content li { font-size: 14px !important; line-height: 1.3em !important; color: rgba(255,255,255,0.85); margin-bottom: 4px; }
   .panel-content strong { color: #fff; font-weight: 600; }
   .panel-content a { color: #2C97BE; text-decoration: underline; }
-  .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  .mosaic-content p { margin: 0 0 12px; font-family: 'Montserrat', sans-serif; font-size: 14px !important; font-weight: 300; line-height: 1.3em !important; color: rgba(0,0,0,0.8); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   .mosaic-content p:last-child { margin-bottom: 0; }
   .mosaic-content h2, .mosaic-content h3 { font-family: 'Oswald', sans-serif; color: #000; margin: 0 0 8px; line-height: 1.2; }
   .mosaic-content h2 { font-size: 20px; }
   .mosaic-content h3 { font-size: 16px; }
   .mosaic-content ul, .mosaic-content ol { margin: 0 0 12px; padding-left: 18px; }
-  .mosaic-content li { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.5em; color: rgba(0,0,0,0.8); margin-bottom: 4px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  .mosaic-content li { font-family: 'Montserrat', sans-serif; font-size: 14px !important; font-weight: 300; line-height: 1.3em !important; color: rgba(0,0,0,0.8); margin-bottom: 4px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   .mosaic-content strong { color: #000; font-weight: 600; }
   .mosaic-content a { color: #2C97BE; text-decoration: underline; }
   .description-content p { margin: 0 0 10px; font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; line-height: 1.5; color: rgba(255,255,255,0.9); }
