@@ -400,7 +400,7 @@ export default function Mosaic({ panels }) {
         autoPlay muted loop playsInline
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
       >
-        <source src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/enthusiastic-children-running-toward-camera-at-sch-2025-12-17-11-34-08-utc_1.mp4" type="video/mp4" />
+        <source src={MOSAIC_BG_VIDEO} type="video/mp4" />
       </video>
       <style>{PROSE_CSS}</style>
 
