@@ -12,7 +12,7 @@
 # Proxy WordPress REST API — avoids CORS since Netlify makes the request server-side
 [[redirects]]
   from = "/wp-api/*"
-  to = "https://storylines.studio/wp-json/:splat"
+  to = "https://storylines.flywheelsites.com/wp-json/:splat"
   status = 200
   force = true
 
