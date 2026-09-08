@@ -7,6 +7,14 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  VITE_WP_API_URL = "/wp-api"
+
+# Proxy WordPress REST API — avoids CORS since Netlify makes the request server-side
+[[redirects]]
+  from = "/wp-api/*"
+  to = "https://storylines.studio/wp-json/:splat"
+  status = 200
+  force = true
 
 # SPA catch-all — serve index.html for all non-static routes
 [[redirects]]

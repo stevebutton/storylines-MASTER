@@ -4,7 +4,7 @@ const CARD_H = 380
 const VIDEO_RATIO = 1440 / 900   // source video aspect ratio
 const GAP = 24
 const SHRUNK_W = 200
-const MOSAIC_BG_VIDEO = 'http://storylines.flywheelsites.com/wp-content/uploads/2026/08/enthusiastic-children-running-toward-camera-at-sch-2025-12-17-11-34-08-utc_1.mp4'
+const MOSAIC_BG_VIDEO = 'https://storylines.studio/wp-content/uploads/2026/08/enthusiastic-children-running-toward-camera-at-sch-2025-12-17-11-34-08-utc_1.mp4'
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
 
@@ -406,7 +406,7 @@ export default function Mosaic({ panels }) {
 
       {/* PNG overlay — overflow:visible lets it bleed into white areas above and below */}
       <img
-        src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/4paths-2.png"
+        src="https://storylines.studio/wp-content/uploads/2026/08/4paths-2.png"
         alt=""
         style={{
           position: 'absolute',

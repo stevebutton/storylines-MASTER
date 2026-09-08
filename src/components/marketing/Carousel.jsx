@@ -8,7 +8,7 @@ const STEP = PANEL_W + GAP
 const TRACK_H = 590
 const INTRO_W = 400  // panels start here; intro text fills the space to the left
 const OUTRO_W = 400  // outro text fills the space to the right when fully scrolled
-const CAROUSEL_BG = 'http://storylines.flywheelsites.com/wp-content/uploads/2026/08/serene-african-savanna-landscape-with-distant-tree-2026-01-05-04-45-16-utc-1-1.jpg'
+const CAROUSEL_BG = 'https://storylines.studio/wp-content/uploads/2026/08/serene-african-savanna-landscape-with-distant-tree-2026-01-05-04-45-16-utc-1-1.jpg'
 
 // ─── Video helpers ────────────────────────────────────────────────────────────
 
@@ -512,7 +512,7 @@ export default function Carousel({ panels, intro, outro }) {
 
         {/* Route map — outside overflow:hidden so it bleeds into white areas */}
         <img
-          src="http://storylines.flywheelsites.com/wp-content/uploads/2026/08/RouteMapV2-7.png"
+          src="https://storylines.studio/wp-content/uploads/2026/08/RouteMapV2-7.png"
           alt=""
           style={{
             position: 'absolute',
