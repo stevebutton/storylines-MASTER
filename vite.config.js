@@ -6,6 +6,12 @@ import cesium from 'vite-plugin-cesium'
 // https://vite.dev/config/
 export default defineConfig({
   logLevel: 'error', // Suppress warnings, only show errors
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 1000,
+    },
+  },
   plugins: [
     react(),
     cesium(),   // handles Cesium worker files, asset copying, CESIUM_BASE_URL
