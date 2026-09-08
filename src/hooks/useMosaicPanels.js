@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const WP_API = import.meta.env.VITE_WP_API_URL
+const WP_API = import.meta.env.VITE_WP_API_URL || '/wp-api'
 
 function normalizePanel(post) {
   const acf = post.acf || {}
