@@ -44,7 +44,7 @@ const PROSE_CSS = `
   .mosaic-content li { font-family: 'Montserrat', sans-serif; font-size: 14px !important; font-weight: 300; line-height: 1.3em !important; color: rgba(0,0,0,0.8); margin-bottom: 4px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   .mosaic-content strong { color: #000; font-weight: 600; }
   .mosaic-content a { color: #2C97BE; text-decoration: underline; }
-  .description-content p { margin: 0 0 10px; font-family: 'Montserrat', sans-serif; font-size: 17px; font-weight: 300; line-height: 1.3em; color: rgba(255,255,255,0.9); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  .description-content p { margin: 0 0 10px; font-family: 'Montserrat', sans-serif; font-size: 17px; font-weight: 400 !important; line-height: 1.3em; color: #ffffff; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
   .description-content p:last-child { margin-bottom: 0; }
   .description-content h1, .description-content h2, .description-content h3, .description-content h4, .description-content h5 { font-family: 'Oswald', sans-serif; color: #fff; margin: 0 0 8px; line-height: 1.2; font-weight: 500; }
   .description-content h1 { font-size: 26px; }
@@ -116,7 +116,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
           inset: 0,
           backgroundImage: `url(${panel.image})`,
           backgroundSize: /\.png$/i.test(panel.image) ? 'auto' : 'cover',
-          backgroundPosition: isHovered && !isExpanded ? '50% calc(50% - 50px)' : '50% 50%',
+          backgroundPosition: isHovered && !isExpanded ? '50% calc(50% - 80px)' : '50% 50%',
           backgroundRepeat: 'no-repeat',
           zIndex: /\.png$/i.test(panel.image) ? 3 : 0,
           opacity: /\.png$/i.test(panel.image) && isExpanded ? 0 : 1,
@@ -196,7 +196,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
         textAlign: 'center',
         opacity: isExpanded ? 0 : 1,
         transition: 'opacity 0.3s ease, transform 0.4s ease',
-        transform: isHovered && !isExpanded ? 'translateY(-60px)' : 'translateY(0)',
+        transform: isHovered && !isExpanded ? 'translateY(-90px)' : 'translateY(0)',
       }}>
         {!panel.previewVideoUrl && (
           <h2 style={{
@@ -219,7 +219,7 @@ function MosaicCard({ panel, isHovered, isExpanded }) {
             margin: 0,
             fontFamily: "'Montserrat', sans-serif",
             fontSize: '17px',
-            fontWeight: 300,
+            fontWeight: 400,
             lineHeight: '1.3em',
             WebkitFontSmoothing: 'antialiased',
             MozOsxFontSmoothing: 'grayscale',
