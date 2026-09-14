@@ -398,7 +398,7 @@ export default function Mosaic({ panels }) {
     <div ref={outerRef} style={{ width: '100%', height: '750px', position: 'relative', overflow: 'visible' }}>
       <video
         autoPlay muted loop playsInline
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, animation: 'mosaicFadeIn 2s ease 500ms both' }}
       >
         <source src={MOSAIC_BG_VIDEO} type="video/mp4" />
       </video>
