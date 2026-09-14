@@ -404,21 +404,7 @@ export default function Mosaic({ panels }) {
       </video>
       <style>{PROSE_CSS}</style>
 
-      {/* PNG overlay — overflow:visible lets it bleed into white areas above and below */}
-      <img
-        src="https://storylines.studio/wp-content/uploads/2026/08/4paths-2.png"
-        alt=""
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(calc(-50% - 20px), calc(-50% + 5px))',
-          zIndex: 1,
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Blurred hover overlay — identical source & sizing to background video,
+{/* Blurred hover overlay — identical source & sizing to background video,
           guaranteeing perfect registration. clip-path restricts to hovered card
           using outer-wrapper coordinates so no edge-fade issue. */}
       {inView && (() => {
