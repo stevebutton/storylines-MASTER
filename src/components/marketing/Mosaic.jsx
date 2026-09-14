@@ -27,6 +27,10 @@ const PROSE_CSS = `
     from { opacity: 0; }
     to   { opacity: 1; }
   }
+  @keyframes mosaicPanelIn {
+    from { opacity: 0; transform: translateY(100px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
   @keyframes mosaicSlideFromRight {
     from { opacity: 0; transform: translateX(24px); }
     to   { opacity: 1; transform: translateX(0); }
@@ -456,7 +460,7 @@ export default function Mosaic({ panels }) {
                 flexShrink: 0,
                 position: 'relative',
                 zIndex: expandedIdx === idx ? 10 : 1,
-                animation: `mosaicFadeIn 1s ease ${idx + 1}s both`,
+                animation: `mosaicPanelIn 2s ease ${idx + 1}s both`,
               }}
               onMouseEnter={() => { cancelCollapse(); setHoveredIdx(idx) }}
               onMouseLeave={scheduleCollapse}
