@@ -19,6 +19,9 @@
       if (window.location.pathname.startsWith('/embed/')) {
         document.documentElement.style.background = '#fff';
         document.body.style.background = '#fff';
+        var s = document.createElement('style');
+        s.textContent = '#page-loader { background: #fff !important; } #page-loader-spinner { display: none !important; }';
+        document.head.appendChild(s);
       }
     </script>
     <!-- Pre-React loader: visible from first browser paint, removed once React mounts -->
