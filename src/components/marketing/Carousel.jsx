@@ -43,6 +43,18 @@ const PROSE_CSS = `
     from { opacity: 0; }
     to   { opacity: 1; }
   }
+  @keyframes carouselBgFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes carouselOverlayFadeIn {
+    from { opacity: 0; transform: translateY(calc(-50% + 30px)); }
+    to   { opacity: 1; transform: translateY(-50%); }
+  }
+  @keyframes carouselPanelIn {
+    from { opacity: 0; transform: translateY(100px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
   @keyframes carouselSlideFromRight {
     from { opacity: 0; transform: translateX(24px); }
     to   { opacity: 1; transform: translateX(0); }
@@ -504,6 +516,7 @@ export default function Carousel({ panels, intro, outro }) {
       backgroundImage: `url(${CAROUSEL_BG})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
+      animation: 'carouselBgFadeIn 2s ease 500ms both',
     }}>
       <style>{PROSE_CSS}</style>
 
@@ -522,7 +535,7 @@ export default function Carousel({ panels, intro, outro }) {
             top: '50%',
             pointerEvents: 'none',
             zIndex: 0,
-            animation: 'routeSlideIn 4s ease forwards',
+            animation: 'carouselOverlayFadeIn 2s ease 1.5s both',
           }}
         />
         <button onClick={() => { handleClose(); snapTo(currentIndex - 1) }} style={arrowStyle(canPrev, 'left')}>
@@ -630,7 +643,7 @@ export default function Carousel({ panels, intro, outro }) {
                   style={{
                     flexShrink: 0,
                     height: '100%',
-                    animation: `carouselCardFadeIn 1s ease ${idx + 1}s both`,
+                    animation: `carouselPanelIn 2s ease ${idx + 1}s both`,
                     position: 'relative',
                     zIndex: expandedIdx === idx ? 10 : 1,
                   }}

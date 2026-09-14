@@ -19,11 +19,11 @@ export default function EmbedCarousel() {
     const loader = document.getElementById('page-loader')
     if (loader) loader.remove()
     // Clear black backgrounds set on html/body/root for the main app
-    document.documentElement.style.background = 'transparent'
-    document.body.style.background = 'transparent'
+    document.documentElement.style.background = 'white'
+    document.body.style.background = 'white'
     document.body.style.overflow = 'visible'
     const root = document.getElementById('root')
-    if (root) root.style.background = 'transparent'
+    if (root) root.style.background = 'white'
   }, [])
 
   if (isLoading) return (
