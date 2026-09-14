@@ -17,8 +17,8 @@ export default function EmbedMosaic() {
   useEffect(() => {
     const loader = document.getElementById('page-loader')
     if (loader) loader.remove()
-    document.documentElement.style.background = 'transparent'
-    document.body.style.background = 'transparent'
+    document.documentElement.style.background = 'white'
+    document.body.style.background = 'white'
     document.body.style.overflow = 'hidden'
     document.body.style.webkitFontSmoothing = 'antialiased'
     document.body.style.mozOsxFontSmoothing = 'grayscale'
