@@ -40,7 +40,7 @@ export default function EmbedMosaic() {
   )
 
   return (
-    <div style={{ width: '100%', minHeight: '900px' }}>
+    <div style={{ width: '100%', height: '750px', overflow: 'hidden' }}>
       <Mosaic panels={panels} />
     </div>
   )
