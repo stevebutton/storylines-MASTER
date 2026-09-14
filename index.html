@@ -14,6 +14,13 @@
     <title>Base44 APP</title>
   </head>
   <body style="background: #000; margin: 0;">
+    <!-- Override black backgrounds for embed routes before first paint -->
+    <script>
+      if (window.location.pathname.startsWith('/embed/')) {
+        document.documentElement.style.background = '#fff';
+        document.body.style.background = '#fff';
+      }
+    </script>
     <!-- Pre-React loader: visible from first browser paint, removed once React mounts -->
     <style>
       @keyframes _pl-spin { to { transform: rotate(360deg); } }
