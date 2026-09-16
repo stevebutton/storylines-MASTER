@@ -35,6 +35,14 @@ const PROSE_CSS = `
     from { opacity: 0; transform: translateX(24px); }
     to   { opacity: 1; transform: translateX(0); }
   }
+  @keyframes mosaicSlideToRight {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(24px); }
+  }
+  @keyframes mosaicSlideToLeft {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(-24px); }
+  }
   @keyframes mosaicSlideFromLeft {
     from { opacity: 0; transform: translateX(-24px); }
     to   { opacity: 1; transform: translateX(0); }
@@ -321,12 +329,26 @@ export default function Mosaic({ panels }) {
   const [containerRelTop, setContainerRelTop] = useState(185)
   const [hoveredIdx, setHoveredIdx] = useState(null)
   const [expandedIdx, setExpandedIdx] = useState(null)
+  const [closingIdx, setClosingIdx] = useState(null)
   const [inView, setInView] = useState(false)
+  const exitTimerRef = useRef(null)
+  const expandedIdxRef = useRef(null)
+  expandedIdxRef.current = expandedIdx
+
+  const collapsePanel = () => {
+    const idx = expandedIdxRef.current
+    if (idx !== null) {
+      setClosingIdx(idx)
+      clearTimeout(exitTimerRef.current)
+      exitTimerRef.current = setTimeout(() => setClosingIdx(null), 700)
+    }
+    setExpandedIdx(null)
+  }
 
   const scheduleCollapse = () => {
     collapseTimer.current = setTimeout(() => {
       setHoveredIdx(null)
-      setExpandedIdx(null)
+      collapsePanel()
     }, 80)
   }
 
@@ -390,10 +412,11 @@ export default function Mosaic({ panels }) {
   // Width is 50% of the available space beside the expanded card.
   // For cards 2 & 3 the panel is right-aligned (flush against the expanded card).
   const sidePanelW = 300
-  const sidePanelLeft = expandedIdx !== null
-    ? expandedIdx < 2
-      ? getExpandedCardLeft(expandedIdx) + expandedW + GAP          // right of card
-      : getExpandedCardLeft(expandedIdx) - GAP - sidePanelW         // flush left of card
+  const activeIdx = expandedIdx ?? closingIdx
+  const sidePanelLeft = activeIdx !== null
+    ? activeIdx < 2
+      ? getExpandedCardLeft(activeIdx) + expandedW + GAP            // right of card
+      : getExpandedCardLeft(activeIdx) - GAP - sidePanelW           // flush left of card
     : 0
 
   return (
@@ -446,7 +469,7 @@ export default function Mosaic({ panels }) {
       <div style={{ maxWidth: 1340, margin: '0 auto', height: '100%', display: 'flex', alignItems: 'center', padding: '0 32px', boxSizing: 'border-box', position: 'relative', zIndex: 2, transform: 'translateY(-50px)' }}>
       <div
         ref={containerRef}
-        onMouseLeave={() => { cancelCollapse(); setExpandedIdx(null); setHoveredIdx(null) }}
+        onMouseLeave={() => { cancelCollapse(); collapsePanel(); setHoveredIdx(null) }}
         style={{ width: '100%', minHeight: inView ? undefined : CARD_H, position: 'relative' }}
       >
         {/* Card row — deferred until component enters the viewport */}
@@ -464,7 +487,7 @@ export default function Mosaic({ panels }) {
               }}
               onMouseEnter={() => { cancelCollapse(); setHoveredIdx(idx) }}
               onMouseLeave={scheduleCollapse}
-              onClick={() => { cancelCollapse(); setExpandedIdx(prev => prev === idx ? null : idx) }}
+              onClick={() => { cancelCollapse(); if (expandedIdx === idx) { collapsePanel() } else { clearTimeout(exitTimerRef.current); setClosingIdx(null); setExpandedIdx(idx) } }}
             >
               {/* inner div expands and overlaps neighbours */}
               <div style={{
@@ -486,7 +509,7 @@ export default function Mosaic({ panels }) {
         </div>}
 
         {/* Content panel — beside the expanded card, vertically centred */}
-        {inView && expandedIdx !== null && panels[expandedIdx] && (
+        {inView && (expandedIdx !== null || closingIdx !== null) && panels[expandedIdx ?? closingIdx] && (
           <div
             style={{
               position: 'absolute',
@@ -495,15 +518,17 @@ export default function Mosaic({ panels }) {
               left: sidePanelLeft,
               width: sidePanelW,
               zIndex: 10,
-              animation: `${expandedIdx < 2 ? 'mosaicSlideFromRight' : 'mosaicSlideFromLeft'} 0.6s ease 1s both`,
+              animation: closingIdx !== null
+                ? `${closingIdx < 2 ? 'mosaicSlideToRight' : 'mosaicSlideToLeft'} 0.6s ease both`
+                : `${expandedIdx < 2 ? 'mosaicSlideFromRight' : 'mosaicSlideFromLeft'} 0.6s ease 1s both`,
             }}
             onMouseEnter={cancelCollapse}
             onMouseLeave={scheduleCollapse}
           >
             <MosaicContentPanel
-              key={expandedIdx}
-              panel={panels[expandedIdx]}
-              index={expandedIdx}
+              key={expandedIdx ?? closingIdx}
+              panel={panels[expandedIdx ?? closingIdx]}
+              index={expandedIdx ?? closingIdx}
             />
           </div>
         )}
