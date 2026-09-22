@@ -466,7 +466,7 @@ export default function Mosaic({ panels }) {
         )
       })()}
 
-      <div style={{ maxWidth: 1340, margin: '0 auto', height: '100%', display: 'flex', alignItems: 'center', padding: '0 32px', boxSizing: 'border-box', position: 'relative', zIndex: 2, transform: 'translateY(-50px)' }}>
+      <div style={{ maxWidth: 1340, margin: '0 auto', height: '100%', display: 'flex', alignItems: 'center', padding: '0 32px', boxSizing: 'border-box', position: 'relative', zIndex: 2, transform: 'translateY(-80px)' }}>
       <div
         ref={containerRef}
         onMouseLeave={() => { cancelCollapse(); collapsePanel(); setHoveredIdx(null) }}
